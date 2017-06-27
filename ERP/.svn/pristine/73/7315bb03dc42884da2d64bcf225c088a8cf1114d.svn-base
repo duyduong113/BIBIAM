@@ -1,0 +1,50 @@
+﻿@using BIBIAM.Core
+@using BIBIAM.Core.Entities
+
+<script type="text/x-kendo-template" id="ReportPriceDetail">
+        @(Html.Kendo().Grid<Merchant_ReportPriceDetail>()
+                .Name("Grid")
+            .Columns(columns =>
+            {
+                
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'><i></a>").Width(50)
+                    .HtmlAttributes(new { @class = "text-center" })
+                    .ClientFooterTemplate("<span class='info-title'>Tổng :</span>");
+                columns.Bound(p => p.ma_san_pham).Width(100).Title("Mã Sản Phẩm").Format("{0:n0}").ClientFooterTemplate("<span class='pull-right'>\\#= kendo.format('{0:n0}',count )\\#</span>");
+                columns.Bound(p => p.ten_san_pham).Width(100).Title("Tên Sản Phẩm");
+                columns.ForeignKey(p => p.don_vi_tinh, (System.Collections.IEnumerable)ViewBag.units, "Value", "Name")
+                        .Title("Đơn vị tính").Width(80).HtmlAttributes(new { @class = "text-center editable" });
+                columns.Bound(p => p.don_gia).Width(100).Title("Đơn giá").Format("{0:n0}");
+                columns.Bound(p => p.so_luong).Width(100).Title("Số lượng").Format("{0:n0}").ClientFooterTemplate("<span class='pull-right'>\\#= kendo.format('{0:n0}',sum )\\#</span>");
+                columns.Bound(p => p.thanh_tien).Width(100).Title("Thành tiền").Format("{0:n0}").ClientFooterTemplate("<span class='pull-right'>\\#= kendo.format('{0:n0}',sum )\\#</span>");
+                columns.Bound(p => p.ghi_chu).Width(100).Title("Ghi chú");
+            })
+                    .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                    .Pageable()
+                    .Navigatable()
+                    .Scrollable()
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .HtmlAttributes(new { @class = "" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Events(events => { events.Change("change_grid"); })
+                        .Aggregates(aggregates =>
+                        {
+                        aggregates.Add(p => p.ma_san_pham).Count();
+                        aggregates.Add(p => p.so_luong).Sum();
+                        aggregates.Add(p => p.thanh_tien).Sum();
+                        })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.don_vi_tinh).DefaultValue("cai");
+                            model.Field(p => p.so_luong).DefaultValue(1);
+                        })
+                        .Read(c => c.Action("ReadDetail", "Merchant_ReportPrice", new { ma_bao_gia = "#=ma_bao_gia#" }))
+                    ).ToClientTemplate())
+</script>

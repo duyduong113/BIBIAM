@@ -1,0 +1,225 @@
+﻿@{
+    ViewBag.Title = "Hình ảnh";
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<link href="~/Scripts/css/custom.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<style>
+    .image_info {
+        float: left;
+        position: relative;
+        width: 204px;
+        height: 220px;
+        margin: 0 5px;
+        padding: 0;
+    }
+
+        .image_info img {
+            float: left;
+            width: 204px;
+            height: 204px;
+        }
+</style>
+
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row-fluid listview-left">
+        <div>
+            <div onclick='edit(this)' class="span4">
+                #if(logo_gian_hang=='default.png'){#
+                <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-border-box">
+                #} else {#
+                <img src="@Url.Content(" ~/Images/Merchant_Info/")#:logo_gian_hang#" class="img-border-box">
+                #}#
+            </div>
+        </div>
+        <div>
+            <div onclick='edit(this)' class="span6">
+                Gian hàng: #:ma_gian_hang# - #:ten_gian_hang#<br>
+                Website:  #:website#<br>
+                SĐT:  #:dien_thoai#<br>
+                Trạng thái duyệt:
+                #if(trang_thai_duyet == 'New'){#
+                <span>Chờ duyệt</span>
+                #}if(trang_thai_duyet == 'Approved'){#
+                <span>Đã duyệt</span>
+                #}if(trang_thai_duyet == 'Rejected'){#
+                <span>Từ chối duyệt</span>
+                #}#
+                <br>
+                Trạng thái xuất bản:
+                #if(trang_thai_xuat_ban == 'CHUA_XUAT_BAN'){#
+                <span>Chưa xuất bản</span>
+                #}if(trang_thai_xuat_ban == 'DA_XUAT_BAN'){#
+                <span>Đã xuất bản</span>
+                #}#<br>
+                Địa chỉ: #:dia_chi_tru_so#<br>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="imageID">
+    <div>
+        <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-border-box">
+    </div>
+</script>
+<div class="row-fluid">
+    <div class="span4">
+        <div class="row-fluid">
+            <div class="box-search">
+                <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;">Gian Hàng</h4>
+                <div class="input-search">
+                    <span class="icon-in-search"><i class="fa fa-search"></i></span>
+                    <input class="pull-right" style="border-radius: 25px!important;margin-bottom: 15px!important;" id="txtProdInfoName"
+                           type="text" onkeyup="Search(this)" placeholder="Search...">
+
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_Info>()
+            .Name("Grid")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Merchant_Info"));
+                dataSource.PageSize(4);
+            })
+            .Events(events => { events.DataBound("dataBound"); })
+            .Pageable()
+            )
+        </div>
+    </div>
+    <div class="span8">
+        @Html.Partial("info")
+    </div>
+</div>
+<div>
+    @*@Html.Partial("_popup_Edit");*@
+</div>
+
+<script>
+    var idSelected = 0;
+    function itemSelected(e) {
+        $(".listview-left").removeClass("selected");
+        $(e).closest(".listview-left").addClass("selected");
+    }
+
+    function dataBound(e) {
+        var grid = $("#Grid").data("kendoListView");
+        var gridData = grid.dataSource.view();
+        if (gridData.length > 0) {
+            if (idSelected == 0) {
+                onBindDataToForm(gridData[0]);
+            }
+            else {
+                for (var i = 0; i < gridData.length; i++) {
+                    var currentUid = gridData[i].uid;
+                    if (gridData[i].id == idSelected) {
+                        onBindDataToForm(gridData[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    function dataBoundImage(e) {
+        dataBound(e)
+    }
+
+    function onBindDataToForm(dataItem) {
+        $("#ma_gian_hang").val(dataItem.ma_gian_hang)
+
+        if ($("#ma_gian_hang").val() != "" && $("#ma_gian_hang").val() != null) {
+            $.ajax({
+                url: r + "/Merchant_Image/GetImageBySP",
+                type: 'POST',
+                data: { ma_gian_hang: $("#ma_gian_hang").val() },
+                async: false,
+                beforeSend: function (jqXHR, PlainObject) {
+
+                },
+                success: function (data, textStatus, jqXHR) {
+                    //uncheck all
+                    $("#GridImage").find("input:checkbox").each(function () {
+                        $(this).prop('checked', false);
+                    });
+
+                    for (var i = 0; i < data.data.length ; i++) {
+                        $("#GridImage").find("input:checkbox:unchecked").each(function () {
+                            if ($(this).val() == data.data[i].ma_anh_goc) {
+                                $(this).prop('checked', true);
+                                
+                            }
+                        });
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+
+                }
+            });
+        }
+
+        //if ($("#ma_gian_hang").val() != "" && $("#ma_gian_hang").val() != null) {
+        //    $.post(r + "/Merchant_Image/GetImageBySP", { ma_gian_hang: $("#ma_gian_hang").val() }, function (data) {
+        //        if (data.success) {
+
+        //            if (data.data.length == 0)
+        //                $("#GridImage").find("input:checkbox").each(function () {
+        //                    $(this).attr('checked', false);
+        //                });
+        //            else {
+        //                for (var i = 0; i < data.data.length ; i++) {
+        //                    $("#GridImage").find("input:checkbox").each(function () {
+        //                        if ($(this).val() == data.data[i].ma_anh_goc) {
+        //                            $(this).attr('checked', true);
+        //                        }
+        //                        else {
+        //                            $(this).attr('checked', false);
+        //                        }
+
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    });
+        //}
+
+    }
+
+    function edit(e) {
+        idSelected = 0;
+        var dataItem = $("#Grid").data("kendoListView").dataItem($(e).closest(".listview-left"));
+        onBindDataToForm(dataItem);
+        itemSelected(e);
+        idSelected = dataItem.id;
+    }
+
+
+    function Update() {
+        var ma_gian_hang = $("#ma_gian_hang").val()
+
+        if (ma_gian_hang == "") {
+            alertBox("Báo lỗi!", "Vui lòng chọn sản phẩm.", false, 3000);
+            return;
+        }
+        var listrowid = "";
+        $("#GridImage").find("input:checkbox:checked").each(function () {
+            listrowid += $(this).val() + '@@@@';
+        });
+
+        if (listrowid != null && listrowid != "") {
+            $.post(r + "/Merchant_Image/Update", { ma_gian_hang: ma_gian_hang, data: listrowid, }, function (data) {
+                if (data.success) {
+                    alertMessage("Thành công!", " Cập nhật thành công", true, 3000)
+                }
+                else {
+                    alertMessage("Báo lỗi! ", data.message, false, 3000)
+                }
+            });
+
+        }
+    }
+</script>

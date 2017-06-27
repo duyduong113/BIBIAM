@@ -1,0 +1,15 @@
+﻿@{
+    Layout = null;
+}
+<div class="controls">
+    <select name="ProductCode" id="ProductCode" onchange="changeProduct()" class='chosen-select' data-placeholder="Chọn sản phẩm">
+        @foreach (var item in ViewBag.listProduct)
+        {
+            <option value="@item.PKProduct"> @item.Name </option>
+        }
+    </select>
+</div>
+
+<script type="text/javascript">
+    $(".chosen-select").chosen();
+</script>

@@ -1,0 +1,151 @@
+﻿<div class="span12">
+    <div class="span12">
+        <div class="box-search">
+            <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;margin-bottom: 15px!important;">Thông tin ảnh</h4>
+        </div>
+    </div>
+    <div class="span12">
+        <form id="frm" action="@Url.Action("Upsert", "Image_Info")" enctype="multipart/form-data" method="POST">
+            <div class="span6">
+                <div class="span12">
+                    <div class="span6">
+                        <input id="id" name="id" type="hidden" />
+                        <label>Mã thông tin ảnh</label>
+                        <input id="ma_thong_tin_anh" name="ma_thong_tin_anh" class="span10" type="text" style="font-weight:bold; color:red;" readonly />
+                    </div>
+                    <div class="span6">
+                        <label>Tên ảnh</label>
+                        <input class="span10" id="ten_anh" name="ten_san_pham" class="ten_san_pham" />
+                    </div>
+                </div>
+                <div>
+                    <div class="span6">
+                        <label>Loại</label>
+                        <input class="span10" id="loai" name="loai" />
+                    </div>
+                    <div class="span6">
+                        <label>URL</label>
+                        <input class="span10" id="url" name="url" />
+                    </div>
+                </div>
+                <div>
+                    <div class="span6">
+                        <label>Dung lượng</label>
+                        <input class="span10" id="dung_luong" name="dung_luong" />
+                    </div>
+                    <div class="span6">
+                        <label>Kích thước</label>
+                        <input class="span10" id="kich_thuoc" name="kich_thuoc" />
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="span6">
+                        <label>Trạng thái</label>
+                        <select id="trang_thai" name="trang_thai">
+                            @foreach (var item in ViewBag.listStatus)
+                            {
+                                <option value="@item.ParamID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="span6">
+                        <label>Trạng thái duyệt</label>
+                        <select id="trang_thai_duyet" name="trang_thai_duyet">
+                            @foreach (var item in ViewBag.listStatusDuyet)
+                            {
+                                <option value="@item.ParamID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>                
+                <div>
+                    <label>Mô tả</label>
+                    <textarea id="mo_ta" name="mo_ta" class="span11" style="overflow:hidden; word-wrap:break-word; resize:vertical; height:52px;"></textarea>
+                </div>
+                <div>
+                    <label>Mô tả không dấu</label>
+                    <textarea id="mo_ta" name="mo_ta_khong_dau" class="span11" style="overflow:hidden; word-wrap:break-word; resize:vertical; height:52px;"></textarea>
+                </div>
+                <div>
+                    <div class="span6">
+                        <label>Ngày tạo:</label>
+                        <input id="ngay_tao" name="ngay_tao" class="format-right span10 date-picker"/>
+                    </div>
+                    <div class="span6">
+                        <label>Người tạo</label>
+                        <input id="nguoi_tao" name="nguoi_tao" class="span10" placeholder="Default Text" />
+                    </div>
+                </div> 
+                <div>
+                    <div class="span6">
+                        <label>Ngày duyệt:</label>
+                        <input id="ngay_duyet" name="ngay_duyet" class="format-right span10 date-picker" />
+                    </div>
+                    <div class="span6">
+                        <label>Người duyệt</label>
+                        <input id="nguoi_duyet" name="nguoi_duyet" class="span10" placeholder="Default Text" />
+                    </div>
+                </div>
+                              
+            </div>
+            <div class="span6">
+                <div class="span12 img-border-box">
+                    <div class="span12"></div>
+                    <div class="span11">
+                        <img id="img-url" src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-circle" />
+                    </div>
+                    <div class="span12" style="height:8px;"></div>
+                    <div class="row-fluid span11">
+                        <input type="file" style="border-radius: 12px!important; height:auto!important" name="file" />
+                    </div>
+                </div>
+
+                <div class="span12">                   
+                    <div>
+                        <div class="span6">
+                            <label>Ngày cập nhật</label>
+                            <input id="ngay_cap_nhat" name="ngay_cap_nhat" class="format-right span10 date-picker" />
+                        </div>
+                        <div class="span6">
+                            <label>Người cập nhật</label>
+                            <input id="nguoi_cap_nhat" name="nguoi_cap_nhat" class="span10" placeholder="Default Text" />
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="span12">
+                    <div class="span6">
+                        <label>Ngày xuất bản</label>
+                        <input id="ngay_xuat_ban" name="ngay_xuat_ban" class="format-right span10 date-picker" />
+                    </div>
+                    <div class="span6">
+                        <label>Người xuất bản</label>
+                        <input id="nguoi_xuat_ban" name="nguoi_xuat_ban" class="span10" placeholder="Default Text" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="span12">
+        <div class="span4 pull-right" style="z-index:99999;margin-bottom: 10px!important;margin-top: 10px!important;">
+            <a class="btn btn-primary btn-small btn-circle" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                @Resources.Multi.btnSave
+            </a>
+            <a class="btn btn-success btn-small btn-circle" onclick="Create()" href="javascript:void(0)" id="">
+                @Resources.Multi.Add
+            </a>
+            @*<a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                    Hủy thay đổi
+                </a>
+            *@
+            @if (ViewBag.Delete)
+            {
+                <a class="btn btn-danger btn-small btn-circle" href="javascript:void(0)" onclick="showConfirmPopup(1)" id="btnGridDelete">
+                    @Resources.Multi.Delete
+                </a>
+            }
+        </div>
+    </div>
+</div>
+

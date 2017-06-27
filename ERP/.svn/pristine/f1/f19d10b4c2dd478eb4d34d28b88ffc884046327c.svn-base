@@ -1,0 +1,12 @@
+﻿@(Html.Kendo().DropDownListFor(m => m)
+.OptionLabel("Chọn...")
+.DataValueField("ten_vi_tri")
+.DataTextField("ten_vi_tri")
+.Filter("contains")
+.DataSource(dataSource =>
+{
+    dataSource.Read(read => read.Action("ReadWarehouseLocation", "Merchant_Warehouse").Data("filterWarehouse"))
+    .ServerFiltering(false);
+})
+)
+@Html.ValidationMessageFor(m => m)

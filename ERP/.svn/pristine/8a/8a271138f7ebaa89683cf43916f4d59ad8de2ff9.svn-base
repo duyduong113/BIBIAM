@@ -1,0 +1,35 @@
+﻿<div id="popup-add-rows" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:300px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Thêm dòng</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Số lượng dòng</label>
+                            <input id="add_rows" name="add_rows" class="form-control input-sm max100" type="text"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default btn-small" onclick="create_rows()">Tạo</a>
+                    <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function create_rows() {
+        var rows = $("#add_rows").val();
+        $('#popup-add-rows').modal('hide');        
+        while (rows > 0 && rows <= 100) {
+            $("#StockOutGrid").data("kendoGrid").dataSource.insert()
+            rows--;
+        }               
+    }
+</script>
+

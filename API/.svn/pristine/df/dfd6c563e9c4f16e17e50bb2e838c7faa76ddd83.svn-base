@@ -1,0 +1,95 @@
+﻿using System.Web;
+using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System.IO;
+using System.Drawing;
+using System;
+using System.Security.AccessControl;
+using System.Security.Principal;
+
+namespace BIBIAM.Core
+{
+    public class AzureHelper
+    {
+        private static string newCacheSettings = "public, max-age=7776000"; // 3 months
+        public string UploadFile(string ContainerName, string FileName, string FullFilePath)
+        {
+            string link = "";
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+                                                 CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(StringHelper.convertToUnSign3(ContainerName.ToLower()));
+            container.CreateIfNotExists();
+            container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(FileName);
+            using (var fileStream = System.IO.File.OpenRead(FullFilePath))
+            {
+                blockBlob.UploadFromStream(fileStream);
+                blockBlob.Properties.CacheControl = newCacheSettings;
+                blockBlob.SetProperties();
+            }
+
+            //foreach (IListBlobItem item in container.ListBlobs(null, false))
+            foreach (IListBlobItem item in container.ListBlobs(FileName, true, BlobListingDetails.None, null, null))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+                    //Console.WriteLine("Block blob of length {0}: {1}", blob.Properties.Length, blob.Uri);
+                    if (blob.Name == FileName)
+                    {
+                        return blob.Uri.AbsoluteUri;
+                    }
+
+                }
+            }
+            return link;
+        }
+
+        public string UploadImageToAzure(string FolderName, System.Web.HttpPostedFileBase file, string UserName, ref string LocalPath)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            string refix = "[" + fileName + "]_" + UserName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
+            string extension = Path.GetExtension(file.FileName);
+            var img = Image.FromStream(file.InputStream, true, true);
+            string FolderPath = System.Web.HttpContext.Current.Server.MapPath("~/Images/" + FolderName + "/");
+            LocalPath = Path.Combine("~/OtherFile/" + FolderName, refix + extension);
+
+            var destinationPath = Path.Combine(FolderPath, refix);
+            if (!Directory.Exists(FolderPath))
+            {
+                Directory.CreateDirectory(FolderPath);
+            }
+            DirectoryInfo dInfo = new DirectoryInfo(FolderPath);
+            DirectorySecurity dSecurity = dInfo.GetAccessControl();
+            dSecurity.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+            dInfo.SetAccessControl(dSecurity);
+            destinationPath += extension;
+            img.Save(destinationPath);
+            return new AzureHelper().UploadFile(FolderName, refix + extension, destinationPath);
+        }
+
+        public string UploadFileToAzure(string FolderName, System.Web.HttpPostedFileBase file, string UserName, ref string LocalFolderPath, ref string LocalPath)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            string refix = "[" + fileName + "]_" + UserName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
+            string extension = Path.GetExtension(file.FileName);
+            LocalFolderPath = "~/OtherFile/" + FolderName + "/";
+            string FolderPath = System.Web.HttpContext.Current.Server.MapPath(LocalFolderPath);
+            LocalPath = Path.Combine("~/OtherFile/" + FolderName, refix + extension);
+            var destinationPath = Path.Combine(FolderPath, refix);
+            if (!Directory.Exists(FolderPath))
+            {
+                Directory.CreateDirectory(FolderPath);
+            }
+            DirectoryInfo dInfo = new DirectoryInfo(FolderPath);
+            DirectorySecurity dSecurity = dInfo.GetAccessControl();
+            dSecurity.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+            dInfo.SetAccessControl(dSecurity);
+            destinationPath += extension;
+            file.SaveAs(destinationPath);
+            return new AzureHelper().UploadFile(FolderName, refix + extension, destinationPath);
+        }
+    }
+}

@@ -1,0 +1,179 @@
+﻿using ServiceStack.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using CMS.Models;
+
+namespace CMS.Models
+{
+    public class Users
+    {
+        [AutoIncrement]
+        public Int64 id { get; set; }
+        [StringLengthAttribute(255)]
+        public string name { get; set; }
+        [StringLengthAttribute(255)]
+        public string fullName { get; set; }
+        [StringLengthAttribute(255)]
+        public string email { get; set; }
+        [StringLengthAttribute(50)]
+        public string phone { get; set; }
+        [StringLengthAttribute(50)]
+        public string gender { get; set; }
+        public DateTime? birthday { get; set; }
+        [StringLengthAttribute(1000)]
+        public string address { get; set; }
+        public Int64 country { get; set; }
+        public Int64 city { get; set; }
+        public Int64 district { get; set; }
+        [StringLengthAttribute(255)]
+        public string imagesPublicId { get; set; }
+        //public tw_ImagesSize imagesSize { get; set; }
+        public DateTime registerAt { get; set; }
+        public bool active { get; set; }
+        public DateTime? activatedAt { get; set; }
+        public DateTime? lastLoginTime { get; set; }
+        public string lastLoginIP { get; set; }
+        public string vendorAuth { get; set; }
+        [StringLengthAttribute(128)]
+        public string userKey { get; set; }
+        [StringLengthAttribute(50)]
+        public string extension { get; set; }
+        public DateTime createdAt { get; set; }
+        [StringLengthAttribute(255)]
+        public string createdBy { get; set; }
+        public DateTime? updatedAt { get; set; }
+        [StringLengthAttribute(255)]
+        public string updatedBy { get; set; }
+        //[StringLengthAttribute(255)]
+        //public string ma_gian_hang { get; set; }
+        [StringLengthAttribute(255)]
+        public string homePage { get; set; }
+        public string companycode { get; set; }
+
+        [Ignore]
+        public string namePhone
+        {
+            get
+            {
+                return fullName + (phone != null ? " (" + phone + ")" : "N/A");
+            }
+        }
+
+        [Ignore]
+        public List<Int64> groups { get; set; }
+        [Ignore]
+        public List<Int64> showrooms { get; set; }
+
+        [Ignore]
+        public List<Int64> listGroup
+        {
+            get
+            {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    return dbConn.GetFirstColumn<Int64>("SELECT groupId FROM UserInGroup where userId =" + id);
+                }
+            }
+        }
+
+        [Ignore]
+        public List<Int64> listShowroom
+        {
+            get
+            {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    return dbConn.GetFirstColumn<Int64>("SELECT showroomId FROM tw_UserInShowroom where userId =" + id);
+                }
+            }
+        }
+
+        //all access
+        [Ignore]
+        public List<AccessDetail> listAccess
+        {
+            get
+            {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    var data = new List<AccessDetail>();
+                    data = dbConn.Select<AccessDetail>("SELECT * FROM AccessDetail WHERE groupId IN (SELECT groupId FROM UserInGroup where userId =" + id + ")");
+                    return data;
+                }
+            }
+        }
+    }
+
+    [Alias("User")]
+    //public class User_API
+    //{
+    //    [AutoIncrement]
+    //    public Int64 id { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string name { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string fullName { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string email { get; set; }
+    //    [StringLengthAttribute(50)]
+    //    public string phone { get; set; }
+    //    [StringLengthAttribute(50)]
+    //    public string gender { get; set; }
+    //    public DateTime? birthday { get; set; }
+    //    [StringLengthAttribute(1000)]
+    //    public string address { get; set; }
+    //    public Int64 country { get; set; }
+    //    public Int64 city { get; set; }
+    //    public Int64 district { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string imagesPublicId { get; set; }
+    //    public tw_ImagesSize imagesSize { get; set; }
+    //    public DateTime registerAt { get; set; }
+    //    public bool active { get; set; }
+    //    public DateTime? activatedAt { get; set; }
+    //    public DateTime? lastLoginTime { get; set; }
+    //    public string lastLoginIP { get; set; }
+    //    public string vendorAuth { get; set; }
+    //    [StringLengthAttribute(128)]
+    //    public string userKey { get; set; }
+    //    [StringLengthAttribute(50)]
+    //    public string extension { get; set; }
+    //    public DateTime createdAt { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string createdBy { get; set; }
+    //    public DateTime? updatedAt { get; set; }
+    //    [StringLengthAttribute(255)]
+    //    public string updatedBy { get; set; }
+
+    //    [StringLengthAttribute(255)]
+    //    public string homePage { get; set; }
+    //}
+
+    public class User_Json
+    {
+        public Int64 id { get; set; }
+        public string name { get; set; }
+    }
+
+    public class tw_User_Json1
+    {
+        public Int64 id { get; set; }
+        public string fullName { get; set; }
+    }
+
+    public class User_Get
+    {
+        public string name { get; set; }
+        public string fullName { get; set; }
+        public string email { get; set; }
+        public string phone { get; set; }
+        public string gender { get; set; }
+        public bool active { get; set; }
+       // public tw_ImagesSize imagesSize { get; set; }
+    }
+}

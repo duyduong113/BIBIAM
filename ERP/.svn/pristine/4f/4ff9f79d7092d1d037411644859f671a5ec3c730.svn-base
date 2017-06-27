@@ -1,0 +1,3222 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Ticket>
+
+@{
+    ViewBag.Title = "Ticket";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    var listStatus = new List<Object>();
+    listStatus.Add(new { Value = "True", Name = "Active" });
+    listStatus.Add(new { Value = "False", Name = "Inactive" });
+    ViewBag.listStatus = listStatus;
+
+    var listPriority = new List<Object>();
+    listPriority.Add(new { Value = "TPRI002", Name = "Medium" });
+    listPriority.Add(new { Value = "TPRI003", Name = "High" });
+    listPriority.Add(new { Value = "TPRI001", Name = "Urgent" });
+    ViewBag.listPriority = listPriority;
+
+    var listImpact = new List<Object>();
+    listImpact.Add(new { Value = "TIMP001", Name = "Low" });
+    listImpact.Add(new { Value = "TIMP002", Name = "Medium" });
+    listImpact.Add(new { Value = "TIMP003", Name = "High" });
+    ViewBag.listImpact = listImpact;
+
+    var isDevice = Request.Browser.IsMobileDevice;
+    var isTablet = Request.UserAgent.Contains("Android") && !isDevice;
+}
+
+
+<style>
+    .nav-tabs.background-blue {
+     padding-top: 0px!important; 
+     background-color: none!important; 
+     border: none!important; 
+    }
+    .nav-tabs.padding-12 {
+        padding-left: 0px;
+        padding-bottom: 3px;
+    }
+    .k-window {
+        width: 550px;
+    }
+
+    .field-validation-error {
+        margin-left: 120px !important;
+    }
+
+    .btnwidth {
+        width: 70px;
+    }
+
+    .divstyle1 .chosen-choice {
+        height: 200px !important;
+    }
+
+    .divstyle1 .chosen-drop {
+        height: 200px !important;
+    }
+
+    .divstyle1 .chosen-results {
+        height: 150px !important;
+    }
+
+    .k-popup-edit-form {
+        overflow: inherit !important;
+    }
+
+    .changewidth .chosen-container {
+        width: 1000px !important;
+    }
+
+    .k-grid-File {
+        min-width: 20px !important;
+        padding: 3px 3px !important;
+        margin-left: -3px !important;
+    }
+
+    .k-grid-edit {
+        min-width: 35px !important;
+        padding: 3px 3px !important;
+        margin-left: -3px !important;
+    }
+
+    .divgridhint {
+        position: absolute;
+        z-index: 10000;
+        width: 230px;
+        border: 1px solid;
+        border-color: #ABBAC3;
+        background-color: rgba(230, 230, 230, 0.8);
+        -moz-border-radius: 8px;
+    }
+
+
+
+    .dropdown-header {
+        /*font-size: 1.2em;*/
+        padding: 0px 0px;
+    }
+
+        .dropdown-header > span {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            text-align: left;
+            display: inline-block;
+            border-style: solid;
+            border-width: 0 0 1px 1px;
+            padding: .3em .6em;
+            width: 33%;
+        }
+
+
+
+
+
+    #CustomerID-list .k-item > span {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        display: inline-block;
+        border-style: solid;
+        border-width: 0 0 1px 1px;
+        vertical-align: top;
+        min-height: 27px;
+        width: 33%;
+        padding: .6em 0 0 .6em;
+        font-size: 11px;
+    }
+
+    #CustomerID-list .k-item {
+        padding: 0px 0px 0px 0px;
+    }
+
+    #CustomerID-list .k-state-hover {
+        padding: 0px 0px 0px 0px;
+    }
+    /*#txtPlateID-list .k-item > span:first-child {
+        width: 77px;
+        border-left-width: 0;
+        padding: .6em 0 0 0;
+    }*/
+    #CustomerID-list img {
+        -moz-box-shadow: 0 0 2px rgba(0,0,0,.4);
+        -webkit-box-shadow: 0 0 2px rgba(0,0,0,.4);
+        box-shadow: 0 0 2px rgba(0,0,0,.4);
+        width: 70px;
+        height: 70px;
+    }
+
+    #CustomerID-list h3 {
+        /*font-size: 1.6em;*/
+        margin: 0;
+        padding: 0;
+    }
+
+    #CustomerID-list p {
+        margin: 0;
+        padding: 0;
+    }
+
+    #CustomerID_listbox {
+        overflow-y: hidden !important;
+    }
+
+    .modal-footer {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+</style>
+<select name="select" id="listTypedata" style="display: none">
+    <option></option>
+    @foreach (var item in ViewBag.listTypeActive)
+    {
+        <option value="@item.TypeID">@item.Name</option>
+    }
+</select>
+
+
+<select name="select" id="listCategorydata" style="display: none">
+    <option selected value=""> Chọn nhóm yêu cầu</option>
+    @foreach (var item in ViewBag.listCategory)
+    {
+    <option value="@item.CategoryID">@item.Name</option>
+    }
+</select>
+
+
+
+<div class="row-fluid">
+    <div class="span12">
+        <form class="form-inline">
+            <div style="padding-bottom:3px">
+                <input class="span1" type="text" id="ticketidfilter" placeholder="Mã yêu cầu" value="@ViewBag.TicketID" style="width: 80px" onkeypress="filterkeypress1(event)" />
+
+                <input class="span1" type="text" id="titlefilter" placeholder="Tiêu đề, nội dung yêu cầu" style="width: 212px" onkeypress="filterkeypress1(event)" />
+
+
+                <select name="select" id="listCategory" data-placeholder="Nhóm yêu cầu" style="width: 180px" onchange="GetListTypeFilter()">
+                    <option selected value=""> Nhóm yêu cầu</option>
+                    @foreach (var item in ViewBag.listCategory)
+                    {
+                    <option value="@item.CategoryID">@item.Name</option>
+                    }
+                </select>
+                <select name="select" class="span1" id="typefilter" data-placeholder="Loại yêu cầu" style="width: 193px">
+                    <option selected value="">Loại yêu cầu</option>
+                </select>
+                <input class="span1" type="text" id="userfilter2" placeholder="Người yêu cầu" style="width: 100px" onkeypress="filterkeypress1(event)" />
+                <input class="span1" type="text" id="userfilter" placeholder="Người xử lý" style="width:100px" onkeypress="filterkeypress1(event)" />
+
+                <input type="text" name="date-range-picker span2" id="CreatedAtDate" placeholder="Ngày yêu cầu(từ-đến)" style="width: 130px;height:20px;" />
+                <button type="button" style="height: 30px; width:110px" id="btnSearch1" class="btn btn-primary btn-mini" onclick="filter1('')">@Resources.Multi.Filter</button>
+            </div>
+            <div>
+
+                <select name="select" id="Priorityfilter" class='chosen-select span2' data-placeholder="Độ ưu tiên" style="width: 120px" multiple>
+                    <option value="">All</option>
+                    @foreach (var item in ViewBag.listPriority)
+                    {
+                    <option value="@item.Value">@item.Name</option>
+                    }
+                </select>
+
+                <input class="span1" type="text" id="OrderFilter" placeholder="@Resources.Multi.OrderCode" style="width: 118px" onkeypress="filterkeypress1(event)" />
+
+                <select name="select" id="statusfilter" class='chosen-select span2' data-placeholder="Trạng thái" style="width: 600px" multiple>
+                    <option value="">@Resources.Multi.Status</option>
+
+                    <option value="Reopen" selected>Mở lại Y/C</option>
+                    <option value="Denied" selected>Từ chối</option>
+                    <option value="New" selected>@Resources.Multi.New</option>
+                    <option value="Assigned" selected>
+                        Đã phân công
+                    </option>
+                    <option value="Escalated" selected>
+                        Chuyển nhóm
+                    </option>
+                    <option value="Accepted" selected>
+                        Chấp nhận
+                    </option>
+                    <option value="WIP" selected>Đang xử lý</option>
+                    <option value="Resolved">Đã xử lý</option>
+                    <option value="Closed">Đóng Y/C</option>
+                    <option value="Cancelled">Hủy Y/C</option>
+
+                </select>
+
+                <input class="span1" type="text" id="customerfilter" placeholder="Email, điện thoại, tên khách hàng" style="width: 180px" onkeypress="filterkeypress1(event)" />
+                <button type="reset" style="height: 30px;width:110px" id="btnSearch1" class="btn btn-gray btn-mini" onclick="filter1('')">Bỏ điều kiện lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Ticket>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.RowID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id= '#=TicketID#'  onclick='checkhint(\"#=TicketID#\")'/>").Width(25).Filterable(false).Sortable(false);
+            columns.Command(command => { command.Edit().Text("Sửa").HtmlAttributes(new { @class = "btn btn-info" }); }).Width(43).Title("");
+            columns.Command(command => command.Custom("File").Click("showfile")).Width(47).Title("");
+            columns.Bound(p => p.TicketID).HtmlAttributes(new { data_createdat = "#=RowCreatedTime#", data_createdby = "#=RowCreatedUser#", data_passedtime = "#=PassedTime#", data_detail = "#:Detail#", data_title = "#:Title#", data_id = "#=TicketID#", data_status = "#=Status#", data_assignee = "#=Assignee#", data_requestor = "#=Requestor#", data_Owner = "#=Owner#", onclick = "showTicketDetail(this)", @style = "text-decoration: underline;cursor: pointer" }).Title("Mã y/c").Width(70);
+            columns.Bound(p => p.Title).Width(150).Title(Resources.Multi.Title);
+            columns.Bound(p => p.Detail).Width(250).Title("Mô tả yêu cầu").ClientTemplate("#if(Detail.length>200){# #:Detail.substring(0,200)#... #}else{# #:Detail# #}#");
+            columns.Bound(p => p.CustomerExpectationTimeLine).Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title("Thời gian KH Y/C");
+            columns.Bound(p => p.PassedTime).Format("{0:N0}").Title("Đã qua(p)").Width(90);
+            columns.Bound(o => o.Status).Width(90).HtmlAttributes(new { @class = "ColumnStatus" }).Title(Resources.Multi.Status);
+            columns.ForeignKey(p => p.TypeID, (System.Collections.IEnumerable)ViewBag.listType, "TypeID", "Name").Title("Loại yêu cầu").Width(120);
+            columns.ForeignKey(p => p.Priority, (System.Collections.IEnumerable)ViewBag.listPriority, "Value", "Name").Width(75).Title("Ưu tiên");
+            columns.ForeignKey(p => p.Impact, (System.Collections.IEnumerable)ViewBag.listImpact, "Value", "Name").Width(95).Title("Ảnh hưởng");
+            columns.ForeignKey(p => p.RowCreatedUser, (System.Collections.IEnumerable)ViewBag.listAssignee, "UserName", "FullName").Width(90).Title(Resources.Multi.CreatedBy);
+            columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title(Resources.Multi.CreatedAt);
+            columns.Bound(p => p.LastActivities).Width(200).Title("Cập nhật cuối");
+            columns.Bound(p => p.LastComment).Width(200).Title("Bình luận cuối");
+            columns.Bound(p => p.CustomerID).Width(160).ClientTemplate("#=CustomerID#" + "-" + "#=CustomerName#").Title("Khách hàng");
+            columns.Bound(p => p.OrderID).Width(100).Title(Resources.Multi.OrderCode).ClientTemplate("<a href='https://mst.deca.vn/ocm2012/don_hang_201409/dsp_chi_tiet_1_don_hang?hdn_item_id=#=OrderLink#' target='_blank' style='pointer:cursor;'>#=OrderID#</a>");
+            //columns.ForeignKey(p => p.Merchant, (System.Collections.IEnumerable)ViewData["ListMerchant"], "PKMerchantID", "MerchantName").Title("NCC").Width(120);
+            columns.Bound(p => p.Carrier).Width(90).Title("ĐVVC");
+            columns.ForeignKey(p => p.Assignee, (System.Collections.IEnumerable)ViewBag.listAssignee, "UserName", "FullName").Width(100);
+            columns.ForeignKey(p => p.preAssignee, (System.Collections.IEnumerable)ViewBag.listAssignee, "UserName", "FullName").Width(100).Title("Assigned To");
+            columns.ForeignKey(p => p.Owner, (System.Collections.IEnumerable)ViewBag.listAssignee, "UserName", "FullName").Width(90);
+            columns.Bound(o => o.ResponseDeadline).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Hạn phản hồi");
+            columns.Bound(o => o.ResponseDate).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Phản hồi lúc");
+            columns.Bound(o => o.ResolveDeadline).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Hạn xử lý");
+            columns.Bound(o => o.ResolveDate).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Đã xử lý lúc");
+            columns.Bound(o => o.CloseDeadline).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Hạn đóng Y/C");
+            columns.Bound(o => o.CloseDate).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("Đóng Y/C lúc");
+            columns.ForeignKey(p => p.EscalateQueue, (System.Collections.IEnumerable)ViewBag.listQueue, "QueueID", "QueueName").Width(120).Title("EscalateQueue");
+            columns.ForeignKey(p => p.preEscalateQueue, (System.Collections.IEnumerable)ViewBag.listQueue, "QueueID", "QueueName").Width(130).Title("EscalateToQueue");
+            columns.Bound(o => o.RName).Width(110).Title("Nguồn Y/C");
+            columns.ForeignKey(o => o.RowLastUpdatedUser, (System.Collections.IEnumerable)ViewBag.listAssignee, "UserName", "FullName").Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title(Resources.Multi.UpdatedBy);
+            columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(100).Title(Resources.Multi.UpdatedAt);
+            columns.Bound(p => p.CategoryID).Hidden(true);
+            columns.Bound(p => p.IsEscalate).Hidden(true);
+            columns.Bound(p => p.IspreEscalate).Hidden(true);
+            columns.Bound(p => p.IsFollower).Hidden(true);
+            columns.Bound(p => p.IsQueue).Hidden(true);
+
+        })
+        .ToolBar(toolBar =>
+        {
+        toolBar.Template(@<text>
+            <div class="pull-left">
+                <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid" onclick="Create(this)">
+                    @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                </a>
+                <a class="btn btn-primary btn-small" id="btnAssignee" onclick="showAssignee()">
+                    @*<i class="icon-plus"></i>*@ Phân công
+                </a>
+                <a class="btn btn-inverse btn-small" id="btnAssignee" data-toggle="modal" onclick="showPPConfimrAccept()">
+                    @*<i class="icon-plus"></i>*@ Tiếp nhận
+                </a>
+                <a class="btn btn-success btn-small" id="btnAssignee" onclick="showEscalate()">
+                    @*<i class="icon-plus"></i>*@ Chuyển nhóm
+                </a>
+                <a class="btn btn-danger btn-small" id="btnAssignee" onclick="showDeny()">
+                    @*<i class="icon-plus"></i>*@ Từ chối
+                </a>
+                <a class="btn btn-warning btn-small" data-toggle="modal" onclick="showPPConfimrWIP()">
+                    @*<i class="icon-plus"></i>*@ Đang xử lý
+                </a>
+                <a class="btn btn-success btn-small" data-toggle="modal" onclick="showPPConfirmResolved()">
+                    @*<i class="icon-plus"></i>*@ Đã xử lý
+                </a>
+                <a class="btn btn-default btn-small" data-toggle="modal" onclick="showPPConfirmClosed()">
+                    @*<i class="icon-plus"></i>*@ Đóng Y/C
+                </a>
+                <a class="btn btn-info btn-small" data-toggle="modal" onclick="showPPConfirmClone()">
+                    @*<i class="icon-plus"></i>*@ Nhân bản
+                </a>
+                <a class="btn btn-pink btn-small" data-toggle="modal" onclick="showPPConfirmReopen()">
+                    @*<i class="icon-plus"></i>*@ Mở lại Y/C
+                </a>
+                <a class="btn btn-default btn-small" data-toggle="modal" onclick="showPPConfirmCancelled()">
+                    @*<i class="icon-plus"></i>*@ Hủy Y/C
+                </a>
+                <a class="btn btn-danger btn-small" id="btnDelete" data-toggle="modal" onclick="showPPConfimrDelete()">
+                    @*<i class="icon-plus"></i>*@ Xóa Y/C
+                </a>
+            </div>
+
+        </text>);
+        })
+        .Events(events => { events.DataBound("dataBound"); events.Edit("onEdit"); events.ColumnResize("resizeHintHeight"); })
+        .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+        .Navigatable()
+        .ColumnMenu()
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("TicketForm"))
+        .Sortable()
+        .Scrollable(scrollable => scrollable.Virtual(false))
+        .Filterable()
+        .AutoBind(false)
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.TicketID);
+            model.Field(p => p.TicketID).Editable(false);
+            model.Field(p => p.Priority).DefaultValue("TPRI002");
+            model.Field(p => p.Impact).DefaultValue("TIMP002");
+            model.Field(p => p.RowLastUpdatedTime).DefaultValue(DateTime.Now).Editable(false);
+            model.Field(p => p.RowLastUpdatedUser).Editable(false);
+            model.Field(p => p.RowCreatedTime).DefaultValue(DateTime.Now).Editable(false);
+        })
+        .Read("Ticket_Read", "CRMTicket")
+        .Update("Ticket_Update", "CRMTicket")
+        .Create("Ticket_Create", "CRMTicket")
+        )
+        )
+    </div>
+</div>
+@( Html.Kendo().Window().Name("FileAttachs")
+      .Title("File Attachs")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(800)
+)
+<script type="text/x-kendo-template" id="template">
+
+    <div id="details-container">
+        <p class="detail-popup-title" id="FileDetailTitle"></p>
+        <p class="detail-popup-description" style="max-height: 70px; overflow-y: scroll; overflow-x: hidden;" id="FileDetailDescription"></p>
+        <p class="detail-popup-createdtime" id="FileDetailCreatedBy"></p>
+        <input type="file" name="files" id="upload" />
+        <div id="gridfile"></div>
+
+    </div>
+</script>
+
+
+@* popup*@
+@( Html.Kendo().Window().Name("AssigneeWindow")
+      .Title("Phân công")
+      .HtmlAttributes(new { style = "overflow:inherit !important;" })
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(400)
+      .Content(@<text>
+        <form class="form-in">
+            <div style="padding 15px 0px 0px 25px;">
+                <select id="listassignee" style="height:22px"></select>
+                @*<button type="button" id="btnclosewindow1" class="btn btn-grey btn-small" onclick="closewindow1()">@Resources.Multi.Cancel</button>*@
+                <a id="btnassignee" class="btn btn-primary btn-small" onclick="assignto()">Phân công</a>
+            </div>
+
+        </form>
+
+    </text>
+      )
+)
+
+@( Html.Kendo().Window().Name("EscalateWindow")
+      .Title("Chuyển nhóm")
+      .HtmlAttributes(new { @class = "span12", @style = "width:100%;margin-left:0px;" })
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(500)
+      .Content(@<text>
+        <form class="form-inline">
+            <div class="row-fluid">
+                <select id="listqueue" onchange="GetListUserInQueue()" class="span12">
+                    <option value=''>Chọn Queue... </option>
+                    @foreach (var itemx in ViewBag.listQueue)
+                    {
+                        if (@itemx.Status == "True")
+                        {
+                    <option value="@itemx.QueueID">@itemx.QueueName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="row-fluid" style="margin-top:10px;">
+                <select id="listassignee_Escalate" class="span12">
+                    <option value=''>Chọn queue trước </option>
+                </select>
+            </div>
+        </form>
+        <div class="form-footer-custom">
+            <div class="pull-right" style="padding-right:15px">
+                <button type="button" class="btn btn-info btn-small " onclick="Escalateto()">
+                    <i class="icon-ok"></i>Lưu
+                </button>
+                <button type="button" id="pp-close" class="btn btn-default btn-small" onclick="closewindowEscalate()">
+                    @*<i class="icon-undo"></i>*@  Hủy
+                </button>
+
+            </div>
+        </div>
+    </text>
+      )
+)
+
+@( Html.Kendo().Window().Name("DenyWindow")
+      .Title("Lý do từ chối")
+      .Visible(false)
+      .HtmlAttributes(new { @class = "span12", @style = "width:100%;margin-left:0px;" })
+      .Modal(true)
+      .Draggable(true)
+      .Width(500)
+      .Content(@<text>
+        <form class="form-horizontal">
+            <div class="row-fluid">
+                <textarea id="denyreason" class="span12" placeholder="Lý do từ chối "></textarea>
+            </div>
+        </form>
+        <div class="form-footer-custom">
+            <div class="pull-right" style="padding-right:15px">
+                <button type="button" class="btn btn-info btn-small " onclick="Deny()">
+                    <i class="icon-ok"></i>Lưu
+                </button>
+                <button type="button" id="pp-close" class="btn btn-default btn-small" onclick="closewindow2()">
+                    @*<i class="icon-undo"></i>*@  Hủy
+                </button>
+
+            </div>
+        </div>
+    </text>
+                                                                                                                                                                                                                                                                                                                                                                                                                      )
+)
+<div id="confirm-delete-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Delete()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-accept-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn tiếp nhận các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Accept()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-wip-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn Xử lý các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="WIP()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-resolved-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn đã xử lý các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Resolved()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-closed-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn đóng các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Closed()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-clone-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn nhân bản các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Clone()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-reopen-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn mở lại các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Reopen()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="confirm-cancelled-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn hủy các ticket đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="Cancelled()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+
+@( Html.Kendo().Window().Name("ticketDetail")
+      .Title("Chi tiết thông tin")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(1000)
+)
+<script type="text/x-kendo-template" id="ticketDetailTemplate">
+    <div class="row" id="popupDetailTicket" style="margin:0 auto">
+
+        <div class="no-padding">
+            <form id="UserForm" class="form-horizontal" style="margin-bottom:0px" action="@Url.Content("~/User/Create")" method="POST">
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span10">
+                            <p class="detail-popup-title" id="DetailTitle"></p>
+                            <p style="max-height: 70px; overflow-y: scroll; overflow-x: hidden;" class="detail-popup-description" id="DetailDescription">
+                            </p>
+                            <p class="detail-popup-createdtime" id="DetailCreatedBy"></p>
+                        </div>
+                        <div class="span2">
+
+                            <a onclick="Merge('#=TicketID#')" class="btn btn-pink btn-mini pull-right" style="border-radius: 2px; margin: 3px 1px 0 0; width: 140px; text-align: left; ">
+                                <i class="icon-paste" style=" margin-left 5px;"></i> Gộp yêu cầu
+                            </a>
+                            <a onclick="SendEmail('#=TicketID#')" class="btn btn-primary btn-mini pull-right" style="border-radius: 2px; margin: 3px 1px 0 0; width: 140px; text-align: left; ">
+                                <i class="icon-envelope" style=" margin-left 5px;"></i> Gửi email
+                            </a>
+                            <div class="btn-group pull-right">
+                                <button data-toggle="dropdown" class="btn btn-info btn-small dropup-toggle" style="border-radius: 2px; margin: 3px 1px 0 0; ">
+                                    Chọn hành động xử lý <span class="caret"></span>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-info pull-right">
+                                    <li>
+                                        <a onclick="showAssignee('#=TicketID#')">Phân công</a>
+                                    </li>
+
+                                    <li>
+                                        <a onclick="Accept('#=TicketID#')">Tiếp nhận</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="showDeny('#=TicketID#')">Từ chối</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="showEscalate('#=TicketID#')">Chuyển nhóm</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="WIP('#=TicketID#')">Đang xử lý</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="Resolved('#=TicketID#')">Đã xử lý</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="Closed('#=TicketID#')">Đóng Y/C</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="Reopen('#=TicketID#')">Mở lại Y/C</a>
+                                    </li>
+                                  
+
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row-fluid">
+                        <ul id="myTab1" class="nav nav-tabs padding-12 tab-color-blue">
+                            <li class="active">
+                                <a href="\\#s1" data-toggle="tab">Hoạt động</a>
+                            </li>
+                            <li>
+                                <a href="\\#s3" data-toggle="tab">Bình luận</a>
+                            </li>
+                            <li>
+                                <a href="\\#s4" data-toggle="tab">Email</a>
+                            </li>
+                            <li>
+                                <a href="\\#s2" data-toggle="tab">Logs</a>
+                            </li>
+                        </ul>
+                        <div id="myTabContent1" class="tab-content padding-10">
+                            <div class="tab-pane fade in active" id="s1" style="max-height:300px">
+                                @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Ticket_Activities>()
+        .Name("Grid2_#=TicketID#")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Activities).Width(600);
+            columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("CreatedAt");
+            columns.Bound(o => o.RowCreatedUser).Width(110).Title("CreatedBy");
+            columns.Bound(p => p.RowID).Hidden(true);
+        })
+        .ToolBar(toolBar =>
+        {
+            if (!isDevice)
+            {
+                toolBar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none"), @class = "btn btn-success" });
+                toolBar.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") });
+            }
+            else
+            {
+                toolBar.Create().HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") }).Text("Add");
+                toolBar.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") }).SaveText("Save").CancelText("Cancel");
+            }
+
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .HtmlAttributes(new { @style = "height:250px" })
+
+        .Events(events => { events.DataBound("dataBound2"); events.Edit("onEdit2"); })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(6)
+        .Batch(true)
+        .Model(model =>
+        {
+            model.Id(p => p.RowID);
+            model.Field(p => p.RowCreatedTime).Editable(false);
+            model.Field(p => p.RowCreatedUser).Editable(false);
+        })
+        .Events(events => { events.Error("error_handler2"); events.RequestEnd("onRequestEnd2"); })
+        .Read(read => read.Action("Activities_Read", "CRMTicket", new { TicketID = "#=TicketID#" }))
+        .Create("Activities_Create", "CRMTicket", new { TicketID = "#=TicketID#" })
+        .Update("Activities_Update", "CRMTicket", new { TicketID = "#=TicketID#" })
+        )
+        .Pageable(pager => pager
+        .PageSizes(new[] { 20, 100, 200, 300 }))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+        .ToClientTemplate())
+                            </div>
+                            <div class="tab-pane fade" id="s3" style="max-height:300px">
+                                @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Ticket_Comment>()
+        .Name("Grid3_#=TicketID#")
+        .Columns(columns =>
+        {
+
+            columns.Bound(o => o.Comment).Width(600);
+            columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("CreatedAt");
+            columns.Bound(o => o.RowCreatedUser).Width(110).Title("CreatedBy");
+            columns.Bound(p => p.RowID).Hidden(true);
+        })
+        .ToolBar(toolBar =>
+        {
+            if (!isDevice)
+            {
+                toolBar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                toolBar.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") });
+            }
+            else
+            {
+                toolBar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") }).Text("Add");
+                toolBar.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") }).SaveText("Save").CancelText("Cancel");
+            }
+
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+                        .HtmlAttributes(new { @style = "height:250px" })
+        .Events(events => { events.DataBound("dataBound3"); events.Edit("onEdit3"); })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(6)
+        .Batch(true)
+        .Model(model =>
+        {
+            model.Id(p => p.RowID);
+            model.Field(p => p.RowCreatedTime).Editable(false);
+            model.Field(p => p.RowCreatedUser).Editable(false);
+        })
+        .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd3"); })
+        .Read(read => read.Action("Comment_Read", "CRMTicket", new { TicketID = "#=TicketID#" }))
+        .Create("Comment_Create", "CRMTicket", new { TicketID = "#=TicketID#" })
+        .Update("Comment_Update", "CRMTicket", new { TicketID = "#=TicketID#" })
+        )
+        .Pageable(pager => pager
+        .PageSizes(new[] { 20, 100, 200, 300 }))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+        .ToClientTemplate())
+                            </div>
+                            <div class="tab-pane fade" id="s2" style="max-height:300px">
+                                @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Ticket_Log>()
+        .Name("Grid4_#=TicketID#")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Activites).Width(600);
+            columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(180).Title("CreatedAt");
+            columns.Bound(o => o.RowCreatedUser).Width(110).Title("CreatedBy");
+        })
+
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(6)
+        .Read(read => read.Action("Log_Read", "CRMTicket", new { TicketID = "#=TicketID#" }))
+        )
+                .HtmlAttributes(new { @style = "height:250px" })
+        .Pageable(pager => pager
+        .PageSizes(new[] { 5, 10, 20, 100, 200, 300 }))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+        .ToClientTemplate())
+                            </div>
+                            <div class="tab-pane fade" id="s4" style="max-height:300px">
+                                @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Ticket_Email>()
+        .Name("Grid5_#=TicketID#")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.EmailTo).Title("Gửi đến").Width(150);
+            columns.Bound(o => o.CCTo).Title("CC").Width(150);
+            columns.Bound(o => o.Subject).Title(Resources.Multi.Title).Width(250);
+            columns.Bound(o => o.EmailContent).Title(Resources.Multi.Content).Width(600);
+            columns.Bound(o => o.CreatedAt).Format("{0:HH:mm dd/MM/yyyy}").Width(140).Title(Resources.Multi.CreatedAt);
+            columns.Bound(o => o.CreatedBy).Width(100).Title(Resources.Multi.CreatedBy);
+        })
+
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(6)
+        .Read(read => read.Action("Email_Read", "CRMTicket", new { TicketID = "#=TicketID#" }))
+        )
+        .HtmlAttributes(new { @style = "height:250px" })
+        .Pageable(pager => pager
+        .PageSizes(new[] { 5, 10, 20, 100, 200, 300 }))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+        .ToClientTemplate())
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+                <div class="form-actions" style="padding-left:0px">
+                    <div class="control-group">
+                        <label class="control-label">Follower(s)</label>
+                        <div class="controls">
+                            <input type="text" name="tags" id="Follower_#=TicketID#" value="" onchange="ChangeFollower('#=TicketID#')" placeholder="Nhập người theo dõi ..." />
+                            <a class="btn btn-success btn-mini" onclick="ChangeFollower('#=TicketID#')">Cập nhật</a>
+                        </div>
+                    </div>
+                </div>
+                @*<button type="button" id="btnSave" class="btn btn-success btn-lg">Lưu</button>*@
+            </form>
+        </div>
+    </div>
+
+</script>
+
+@(Html.Kendo()
+      .Window()
+      .Name("EmailWindow")
+      .Title("Gửi Email")
+      .Content(@<text>
+        <form action="@Url.Content("~/CRMTicket/SendEmail")" method="post" id="SendEmailForm" class="form-inline">
+            <input type="hidden" name="TicketID" />
+            <div class="row-fluid">
+                <label>Gửi đến (mỗi Email cách nhau bằng dấu chấm phẩy ';')</label>
+                <input class="span12" name="EmailTo" placeholder="Gửi đến" />
+            </div>
+            <div class="row-fluid">
+                <label>Gửi CC (mỗi Email cách nhau bằng dấu chấm phẩy ';')</label>
+                <input class="span12" name="CCTo" placeholder="Gửi CC" />
+            </div>
+            <div class="row-fluid">
+                <label>Tiêu đề</label>
+                <input class="span12" name="Subject" id="EmailSubject" placeholder="Tiêu đề" />
+            </div>
+            <div class="row-fluid" style="display:inline-flex">
+                <label style="margin-right:10px">Đính kèm tập tin</label>
+                <input type="file" id="FileUploads" name="FileUploads" multiple />
+            </div>
+            <div class="row-fluid">
+                <label>@Resources.Multi.Content</label>
+                @(Html.Kendo().Editor()
+                .HtmlAttributes(new { style = "height:200px;" })
+      .Name("EmailContent")
+                )
+            </div>
+            <div class="row-fluid" style=" margin 10px 0px 10px 0;">
+                <span id="EmailTitle" style="font-weight:bold"></span>
+                <br />
+                <div style="max-height: 100px; overflow-y: scroll; overflow-x: hidden;" id="EmailDescription"></div>
+            </div>
+            <div class="row-fluid" style="margin-top:5px;">
+                <button class="btn btn-small btn-success pull-right" style="margin-left:3px;" type="submit" id="btnSendEmail">Gửi email</button>
+                <a onclick="$('#EmailWindow').data('kendoWindow').close()" class="btn btn-small btn-grey pull-right">@Resources.Multi.Cancel</a>
+            </div>
+        </form>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Modal(true)
+    .Visible(false)
+    .Width(1000)
+    .Actions(actions => actions.Close())
+
+
+)
+
+@( Html.Kendo().Window().Name("MergeWindow")
+      .Title("Gộp")
+      .HtmlAttributes(new { style = "overflow:inherit !important;" })
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(400)
+)
+
+<script type="text/x-kendo-template" id="MergeTemplate">
+    @using (Html.BeginForm("MergeTicket", "CRMTicket", FormMethod.Post, new { @class = "form-inline", id = "MergeTicketForm", style = "margin:0;" }))
+    {
+        <div>
+            <input type="hidden" value="#=TicketID#" name="MergeTicket" />
+            @(Html.Kendo().AutoComplete()
+                              .Name("ToTicketID")
+                                .DataTextField("TicketID")
+                                  .DataSource(source =>
+                                  {
+                                      source.Read(read =>
+                                      {
+                                          read.Action("LoadTicketIDSuggest", "Ticket").Data("onAdditionalDataTicket");
+                                      }).ServerFiltering(true);
+                                  })
+                                   .HtmlAttributes(new { style = "font-size:13px;width:100%;" })
+                                    .Events(e => e.Select("loadTicketDetailMerge"))
+                                  .Filter("containts")
+                                  .MinLength(2)
+                                  .Height(370)
+                              .Placeholder("Mã ticket")
+                              .Template("\\#=TicketID\\# - \\#=Title\\#")
+                              .ToClientTemplate()
+            )
+            <p class="detail-popup-title" id="MergeDetailTitle"></p>
+            <p class="detail-popup-description" style="max-height: 70px; overflow-y: scroll; overflow-x: hidden;" id="MergeDetailDescription"></p>
+            <button type="submit" class="btn btn-primary btn-small" id="btnMergeTicket">Đồng nhất</button>
+            <a class="btn btn-grey btn-small" onclick="$('\\#MergeWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+        </div>
+    }
+</script>
+
+<script>
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    $("#typefilter").chosen();
+    $("#statusfilter").chosen();
+    $("#Priorityfilter").chosen();
+    $("#Impactfilter").chosen();
+    $("#MOPRegionfilter").chosen();
+    $("#listCategory").chosen();
+    $('#CreatedAtDate').daterangepicker({
+        format: 'YYYY/MM/DD'
+    });
+
+    function ChangeFollower(ticketid) {
+        var follower = $('#Follower_' + ticketid).val();
+        $.post(r + "/CRMTicket/ChangeFollower/", { TicketID: ticketid, Follower: follower }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '@Resources.Multi.Success',
+                    text: 'Thay đổi người theo dõi thành công.',
+                    class_name: 'gritter-success'
+                });
+            } else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function onAdditionalDataTicket() {
+        return {
+            TicketID: $("#ToTicketID").val(),
+        };
+    }
+    function loadTicketDetailMerge(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#MergeDetailTitle").text(dataItem.Title);
+        $("#MergeDetailDescription").text(dataItem.Detail);
+    }
+    var currentuser = "@ViewBag.currentuser";
+    var listTypeCanUpdateAll = "@ViewBag.listTypeCanUpdateAll";
+    var ViewOption = "@ViewBag.ViewOption";
+    var AllowUpdate = "@AllowUpdate";
+    $(document).ready(function () {
+        if ('@isDevice' == "True") {
+            $('.icon-chevron-up').click();
+        }
+        //$(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        $(".k-grid-content").attr("onscroll", "resizeHintLeft()");
+        if (ViewOption == 'MyTicket') {
+            $("#userfilter").val(currentuser);
+            filter1("");
+        }
+        else if (ViewOption == 'AssignToMe') {
+            filter1("AssignToMe");
+        }
+        else if (ViewOption == 'AssignToQueue') {
+            filter1("AssignToQueue");
+        }
+        else if (ViewOption == 'MyCreatedTicketWIP') {
+            filter1("MyCreatedTicketWIP");
+        }
+        else if (ViewOption == 'MyCreatedTicketResolved') {
+            filter1("MyCreatedTicketResolved");
+        }
+        else {
+            filter1("");
+        }
+    });
+
+
+    function onAdditionalData() {
+        return {
+            Phone: $("#CustomerID").val(),
+        };
+    }
+
+    function dataBound(e) {
+        drawcolor();
+
+        if ('@isDevice' == "False") {
+            resizeGrid();
+            var grid = this;
+            var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+           .options.parameterMap({
+               page: grid.dataSource.page(),
+               sort: grid.dataSource.sort(),
+               filter: grid.dataSource.filter()
+           });
+            //  Get the export link as jQuery object
+            //var $exportLink = grid.element.find('.export');
+            //var href = $exportLink.attr('href');
+            //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            //$exportLink.attr('href', href);
+        }
+
+
+        $("#checkboxcheckAll").prop('checked', false);
+        var g = $("#Grid").data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+
+        $('.k-icon.k-edit').remove();
+        $('[data-rel=popover]').popover({
+            html: true,
+            content: function () {
+                var element = $(this);
+                console.log(element[0].innerText);
+                return $.ajax({
+                    url: r + '/Home/getUserInfo',
+                    dataType: 'html',
+                    data: { username: element[0].innerText },
+                    type: 'post',
+                    async: false,
+                    success: function () {
+                    }
+                }).responseText;
+            }
+        });
+
+        $('html').on('click', function (e) {
+            if (typeof $(e.target).data('original-title') == 'undefined' &&
+               !$(e.target).parents().is('.popover.in')) {
+                $('[data-original-title]').popover('hide');
+            }
+        });
+        inithint();
+    }
+    //minhtc: hint ---------------------------------------------------
+    function inithint() {
+        // grid hint
+        $(".divgridhint").remove();
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $("#Grid .k-grid-content").scrollTop(0);
+        $.each(data, function (i, row) {
+            if (row.TicketID != "") {
+                var html = "<div id='divgridhint_" + row.TicketID + "' class='divgridhint'>";
+                html += "<input style='text-align:center' class='checkrowid_hint' type='checkbox' id='" + row.TicketID + "_hint' onclick='checkgrid(\"" + row.TicketID + "\")'> ";
+                var rowuid = $('[data-uid="' + row.uid + '"]');
+                if ($(rowuid).find('a:contains(Edit)').length > 0) {
+                    html += " <a href='#' onclick='hintedit(\"" + row.uid + "\")'><b>Edit </b></a> - ";
+                }
+
+                // to mau do neu qua deadline
+                var now = new Date();
+                var ticketIDBlock = '';
+                if (row.Status == "New" && row.ResponseDeadline < now) {
+                    ticketIDBlock = "<b style='color:red;'> " + row.TicketID + "</b>";
+                }
+                else if ((row.Status == "WIP" || row.Status == "Accepted" || row.Status == "Denied-WIP" || row.Status == "Escalated" || row.Status == "Assigned" || row.Status == "Reopen") && row.ResolveDeadline < now) {
+                    ticketIDBlock = "<b style='color:red;'> " + row.TicketID + "</b>";
+                }
+                else if (row.Status == "Resolve" && row.CloseDeadline < now) {
+                    ticketIDBlock = "<b style='color:red;'> " + row.TicketID + "</b>";
+                }
+                else {
+                    // to mau cam neu con 15p den deadline
+                    now = new Date(now.getTime() + 15 * 60000)
+
+                    if ((row.Status == "New" || row.Status == "Denied") && row.ResponseDeadline < now) {
+                        ticketIDBlock = "<b style='color:#e59729;'> " + row.TicketID + "</b>";
+                    }
+                    else if ((row.Status == "WIP" || row.Status == "Accepted" || row.Status == "Denied-WIP" || row.Status == "Escalated" || row.Status == "Assigned" || row.Status == "Reopen") && row.ResolveDeadline < now) {
+                        ticketIDBlock = "<b style='color:#e59729;'> " + row.TicketID + "</b>";
+                    }
+                    else if (row.Status == "Resolve" && row.CloseDeadline < now) {
+                        ticketIDBlock = "<b style='color:#e59729;'> " + row.TicketID + "</b>";
+                    }
+                }
+
+                //status block
+                var statusBlock = ''
+                if (row.Status == "New") {
+                    statusBlock = "<b style='color:rgb(246, 211, 211);'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "WIP") {
+                    statusBlock = "<b style='color:#87b87f;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Resolved") {
+                    statusBlock = "<b style='color:#2283c5;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Closed") {
+                    statusBlock = "<b style='color:#a0a0a0;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Cancelled") {
+                    statusBlock = "<b style='color:#ffb752;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Reopen") {
+                    statusBlock = "<b style='color:#EE0F33;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Denied" || row.Status == "Denied-WIP") {
+                    statusBlock = "<b style='color:#d15b47;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Accepted") {
+                    statusBlock = "<b style='color:#6fb3e0;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Assigned") {
+                    statusBlock = "<b style='color:#555;'>[" + row.Status + "]</b>"
+                }
+                else if (row.Status == "Escalated") {
+                    statusBlock = "<b style='color:#C962DD;'>[" + row.Status + "]</b>"
+                }
+
+                html += ticketIDBlock + " - " + row.Title + " " + statusBlock + "</div>";
+                $(".k-grid-content").append(html);
+                $("#divgridhint_" + row.TicketID).css("top", ($("#" + row.TicketID).closest("td").position().top) + "px");
+                $("#divgridhint_" + row.TicketID).height($("#" + row.TicketID).closest("td").outerHeight() - 1);
+            }
+        });
+
+        $(".divgridhint").css("left", 0).css("display", "none");
+
+
+    }
+    function resizeHintLeft() {
+        //administrator
+        //if (currentuser != 'administrator') {
+        var l = $(".k-grid-content").scrollLeft();
+        if (l > 200) {
+            $(".divgridhint").css("left", l).fadeIn(500);
+        }
+        else {
+            $(".divgridhint").css("left", 0).fadeOut(500);
+        }
+        //}
+    }
+    function resizeHintTop() {
+        setTimeout(function () {
+            var data = $("#Grid").data("kendoGrid").dataSource.data();
+            $.each(data, function (i, row) {
+                $("#divgridhint_" + row.TicketID).css("top", ($("#" + row.TicketID).closest("td").position().top) + "px");
+            });
+        }, 200);
+
+    }
+    function resizeHintHeight() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            $("#divgridhint_" + row.TicketID).css("top", ($("#" + row.TicketID).closest("td").position().top) + "px");
+            $("#divgridhint_" + row.TicketID).height($("#" + row.TicketID).closest("td").outerHeight() - 5);
+        });
+    }
+    function checkgrid(ticketid) {
+        var x = $("#" + ticketid + "_hint").prop('checked');
+        $("#" + ticketid).prop('checked', x);
+    }
+    function checkhint(ticketid) {
+        var x = $("#" + ticketid).prop('checked');
+        $("#" + ticketid + "_hint").prop('checked', x);
+    }
+    function hintedit(uid) {
+        $('[data-uid="' + uid + '"]').find('a:contains(Edit)').click();
+    }
+
+    /// end hint
+    function dataBound2(e) {
+
+        var griddata2 = $("#Grid2_" + curunitid).data("kendoGrid").dataSource.data();
+        if (griddata2.length > 0) {
+            var lastact = griddata2[0].Activities;
+            var griddata = $("#Grid").data("kendoGrid").dataSource.data();
+            $.each(griddata, function (i, row) {
+                if (row.TicketID == curunitid) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnlastactivities + ')').html(lastact);
+                }
+            });
+        }
+
+        resizeHintTop();
+    }
+    function dataBound3(e) {
+
+        var griddata3 = $("#Grid3_" + curunitid).data("kendoGrid").dataSource.data();
+        if (griddata3.length > 0) {
+            var lastact = griddata3[0].Comment;
+            var griddata = $("#Grid").data("kendoGrid").dataSource.data();
+            $.each(griddata, function (i, row) {
+                if (row.TicketID == curunitid) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnlastcomment + ')').html(lastact);
+                }
+            });
+        }
+
+        resizeHintTop();
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+
+    }
+
+    var isnew;
+    var curAssignee;
+    var curpreAssignee;
+    var curcustomerid;
+    var ticketstatus;
+    var btnpopupedit;
+    var IsAddNew = 0;
+    function checkcustomer() {
+        //if (IsAddNew == 1) {
+        //    $.gritter.add({
+        //        title: '',
+        //        text: "Please wail for some second",
+        //        class_name: 'gritter-error'
+        //    });
+        //    return;
+        //}
+        IsAddNew = 1;
+        $.post(r + "/CRMTicket/Ticket_CheckCustomer?CustomerID=" + $("#CustomerID").val() + "&TypeID=" + $("#TypeID").val() + "&OrganizationID=''", function (data) {
+            if (data.success) {
+                if (data.message != null && data.message != "") {
+
+                    var c = confirm(data.message);
+                    if (c == true) {
+                        $("#CustomerID").val(data.CustomerID);
+                        $("#CustomerID").trigger('change');
+                        btnpopupedit.click();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: "CustomerID not exist",
+                            class_name: 'gritter-error'
+                        });
+                        IsAddNew = 0;
+                        return;
+                    }
+                }
+                else {
+                    btnpopupedit.click();
+                }
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+                IsAddNew = 0;
+            }
+        });
+    }
+    function onEdit(e) {
+
+        IsAddNew = 0;
+        //  $("#TypeID").html($("#listTypedata").html());
+        $("#Priority").html($("#listPrioritydata").html());
+        //$("#Impact").html($("#listImpactdata").html());
+        $('#Follower').removeAttr('name');
+        $("#Category").html($("#listCategorydata").html());
+        //$("#preAssignee").html($("#listAssigneedata").html());
+        btnpopupedit = $('.k-grid-update:contains(Update)');
+        btnpopupcancel = $('.k-grid-cancel:contains(Cancel)');
+        if (e.model.isNew() == true) {
+            isnew = true;
+            $('.k-window-title:contains(Edit)').html("Tạo mới yêu cầu");
+            $(btnpopupedit).css("display", "none");
+            $(btnpopupedit).after('<a class="k-grid-cancel btn btn-small btn-grey" href="#">@Resources.Multi.Cancel</a>');
+
+            $(btnpopupcancel).css("display", "none");
+            $(btnpopupcancel).after('<a style="margin-left:3px; margin-right:50px" class="k-button-icontext btn btn-small btn-success" href="#" onclick = "checkcustomer()" id="btncheckcustomer"></span>Tạo @Resources.Multi.New</a>');
+
+            $("#Impact").val('TIMP002');
+            $("#Priority").val('TPRI002');
+            if ('@isTablet' == "False" && '@isDevice' == "False") {
+                $("#Category").chosen();
+                $("#Category" + "_chosen").css('width', '84%');
+                $("#TypeID").chosen();
+                $("#TypeID" + "_chosen").css('width', '84%');
+                //$("#Priority").chosen();
+                //$("#Priority" + "_chosen").css('width', '84%');
+                //$("#Impact").chosen();
+                //$("#Impact" + "_chosen").css('width', '84%');
+            }
+            // $("#preAssignee").val(currentuser);
+        }
+        else {
+            isnew = false;
+            $(btnpopupedit).css("display", "none");
+            $('.k-window-title:contains(Edit)').html("Cập nhật yêu cầu");
+            $(btnpopupedit).after('<a class="k-grid-cancel btn btn-small btn-grey" href="#">@Resources.Multi.Cancel</a>');
+            $(btnpopupcancel).css("display", "none");
+            $(btnpopupcancel).after('<a style="margin-left:3px; margin-right:50px" class="k-button-icontext btn btn-small btn-success" href="#" onclick = "checkcustomer()">Cập nhật</a>');
+
+            ticketstatus = e.model.Status;
+            if (!((e.model.Status == 'New' || e.model.Status == 'Denied') && e.model.Requestor == currentuser)) {
+                $("#Title").attr("disabled", "True");
+                $("#Detail").attr("disabled", "True");
+                $("#CustomerID").attr("disabled", "True");
+            }
+            if (e.model.Status != 'New' && e.model.Status != 'Denied') {
+                $("#Category").attr("disabled", "True");
+                $("#TypeID").attr("disabled", "True");
+            }
+            if (e.model.Status != 'New' && e.model.Status != 'Denied') {
+                $("#Impact").attr("disabled", "True");
+                $("#Priority").attr("disabled", "True");
+            }
+            $("#Impact").val(e.model.Impact);
+            $("#Priority").val(e.model.Priority);
+            $("#Category").val(e.model.CategoryID);
+            curpreAssignee = e.model.preAssignee;
+            curAssignee = e.model.Assignee;
+            curcustomerid = e.model.CustomerID;
+            getlisttype(e.model.TypeID);
+
+
+        }
+
+        // $("#preAssignee").chosen();
+        $(".k-window").css("top", "50px");
+        // $(".k-popup-edit-form").css("overflow", "inherit");
+        e.container.data("kendoWindow").bind("deactivate", function () {
+            drawcolor("Grid");
+            checkhint(e.model.TicketID);
+        })
+    }
+    function onEdit2(e) {
+        if (e.model.isNew() != true) {
+            $("#Grid2_" + curunitid).data("kendoGrid").closeCell();
+        }
+
+    }
+    function onEdit3(e) {
+        if (e.model.isNew() != true) {
+            $("#Grid3_" + curunitid).data("kendoGrid").closeCell();
+        }
+
+    }
+    function getlisttype(typeid) {
+        var cat = $("#Category").val();
+        if (cat != null && cat != "") {
+            $.post(r + "/Ticket/Ticket_GetType", { categoryid: cat }, function (data) {
+                if (!data.Errors) {
+
+                    var html = " <option selected class='k-invalid' value='' requirecustomerid='' requireorderid=''> Chọn loại yêu cầu...</option>";
+                    $.each(data.Data, function (i, row) {
+                        html += "<option value='" + row.TypeID + "' requirecustomerid='" + row.RequireCustomerID + "' requireorderid ='" + row.RequireOrderID + "'>" + row.Name + "</option>";
+                    });
+                    $("#TypeID").html("");
+                    $("#TypeID").append(html);
+                    $('#TypeID').trigger("chosen:updated");
+
+                    if (typeid != '') {
+                        $("#TypeID option[value='" + typeid + "']").attr('selected', true);
+                        $('#TypeID').trigger("chosen:updated");
+                        getlistassignee();
+                    }
+                }
+            });
+
+        }
+    }
+    function GetListTypeFilter() {
+        var cat = $("#listCategory").val();
+        if (cat != null && cat != "") {
+            $.post(r + "/Ticket/Ticket_GetType", { categoryid: cat }, function (data) {
+                if (!data.Errors) {
+                    var html = "<option value=''>Chọn loại yêu cầu...</option>";
+                    $.each(data.Data, function (i, row) {
+                        html += "<option value='" + row.TypeID + "' >" + row.Name + "</option>";
+                    });
+                    $("#typefilter").html(html);
+                    $("#typefilter").chosen('destroy').chosen();
+
+                }
+            });
+
+        }
+    }
+    function getlistassignee() {
+        //   $('#TypeID').nextAll().remove();
+        //if ($('#TypeID option:selected').attr('RequireCustomerID') == "True") {
+        //    $('#TypeID').after("<br/> <b style='color:red'>This Type need insert CustomerID</b>")
+        //}
+        //if ($('#TypeID option:selected').attr('RequireOrderID') == "True") {
+        //    $('#TypeID').after("<br/> <b style='color:red'>This Type need insert OrderID</b>")
+        //}
+        var type = $("#TypeID").val();
+        if (type != null && type != "") {
+            $.post(r + "/CRMTicket/Ticket_GetListAssignee", { typeid: type }, function (data) {
+                if (!data.Errors) {
+                    if ((isnew == false && (((ticketstatus == 'WIP' || ticketstatus == 'Reopen' || ticketstatus == 'Denied-WIP' || ticketstatus == 'Assigned' || ticketstatus == 'Escalated' || ticketstatus == 'Accepted') && currentuser == curAssignee || (checkviewbuttonedit($('#TypeID').val()) == true)) || (ticketstatus == 'New' && data.Owner == currentuser))) || (isnew == true && data.Owner == currentuser)) {
+                        // html = ' <select style="width:270px;"  id="preAssignee" name="preAssignee" data-bind="value:preAssignee" class=" k-invalid chosen-select span2" data-placeholder="Select User...">';
+                        var html = '<option> </option>';
+                        html += '<option value =""> Not Assignee </option>';
+                        $.each(data.Data, function (i, row) {
+                            html += "<option value='" + row.Name + "'>" + row.Name + "</option>";
+                        });
+                        // html += "</select>";
+                        $("#preAssignee").html(html);
+                        if (isnew == false && curpreAssignee != "") {
+                            $("#preAssignee").val(curpreAssignee);
+                        }
+                        $("#divpreAssignee").css("display", "inline-block");
+                        $("#preAssignee").chosen();
+                        $("#preAssignee_chosen").css("width", "172%");
+                        $("#preAssignee").trigger("chosen:updated");
+                    }
+                    else {
+                        $("#divpreAssignee").css("display", "none");
+                    }
+                }
+            });
+
+        }
+    }
+
+    function checkviewbuttonedit(TypeID) {
+        if (listTypeCanUpdateAll == null) {
+            return false;
+        }
+        if (listTypeCanUpdateAll.indexOf(TypeID) > -1) {
+            return true;
+        }
+        return false;
+    }
+    // phan quyen va to mau
+    var columneditbtn = 2;
+    var columnfile = 3;
+    var columnticketid = 4;
+    var columndetail = 6;
+    var columnstatus = 9;
+    var columnlastactivities = 15;
+    var columnlastcomment = 16;
+    var columnCustomerRequestTime = 7;
+    function drawcolor() {
+        $('.k-icon.k-edit').remove();
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $("td").filter(function () {
+            return $(this).text() === "00:00 01/01/1900";
+        }).html('');
+        // $('td:contains("01/01/1900")').html('');
+        $.each(data, function (i, row) {
+            // $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columndetail + ')').text(row.Detail);
+            // to mau status
+            try {
+                if (row.Status == "New") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Mới").css("background-color", "rgb(246, 211, 211)");
+                }
+                else if (row.Status == "WIP") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Đang xử lý").css("background-color", "#87b87f").css("color", "white");
+                }
+                else if (row.Status == "Resolved") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Đã xử lý").css("background-color", "#2283c5").css("color", "white");
+                }
+                else if (row.Status == "Closed") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Đóng Y/C").css("background-color", "#a0a0a0").css("color", "white");
+                }
+                else if (row.Status == "Cancelled") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Hủy Y/C").css("background-color", "#ffb752").css("color", "white");
+                }
+                else if (row.Status == "Reopen") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Mở lại Y/C").css("background-color", "#EE0F33").css("color", "white");
+                }
+                else if (row.Status == "Denied" || row.Status == "Denied-WIP") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Từ chối").css("background-color", "#d15b47").css("color", "white");
+                }
+                else if (row.Status == "Accepted") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Tiếp nhận").css("background-color", "#6fb3e0").css("color", "white");
+                }
+                else if (row.Status == "Assigned") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Phân công").css("background-color", "#555").css("color", "white");
+                }
+                else if (row.Status == "Escalated") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').text("Chuyển nhóm").css("background-color", "#C962DD").css("color", "white");
+                }
+                // phan quyen  nut edit va file attach
+                // hien tai chi nguoi duoc assignee moi dc edit + upload
+                //if (row.Status == "New" && currentuser == row.preAssignee){
+
+                //    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').html("<span style = 'font-weight:bold; color:red'> NEW</span>");
+                //}
+                //else
+                if (!(row.Status == "New" && (currentuser == row.Requestor || row.IsQueue == 'True'))) {
+                    if (!(row.Status != "New" && row.Status != "Cancelled" && row.Status != "Closed" && row.Status != "Resolved" && (currentuser == row.Assignee))) {
+                        if (!(row.Status != "Cancelled" && row.Status != "Closed" && row.Status != "Resolved" && row.Status != "Denied" && (checkviewbuttonedit(row.TypeID) == true))) {
+                            if (!(row.Status == "Denied" && currentuser == row.Requestor)) {
+                                $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').html("");
+                            }
+                        }
+                    }
+                }
+
+                if (currentuser == row.preAssignee) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').html("<span style = 'font-weight:bold; color:red'> NEW</span>");
+                }
+                if (row.preAssignee == "" && row.Status == 'Escalated' && row.IspreEscalate == "True") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').html("<span style = 'font-weight:bold; color:red'> NEW</span>");
+                }
+                //else {
+                //    if (row.Assignee != row.preAssignee) {
+                //        $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').children().css("background-color", "#ACF0A2");
+                //    }
+                //    if (row.TypeID =='') {
+                //        $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columneditbtn + ')').children().css("background-color", "Red").css("color", "#fff");
+                //    }
+
+                //}
+                if (row.FileNumber > 0) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnfile + ')').children(1).html("File<b style='color:red'>(" + row.FileNumber + ")</b>");
+                }
+                else {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnfile + ')').children(1).html("File<b>(" + row.FileNumber + ")</b>");
+                }
+                // to mau do neu qua deadline
+                var now = new Date();
+                if (row.Status == "New" && row.ResponseDeadline < now) {
+
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "red").css("color", "white");
+                }
+                else if ((row.Status == "WIP" || row.Status == "Accepted" || row.Status == "Denied-WIP" || row.Status == "Escalated" || row.Status == "Assigned" || row.Status == "Reopen") && row.ResolveDeadline < now) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "red").css("color", "white");
+                }
+                else if (row.Status == "Resolve" && row.CloseDeadline < now) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "red").css("color", "white");
+                }
+                else {
+                    // to mau cam neu con 15p den deadline
+                    now = new Date(now.getTime() + 15 * 60000)
+
+                    if ((row.Status == "New" || row.Status == "Denied") && row.ResponseDeadline < now) {
+
+                        $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "#e59729").css("color", "white");
+                    }
+                    else if ((row.Status == "WIP" || row.Status == "Accepted" || row.Status == "Denied-WIP" || row.Status == "Escalated" || row.Status == "Assigned" || row.Status == "Reopen") && row.ResolveDeadline < now) {
+                        $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "#e59729").css("color", "white");
+                    }
+                    else if (row.Status == "Resolve" && row.CloseDeadline < now) {
+                        $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnticketid + ')').css("background-color", "#e59729").css("color", "white");
+                    }
+                }
+
+                //to mau cho columnCustomerRequestTime
+                if (row.Status != "Resolve" && kendo.toString(row.CustomerExpectationTimeLine, "yyyy") != "1900" && row.CustomerExpectationTimeLine < now) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnCustomerRequestTime + ')').css("background-color", "red").css("color", "white");
+                }
+            }
+            catch (err) {
+            }
+
+        });
+    }
+
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+        $('#Grid').find(".k-grid-content .checkrowid_hint").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+
+
+    function error_handler(e) {
+        if (e.errors) {
+            e.preventDefault();
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+    function error_handler2(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+    function error_handler3(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+
+    var expandedRow;
+    var curunitid;
+    var curuid;
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#Grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#Grid').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.TicketID;
+        curuid = masterDataItem.uid;
+        if (!((masterDataItem.Status == 'WIP' || masterDataItem.Status == 'Reopen' || masterDataItem.Status == 'Denied-WIP' || masterDataItem.Status == 'Escalated' || masterDataItem.Status == 'Assigned' || masterDataItem.Status == 'Accepted') && (masterDataItem.Assignee == currentuser || masterDataItem.Requestor == currentuser || masterDataItem.Owner == currentuser))) {
+            $("#Grid2_" + curunitid + " .k-grid-toolbar").css("display", "none");
+        }
+        resizeHintTop();
+        loaddatafollower();
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Cập nhật @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "destroy" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Xóa bỏ @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Tạo mới @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        // if (e.response.allowsendremind != null &&e.response.allowsendremind == 1) {
+        //    userremind.server.send(e.response.listusersend, e.response.message);
+        //}
+    }
+
+    function onRequestEnd2(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Cập nhật @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid2_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Tạo mới @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid2_" + curunitid).data("kendoGrid").dataSource.read();
+
+            var griddata = $("#Grid").data("kendoGrid").dataSource.data();
+            $.each(griddata, function (i, row) {
+                if (row.Status == 'New' && row.TicketID == curunitid) {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(12)').html("WIP").css("background-color", "#87b87f").css("color", "white");
+                }
+            });
+
+        }
+    }
+
+
+    function onRequestEnd3(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Cập nhật @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid3_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                text: 'Tạo mới @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid3_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function WIP(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        } if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket.',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+
+            $.post(r + "/CRMTicket/WIP", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: '',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Chuyển thành xử lý ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-wip-pp').modal('hide');
+            });
+
+        }
+    }
+
+    function Resolved(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+
+            $.post(r + "/CRMTicket/Resolved", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Hoàn thành ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-resolved-pp').modal('hide');
+            });
+
+        }
+    }
+
+    function Closed(ticketid) {
+
+        var listrowid = '';
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        } if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.post(r + "/CRMTicket/Closed", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Đóng ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-closed-pp').modal('hide');
+            });
+        }
+    }
+
+    function Cancelled(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+                $.post(r + "/CRMTicket/Cancelled", { data: listrowid }, function (data) {
+                    if (data.error > 0) {
+                        $.gritter.add({
+                            title: "@Resources.Multi.Error",
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                    if (data.success > 0) {
+                        $.gritter.add({
+                            title: '@Resources.Multi.Success',
+                            text: 'Hủy bỏ ' + data.success + ' ticket',
+                            class_name: 'gritter-success'
+                        });
+                    }
+
+                    // $("#window1").data("kendoWindow").close();
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#confirm-cancelled-pp').modal('hide');
+                });
+
+        }
+    }
+
+
+    function Accept(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.post(r + "/Ticket/Accept", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Chấp nhận thành công ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (data.error == 0 && data.success == 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: 'Chấp nhận thất bại',
+                        class_name: 'gritter-error'
+                    });
+                }
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-accept-pp').modal('hide');
+            });
+        }
+
+    }
+
+    function Deny(ticketid) {
+        denyreason = $("#denyreason").val();
+        if (denyreason == '') {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Ghi lý do từ chối.',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        closewindow2();
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.post(r + "/CRMTicket/Deny", { data: listrowid, denyreason: denyreason }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Từ chối thành công ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (data.error = 0 && data.success) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: 'Từ chối không @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-error'
+                    });
+                }
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+            });
+        }
+    }
+
+
+
+    function assignto(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        var assignee = $("#listassignee").val();
+        if (assignee == null || assignee == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn người thực hiện',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.post(r + "/CRMTicket/Assign", { data: listrowid, UserName: assignee, typeid: typeassign }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Phân công thành công ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+
+                    //userremind.server.send(data.listusersend, 'newticket');
+                }
+                if (data.success == 0 && data.error == 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: 'Không thể phân công ticket',
+                        class_name: 'gritter-error'
+                    });
+                }
+                $("#AssigneeWindow").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+            });
+        }
+    }
+
+
+    function Delete() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-pp').modal('hide');
+        }
+        else {
+            $.post(r + "/CRMTicket/Delete", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa thành công ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-pp').modal('hide');
+            });
+        }
+    }
+    function Merge(ticketid) {
+        var data = {
+            TicketID: ticketid,
+        };
+        var wnd = $('#MergeWindow').data("kendoWindow");
+        var MergeTemplate = kendo.template($("#MergeTemplate").html());
+        wnd.content(MergeTemplate(data));
+        wnd.center().open();
+        $('#MergeTicketForm').validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnMergeTicket").attr("disabled", "disabled");
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Hợp thể thành công!",
+                                class_name: 'gritter-success',
+                            });
+                            $('#MergeWindow').data('kendoWindow').close();
+                            $("#Grid").data("kendoGrid").dataSource.read();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnMergeTicket").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+    }
+    function Reopen(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.post(r + "/CRMTicket/Reopen", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Mở lại thành công ' + data.success + ' ticket',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-reopen-pp').modal('hide');
+            });
+
+        }
+    }
+
+
+    function Clone() {
+        var listrowid = '';
+        var check;
+        var total = 0;
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                check = $(this).attr("id");
+                total++;
+            }
+        });
+        if (total > 1) {
+            alert("Chỉ có thể mở 1 ticket 1 lần");
+        }
+        else {
+            $.post(r + "/CRMTicket/Clone", { data: check }, function (data) {
+
+                if (!data.success) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: data.message,
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-clone-pp').modal('hide');
+            });
+
+        }
+    }
+    function filterkeypress1(e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter1("");
+        }
+    }
+    function SendEmail(TicketID) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var wnd = $('#EmailWindow').data('kendoWindow');
+        wnd.center().open();
+        $.post(r + '/Ticket/GetDetailTicket/', { TicketID: TicketID }, function (data) {
+            if (data.success) {
+                $('#SendEmailForm input[name="EmailTo"]').val(data.requestor);
+                $('#SendEmailForm input[name="CCTo"]').val(data.follower.join(";"));
+            }
+        });
+        $('#SendEmailForm input[name="TicketID"]').val(TicketID);
+        $("#EmailTitle").text($('#DetailTitle').text());
+        $("#EmailSubject").val("RE: " + $('#DetailTitle').text());
+        $("#EmailDescription").text($('#DetailDescription').text());
+        $('#SendEmailForm').validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnSendEmail").attr("disabled", "disabled");
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Gửi mail thành công!",
+                                class_name: 'gritter-success',
+                            });
+                            $('#EmailWindow').data('kendoWindow').close();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnSendEmail").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+    }
+
+    $('#NoteSpan').popover({ container: 'body', html: true });
+    function filter1(filteroption) {
+
+
+        grid = $("#Grid").data("kendoGrid");
+
+
+        var ticketidfilter = $('#ticketidfilter').val();
+        var titlefilter = $('#titlefilter').val();
+        var customerfilter = $('#customerfilter').val();
+        var catfilter = $('#listCategory').val();
+
+        var listtype = $("#typefilter option:selected");
+        var listuser = $("#userfilter").val();
+        var listuser2 = $("#userfilter2").val();
+        var liststatus = $("#statusfilter option:selected");
+        var listPriority = $("#Priorityfilter option:selected");
+        var listImpact = $("#Impactfilter option:selected");
+        var CreatedAtDate = $('#CreatedAtDate').val();
+        var orderFilter = $("#OrderFilter").val();
+
+
+        var filter = { logic: "and", filters: [] };
+        var filtertype = { logic: "or", filters: [] };
+        var filtertitle = { logic: "or", filters: [] };
+        var filteruser = { logic: "or", filters: [] };
+        var filteruser2 = { logic: "or", filters: [] };
+        var filterstatus = { logic: "or", filters: [] };
+        var filtercustomer = { logic: "or", filters: [] };
+        var filterPriority = { logic: "or", filters: [] };
+        var filterImpact = { logic: "or", filters: [] };
+        var filterMOPRegionfilter = { logic: "or", filters: [] };
+        if (CreatedAtDate) {
+            var startdate = CreatedAtDate.split('-')[0].trim();
+            var enddate = CreatedAtDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "RowCreatedTime", operator: "gte", value: startdate });
+            filter.filters.push({ field: "RowCreatedTime", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        if (listPriority.length > 0) {
+            for (var i = 0; i < listPriority.length; i++) {
+                var option = listPriority[i].value;
+                if (option == '') {
+                    filterPriority.filters.push({ field: "Priority", operator: "contains", value: '' });
+                }
+                else {
+                    filterPriority.filters.push({ field: "Priority", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterPriority);
+        }
+
+        if (orderFilter) {
+            filter.filters.push({ field: "OrderID", operator: "contains", value: orderFilter });
+        }
+        if (listImpact.length > 0) {
+            for (var i = 0; i < listImpact.length; i++) {
+                var option = listImpact[i].value;
+                if (option == '') {
+                    filterImpact.filters.push({ field: "Impact", operator: "contains", value: '' });
+                }
+                else {
+                    filterImpact.filters.push({ field: "Impact", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterImpact);
+        }
+
+        if (listtype.length > 0) {
+            for (var i = 0; i < listtype.length; i++) {
+                var option = listtype[i].value;
+                if (option == '') {
+                    filtertype.filters.push({ field: "TypeID", operator: "contains", value: '' });
+                }
+                else {
+                    filtertype.filters.push({ field: "TypeID", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filtertype);
+        }
+
+
+
+        if (liststatus.length > 0) {
+            for (var i = 0; i < liststatus.length; i++) {
+                var option = liststatus[i].value;
+                if (option == '') {
+                    filterstatus.filters.push({ field: "Status", operator: "contains", value: '' });
+                }
+                else if (option == 'Denied') {
+                    filterstatus.filters.push({ field: "Status", operator: "contains", value: 'Denied' });
+                }
+                else {
+                    filterstatus.filters.push({ field: "Status", operator: "eq", value: option });
+                }
+            }
+            if (filteroption == 'MyCreatedTicketResolved') {
+                filterstatus.filters.push({ field: "Status", operator: "eq", value: 'Resolved' });
+            }
+            filter.filters.push(filterstatus);
+        }
+
+        if (titlefilter) {
+            filtertitle.filters.push({ field: "Title", operator: "contains", value: titlefilter });
+            filtertitle.filters.push({ field: "Detail", operator: "contains", value: titlefilter });
+            filter.filters.push(filtertitle);
+
+        }
+        if (ticketidfilter) {
+            filter.filters.push({ field: "TicketID", operator: "contains", value: ticketidfilter });
+
+        }
+        if (listuser) {
+            filteruser.filters.push({ field: "Assignee", operator: "contains", value: listuser });
+            filter.filters.push(filteruser);
+        }
+        if (catfilter) {
+            filter.filters.push({ field: "CategoryID", operator: "contains", value: catfilter });
+        }
+        if (listuser2) {
+
+            filteruser2.filters.push({ field: "Requestor", operator: "contains", value: listuser2 });
+            filteruser2.filters.push({ field: "Owner", operator: "contains", value: listuser2 });
+
+            filter.filters.push(filteruser2);
+        }
+        if (customerfilter) {
+
+            filtercustomer.filters.push({ field: "CustomerID", operator: "contains", value: customerfilter });
+            filtercustomer.filters.push({ field: "CustomerName", operator: "contains", value: customerfilter });
+            filter.filters.push(filtercustomer);
+        }
+        if (filteroption == 'AssignToMe') {
+            filter.filters.push({ field: "preAssignee", operator: "eq", value: currentuser });
+        }
+        if (filteroption == 'AssignToQueue') {
+            var filterAssignToQueue = { logic: "or", filters: [] };
+            var filterAssignToQueue1 = { logic: "and", filters: [] };
+            var filterAssignToQueue2 = { logic: "and", filters: [] };
+            filterAssignToQueue1.filters.push({ field: "IsQueue", operator: "eq", value: "True" });
+            filterAssignToQueue1.filters.push({ field: "Status", operator: "neq", value: "Closed" });
+            filterAssignToQueue1.filters.push({ field: "Status", operator: "neq", value: "Cancelled" });
+            filterAssignToQueue1.filters.push({ field: "Status", operator: "neq", value: "Resolved" });
+            filterAssignToQueue.filters.push(filterAssignToQueue1);
+            filterAssignToQueue2.filters.push({ field: "IspreEscalate", operator: "eq", value: "True" });
+            filterAssignToQueue2.filters.push({ field: "Status", operator: "neq", value: "Closed" });
+            filterAssignToQueue2.filters.push({ field: "Status", operator: "neq", value: "Cancelled" });
+            filterAssignToQueue2.filters.push({ field: "Status", operator: "neq", value: "Resolved" });
+            filterAssignToQueue2.filters.push({ field: "preAssignee", operator: "eq", value: "" });
+            filterAssignToQueue.filters.push(filterAssignToQueue2);
+            filter.filters.push(filterAssignToQueue);
+        }
+        if (filteroption == 'MyCreatedTicketWIP') {
+            filter.filters.push({ field: "Requestor", operator: "eq", value: currentuser });
+            filter.filters.push({ field: "Status", operator: "neq", value: 'Closed' });
+            filter.filters.push({ field: "Status", operator: "neq", value: 'Cancelled' });
+            filter.filters.push({ field: "Status", operator: "neq", value: 'Resolved' });
+        }
+        if (filteroption == 'MyCreatedTicketResolved') {
+            filter.filters.push({ field: "Requestor", operator: "eq", value: currentuser });
+            filter.filters.push({ field: "Status", operator: "eq", value: 'Resolved' });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+
+    var ticketid_file;
+    var detailsTemplate = kendo.template($("#template").html());
+    var ticketDetailTemplate = kendo.template($("#ticketDetailTemplate").html());
+    var dataSource;
+    var masterDataItem = {};
+    function showTicketDetail(obj) {
+        var idUserClick = $(obj).attr("data-id");
+        masterDataItem = {
+            TicketID: idUserClick,
+            Status: $(obj).attr("data-status"),
+            Assignee: $(obj).attr("data-assignee"),
+            Requestor: $(obj).attr("data-requestor"),
+            Owner: $(obj).attr("data-owner"),
+            CreatedAt: $(obj).attr("data-createdat"),
+            CreatedBy: $(obj).attr("data-createdby"),
+            PassedTime: $(obj).attr("data-passedtime"),
+            Detail: $(obj).attr("data-detail"),
+            Title: $(obj).attr("data-title"),
+        };
+
+        curunitid = idUserClick;
+        if (!((masterDataItem.Status == 'WIP' || masterDataItem.Status == 'Reopen' || masterDataItem.Status == 'Denied-WIP' || masterDataItem.Status == 'Escalated' || masterDataItem.Status == 'Assigned' || masterDataItem.Status == 'Accepted') && (masterDataItem.Assignee == currentuser || masterDataItem.Requestor == currentuser || masterDataItem.Owner == currentuser))) {
+            $("#Grid2_" + curunitid + " .k-grid-toolbar").css("display", "none");
+        }
+        resizeHintTop();
+        loaddatafollower();
+        var wnd = $("#ticketDetail").data("kendoWindow");
+        wnd.content(ticketDetailTemplate(masterDataItem));
+        $("#DetailTitle").html(masterDataItem.Title);
+        $("#DetailDescription").html(masterDataItem.Detail);
+        $("#DetailCreatedBy").html("Tạo bởi " + masterDataItem.CreatedBy + " lúc " + kendo.toString(new Date(masterDataItem.CreatedAt), "dd/MM/yyyy HH:mm") + " | Đã qua <b>" + masterDataItem.PassedTime + "</b> phút");
+        wnd.center().title(masterDataItem.TicketID + " Chi tiết thông tin").open();
+
+
+        //$("#Grid2_" + masterDataItem.TicketID).
+        //$("#Grid3_" + masterDataItem.TicketID).find(".k-grid-content").height(200);
+        //$("#Grid4_" + masterDataItem.TicketID).find(".k-grid-content").height(200);
+
+
+    }
+    function showfile(e) {
+        e.preventDefault();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        if (dataItem.TicketID == null || dataItem.TicketID == "") {
+            return;
+        }
+
+        ticketid_file = dataItem.TicketID;
+        var wnd = $("#FileAttachs").data("kendoWindow");
+        wnd.content(detailsTemplate(dataItem));
+        //  alert(window.location.href);
+        $("#FileDetailTitle").html(dataItem.Title);
+        $("#FileDetailDescription").html(dataItem.Detail);
+        $("#FileDetailCreatedBy").html("Tạo bởi " + dataItem.RowCreatedUser + " lúc " + kendo.toString(new Date(dataItem.RowCreatedTime), "dd/MM/yyyy HH:mm") + " | Đã qua <b>" + dataItem.PassedTime + "</b> phút");
+
+
+        dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: r + '/CRMTicket/getListFile?id=' + ticketid_file,
+                    dataType: "json" // "jsonp" is required for cross-domain requests; use "json" for same-domain requests
+                }
+            },
+            schema: {
+                data: "Data"
+
+            }
+
+        })
+        $("#gridfile").kendoGrid({
+            dataSource: dataSource,
+            groupable: false,
+            sortable: true,
+            pageable: false,
+            height: 240,
+            columns: [{
+                field: "FileName",
+                title: "Tên file"
+            }, {
+                field: "PID",
+                title: "PID",
+                hidden: true
+            }, {
+                command: { text: "Xóa file", click: deletefile }, title: " ", width: "80px",
+            }, {
+                command: { text: "Tải file", click: downloadfile }, title: " ", width: "80px"
+            }
+            ]
+        });
+
+
+
+        $("#upload").kendoUpload({
+            async: {
+                saveUrl: r + "/CRMTicket/uploadfile?id=" + dataItem.TicketID
+            },
+            // complete: onComplete,
+            upload: onUpload,
+            success: onSuccess
+
+        });
+
+        wnd.center().title(dataItem.TicketID + "- File đính kèm").open();
+
+    }
+
+    //function onComplete(e) {
+
+    //    $.gritter.add({
+    //        title: '',
+    //        // (string | mandatory) the text inside the notification
+    //        text: 'Upload @Resources.Multi.Successfully',
+    //        class_name: 'gritter-success'
+    //    });
+    //    $(".k-upload-pct:contains('100%')").parent().parent().parent().remove();
+    //    getlistfile();
+    //}
+
+    function onSuccess(e) {
+        if (e.response.success) {
+            $.gritter.add({
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: 'Tải lên @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $(".k-upload-pct:contains('100%')").parent().parent().parent().remove();
+            getlistfile();
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: e.response.error,
+                class_name: 'gritter-error'
+            });
+            $(".k-upload-pct:contains('100%')").parent().parent().parent().remove();
+        }
+    }
+
+
+    function getlistfile() {
+
+        dataSource.read();
+
+
+
+
+    }
+    function downloadfile(e) {
+        var filename = $(e.currentTarget).parent().prev().prev().prev().html();
+        window.open(r + "/UploadFileTicket/" + ticketid_file + "/" + filename);
+    }
+    function deletefile(e) {
+        bootbox.confirm("Bạn muốn xóa file này?", function (result) {
+            if (result) {
+                var dataItem = $(e.currentTarget).parent().prev();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                $.post(r + "/Ticket/DeleteFile", { filename: dataItem.prev().html(), id: dataItem.html() }, function (data) {
+                    if (data.success) {
+                        $.unblockUI;
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '@Resources.Multi.Success',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Xóa @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        getlistfile();
+                    }
+                    else {
+                        $.unblockUI;
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: "@Resources.Multi.Error",
+                            // (string | mandatory) the text inside the notification
+                            text: data.error,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+        });
+
+    }
+
+
+    function onUpload(e) {
+        // Array with information about the uploaded files
+        var files = e.files;
+
+        if ($("#gridfile").data("kendoGrid").dataSource.view().length > 4) {
+            alert("Chỉ được upload 5 files");
+            e.preventDefault();
+        }
+
+        // Check the extension of each file and abort the upload if it is not .jpg
+        $.each(files, function () {
+            if (this.size > 5242880) {
+                alert("File không được vượt quá 5MB");
+                e.preventDefault();
+            }
+        });
+    }
+    ///////////////////////////////////////////////////
+    var typeassign = "";
+    function showAssignee(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            var data = $("#Grid").data("kendoGrid").dataSource.data();
+            var TypeID = "----";
+            var EscalateQueue = "----";
+            var check1 = 0;
+            var check2 = 0;
+            $.each(data, function (i, row) {
+                if (listrowid.indexOf(row.TicketID) > -1) {
+                    if (TypeID == "----") {
+                        TypeID = row.TypeID;
+                    }
+                    else if (TypeID != row.TypeID) {
+                        check1 = 1;
+                    }
+                    if (EscalateQueue == '') {
+                        check2 = 1;
+                    }
+                    else if (EscalateQueue == "----") {
+                        EscalateQueue = row.EscalateQueue;
+                    }
+                    else if (EscalateQueue != row.EscalateQueue) {
+                        check2 = 1;
+                    }
+                }
+            });
+            if (check1 == 1 && check2 == 1) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Ticket phải cùng loại.',
+                    class_name: 'gritter-error'
+                });
+                return;
+            }
+            else {
+                if (check2 == 1) {
+                    EscalateQueue = "";
+                }
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+                $.post(r + "/CRMTicket/GetListUserInType", { TypeID: TypeID, EscalateQueue: EscalateQueue }, function (data) {
+                    if (data.success) {
+                        var html = " <option value=''>Chọn người thực hiện </option>";
+                        $.each(data.Data, function (i, row) {
+                            html += "<option value='" + row.UserName + "'>" + row.UserName + "</option>";
+                        });
+                        typeassign = TypeID;
+                        $("#listassignee").html(html);
+                        $("#AssigneeWindow").data("kendoWindow").center().open();
+                    }
+                    $.unblockUI();
+                });
+            }
+        }
+    }
+    function showEscalate(ticketid) {
+        var listrowid = '';
+        if (ticketid) {
+            listrowid = ticketid + ';;';
+        } else {
+            $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+        }
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $("#EscalateWindow").data("kendoWindow").center().open();
+        }
+    }
+    function GetListUserInQueue() {
+        var queue = $("#listqueue").val();
+        if (queue != null && queue != "") {
+            $("#EscalateWindow").block({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            $.post(r + "/CRMTicket/GetListUserInQueue", { QueueID: queue }, function (data) {
+                if (data.success) {
+                    var html = " <option value=''>Select User... </option>";
+                    $.each(data.Data, function (i, row) {
+                        html += "<option value='" + row.UserName + "'>" + row.UserName + "</option>";
+                    });
+                    $("#listassignee_Escalate").html(html);
+                }
+
+            });
+            $("#EscalateWindow").unblock();
+        }
+    }
+
+    function Escalateto() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        var QueueID = $("#listqueue").val();
+        var UserName = $("#listassignee_Escalate").val();
+
+        $.post(r + "/CRMTicket/Escalate", { data: listrowid, UserName: UserName, QueueID: QueueID }, function (data) {
+
+            if (data.error > 0) {
+                $.gritter.add({
+                    title: '',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+            if (data.success > 0) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Phân công thành công ' + data.success + ' ticket',
+                    class_name: 'gritter-success'
+                });
+            }
+            $("#EscalateWindow").data("kendoWindow").close();
+            $("#Grid").data("kendoGrid").dataSource.read();
+        });
+    }
+    function showDeny() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+
+            $("#DenyWindow").data("kendoWindow").center().open();
+            $("#denyreason").val("");
+        }
+    }
+
+    function closewindow1() {
+        $("#AssigneeWindow").data("kendoWindow").close();
+    }
+    function closewindow2() {
+        $("#DenyWindow").data("kendoWindow").close();
+    }
+    function closewindowEscalate() {
+        $("#EscalateWindow").data("kendoWindow").close();
+    }
+    ///////////// follower
+    function loaddatafollower() {
+        $.post(r + "/Ticket/Follower_Read", { ticketid: curunitid }, function (data) {
+            if (data.success) {
+                var a = "";
+
+
+                if (!((masterDataItem.Status == 'WIP' || masterDataItem.Status == 'Reopen' || masterDataItem.Status == 'Denied-WIP' || masterDataItem.Status == 'Escalated' || masterDataItem.Status == 'Assigned' || masterDataItem.Status == 'Accepted') && (masterDataItem.Assignee == currentuser || masterDataItem.Owner == currentuser) || masterDataItem.Requestor == currentuser)) {
+                    $('#FollowerButton_' + curunitid).css("display", "none");
+                    $('#Follower_' + curunitid).attr("disabled", "true");
+                }
+                var tag_input = $('#Follower_' + curunitid);
+                $.each(data.dataFollower, function (i, row) {
+                    a += row.UserName + ",";
+                });
+                var source = jQuery.parseJSON($.ajax({
+                    url: r + '/Home/getListFollowerUser',
+                    dataType: 'Json',
+                    type: 'post',
+                    async: false,
+                    success: function () {
+                    }
+                }).responseText).list;
+                tag_input.val(a);
+                tag_input.tag(
+                              {
+                                  placeholder: tag_input.attr('placeholder'),
+                                  //enable typeahead by specifying the source array
+                                  source: source,
+                                  //defined in ace.js >> ace.enable_search_ahead
+                              }
+                            );
+                //$(".tag").css({
+                //    "width": "80%"
+                //})
+                //$('#Follower_' + curunitid).chosen();
+                //$('#Follower_' + curunitid + "_chosen").find(".chosen-results").css({
+                //    "background": "white",
+                //    "min-width": "234px",
+                //    "position": "fixed",
+                //});
+            }
+        });
+    }
+    function SlashStormDung() {
+
+        try {
+            alert('@isTablet');
+            // $("#Grid").data("kendoGrid").addRow();
+        }
+        catch (err) {
+            alert(err.message);
+        }
+    }
+    function savefollower() {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+        var list1 = $("#Follower_" + curunitid + " option:selected");
+        var listfollower = "";
+        list1.each(function () {
+            listfollower += $(this).attr('value') + ";;";
+        });
+        $.post(r + "/Ticket/Follower_Update", { ticketid: curunitid, listfollower: listfollower }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '@Resources.Multi.Success',
+                    text: 'Cập nhật @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+
+            }
+            else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: data.data,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function cancelfollower() {
+        loaddatafollower();
+    }
+    /////////////////////////////////////////////////////////////////////////////
+
+    $('.icon-chevron-up').bind('click', function () {
+        setTimeout(function () {
+            resizeGrid();
+            setTimeout(function () {
+                resizeGrid();
+            }, 500);
+        }, 500);
+    });
+
+    // import
+    $('#FileUpload').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    function showimport() {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+
+
+    }
+
+    function importexcel1() {
+        $('#importform').submit();
+    }
+
+    $("#importform").ajaxForm({
+        beforeSend: function () {
+            $("#window").data("kendoWindow").close();
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+        },
+        uploadProgress: function (event, position, total, percentComplete) {
+        },
+        success: function (data) {
+            if (data.success) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $.unblockUI();
+                $.gritter.add({
+                    title: '@Resources.Multi.Success',
+                    text: 'Nhhập thành công ' + data.total + ' dữ liệu',
+                    class_name: 'gritter-success'
+                });
+                if (data.data.length > 0) {
+                    var ds1 = new kendo.data.DataSource();
+                    ds1.data(data.data);
+
+                    $("#GridImportTicket").data("kendoGrid").setDataSource(ds1);
+                    $("#window").data("kendoWindow").open();
+                    $('#btndownload').css('display', 'inline-block');
+                    $('#btndownload').click(function () {
+                        window.location = r + "/Ticket/DownloadError?file=" + data.link;
+                    })
+                }
+                else {
+                    var ds1 = new kendo.data.DataSource();
+                    $("#GridImportTicket").data("kendoGrid").setDataSource(ds1);
+                }
+
+            }
+            else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: 'Nhập thất bại:' + data.message,
+                    class_name: 'gritter-error'
+                });
+                $.unblockUI();
+            }
+        },
+        complete: function (xhr) {
+
+        }
+    });
+
+    function Create(e) {
+        $("#Grid").data("kendoGrid").addRow();
+
+    }
+
+    function showPPConfimrDelete() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        $('#confirm-delete-pp').modal('show');
+    }
+
+    function showPPConfimrAccept() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        $('#confirm-accept-pp').modal('show');
+    }
+
+    function showPPConfimrWIP() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        $('#confirm-wip-pp').modal('show');
+    }
+
+    function showPPConfirmResolved() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        $('#confirm-resolved-pp').modal('show');
+    }
+    function showPPConfirmClosed() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        $('#confirm-closed-pp').modal('show');
+    }
+
+    function showPPConfirmClone() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        $('#confirm-clone-pp').modal('show');
+    }
+
+    function showPPConfirmReopen() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        $('#confirm-reopen-pp').modal('show');
+    }
+
+    function showPPConfirmCancelled() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        $('#confirm-cancelled-pp').modal('show');
+    }
+
+    
+    function filterType() {
+        return {
+            categories: $("#Category").val()
+        };
+    }
+
+</script>

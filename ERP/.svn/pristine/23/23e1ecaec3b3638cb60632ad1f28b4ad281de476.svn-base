@@ -1,0 +1,375 @@
+﻿@using CMS.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._language_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+}
+@{
+    var newData = new tw_GlobalLanguage();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=active == true ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <span class="item-status pull-right">
+                    <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                </span>
+                @*<img class="pull-left" src="#=imagesSize ? imagesSize.small : 'http://www.placehold.it/48x48/EFEFEF/AAAAAA&amp;text=no+image'#" width="48">*@
+                <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                    #=name#
+                    <span style="font-weight: 300; font-size: 13px; color: \\#217ebd; ">| #=code#</span>
+                </div>
+                <div class="todo-tasklist-item-text">
+                    #if(active){#
+                    <span class="badge badge-empty badge-success"></span> @Html.Raw(Resources.Global._active)
+                    #}else{#
+                    <span class="badge badge-empty badge-danger"></span> @Html.Raw(Resources.Global._inactive)
+                    #}#
+                    #if(isDefault){#
+                    <span class="fa fa-check font-green"></span> @Html.Raw(Resources.Global._default)
+                    #}#
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._language)</span>
+                </div>
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small ">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<CMS.Models.tw_GlobalLanguage>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "LanguageManagement"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(e => e.DataBound("onDatabound"))
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-6 formEdit">
+
+    </div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/LanguageManagement/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._add_edit) @Html.Raw(Resources.Global._language)</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeLanguage('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <input type="hidden" name="id" value="#=id#" />
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._language_name)<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm" placeholder="Tiếng Việt" name="name" value="#=name!=null ? name : ''#">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                #if(isDefault==false){#
+                                <input type="hidden" name="isDefault" value="false">
+                                #}else{#
+                                <input type="hidden" name="isDefault" value="true">
+                                #}#
+                                <label>@Html.Raw(Resources.Global._code_Caps)<span class="required"> * </span></label>
+                                <div class="input-group">
+                                    <input type="text" name="code" class="form-control input-sm" placeholder="vi" value="#=code!=null ? code : ''#">
+                                    <span class="input-group-btn">
+                                        <a class="btn #=isDefault==false ? 'default' : 'green'# btn-sm" onclick="changeDefault(this)">
+                                            <i class="fa fa-check"></i> @Html.Raw(Resources.Global._default)
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                            #if(active==false){#
+                                            <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._inactive)
+                                            #}else{#
+                                            <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._inactive)
+                                            #}#
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                            #if(active==true){#
+                                            <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._active)
+                                            #}else{#
+                                            <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._active)
+                                            #}#
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>@Html.Raw(Resources.Global._flag_photo)</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                @*<div class="fileinput-new thumbnail" style="width: 200px; ">
+                                                    <img src="#=imagesSize ? imagesSize.small : 'http://www.placehold.it/200x100/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" />
+                                                </div>*@
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 200px;"> </div>
+                                                <div>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <i class="fa fa-cogs" style="font-size: 72px; color: \\#e1e5ec"></i>
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._language) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    function onDatabound() {
+        var listView = this;
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+    function changeDefault(e) {
+        var checkDefault = $(e).hasClass("green");
+        if (checkDefault) {
+            $(e).removeClass("green").addClass("default");
+            $("input[name='isDefault']").val("false");
+        } else {
+            $(e).removeClass("default").addClass("green");
+            $("input[name='isDefault']").val("true");
+        }
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeLanguage(id) {
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._article)",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/LanguageManagement/deletelanguage", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function getTextById(datas, key, value, requestField) {
+        var response = _.filter(JSON.parse(datas), function (data) {
+            return data[key] == value;
+        });
+        return response[0] ? response[0][requestField] : "";
+    }
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        loadValidate();
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate();
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 })
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        name: { minlength: 5, required: !0 },
+                        code: { minlength: 2, required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    loadForm(data.data);
+                                }
+                                setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+        console.log(seachText);
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "code", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+</script>
+

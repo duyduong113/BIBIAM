@@ -1,0 +1,130 @@
+﻿<div id="myModalImport" class="modal fade" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="javascript:;" class="close" data-dismiss="modal" aria-hidden="true"></a>
+                <h4 class="modal-title">Import file</h4>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Import", "Merchant_Product", FormMethod.Post, new { @class = "form-horizontal", id = "import-san-pham", enctype = "multipart/form-data", novalidate = "novalidate" }))
+                {
+                    <div>
+                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                            <div class="input-group input-large">
+                                <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                    <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                    <span class="fileinput-filename"> </span>
+                                </div>
+                                <span class="input-group-addon btn default btn-file">
+                                    <span class="fileinput-new"> Chọn file </span>
+                                    <span class="fileinput-exists"> Thay đổi </span>
+                                    <input type="hidden"><input type="file" name="FileUpload">
+                                </span>
+                                <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Xóa </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn grey-salsa btn-outline" data-dismiss="modal">Close</a>
+                <a href="javascript:;" class="btn green" onclick="ImportFile()">
+                    <i class="fa fa-check"></i> Import
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function ImportFile() {
+        $('#import-san-pham').submit();
+    }
+
+    function show_popup_import() {
+        $('#myModalImport').modal('show');
+    }
+
+    $("#import-san-pham").validate({
+        // Rules for form validation
+        submitHandler: function (form) {
+            var formData = new FormData($("#import-san-pham")[0]);
+            var url = $("#import-san-pham")[0].action;
+            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+
+            //$.post(url, $('#import-san-pham').serialize(), function (data) {
+            //    if (data.success) {
+            //        $("#listView").data("kendoListView").dataSource.read();
+            //        toastr.success('Thành công', 'Đã import thành công:' + data.total + ' dòng', '<br> Lỗi:' + data.totalError);
+            //        $('#myModalImport').modal('toggle');
+            //        if (data.totalError > 0) {
+            //            window.open(r + "/ExcelImport/" + data.link, "_blank");
+            //        }
+            //    } else {
+            //        toastr.error('', data.message);
+            //        $('#myModalImport').show('hide');
+            //    }
+            //    App.unblockUI();
+            //});
+
+
+            $("#import-san-pham").ajaxSubmit({
+                //data: { hierarchy: rs.object.hierarchy, properties: rs.object.properties, listimage: rs.object.listimage },
+                dataType: "json",
+                beforeSend: function () {
+                    App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $("#listView").data("kendoListView").dataSource.read();
+                        toastr.success('Thành công', 'Đã import thành công:' + data.total + ' dòng', '<br> Lỗi:' + data.totalError);
+                        $('#myModalImport').modal('toggle');
+                        if (data.totalError > 0) {
+                            window.open(r + "/ExcelImport/" + data.link, "_blank");
+                        }
+                    } else {
+                        toastr.error('', data.message);
+                        $('#myModalImport').show('hide');
+                    }
+                },
+                complete: function (xhr) {
+                    App.unblockUI();
+                }
+            });
+
+            @*$.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                beforeSend: function () {
+                    App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                },
+                success: function (data, textStatus, jqXHR) {
+                    var obj = JSON.parse(data);
+                    if (obj.success) {
+                        $("#listView").data("kendoListView").dataSource.read();
+                        toastr.success('Thành công', 'Đã import thành công:' + obj.total + ' dòng', '<br> Lỗi:' + obj.totalError);
+                        $('#myModalImport').modal('toggle');
+                        if (obj.totalError > 0) {
+                            window.open(r + "/ExcelImport/" + obj.link, "_blank");
+                        }
+                    }
+                    else {
+                        toastr.error('', obj.message);
+                        $('#myModalImport').show('hide');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    toastr.error('', errorThrown);
+                    $('#myModalImport').show('hide');
+                    return false;
+                }
+            });
+            App.unblockUI();*@
+        }
+    });
+</script>

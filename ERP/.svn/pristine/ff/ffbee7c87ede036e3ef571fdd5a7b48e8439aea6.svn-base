@@ -1,0 +1,18 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_OCM_Territory>
+
+@(Html.Kendo().DropDownListFor(m => m)
+                  .AutoBind(false)
+                  .OptionLabel("Chọn...")
+                  .DataTextField("ten_phan_cap")
+                  .DataValueField("ma_phan_cap")
+                  .Filter("contains")
+                  .DataSource(dataSource =>
+                  {
+                      dataSource.Read(read => read.Action("GetHierarchyByLevel", "Product_Hierarchy", new { cap = "6" }).Data("filterCayPhanCap6"))
+                                .ServerFiltering(false);
+                  })
+                  .CascadeFrom("CayPhanCap5")
+                  .CascadeFromField("ma_phan_cap_cha")
+                  .Events(events => { events.Select("onSelect6"); })   
+)
+@Html.ValidationMessageFor(m => m)

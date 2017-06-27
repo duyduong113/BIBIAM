@@ -1,0 +1,243 @@
+﻿@{
+    ViewBag.Title = "Trang thông tin";
+}
+<style>
+    .modal {
+        width: 90%;
+        left: 5%;
+        margin-left: 0;
+    }
+
+    .k-widget.k-window {
+        z-index: 999999999;
+    }
+
+    .cke_maximized {
+        z-index: 9999999999 !important;
+    }
+</style>
+@(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_SalesApp_Intro>()
+    .Name("grid")
+    .HtmlAttributes(new { @style = "height:500px" })
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).Width(80).Filterable(false).Visible(false);
+        columns.Command(command => { command.Custom("Nội dung").Click("Update").HtmlAttributes(new { @class = "btn btn-info", href = "javascript:void(0)", @style = "min-width:40px;" }); }).Width(50).Title("");
+        columns.Bound(p => p.Name).Width(150).Title(Resources.Multi.Name).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Active).Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.CreatedAt).Width(100).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Width(100).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.UpdatedBy).Width(100);
+    })
+    .ToolBar(tools =>
+    {
+        tools.Create().Text(Resources.Multi.Add);
+        tools.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save;
+        tools.Excel().Text(Resources.Multi.Export);
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Events(events => { events.DataBound("dataBound"); })
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+        //.Groupable()
+    .Navigatable()
+    .Filterable()
+    .Excel(excel => excel
+    .FileName("SalesAppIntroList.xlsx")
+    .Filterable(true)
+    .ProxyURL(Url.Action("Excel_Export", "SalesAppIntro")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.CreatedAt).Editable(false);
+        model.Field(p => p.CreatedBy).Editable(false);
+        model.Field(p => p.UpdatedAt).Editable(false);
+        model.Field(p => p.UpdatedBy).Editable(false);
+    })
+    .Create(create => create.Action("Create", "SalesAppIntro"))
+    .Read(read => read.Action("Read", "SalesAppIntro"))
+    .Update(update => update.Action("Update", "SalesAppIntro"))
+    .Destroy("Destroy", "SalesAppIntro"))
+
+)
+
+<script type="text/x-kendo-template" id="upload">
+    <form action="@Url.Content("~/SalesAppIntro/UpdateContent")" class="editform" method="post" enctype="multipart/form-data" style="margin-bottom:0px;">
+        <legend>#: Name#</legend>
+        <input type="hidden" value="#=Id#" name="Id" />
+        @Html.TextArea("Content", new { @class = "span6", value = "#: Content#" })
+        @*@(Html.Kendo().Editor()
+                .Name("Content")
+                .Encode(false)
+                .HtmlAttributes(new { style = "height:400px;width:100%;", placeholder = "Content" })
+                .Tools(tools => tools
+                         .Clear()
+                      .Bold().Italic().Underline().Strikethrough()
+                      .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                      .InsertUnorderedList().InsertOrderedList()
+                      .Outdent().Indent()
+                      .CreateLink().Unlink()
+                      .InsertImage()
+                      .InsertFile()
+                      .SubScript()
+                      .SuperScript()
+                      .TableEditing()
+                      .ViewHtml()
+                      .Formatting()
+                      .CleanFormatting()
+                      .FontName()
+                      .FontSize()
+                      .FontColor().BackColor())
+                .Value(@<text>
+                        #: Content#
+                </text>)
+                        .ImageBrowser(imageBrowser => imageBrowser
+                        .Image("~/Content/UserFiles/Images/{0}")
+                        .Read("Read", "ImageBrowser")
+                        .Create("Create", "ImageBrowser")
+                        .Destroy("Destroy", "ImageBrowser")
+                        .Upload("Upload", "ImageBrowser")
+                        .Thumbnail("Thumbnail", "ImageBrowser")
+                        ).ToClientTemplate()
+            )*@
+        #if(Active){#
+        <input type="checkbox" name="Active" checked>Kích hoạt
+        #}else{#
+        <input type="checkbox" name="Active" />Kích hoạt
+        #}#
+    </form>
+</script>
+<script>
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        $('[data-rel=popover]').popover({ container: 'body' });
+        resizeGrid();
+    }
+
+
+    function Update(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+
+        var detailsTemplate = kendo.template($("#upload").html());
+        bootbox.dialog(detailsTemplate(dataItem), [
+            
+            {
+                "label": "Hủy bỏ",
+                "class": "btn-small btn-grey",
+                "callback": function () {
+                    //Example.show("Primary button");
+                }
+            }, {
+                "label": "Lưu lại",
+                "class": "btn-small btn-primary",
+                "callback": function () {
+                    $('.editform').submit();
+                    return false;
+                }
+            }]
+         );
+
+
+
+        if (CKEDITOR.instances['Content']) {
+            delete CKEDITOR.instances['Content'];
+        }
+        CKEDITOR.replace('Content');
+
+        CKFinder.setupCKEditor(null, '@Url.Content("/ckfinder/")');
+
+        CKEDITOR.instances['Content'].setData(dataItem.Content);
+
+        $(".editform").ajaxForm({
+            beforeSerialize: function (form, options) {
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+                var body = CKEDITOR.instances['Content'].getData();
+                $('#Content').val(body);
+            },
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    bootbox.hideAll();
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            if (e.response.Errors == null) {
+                $.gritter.add({
+                    title: '',
+                    text: message,
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.type == "update" || e.type == "create" || e.type == "delete") {
+            $("#grid").data("kendoGrid").dataSource.read();
+            if (e.response.Errors == null) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+            }
+        }
+    }
+</script>

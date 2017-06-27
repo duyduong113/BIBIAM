@@ -1,0 +1,218 @@
+﻿
+@{
+    Layout = null;
+    int glo = ViewBag.countID;
+
+
+
+
+}
+<tr class="group-real-service">
+    <td class="first">
+        <input type="hidden" class="item-pk-update" value="" />
+        <input class="input-value-suggess item-web" type="hidden" value="@ViewBag.product.c_website" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tên Web")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.WebsiteName)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" value="@ViewBag.product.c_category" />
+
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập chuyên mục")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.CategoryName)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" value="@ViewBag.product.c_location" />
+
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập vị trí")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-location-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.LocationName)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-nature" type="hidden" value="@ViewBag.product.c_nature" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tính chất")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-nature-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 25 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.NatureName)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-size" type="hidden" value="@ViewBag.product.c_size" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập Size")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 24 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.c_size)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <input onchange="resetRealBanner()" class="item-unit-price currency" type="text" value="@ViewBag.product.c_don_gia.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="resetRealBanner()" class="date-picker item-update" type="text" value="@ViewBag.product.StrRealUpdate" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input onchange="resetRealBanner()" class="date-picker item-downdate" type="text" value="@ViewBag.product.StrRealDowndate" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input class="item-week-time-hidden" type="hidden" />
+        <input class="item-week-time" type="text" disabled value="@ViewBag.product.c_time" />
+    </td>
+    <td>
+        <input class="item-days-time" type="text" value="@ViewBag.product.c_ngay_bu" />
+    </td>
+    <td>
+        @if (ViewBag.product.c_km == "checked")
+        {
+            <input onchange="" class="item-promotion" type="checkbox" value="1" checked />
+        }
+        else
+        {
+            <input onchange="" class="item-promotion" type="checkbox" value="0" />
+        }
+    </td>
+    <td>
+        <input class="item-total-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" readonly />
+    </td>
+    <td>
+        <input class="item-note" type="text" value="@ViewBag.product.c_note" />
+    </td>
+    <td>
+        <input class="input-value-suggess item-staff-id" value="@ViewBag.product.c_staff_id" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("FullName")
+                        .Placeholder("Nhập tên nhân viên")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "txt-name-employer", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestEmployer", "CRMContractList")
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectEmployer");
+                        })
+        )
+        <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(ViewBag.product.EmployerName)')
+        </script>
+        @{glo++;}
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealBanner(this)"><i class="icon-minus"></i></button>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRow(this)"><i class="icon-book"></i></button>
+    </td>
+</tr>

@@ -1,0 +1,211 @@
+﻿@{ 
+    var json_permission = "";
+    if (ViewBag.listColumnsCookie != null)
+    {
+        json_permission = ViewBag.listColumnsCookie.Value;
+    }
+    if (ViewBag.listColumnsUserConfig != null)
+    {
+        json_permission = ViewBag.listColumnsUserConfig[0].CustomerInfo;
+    }
+}
+<!-- Modal -->
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <style>
+        button.btclose {
+            float: right;
+            font-size: 22px;
+            text-shadow: 0 1px 0 #fff;
+            opacity: 0.2;
+            background: transparent;
+            border: 0;
+            margin-top: -3px;
+        }
+
+        .chosen-container .chosen-results {
+            max-height: 100px !important;
+        }
+
+        #sortable-permiss li .item, #sortable-non-permiss li .item {
+            margin: 0 3px 3px 3px;
+            padding: 0.4em;
+            padding-left: 1.5em;
+            height: 18px;
+            cursor:grab;
+        }
+
+        #sortable-permiss li, #sortable-non-permiss li {
+            list-style-type: none;
+            float:right;
+
+        }
+        #sortable-permiss li a{
+            color:red;
+        }
+        #sortable-non-permiss {
+            border-left: 2px solid #BD9D9D;
+            margin: 0;
+        }
+
+        #sortable-permiss {
+            border-right: 2px solid #BD9D9D;
+        }
+
+        .title-list {
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .modal-body {
+            max-height: 380px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $("#sortable-permiss, #sortable-non-permiss").sortable();
+            $("#sortable-permiss, #sortable-non-permiss").disableSelection();
+        });
+    </script>
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Tùy chỉnh hiển thị</h3>
+    </div>
+    <div class="modal-body">
+        <p>
+            <div class="row-fluid">
+                <h5 class="span6 title-list">Danh sách cột hiển thị</h5>
+                <h5 class="span6 title-list">Danh sách cột có thể hiển thị</h5>
+
+                <ul class="span6" id="sortable-permiss">
+                    @{
+                        try
+                        {
+
+                            var columns = Json.Decode(json_permission);
+                            for (var i = 0; i < @columns.Length; i++)
+                            {
+                                int val = Convert.ToInt32(@columns[i].value);
+                                if (val == 1)
+                                {
+
+                                    <li data-active="@columns[i].value" class="span12 ui-state-default ">
+                                        <span class="span8 item btn-inverse">@columns[i].name</span>
+                                        <span class="span3"><a onclick="removeColumn(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+                                    </li>
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                            <li>@e.Message</li>
+                            }
+
+                    }
+                </ul>
+                <ul class="span6" id="sortable-non-permiss">
+                    @{
+                        try
+                        {
+                            var columns = Json.Decode(json_permission);
+                            foreach (var item in ViewBag.listColumns)
+                            {
+                                var check = false;
+                                for (var i = 0; i < @columns.Length; i++)
+                                {
+                                    if (@item.COLUMN_NAME == @columns[i].name)
+                                    {
+                                        check = true;
+                                        break;
+                                    }
+                                }
+                                if (check == false)
+                                {
+                                    <li data - active="0" class="span12 ui-state-default ">
+                                        <span class="span1"></span>
+                                        <span class="span8 item btn-danger">@item.COLUMN_NAME</span>
+                                        <span class="span2"><a onclick="plusColumn(this)" href="javascript:void(0)"><i class="icon-plus"></i></a></span>
+                                    </li>
+                                }
+
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            <li>@e.Message</li>
+                        }
+                    }
+                </ul>
+
+            </div>
+        </p>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-primary" onclick="saveChangesCustom(true)">Lưu lại</a>
+        <a class="btn btn-default" onclick="getDefault()">Mặc định</a>
+        <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Đóng</button>
+    </div>
+</div>
+<script>
+   // $(function () {
+
+        //$('#sortable-permiss').sortable({
+            // start: function(event, ui) {
+            //    console.log("start");
+            // },
+            //change: function(event, ui) {
+            //    console.log("change");
+            //},
+            //update: function (event, ui) {
+                //saveChangesCustom(false);
+           // }
+
+        //});
+
+
+   // });
+    function getDefault() {
+        $.post(r + "/Ajax/GetDefaultColumns", { request: '' }, function (data) {
+            $("#sortable-permiss").html(data);
+            $("#sortable-non-permiss").empty();
+        });
+    }
+    function saveChangesCustom(save) {
+        var arr = [];
+        $("#sortable-permiss li").each(function (e) {
+            var obj = {};
+            obj.name = $(this).find(".item").text();
+            obj.value = $(this).attr("data-active");
+            arr[e] = obj;
+        });
+        var json = JSON.stringify(arr)
+        $.post(r + "/CRMContactList/Create_permissions", { request: json }, function (data) {
+            console.log(data);
+            if (data.success) {
+                if (save) {
+                    $('#myModal').modal('hide');
+                    location.reload();
+                }
+
+            }
+        });
+    }
+    function plusColumn(e) {
+        var e_append = '<li data-active="1" class="span12 ui-state-default ">';
+        e_append += '<span class="span8 item btn-grey">' + $(e).parents("li").find(".item").text() + '</span>';
+        e_append += '<span class="span3"><a onclick="removeColumn(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>';
+        e_append += '</li>';
+        $("#sortable-permiss").prepend(e_append);
+        $(e).parents("li").remove();
+    }
+    function removeColumn(e) {
+        var e_append = '<li data-active="0" class="span12 ui-state-default ">';
+        e_append += '<span class="span1"></span>'
+        e_append += '<span class="span8 item btn-danger">' + $(e).parents("li").find(".item").text() + '</span>';
+        e_append += '<span class="span2"><a onclick="plusColumn(this)" href="javascript:void(0)"><i class="icon-plus"></i></a></span>';
+        e_append += '</li>';
+        $("#sortable-non-permiss").append(e_append);
+        $(e).parents("li").remove();
+    }
+
+</script>

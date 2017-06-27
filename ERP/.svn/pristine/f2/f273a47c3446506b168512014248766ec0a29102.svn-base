@@ -1,0 +1,135 @@
+﻿@using BIBIAM.Core
+
+<script type="text/x-kendo-template" id="StockInHeader">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase">#if (ma_phieu){if(trang_thai!='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){# @Html.Raw(Resources.Global._edit)#}else{#@Html.Raw(Resources.Global._view_action) #}}else{# @Html.Raw(Resources.Global._create)#}# thông tin phiếu nhập kho</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <form action="@Url.Content("~/Merchant_StockIn/CreateGoodReceivedNote")" method="post" id="EditForm" novalidate="novalidate">
+                <div class="row">
+                    #if (trang_thai !='@AllConstant.trang_thai_duyet.DA_DUYET' && ma_phieu){#
+                    <div class="col-md-12">
+                        <div class="actions" style="float: right;">
+                            <a onclick="DuyetPhieuNhapKho()" class="btn btn-circle green">Duyệt phiếu nhập kho</a>
+                        </div>
+                    </div>
+                    #}#
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label>Mã phiếu nhập kho</label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" placeholder="GRN--------" name="ma_phieu_nhap_kho" value="#=ma_phieu?ma_phieu:''#" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Mã đơn hàng</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" value="#=ma_don_hang?ma_don_hang:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="ma_don_hang" value="#=ma_don_hang?ma_don_hang:'PO'#">
+                                </div>
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Họ tên người giao</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" value="#=nguoi_giao_nhan?nguoi_giao_nhan:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="nguoi_giao" value="#=nguoi_giao_nhan?nguoi_giao_nhan:''#">
+                                </div>
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Ngày nhập kho</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" value="#=ngay_nhap_xuat?kendo.toString(kendo.parseDate(ngay_nhap_xuat),'dd/MM/yyyy'):''#" readonly>
+                                #}else{#
+                                <div class="input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+                                    <input type="text" class="form-control input-sm" placeholder="dd/MM/yyyy" name="ngay_nhap_kho" value="#=kendo.toString(kendo.parseDate(ngay_nhap_xuat),'yyyy/MM/dd') !='0001/01/01' && ngay_nhap_xuat !=null ? kendo.toString(kendo.parseDate(ngay_nhap_xuat),'dd/MM/yyyy'): '' #">
+                                    <span class=" input-group-btn">
+                                        <button class="btn default input-sm" type="button">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                #}#
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label>@Html.Raw(Resources.Global._access_warehouse)</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" placeholder="" value="#=ten_kho?ten_kho:''#" readonly>
+                                #}else{#
+                                @(Html.Kendo().DropDownList().Name("ma_kho").HtmlAttributes(new { style = "width:100%" }).OptionLabel("Chọn kho...").DataTextField("ten_kho").DataValueField("ma_kho").Value("#=ma_kho#").Filter("contains").Events(e => e.Change("DLonChange")).DataSource(source => { source.Read(read => { read.Action("MerchantStock", "Merchant_Warehouse"); }).ServerFiltering(false); }).ToClientTemplate())
+                                #}#
+                            </div>
+
+                            <div class="form-group col-md-3">
+                                <label>Địa điểm</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" value="#=dia_diem?dia_diem:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="dia_diem" value="#=dia_diem?dia_diem:''#">
+                                </div>
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Thủ kho</label>
+                                #if (trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'){#
+                                <input type="text" class="form-control input-sm max100" value="#=thu_kho?thu_kho:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="thu_kho" value="#=thu_kho?thu_kho:''#">
+                                </div>
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Trạng thái</label>
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn green btn-sm btn-outline #=trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.NHAP)'?'active':''#">
+                                            Nháp
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=trang_thai=='@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)'?'active':''#">
+                                            Đã duyệt
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                <label>Ghi chú</label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <textarea rows="2" class="form-control input-sm max100" name="ghi_chu">#=ghi_chu?ghi_chu:''#</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="row" id="gridTemplate"></div>
+        </div>
+    </div>
+
+</script>

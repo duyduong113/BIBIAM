@@ -1,0 +1,74 @@
+﻿<fieldset>
+    <ul id="list-appendix" style="list-style:none">
+        <li>
+            @*<b>Phụ lục hợp đồng</b> 
+            <button class="btn btn-minier btn-success" onclick="plusAppendix()"><i class="icon-plus"></i></button>
+            <div class="row-fluid">
+                <textarea class="editor-appendix" style="height:200px"></textarea>
+            </div>*@
+        </li>
+       
+    </ul>
+
+</fieldset>
+<script>
+    $(document).ready(function () {
+        initEditor();
+    })
+
+    function plusAppendix() {
+        var html = '';
+        html += '<li>'
+        html += '    <b>Phụ lục hợp đồng</b> <button class="btn btn-minier btn-danger" onclick="minusAppendix(this)"><i class="icon-minus"></i></button>'
+        html += '    <div class="row-fluid">'
+        html += '         <textarea class="editor-appendix" style="height:200px"></textarea>'
+        html += '     </div>'
+        html += '</li>'
+        $("#list-appendix").append(html);
+        initEditorPlus();
+    }
+
+    function minusAppendix(e) {
+        $(e).parent().remove();
+     
+    }
+
+    function initEditor() {
+        $(".editor-appendix").kendoEditor({
+            resizable: {
+                content: true,
+                toolbar: true
+            },
+            imageBrowser: {
+                transport: {
+                    read: "imagebrowser/read",
+                    destroy: "imagebrowser/destroy",
+                    create: "imagebrowser/createDirectory",
+                    uploadUrl: "imagebrowser/upload",
+                    thumbnailUrl: "imagebrowser/thumbnail",
+                    imageUrl: "/content/images/{0}",
+                },
+                path: "/myInitialPath/"
+            }
+        });
+    }
+    function initEditorPlus() {
+        $('ul textarea').last().kendoEditor({
+            resizable: {
+                content: true,
+                toolbar: true
+            },
+            imageBrowser: {
+                transport: {
+                    read: "imagebrowser/read",
+                    destroy: "imagebrowser/destroy",
+                    create: "imagebrowser/createDirectory",
+                    uploadUrl: "imagebrowser/upload",
+                    thumbnailUrl: "imagebrowser/thumbnail",
+                    imageUrl: "/content/images/{0}",
+                },
+                path: "/myInitialPath/"
+            }
+        });
+    }
+</script>

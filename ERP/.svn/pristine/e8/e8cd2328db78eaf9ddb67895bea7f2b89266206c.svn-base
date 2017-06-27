@@ -1,0 +1,437 @@
+﻿@{
+    ViewBag.Title = Html.Raw(Resources.Global._position_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+</style>
+<div class="portlet light bordered">
+    <div class="portlet-title">
+        <div class="caption">
+            <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._position_list)</span>
+        </div>
+        <div class="inputs">
+            <div class="portlet-input input-inline input-small ">
+                <div class="input-icon right">
+                    <i class="icon-magnifier"></i>
+                    <input type="text" id="txtPositions" class="form-control form-control-solid input-circle tooltips" data-container="body" data-placement="top"
+                           data-original-title="@Html.Raw(Resources.Global._search)" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="portlet-body">
+        @(Html.Kendo().Grid<CMS.Models.cms_Positions>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+        columns.Template(@<text></text>)
+            .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+            .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ma_vi_tri#'/> ")
+            .HtmlAttributes(new { style = "text-align: center;" })
+            .HeaderHtmlAttributes(new { style = "text-align: center" })
+            .Width(25);
+            columns.Bound(p => p.ma_vi_tri).Title(Resources.Global._id_position).Width(110).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ten_vi_tri).Title(Resources.Global._name_Caps).Width(300).HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(p => p.loai_vi_tri, (System.Collections.IEnumerable)ViewBag.listPositionType, "Value", "Text").Title(@Resources.Global._type).Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(p => p.trang_thai, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Text").Title(@Resources.Global._status).Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ngay_tao).Width(110).Title(Resources.Global._date_created).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_tao).Width(100).Title(Resources.Global._created_by);
+            columns.Bound(p => p.ngay_cap_nhat).Title(Resources.Global._date_update).Width(110).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_cap_nhat).Title(Resources.Global._updated_by).Width(100);
+        })
+        .Pageable()
+        .Navigatable()
+        .Scrollable()
+        .Sortable()
+        .ClientDetailTemplateId("template")
+        .ToolBar(toolbar =>
+        {
+        toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (all || create)
+                {
+                    <a class="btn btn-success btn-small" onclick="Create()" href="javascript:void(0)" id="">
+                        @Html.Raw(Resources.Global._add)
+                    </a>
+                }
+                @if (all || create || update)
+                {
+                    <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                        @Html.Raw(Resources.Global._save)
+                    </a>
+                }
+                @if (all || create || update)
+                {
+                    <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                        @Html.Raw(Resources.Global._cancel)
+                    </a>
+                }
+                @if (all || delete)
+                {
+                    <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="removePosition()" id="btnGridDelete">
+                        @Html.Raw(Resources.Global._delete)
+                    </a>
+                }
+            </div>
+        </text>);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Pageable(x => x.PageSizes(new int[] { 10, 20, 50, 100 }))
+        .Events(events => { events.DataBound("dataBound"); events.Edit("onEdit"); events.DetailExpand("detailExpand"); })
+        .Reorderable(reorderable => reorderable.Columns(true))
+        .Resizable(resizable => resizable.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.id);
+            model.Field(p => p.trang_thai).DefaultValue("Active");
+            model.Field(p => p.ngay_tao).Editable(false);
+            model.Field(p => p.nguoi_tao).Editable(false);
+            model.Field(p => p.ngay_cap_nhat).Editable(false);
+            model.Field(p => p.nguoi_cap_nhat).Editable(false);
+        })
+
+        .Read(c => c.Action("Read", "PositionsManage"))
+        .Create(c => c.Action("Create", "PositionsManage"))
+        .Update(c => c.Action("Update", "PositionsManage"))
+        )
+        )
+    </div>
+
+
+
+    <script id="template" type="text/kendo-tmpl">
+        @(Html.Kendo().Grid<CMS.Models.cms_WCL>()
+        .Name("grid_#=ma_vi_tri#")
+        .Columns(columns =>
+        {
+            columns.Template(@<text></text>)
+            .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'SubGrid_checkboxcheckAll'  onClick='SubGrid_checkAll(this)' />")
+            .ClientTemplate("<input style='text-align:center' class='SubGrid_checkrowid' type='checkbox' id='\\#=id\\#'/> ")
+            .HtmlAttributes(new { style = "text-align: center;" })
+            .HeaderHtmlAttributes(new { style = "text-align: center" })
+            .Width(25);
+            columns.ForeignKey(w => w.website, (System.Collections.IEnumerable)ViewBag.listWebsites, "Value", "Name").Title("Website").Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(w => w.chuyen_muc, (System.Collections.IEnumerable)ViewBag.listCategorys, "Value", "Name").Title(@Resources.Global._category).Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(w => w.trang_thai, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Text").Title(@Resources.Global._status).Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.Bound(w => w.ngay_tao).Width(110).Title(Resources.Global._date_created).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(w => w.nguoi_tao).Width(100).Title(Resources.Global._created_by);
+            columns.Bound(w => w.ngay_cap_nhat).Title(Resources.Global._date_update).Width(110).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(w => w.nguoi_cap_nhat).Title(Resources.Global._update_by).Width(100);
+        })
+        .Pageable()
+        .Navigatable()
+        .Scrollable()
+        .Sortable()
+        .ToolBar(toolbar =>
+        {
+        toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (all || create)
+                {
+                    <a class="btn btn-success btn-small" onclick="SubGrid_Create()" href="javascript:void(0)" id="">
+                        @Html.Raw(Resources.Global._add)
+                    </a>
+                }
+                @if (all || update)
+                {
+                    <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="SubGrid_Update()">
+
+                        @Html.Raw(Resources.Global._save)
+                    </a>
+                }
+                @if (all || create || update)
+                {
+                    <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="SubGrid_Cancel()">
+                        @Html.Raw(Resources.Global._cancel)
+                    </a>
+                }
+                @if (all || delete)
+                {
+                    <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="removeWCL()" id="btnGridDelete">
+                        @Html.Raw(Resources.Global._delete)
+                    </a>
+                }
+            </div>
+        </text>);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Pageable(x => x.PageSizes(new int[] { 5, 10, 20, 50 }))
+        .Events(events => { events.DataBound("SubGrid_dataBound"); events.Edit("SubGrid_onEdit"); })
+        .Reorderable(reorderable => reorderable.Columns(true))
+        .Resizable(resizable => resizable.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(5)
+        .Events(events => { events.Error("SubGrid_error_handler"); events.RequestEnd("SubGrid_onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(w => w.id);
+            model.Field(w => w.trang_thai).DefaultValue("Active");
+            model.Field(w => w.ngay_tao).Editable(false);
+            model.Field(w => w.nguoi_tao).Editable(false);
+            model.Field(w => w.ngay_cap_nhat).Editable(false);
+            model.Field(w => w.nguoi_cap_nhat).Editable(false);
+        })
+
+        .Read(c => c.Action("SubGrid_Read", "PositionsManage", new { ma_vi_tri = "#=ma_vi_tri#" }))
+        .Create(c => c.Action("SubGrid_Create", "PositionsManage", new { ma_vi_tri = "#=ma_vi_tri#" }))
+        .Update(c => c.Action("SubGrid_Update", "PositionsManage", new { ma_vi_tri = "#=ma_vi_tri#" }))
+        ).ToClientTemplate()
+        )
+    </script>
+
+
+</div>
+
+@Html.Partial("_popup")
+<script>
+    var expandedRow; var curunitid; var listrowSubGrid_id = '';
+    function listAllRead(data) {
+        var sel = document.createElement("select");
+    }
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#Grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        id = expandedRow[0].cells[0].innerText;
+        var masterDataItem = $('#Grid').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.ma_vi_tri;
+        //localStorage.setItem('expandRowUID',masterDataItem.uid);
+    }
+    function removePosition() {
+        var data = Getlistcheck();
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete_position)",
+            buttons:
+                {
+
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                            $.post(r + "/PositionsManage/Delete", { data: data }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    toastr.success('', '@Html.Raw(Resources.Global._delete_successfully)');
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function Create() {
+        $("#Grid").data("kendoGrid").dataSource.insert();
+    }
+    function Update() {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    }
+    function Cancel() {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    }
+    $(document).ready(function () {
+        filter();
+    });
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+    }
+    function dataBound(e) {
+        resizeGrid('Grid');
+    }
+    function onEdit(e) {
+        if (e.model.isNew() == false) {
+            $("#ma_vi_tri").attr("readonly", true);
+        }
+    }
+
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var tenvitri = $("#txtPositions").val();
+        if (tenvitri) {
+            filter.filters.push({ field: "ten_vi_tri", operator: "contains", value: tenvitri });
+        }
+        grid.dataSource.filter(filter);
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function Getlistcheck() {
+        var listrowid = '';
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ',';
+                $(this).data();
+            }
+        });
+        return listrowid;
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+            toastr.error('', message);
+        }
+    }
+    function onRequestEnd(e) {
+        if ((e.type == "create") && !e.response.Errors) {
+            toastr.success("", "@Html.Raw(Resources.Global._save_successfully)");
+            filter();
+        }
+        else
+            if ((e.type == "update") && !e.response.Errors) {
+                toastr.success("", "@Html.Raw(Resources.Global._update_successfully)");
+                $("#Grid").data("kendoGrid").dataSource.read();
+            }
+
+    }
+
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>WCL<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
+
+    function SubGrid_dataBound(e) {
+        resizeGrid('grid_' + curunitid);
+    }
+    function SubGrid_error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+            toastr.error(message)
+        }
+    }
+    function SubGrid_onRequestEnd(e) {
+
+        if ((e.type == "create") && !e.response.Errors) {
+            toastr.success('', '@Html.Raw(Resources.Global._save_successfully)');
+            $("#grid_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+        else if ((e.type == "update") && !e.response.Errors) {
+                toastr.success('', '@Html.Raw(Resources.Global._update_successfully)');
+                $("#grid_" + curunitid).data("kendoGrid").dataSource.read();
+            }
+    }
+
+    function SubGrid_onEdit(e) {
+        var dataItem = $("#grid_" + curunitid).data('kendoGrid').dataItem($(e.container).closest("tr"));
+        if (dataItem.website != null || dataItem.website != "") {
+            $.post(r + "/PositionsManage/getCategorys", { website: dataItem.website.toString() }, function (data) {
+                if (!data.Errors) {
+                    dataParent = data.data;                  
+                    $("#chuyen_muc").kendoDropDownList({
+                        dataSource: dataParent,
+                        dataTextField: "Text",
+                        dataValueField: "Value",
+                        optionLabel: "Chọn chuyên mục ...",
+                        filter: "contains",
+                    });
+                }
+            });
+        }
+
+    }
+
+    function SubGrid_Create() {
+        $("#grid_" + curunitid).data("kendoGrid").dataSource.insert();
+    }
+    function SubGrid_Update() {
+        if ($("#grid_" + curunitid).data('kendoGrid').dataSource.hasChanges() == true) {
+            $("#grid_" + curunitid).data('kendoGrid').saveChanges();
+        }
+    }
+    function SubGrid_Cancel() {
+        $("#grid_" + curunitid).data('kendoGrid').cancelChanges();
+    }
+
+    function SubGrid_checkAll(e) {
+
+        var x = $(e).prop('checked');
+        $("#grid_" + curunitid).find(".SubGrid_checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function SubGrid_Getlistcheck() {
+        var listrowid = '';
+        $("#grid_" + curunitid).find(".SubGrid_checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ',';
+                $(this).data();
+            }
+        });
+        return listrowid;
+    }
+
+
+    function removeWCL() {
+
+        var data = SubGrid_Getlistcheck();
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete_detail)",
+            buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                            $.post(r + "/PositionsManage/SubGrid_Delete", { data: data }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    toastr.success('', '@Html.Raw(Resources.Global._delete_successfully)');
+                                    $("#grid_" + curunitid).data("kendoGrid").dataSource.read();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+</script>

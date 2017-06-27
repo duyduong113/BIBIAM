@@ -1,0 +1,133 @@
+﻿<div id="popup-send" class="modal hide">
+   
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn Gửi dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus(1)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="popup-approve" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>Bạn chắc chắn Duyệt các khách hàng được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus(2)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="popup-denied" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>Vui lòng nhập lý do nếu bạn từ chối khách hàng?</p>
+            <textarea id="denied-content" style="width:96%"></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus(3)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#Grid').find(".checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (e == 1) { // Send
+                $('#popup-send').modal('show');
+            }
+            if (e == 2) { // Approve
+                $('#popup-approve').modal('show');
+            }
+            if (e == 3) { // Denied
+                $('#popup-denied').modal('show');
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+
+    }
+    function onChangeStatus(type) {
+        var listrowid = "";
+        $('#Grid').find(".checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (type == 3) {
+            if ($('#denied-content').val() == '') {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng nhập lý do từ chối',
+                    class_name: 'gritter-error'
+                });
+                return false;
+            }
+        }
+
+        if (listrowid != "" && listrowid != null) {
+            var rs = $('#denied-content').val();
+            $.post(r + "/CRMCustomerInfo/ChangeStatus", { data: listrowid, type: type, reasons: rs }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: 'Thay đổi trạng thái thành công',
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+
+                    onCloseForm();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+
+                }
+            });
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function onCloseForm() {
+        $('#denied-content').val('');
+        $('.modal').modal('hide');
+    }
+
+</script>

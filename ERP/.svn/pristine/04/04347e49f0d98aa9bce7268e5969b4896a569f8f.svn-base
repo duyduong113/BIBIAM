@@ -1,0 +1,37 @@
+﻿@{
+    ViewBag.Title = "404";
+}
+
+<div class="error-container">
+    <div class="well">
+        <h1 class="grey lighter smaller">
+            <span class="blue bigger-125">
+                <i class="icon-sitemap"></i>
+                404
+            </span>
+            Không tìm thấy trang
+        </h1>
+
+        <hr />
+        <br />
+        <h3 class="lighter smaller">
+            Chúng tôi không tìm thấy trang này. Vui lòng kiểm tra lại
+        </h3>
+        <br />
+        <hr />
+        <div class="space"></div>
+
+        <div class="row-fluid">
+            <div class="center">
+                <a onclick="window.history.back();" class="btn btn-grey">
+                    Về trang trước
+                </a>
+
+                <a href="/" class="btn btn-primary">
+                    Đến trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

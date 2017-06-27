@@ -1,0 +1,18 @@
+﻿using ServiceStack.DataAnnotations;
+using System;
+
+namespace BIBIAM.Core.Entities
+{
+    public class Merchant_StockInDetail: BaseEntity
+    {
+        public string ma_phieu_nhap_kho { get; set; }
+        public string ma_gian_hang { get; set; }
+        public string ma_san_pham { get; set; }
+        public string vi_tri { get; set; }
+        public string don_vi_tinh { get; set; }
+        public int so_luong_yeu_cau { get; set; }
+        public int so_luong_thuc_te { get; set; }
+        public string ghi_chu { get; set; }
+        public string trang_thai { get; set; }
+    }		
+}

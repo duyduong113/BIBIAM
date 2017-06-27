@@ -1,0 +1,203 @@
+﻿@using CMS.Models;
+@{
+    ViewBag.Title = Resources.Global._code_master;
+}
+<div class="portlet light bordered">
+    <div class="portlet-title">
+        <div class="caption">
+            <span class="caption-subject bold uppercase">Code Master</span>
+        </div>
+        <div class="inputs">
+            <div class="portlet-input input-inline input-small ">
+                <div class="input-icon right">
+                    <i class="icon-magnifier"></i>
+                    <input type="text" id="descriptionF" class="form-control form-control-solid input-circle tooltips" data-container="body" data-placement="top" data-original-title="Type Type/Name/Value to search code master" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                </div>
+            </div>
+            <div class="btn-group">
+                <a class="btn btn-circle blue btn-sm" onclick="showMoreFilter(this)">
+                    <span class="moreFilterText">@Html.Raw(Resources.Global._more)</span>
+                    <i class="fa fa-filter"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="portlet-body">
+        <div class="row filterMore" style="display: none; padding-bottom: 20px;margin-bottom:10px">
+            <div class="col-md-12">
+                <form role="form" class="filterForm">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row" style="margin-top:5px;">
+                                <div class="col-md-4">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("typeF")
+                                    .OptionLabel(Resources.Global._type + "...")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("getCodeMasterType", "CustomData");
+                                        }).ServerFiltering(true);
+                                    })
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-1 pull-right text-right">
+                            <a class="btn btn-circle btn-sm green" onclick="filter()"><i class="fa fa-search"></i> Search</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<CMS.Models.Code_Master>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Type).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.Name).Width(110).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.Name_Vi).Width(110).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.Value).Width(110).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.order_Num).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.IsDefault).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.CreatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                columns.Bound(p => p.CreatedBy).Width(100);
+                columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                columns.Bound(p => p.UpdatedBy).Width(100);
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Create();
+                toolbar.Save();
+            })
+            .Events(events => { events.DataBound("dataBound"); })
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .Pageable()
+            .Navigatable()
+            .Scrollable()
+            .ColumnMenu()
+            .HtmlAttributes(new { @style = "height:500px;" })
+            .Resizable(resizable => resizable.Columns(true))
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.CreatedAt).Editable(false);
+                            model.Field(p => p.CreatedBy).Editable(false);
+                            model.Field(p => p.UpdatedAt).Editable(false);
+                            model.Field(p => p.UpdatedBy).Editable(false);
+                        })
+                .Create("Create", "CodeMasterManagement")
+                .Read("Read", "CodeMasterManagement")
+                .Update("Update", "CodeMasterManagement")
+            )
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 40px 0 20px 0; width: 100%; position: absolute;">
+        <i class="icon-cup" style="font-size: 72px; color: \\#e1e5ec"></i>
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._code_master.ToLower()) @Html.Raw(Resources.Global._yet)</div>
+    </div>
+</script>
+<script>
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            toastr.error("", message);
+        }
+    }
+    function onRequestEnd(e) {
+
+        if ((e.type == "create" || e.type == "update") && !e.response.Errors) {
+            toastr.success("", "@Resources.Global._save_successfully");
+        }
+    }
+
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function dataBound(e) {
+        //resizeGrid();
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(".k-grid-pager").remove();
+            $(this.element).find("tbody").html(NoItemsTemplate({}));
+            $(this.element).css("border", "none");
+        }
+    }
+
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+
+
+    function clearFilter() {
+        $(".filterForm")[0].reset();
+        filter();
+    }
+
+    function filter() {
+        grid = $("#grid").data("kendoGrid");
+
+        var type = $("#typeF").val();
+        var seachText = $("#descriptionF").val();
+        var DestinationF = $('#DestinationF').val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (type) {
+            filter.filters.push({ field: "Type", operator: "eq", value: type });
+        }
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "Type", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "Name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "Value", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+</script>

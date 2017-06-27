@@ -1,0 +1,17 @@
+﻿@{
+    var datas = ERPAPD.Models.DC_CS_Daily_New.GetAllDC_Articles().OrderByDescending(a=>a.Id);
+}
+ @foreach (ERPAPD.Models.DC_CS_Daily_New data in datas)
+ {
+   <div style="margin-top:0px;">
+       <div style="color:#BDBDBD">
+           <h4>@Html.Raw(data.Title)</h4>
+       </div>
+       <div style="margin-bottom:10px">
+          @Html.Raw(data.RowCreatedUser) | @Html.Raw(data.RowLastUpdatedTime)
+       </div>
+        <div>
+             @Html.Raw(data.Content)
+       </div>
+   </div> <hr />
+ }

@@ -1,0 +1,33 @@
+﻿<div id="popup-hierarchy" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Thông báo</h4>
+            </div>
+            <div class="modal-body">
+                <div id="txtcontent"></div>
+            </div>
+            <div class="modal-footer">
+                <input id="id_confirm" type="hidden"/>
+                <input id="ma_san_pham_confirm" type="hidden"/>
+                <a class="btn btn-circle btn-default btn-sm" data-dismiss="modal" aria-label="Cancel">Hủy</a>
+                <a class="btn btn-circle btn-default btn-sm" onclick="pick()">Đồng ý</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function showConfirmPopup(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"));
+        $("#id_confirm").val(data.id);
+        $("#ma_san_pham_confirm").val(data.ma_san_pham);
+        $('#popup-hierarchy').modal('show');
+        $('#txtcontent').text("Bạn có muốn bán sản phẩm này ?");
+        
+    }
+    function onCloseForm() {
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

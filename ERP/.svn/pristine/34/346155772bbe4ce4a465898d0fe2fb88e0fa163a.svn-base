@@ -1,0 +1,694 @@
+﻿@using BIBIAM.Core.Entities;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = "Đăng sản phẩm";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+}
+<style>
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        width: 300px;
+        height: 300px;
+    }
+
+    .image-product {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-product img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-product .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-product:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            color: #ff7d5e;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .input-icon.right > i {
+        right: 20px;
+        float: right;
+    }
+</style>
+<script src="~/Scripts/utilitycommon.js"></script>
+<div class="row">
+    <div class="col-md-12 formEdit">
+    </div>
+</div>
+@Html.Partial("_popup_Hierarchy")
+@Html.Partial("_popup_select_image")
+@Html.Partial("_popup_select_image_content")
+
+<script type="text/x-kendo-template" id="EditTemplate">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase"> Đăng sản phẩm</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <form action="@Url.Content("~/Merchant_Product/CreateProduct")" method="post" id="EditForm" novalidate="novalidate">
+                <div class="pull-right right">
+                    @*<button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>*@
+                    <a href="@Url.Content("~/Merchant_Product")" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._product_catalog)</a>
+                    <a onclick="save()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save)</a>
+                    <a onclick="saveAndnew()" class="btn btn-sm yellow btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <div id="fileinput" class="fileinput fileinput-new" data-provides="fileinput">
+                              
+                                    <label>@Html.Raw(Resources.Global._showroom_image)</label>
+                                 
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 300px; height:300px;">
+                                                    <img src='http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image' style="width: 300px; height:300px;" />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="width: 300px; height:300px;"> </div>
+                                                <div>
+                                                    <span id="SelectImage" class="btn default btn-file btn-sm btn-circle" onclick="show_popup_selectimage()">Chọn ảnh từ thư viện</span>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+</div>
+                        </div>
+                        <div class="form-group col-md-9">
+                            <div class="wrapper">
+                                <div id="image-products">
+                                </div>
+                                <div class="dropZoneElement">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="form-group col-md-12" id="tab_1_1">
+                                <label class="col-md-2">Chọn cây phân cấp<span class="required"> * </span></label>
+                                <div class="col-md-10">
+                                    <a class="btn btn-primary btn-xs col-md-1" onclick="showHier(1)">Chọn</a>
+                                    <div class="hierarchy-info col-md-9">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Tên sản phẩm<span class="required"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._product_name)" class="form-control input-sm max100" name="ten_san_pham">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._part_number)<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._part_number)" class="form-control input-sm max100" name="part_no">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Model<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global.model)" class="form-control input-sm max100" name="model">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._description)<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._description)" class="form-control input-sm max100" name="mo_ta">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Minimum order</label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._minimum_order)" class="form-control input-sm max100" name="minimum_order" value="1">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Khối lượng</label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global.weigh)" class="form-control input-sm max100" name="khoi_luong" value="0">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._access_price)<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._access_price)" class="form-control input-sm max100" name="don_gia" onkeyup="PriceToCurrency(this, event)">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Giá bán sỉ</label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global._wholesale_price)" class="form-control input-sm max100" name="gia_si" onkeyup="PriceToCurrency(this, event)">
+                                </div>
+                            </div>
+                            @*<div class="form-group col-md-12">
+                <label class="col-md-2">slug<span class="text-danger"> * </span></label>
+                <div class="input-icon right col-md-4">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm max100" name="slug">
+                </div>
+            </div>*@
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._sms_brand_name)</label>
+                                <div class="input-icon right col-md-4">
+                                    @(Html.Kendo().DropDownList()
+                                        .Name("thuong_hieu")
+                                        .DataTextField("Name")
+                                        .DataValueField("Value")
+                                        .OptionLabel("--Thương Hiệu--")
+                                        .BindTo(ViewBag.thuong_hieu)
+                                        .HtmlAttributes(new { style = "width: 100%" })
+                                        .ToClientTemplate()
+                                    )
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._made_in)<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    @(Html.Kendo().DropDownList().Name("xuat_xu").HtmlAttributes(new { style = "width:100%" }).OptionLabel(Resources.Global._made_in + "...").DataTextField("Name").DataValueField("Name").Filter("contains").DataSource(source => { source.Read(read => { read.Action("GetCountry", "CustomData"); }).ServerFiltering(false); }).ToClientTemplate())
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._keyword)<span class="text-danger"> * </span></label>
+                                <div class="input-icon right col-md-4">
+                                    <i class="fa"></i>
+                                    <input type="text" placeholder="@Html.Raw(Resources.Global.product_key)" class="form-control input-sm max100" name="tu_khoa">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">Catalog</label>
+                                <div class="input-icon right col-md-4">
+                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                        <div class="input-group input-large">
+                                            <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                                <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                                <span class="fileinput-filename"> </span>
+                                            </div>
+                                            <span class="input-group-addon btn default btn-file">
+                                                <span class="fileinput-new"> Chọn file </span>
+                                                <span class="fileinput-exists"> Thay đổi </span>
+                                                <input type="hidden"><input type="file" name="FileUploadCatalog">
+                                            </span>
+                                            <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Xóa </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div data-name="input_property">
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label class="col-md-2">@Html.Raw(Resources.Global._content)</label>
+                                <label for="mo_ta" class="hidden" style="color: red">Vui lòng nhập thông tin MÔ TẢ</label>
+                                <div class="clearfix">
+                                    @(Html.Kendo().Editor().Name("noi_dung")
+                            .Encode(false)
+                            .HtmlAttributes(new { style = "height:450px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                            .Tools(tools => tools
+                            .Clear()
+                            .Bold().Italic().Underline().Strikethrough()
+                            .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                            .InsertUnorderedList().InsertOrderedList()
+                            .Outdent()
+                            .Indent()
+                            .CreateLink().Unlink()
+                            @*.InsertImage()*@
+                            .InsertFile()
+                            .SubScript()
+                            .SuperScript()
+                            .TableEditing()
+                            .ViewHtml()
+                            .Formatting()
+                            .CleanFormatting()
+                            .FontColor()
+                            .BackColor()
+                            .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a><a class='k-button' onclick='show_popup_selectimage_content()'>" + Html.Raw(Resources.Global._select_image) + "</a>")))
+                            .Messages(m => m
+                            .ImageWebAddress("Đường dẫn ảnh")
+                            .DialogCancel("Hủy")
+                            .DialogInsert("Thêm")
+                            ).ToClientTemplate()
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="listIMG">
+    <div class="listIMG">
+        <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image" alt="image" />
+    </div>
+</script>
+<script type="text/template" id="imgTemplate">
+    <div class="fileinput fileinput-new" data-provides="fileinput">
+        <label>@Html.Raw(Resources.Global._showroom_image)</label>
+        <div class="clearfix">
+            <div class="input-group">
+                <div class="fileinput fileinput-new" data-provides="fileinput">
+                    <div class="fileinput-new thumbnail" style="width: 280px; ">
+                        <img src='http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image' />
+                    </div>
+                    <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 300px; "> </div>
+                    <div>
+                        <span class="btn default btn-file btn-sm btn-circle">
+                            <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                            <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                            <input type="file" name="file">
+                        </span>
+                        <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+
+    $(document).ready(function () {
+        $.validator.addMethod("minCost", function (value, element) {
+            value = parseFloat(value.replace(/,/g,''));
+            if (value < 50000)
+                return false;
+            return true;
+        }, "Tối thiểu 50,000 VNĐ");
+        $.validator.addMethod("maxCost", function (value, element) {
+            value = parseFloat(value.replace(/,/g,''));
+            if (value > 1000000000)
+                return false;
+            return true;
+        }, "Tối đa 1,000,000,000 VNĐ");
+        $.validator.addMethod("checkContent", function (value, element) {
+            if (value == "")
+            {
+                $("label[for='mo_ta']").html('<b>Vui lòng nhập thông tin cho @Html.Raw(Resources.Global._content)</b>').removeClass('hidden')
+                return false;
+            }
+            $("label[for='mo_ta']").text("").addClass('hidden')
+            return true;
+        });
+        $.validator.addMethod("customselect", function (value, element) {
+            if (value != 'Xuất xứ...') {
+                return true;
+            }
+            return false;
+        });
+        $.validator.addMethod("customnumber", function (value, element) {
+            var number = Math.round($(element).val());
+            $(element).val(number > 0? number:0);
+            if (currencyToNumber($(element).val())>0) {
+                return true;
+            }
+            return false;
+        });
+        $.validator.addMethod("customnumeric", function (value, element) {
+            var number = $(element).val();
+            $(element).val(number > 0? number:0);
+            if (currencyToNumber($(element).val()).toFixed(2) > 0) {
+                return true;
+            }
+            return false;
+        });
+        $("#EditForm .form-group input[name='don_gia']").blur(function(e){
+            var ele = $("#EditForm .form-group input[name='gia_si']")
+            ele.val($(this).val() != "" ? $(this).val() : ele.val());
+        });
+    });
+    function PriceToCurrency(ele,e){
+        switch(e.keyCode)
+        {
+            case 16: case 17:case 35: case 36: case 37: case 38: case 39: case 40:
+                break;
+            default:
+                num = $(ele).val(numberToCurrency(currencyToNumber($(ele).val())))
+                break;
+        }
+    }
+    function onFullScreen(e) {
+        var editor = $("#noi_dung").data("kendoEditor");
+        if ($(e).html() == "@Html.Raw(Resources.Global._full_screen)") {
+            $(e).html("@Html.Raw(Resources.Global._restore_down)");
+            editor.wrapper.css("height", $(window).height())
+            .css("width", "100%")
+            .css("position", 'fixed')
+            .css("top", 0)
+            .css("left", 0).css("z-index", 10000).css("overflow", "hidden");
+        } else {
+            $(e).html("@Html.Raw(Resources.Global._full_screen)");
+            editor.wrapper.css("height", "450px").css("position", 'relative').css("width", "100%").css("z-index", 10).css("overflow", "auto");
+        }
+    }
+    function save() {
+        $("#EditForm").submit();
+    }
+    var reset = false;
+    function saveAndnew() {
+        reset = true;
+        $("#EditForm").submit();
+    }
+    function clearForm() {
+        $("#hierarchy-1").find('li').removeClass("active");
+        $("#hierarchy-2").find('li').removeClass("active");
+        $("#hierarchy-3").find('li').removeClass("active");
+        loadForm();
+    }
+    function loadForm() {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(''));
+        loadValidate();
+        $('.fileinput').fileinput().on('change.bs.fileinput', function(e, files){
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+        $('.fileinput .thumbnail').hover(function(e){
+            $(this).find('i').remove();
+            if(!$(".fileinput-preview.fileinput-exists.thumbnail img").length && $(".fileinput-new.thumbnail img").attr("src").indexOf("http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image") == 0)
+                return;
+            $(this).append('<i class="fa fa-times fa-4" onclick="dropImage(0)"></i>')
+        });
+        $("#EditForm .form-group input[name='don_gia']").blur(function(e){
+            var num = Math.round(currencyToNumber($(this).val())/1000)*1000;
+            $(this).val(numberToCurrency(num));
+            var ele = $("#EditForm .form-group input[name='gia_si']")
+            ele.val($(this).val() != "" ? $(this).val() : ele.val());
+        });
+    }
+    loadForm();
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_san_pham: { minlength: 4, maxlength: 512, required: !0 },
+                        part_no: { maxlength: 128, required: !0 },
+                        model: { maxlength: 512, required: !0 },
+                        //slug :  { required: !0 },
+                        mo_ta: { minlength: 4, maxlength: 512, required: !0 },
+                        khoi_luong: { customnumeric: true, required: !0 },
+                        minimum_order: { customnumber: true, required: !0 },
+                        don_gia: { number : true, minCost: true, maxCost: true, required: !0 },
+                        gia_si: { number : true, minCost: true, maxCost: true, required: !0 },
+                        thuong_hieu: { minlength: 2, maxlength: 128, required: !0 },
+                        xuat_xu: { customselect:true, required: !0 },
+                        tu_khoa: { minlength: 2, maxlength: 512, required: !0 },
+                        noi_dung: { checkContent:true }
+                    },
+                messages:
+                    {
+                        ten_san_pham: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        //slug :{
+                        //    required: "Thông tin bắt buộc"
+                        //},
+                        part_no: {
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        model: {
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        mo_ta: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        khoi_luong: {
+                            customnumeric: "Số lượng phải lớn hơn 0",
+                            required: "Thông tin bắt buộc"
+                        },
+                        minimum_order: {
+                            customnumber: "Số lượng phải lớn hơn 1",
+                            required: "Thông tin bắt buộc"
+                        },
+                        don_gia: {
+                            number: "Kiểu số 1,000,000",
+                            required: "Thông tin bắt buộc"
+                        },
+                        gia_si: {
+                            number: "Kiểu số 1,000,000",
+                            required: "Thông tin bắt buộc"
+                        },
+                        thuong_hieu: {
+                            minlength: "Tối thiểu 2 ký tự",
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        xuat_xu: {
+                            required: "Thông tin bắt buộc"
+                        },
+                        tu_khoa: {
+                            minlength: "Tối thiểu 2 ký tự",
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var rs = getDataBeforeSubmit(); // return messageError, object
+                    if(rs.messageError != "") // messageError != "" -> has Error
+                    {
+                        toastr.error(rs.messageError);
+                        return;
+                    }
+                    var element = $("#EditForm").find("input[name='don_gia']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='gia_si']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='khoi_luong']");
+                    element.val(currencyToNumber(element.val()).toFixed(2));
+
+                    var imgurl=$(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url" value="'+imgurl+'"/>');
+                    $(e).ajaxSubmit({
+                        data: { hierarchy: rs.object.hierarchy, properties: rs.object.properties, listimage: rs.object.listimage},
+                        dataType: "json",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            $("#EditForm").find("input[name='url']").remove();
+                            if (data.success) {
+                                if (reset)
+                                {
+                                    loadForm();
+                                    finishHier($("#hierarchy-3 li.active"));
+                                    //var imgHTML = $("#imgTemplate").html();
+                                    //$("#EditForm .form-group :eq(0)").html("");
+                                    //$("#EditForm")[0].reset();
+                                    //$("#EditForm .form-group :eq(0)").html(imgHTML);
+                                    //$("#EditForm").find(".has-success").removeClass("has-success").find(".fa-check").removeClass("fa-check");
+                                    //$("#noi_dung").data("kendoEditor").body.innerText = "";
+                                }
+                                toastr.success('', '@Resources.Global._save_successfully')
+                            }
+                            else {
+                                //clearForm();
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            var element = $("#EditForm").find("input[name='don_gia']");
+                            if (element.val())
+                                element.val(numberToCurrency(element.val()));
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function getDataBeforeSubmit() // return object, messageError
+    {
+        var messageError = "";
+        var object = [];
+        var listimage = [];
+        $("#image-products .image-product img").each(function(){
+            var mpi = @Html.Raw(Json.Encode(new Merchant_Product_Image()));
+            var dataItem = $("#popup_Grid").data("kendoListView").dataSource.getByUid($(this).attr('for'));
+            if(dataItem)
+            {
+                mpi.url = dataItem.duong_dan_day_du;
+                mpi.ma_anh_goc = dataItem.ma_anh_goc;
+                listimage.push(mpi);
+            }
+        });
+        object.listimage = listimage;
+        var hierarchy = @Html.Raw(Json.Encode(new Merchant_Product_Hierarchy()));
+        var properties = [];
+        hierarchy.ma_cay_phan_cap_3 = $("#hierarchy-3").data("kendoListView").dataItem($("#hierarchy-3 li.active")) ? $("#hierarchy-3").data("kendoListView").dataItem($("#hierarchy-3 li.active")).ma_phan_cap : "";
+        var rs = findRootHierarchy(hierarchy.ma_cay_phan_cap_3);
+        if (!rs)
+        {
+            return{
+                messageError : "Bạn chưa chọn cây phân cấp",
+                object : object
+            };
+        }
+        hierarchy.ma_cay_phan_cap_2 = rs.hierarchy2.ma_phan_cap;
+        hierarchy.ma_cay_phan_cap_1 = rs.hierarchy1.ma_phan_cap;
+        var messageError = "";
+        var dataItems = [];
+
+        object.hierarchy = hierarchy;
+        return{
+            messageError : messageError,
+            object : object
+        }
+    }
+    function finishHier(e) {
+        debugger
+        $(e).parent().find('li').removeClass("active");
+        $(e).addClass("active");
+        var name = findRootHierarchy($("#hierarchy-3").data("kendoListView").dataItem(e).ma_phan_cap);
+        $(".hierarchy-info").html("<span>" + name.hierarchy1.ten_phan_cap +" -> "+ name.hierarchy2.ten_phan_cap +" -> "+ name.hierarchy3.ten_phan_cap + "</span>");
+        //generateProperty($("#EditForm [data-name='input_property']"), name.hierarchy3.ma_phan_cap);
+        $("#popup-hierarchy").modal('hide');
+    }
+    function finishHier2(e) {
+        debugger
+        $(e).parent().find('li').removeClass("active");
+        $(e).addClass("active");
+        var name = findRootHierarchy($("#hierarchy-2").data("kendoListView").dataItem(e).ma_phan_cap);
+        $(".hierarchy-info").html("<span>" + name.hierarchy1.ten_phan_cap +" -> "+ name.hierarchy2.ten_phan_cap +"/span>");
+        //generateProperty($("#EditForm [data-name='input_property']"), name.hierarchy3.ma_phan_cap);
+        $("#popup-hierarchy").modal('hide');
+    }
+</script>

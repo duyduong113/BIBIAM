@@ -1,0 +1,137 @@
+﻿@if (ViewBag.itemContract != null)
+{
+    <div class="row-fluid">
+        <div class="span6">
+            <div class="row-fluid">
+                <span class="pull-left">Người ký HĐ 24h</span>
+                <div class="span5">
+                    <select name="c_24h_singer" id="c_24h_singer"  data-placeholder="Người ký HĐ 24h">
+                        <option value=""></option>
+                        @foreach (var item in ViewBag.listManager)
+                        {
+                            if (item.RefStaffId.ToString() == ViewBag.itemContract.c_24h_singer.ToString())
+                            {
+                                <option selected value="@item.RefStaffId">@item.FullName</option>
+                            }
+                            else
+                            {
+                                <option value="@item.RefStaffId">@item.FullName</option>
+                            }
+
+                        }
+                    </select>
+                </div>
+                <span>KH ký + Thông tin người liên hệ</span>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <input id="c_customer_singer" name="c_customer_singer" value="@ViewBag.itemContract.c_customer_singer" class="span12" type="text" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Ghi chú</label>
+                <div class="controls">
+                    <textarea id="c_note" name="c_note" class="span12" value="@ViewBag.itemContract.c_note" cols="5" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="span6" style="display:none">
+            <span>File đính kèm <span style="color:red">( Dung lượng file < 10 MB )</span></span>
+            @(Html.Kendo().Upload()
+                  .Name("c_file_name")
+                  //.Async(a => a
+                   //   .Save("SaveOther", "CRM_ProposedAdvertisement")
+                  //    .Remove("RemoveAndPersist", "SaveOther")
+                  //    .AutoUpload(false)
+         )
+        </div>
+    </div>
+}
+else
+{
+    <div class="row-fluid">
+        <div class="span6">
+            <div class="row-fluid">
+                <span class="pull-left">Người ký HĐ 24h</span>
+                <div class="span5">
+                    <select name="c_24h_singer" id="c_24h_singer" data-placeholder="Người ký HĐ 24h">
+                        @foreach (var item in ViewBag.listManager)
+                        {
+                            <option value="@item.RefStaffId">@item.FullName</option>
+                        }
+                    </select>
+                </div>
+                <span>KH ký + Thông tin người liên hệ</span>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <input id="c_customer_singer" name="c_customer_singer" class="span12" type="text" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Ghi chú</label>
+                <div class="controls">
+                    <textarea id="c_note" name="c_note" class="span12" cols="5" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="span6" style="display:none">
+            <span>File đính kèm <span style="color:red">( Dung lượng file < 10 MB )</span></span>
+            @(Html.Kendo().Upload()
+                  .Name("c_file_name")
+                  //.Async(a => a
+                 //     .Save("SaveOther", "CRM_ProposedAdvertisement")
+                 //     .Remove("RemoveAndPersist", "SaveOther")
+                //      .AutoUpload(false)
+         )
+        </div>
+    </div>
+}
+
+<script>
+    $('.k-button k-upload-selected').css('display', 'none');
+    function SaveOtherTab(pkadv) {
+        $('#pk_adv').val(pkadv);
+        if (adv.pkadv == 0 || adv == undefined) {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Vui lòng tạo phiếu đăng ký trước.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        else {
+            $('#tab-other').submit();
+        }
+    }
+    $("#tab-other").validate({
+        // Rules for form validation
+        submitHandler: function (form) {
+            var formData = new FormData($("#tab-other")[0]);
+            var url = $("#tab-other")[0].action;
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    debugger
+                    return true;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+            });
+        }
+    });
+
+</script>
+

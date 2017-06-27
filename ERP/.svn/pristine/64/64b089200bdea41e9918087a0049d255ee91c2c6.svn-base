@@ -1,0 +1,64 @@
+﻿@{
+    Layout = null;
+    double tong_thanh_tien = 0.0;
+    int so_luong = 0;
+    int i = 0;
+    if (ViewBag.listproduct.Count > 0)
+    {
+        foreach (var item in ViewBag.listproduct)
+        {
+            tong_thanh_tien += item.thanh_tien;
+            so_luong += item.so_luong;
+        }
+    }
+}
+<table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+    <tbody>
+        <tr>
+            <td width="30" class="tab_head"><b>STT</b></td>
+            <td width="150" class="tab_head"><b>Hình ảnh</b></td>
+            <td width="300" class="tab_head"><b>Mô tả sản phẩm</b></td>
+            <td width="100" class="tab_head"><b>Xuất xứ </b></td>
+            <td width="100" class="tab_head"><b>Gia1 đề nghị </b><br><span style="font-size:9pt; font-weight:normal;">(VND)</span></td>
+            @*<td width="90" class="tab_head"><b>So Luong </b></td>
+            <td width="100" class="tab_head"><b>Thanh tien</b><br> <span style="font-size:9pt; font-weight:normal;">(VND)</span></td>*@
+        </tr>
+        @if (ViewBag.listproduct.Count > 0)
+        {
+
+            foreach (var item in ViewBag.listproduct)
+            {
+                i += 1;
+                <tr>
+                    <td class="tdtxt">@i</td>
+                    <td>
+                        <div style="padding-left: 0; text-align: center;"><img src="@item.url" class="img-responsive" width="128" height="128" style="display:inline"></div>
+                    </td>
+                    <td>
+                        <div style="font-weight:bold;font-size:12pt;text-align:left;">
+                            @item.ten_san_pham
+                        </div>
+                        <hr style="border-style:dotted;">
+                        <div style="font-weight:normal;font-size:12pt;text-align:left;">
+                            @item.mo_ta
+                        </div>
+                    </td>
+                    <td class="tdtxt">@item.xuat_xu</td>
+                    <td align="right">@item.don_gia.ToString("#,##0")</td>
+                    @*<td align="right">@item.so_luong.ToString()</td>
+                    <td align="right">@item.thanh_tien.ToString("#,##0")</td>*@
+                </tr>
+            }
+        }
+        @*<tr>
+            <td></td>
+            <td class="tdtxt"><b>Cong</b></td>
+            <td class="tdtxt"></td>
+            <td align="right"></td>
+            <td align="right"></td>
+            <td align="right"><b>@so_luong</b></td>
+            <td align="right"><b>@tong_thanh_tien.ToString("#,##0")</b></td>
+        </tr>*@
+
+    </tbody>
+</table>

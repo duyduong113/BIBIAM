@@ -1,0 +1,1 @@
+Alter table BrandManagement add slug nvarchar(300)  

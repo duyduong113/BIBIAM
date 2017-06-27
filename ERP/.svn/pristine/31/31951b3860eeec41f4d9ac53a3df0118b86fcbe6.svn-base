@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>React.Core</id>
+    <version>2.5.0</version>
+    <title>ReactJS.NET Core</title>
+    <authors>Daniel Lo Nigro</authors>
+    <owners>Daniel Lo Nigro</owners>
+    <licenseUrl>https://github.com/reactjs/React.NET#licence</licenseUrl>
+    <projectUrl>http://reactjs.net/</projectUrl>
+    <iconUrl>http://facebook.github.io/react/img/logo_og.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ReactJS and Babel tools for .NET. 
+Important: This package does not do much on its own; you probably want an integration package (like React.Web.Mvc4) as well. Please refer to project site (http://reactjs.net/) for more details, usage examples and sample code.</description>
+    <summary>ReactJS and Babel tools for .NET</summary>
+    <copyright>Copyright 2014 Facebook, Inc</copyright>
+    <tags>asp.net mvc asp jquery javascript js react facebook reactjs babel</tags>
+    <dependencies>
+      <dependency id="JavaScriptEngineSwitcher.Msie" version="1.5.0" />
+      <dependency id="JavaScriptEngineSwitcher.V8" version="1.5.2" />
+      <dependency id="JSPool" version="0.4.1" />
+      <dependency id="Newtonsoft.Json" version="6.0.8" />
+    </dependencies>
+  </metadata>
+</package>

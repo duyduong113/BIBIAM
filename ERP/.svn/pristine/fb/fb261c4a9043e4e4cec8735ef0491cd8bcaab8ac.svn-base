@@ -1,0 +1,594 @@
+﻿
+@{
+    ViewBag.Title = "Thêm mới thông tin khách hàng";
+
+}
+<style>
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+    }
+
+    .group-result {
+        margin-bottom: 15px;
+    }
+
+    .form-actions {
+        padding: 10px 10px 10px;
+    }
+
+    .emailArray {
+        margin-bottom: 3px !important;
+    }
+
+    .web-txt {
+        margin-bottom: 5px;
+    }
+
+    .minus-website, #add-website {
+        background-color: #fff !important;
+        border: none;
+        color: #928A8A !important;
+    }
+
+    .minus-phone, #add-phone {
+        background-color: #fff !important;
+        border: none;
+        color: #928A8A !important;
+    }
+</style>
+
+<div class="widget">
+    <div>
+        <div class="widget-main">
+            @using (Html.BeginForm("CreateCustomer", "CRMCustomerInfo", FormMethod.Post, new { @class = "form-horizontal", id = "formCreateCustomer", enctype = "multipart/form-data" }))
+            {
+                <div class="group-result">
+                    <fieldset class="span4">
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Mã khách hàng</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="CustomerID" placeholder="Hệ thống tự sinh mã" name="CustomerID" readonly>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Tên ngắn gọn</label>
+                            <div class="controls">
+                                <input class="span12" type="text" id="ShortName" name="ShortName" placeholder="Tên ngắn gọn">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Tên đầy đủ (pháp nhân)</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="CustomerName" placeholder="Nhập tên đầy đủ" name="CustomerName">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Mã số thuế</label>
+                            <div class="controls">
+                                <input class="span7" type="text" id="form-field-1" placeholder="MST" name="TaxCode">
+                                <a class="btn btn-small btn-info" href="http://gdt.gov.vn/wps/portal/!ut/p/b1/04_Sj9CPykssy0xPLMnMz0vMAfGjzOINTCw9fSzCgv2dzLxdDTxDHV2NLAM8jC3CzPQLsh0VAVXv_MU!/" target="_blank">
+                                    Tra cứu
+                                </a>
+                            </div>
+
+                        </div>
+                        <div class="" id="area-select">
+                            <div class="control-group">
+                                <label class="control-label" for="form-field-1">Quốc gia</label>
+                                <div class="controls">
+                                    <select id="listCountry" class="span12 select" name="Country" onchange="changeCountry(this)">
+                                        <option></option>
+                                        @foreach (var item in ViewBag.listCountry)
+                                        {
+                                            <option value="@item.CountryID">@item.CountryName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="form-field-1">Tỉnh thành</label>
+                                <div class="controls">
+                                    <select id="listCity" class="span12 select" name="Province">
+                                        <option></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="form-field-1">Quận huyện</label>
+                                <div class="controls">
+                                    <select id="listDistrict" class="span12 select" name="District">
+                                        <option></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Phường xã</label>
+                                <div class="controls">
+                                    <select id="listWards" class="span12 select" name="Wards">
+                                        <option></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Số nhà,tên đường</label>
+                            <div class="controls">
+                                <textarea id="Address" name="Address" class="autosize-transition span12" style="overflow: hidden; word-wrap: break-word; resize: horizontal; height: 50px; margin-left: 0px; margin-right: 0px;"></textarea>
+                            </div>
+                        </div>
+                        <div id="listPhone" class="control-group">
+                            <label class="control-label">Điện thoại bàn LH</label>
+                            <div class="controls">
+                                <div class="span11 web-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>
+                                <div class="span1"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                            </div>
+
+                        </div>
+                        <input name="Phone" type="hidden" id="Phone" />
+
+                    </fieldset>
+                    <fieldset class="span4">
+                        <div class="control-group">
+                            <label class="control-label">Nguồn</label>
+                            <div class="controls">
+                                <select id="Source" class="span12" name="Source" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listSource)
+                                    {
+                                        <option value="@item.ParamID">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Loại hình doanh nghiệp</label>
+
+                            <div class="controls">
+                                <select id="listCompanyType" class="span12 select" name="CompanyType" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listTypeOfBusiness)
+                                    {
+                                        <option value="@item.Code">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Ngành hàng</label>
+                            <div class="controls">
+                                <select id="listCategory" class="span12 select" name="Category" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listCategory)
+                                    {
+                                        <optgroup id="@item.HierarchyID" label="@item.Value">
+                                            @foreach (var sub in ViewBag.listSubCategory)
+                                            {
+                                                if (sub.ParentID == item.HierarchyID)
+                                                {
+                                                    <option value="@sub.HierarchyID">@sub.Value</option>
+                                                }
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Loại khách hàng </label>
+                            <div class="controls">
+                                <select id="listCustomerType" class="span12 select" name="CustomerType" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listCustomerType)
+                                    {
+                                        <option value="@item.Code">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Loại đại lý</label>
+                            <div class="controls">
+                                <select id="listAgencyType" class="span12 select" name="AgencyType" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listAgencyType)
+                                    {
+                                        <option value="@item.Code">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Agency nguyên tắc</label>
+                            <div class="controls">
+                                    <input type="checkbox" class="ace-checkbox-2" id="AgencyRule" name="AgencyRule"/>
+                            </div>
+                        </div>
+                        @*<div class="control-group">
+                                <label class="control-label" for="form-field-1">Agency nguyên tắc</label>
+                                <div class="controls">
+                                    <select id="listAgency" class="span12 select" name="Agency">
+                                        <option></option>
+                                        @foreach (var item in ViewBag.listCustomerAgency)
+                                        {
+                                            <option value="@item.ParamID">@item.Value</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>*@
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Nhân viên KD phụ trách</label>
+
+                            <div class="controls">
+                                <select id="listStaffId" class="span12 select" name="StaffId" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listStaff)
+                                    {
+                                        <option value="@item.RefEmployeeID">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Số Fax</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="Fax" placeholder="Fax" name="Fax">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Số tài khoản</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="Account" placeholder="Số tài khoản" name="Account">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Tại ngân hàng</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="BankName" placeholder="Tại ngân hàng" name="BankName">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Chi nhánh</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="BankBranch" placeholder="Chi nhánh" name="BankBranch">
+                            </div>
+                        </div>
+
+                    </fieldset>
+                    <fieldset style="margin-left:0" class="span4">
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Địa chỉ trên hợp đồng</label>
+
+                            <div class="controls">
+                                <textarea id="Address2" name="Address2" class="autosize-transition span12" style="overflow: hidden; word-wrap: break-word; resize: horizontal; height: 50px; margin-left: 0px; margin-right: 0px;"></textarea>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Điện thoại bàn trên hợp đồng</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="Phone2" placeholder="Điện thoại bàn trên hợp đồng" name="Phone2">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Người đại diện</label>
+
+                            <div class="controls">
+                                <input class="span12" type="text" id="Sponsor" placeholder="Người đại diện" name="Sponsor">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Chức vụ</label>
+
+                            <div class="controls">
+                                <select id="listCustomerPosition" class="span12 select" name="Position" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listCustomerPosition)
+                                    {
+                                        <option value="@item.PositionID">@item.PositionName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">File đính kèm</label>
+                            <div class="controls">
+                                <input type="file" class="span9" id="file" name="file" />
+                            </div>
+                        </div>
+                        <input id="website" type="hidden" name="Website" />
+                        <div id="listWebsite" class="control-group">
+                            <label class="control-label" for="form-field-1">Website</label>
+                            <div class="controls">
+                                <div class="span11 web-txt"><input class="span12" type="text" value="http://" placeholder="Nhập tên Website" /></div>
+                                <div class="span1"><a id="add-website" class="btn btn-minier btn-success"><i class="icon-plus"></i></a></div>
+                            </div>
+
+                        </div>
+                    </fieldset>
+                    <div class="clearfix"></div>
+                </div>
+
+                <fieldset class="form-actions">
+                    <div class="pull-right">
+                        <button type="submit" class="btn btn-small btn-success">
+                            Lưu
+                        </button>
+                        @*<button type="button" class="btn btn-small btn-success" onclick="resetForm()">
+                                Hủy
+                            </button>*@
+                        <a href="~/CRMCustomerInfo/Index" class="btn btn-small btn-default">
+                            Quay lại
+                        </a>
+                    </div>
+                </fieldset>
+
+            }
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $("#Source").chosen();
+        $("#listStaffId").chosen();
+        $("#listCompanyType").chosen();
+        $("#listCategory").chosen();
+        $("#listCustomerType").chosen();
+        $("#listCountry").chosen();
+        $("#listProvince").chosen();
+        $("#listCity").chosen();
+        $("#listDistrict").chosen();
+        $("#listWards").chosen();
+        $("#listCustomerPosition").chosen();
+        $("#listAgencyType").chosen();
+
+        $('#ShortName').focus();
+        $('#file').ace_file_input({
+            no_file: 'No File ...',
+            btn_choose: 'Choose',
+            btn_change: 'Change',
+            droppable: false,
+            onchange: null,
+            thumbnail: false //| true | large
+            //whitelist:'gif|png|jpg|jpeg'
+            //blacklist:'exe|php'
+            //onchange:''
+            //
+        });
+    });
+
+    $.validator.setDefaults({ ignore: ":hidden:not(select)" })
+    $('select').on('change', function () {
+        $(this).valid();
+    });
+    $("#formCreateCustomer").validate({
+        // Rules for form validation
+        rules: {
+            ShortName: {
+                required: true,
+            },
+            CustomerName: {
+                required: true,
+            },
+            Source: {
+                required: true,
+            },
+            CompanyType: {
+                required: true,
+            },
+            Category: {
+                required: true,
+            },
+            CustomerType: {
+                required: true,
+            },
+            Country: {
+                required: true,
+            },
+            Province: {
+                required: true,
+            },
+            District: {
+                required: true,
+            },
+            //Wards: {
+            //    required: true,
+            //}
+            //,
+            Address: {
+                required: true,
+            },
+            Phone: {
+                required: true,
+            },
+            StaffId: {
+                required: true
+            }
+
+        },
+
+        // Messages for form validation
+        messages: {
+            ShortName: {
+                required: "Thông tin bắt buộc"
+            },
+            CustomerName: {
+                required: "Thông tin bắt buộc"
+            },
+            Source: {
+                required: "Thông tin bắt buộc"
+            },
+            CompanyType: {
+                required: "Thông tin bắt buộc"
+            },
+            Category: {
+                required: "Thông tin bắt buộc"
+            },
+            CustomerType: {
+                required: "Thông tin bắt buộc"
+            },
+            Country: {
+                required: "Thông tin bắt buộc"
+            },
+            Province: {
+                required: "Thông tin bắt buộc"
+            },
+            District: {
+                required: "Thông tin bắt buộc"
+            },
+            //Wards: {
+            //    required: "Thông tin bắt buộc"
+            //},
+            Address: {
+                required: "Thông tin bắt buộc"
+            },
+            Phone: {
+                required: "Thông tin bắt buộc"
+            },
+            StaffId: {
+                required: "Thông tin bắt buộc"
+            }
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+
+        },
+
+        submitHandler: function (form) {
+            var arr_web = [];
+            for (var i = 0; i < $("#listWebsite input").length; i++) {
+                if ($("#listWebsite input")[i].value != "" || $("#listWebsite input")[i].value != 'http://') {
+                    arr_web[i] = $("#listWebsite input")[i].value;
+                }
+            }
+            json = JSON.stringify(arr_web);
+            $("#website").val(json);
+
+            var arr_phone = [];
+            for (var i = 0; i < $("#listPhone input").length; i++) {
+                if ($("#listPhone input")[i].value != "") {
+                    arr_phone[i] = $("#listPhone input")[i].value;
+                }
+            }
+            var json_phone = JSON.stringify(arr_phone);
+            $("#Phone").val(json_phone);
+            if ($('#AgencyRule').prop('checked')) {
+                $('#AgencyRule').val(1);
+            }
+            else {
+                $('#AgencyRule').val(0);
+            }
+           
+            var formData = new FormData($("#formCreateCustomer")[0]);
+            //var formContent = $("#formCreateCustomer").serialize();
+            var url = $("#formCreateCustomer")[0].action;
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function (data, textStatus, jqXHR) {
+                    $.gritter.add({
+                        text: 'Cập nhật thành công !',
+                        class_name: 'gritter-success'
+                    });
+                    resetForm();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    });
+
+    $("#add-website").click(function () {
+        var html = '<div class="controls" style="margin-top:2px">';
+        html += '<div class="span11 web-txt"><input class="span12" value="http://" type="text" placeholder="Nhập tên Website" /> </div>';
+        html += '<div class="span1"><button class="btn btn-minier minus-website" onclick="minusWeb(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listWebsite").append(html);
+    })
+
+    function minusWeb(e) {
+        $(e).parent().parent().remove();
+    }
+
+    $("#add-phone").click(function () {
+        var html = '<div class="controls">';
+        html += '<div class="span11 web-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>';
+        html += '<div class="span1"><button class="btn btn-small minus-website" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listPhone").append(html);
+    })
+    function minusPhone(e) {
+        $(e).parent().parent().remove();
+    }
+
+
+    function changeCountry(e) {
+        var country = '';
+        var city = '';
+        var district = '';
+        var box_change = $(e).attr("id");
+        if (box_change == "listCountry") {
+            country = $("#listCountry").val();
+        }
+        if (box_change == "listCity") {
+            country = $("#listCountry").val();
+            city = $("#listCity").val();
+        }
+        if (box_change == "listDictrict") {
+            country = $("#listCountry").val();
+            city = $("#listCity").val();
+            district = $("#listDictrict").val();
+        }
+        $.post(r + "/MnDetailEmployer/changeArea",
+            {
+                country: country,
+                city: city,
+                district: district
+            },
+            function (data) {
+                $("#area-select").html(data);
+                $("#listCountry, #listCity, #listDictrict, #listWards").chosen();
+            });
+    }
+
+    var input = $("#file");
+    function resetForm() {
+        $("#formCreateCustomer")[0].reset();
+        input.replaceWith(input.val('').clone(true));
+        $("#formCreateCustomer").find('select').trigger("chosen:updated");
+        $('.ace-file-input label span').attr('data-title', 'No File ...');
+        $('.ace-file-input label').attr('class', '');
+    }
+</script>

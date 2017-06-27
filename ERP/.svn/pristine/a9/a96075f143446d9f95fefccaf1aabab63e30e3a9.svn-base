@@ -1,0 +1,883 @@
+﻿@using BIBIAM.Core.Entities;
+@using MCC.Models;
+@using BIBIAM.Core;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.order_info);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+    
+}
+@{
+    var newData = new Merchant_OrderHeader();
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+</style>
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách đơn hàng</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa </a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content">
+        <div class="tab-pane in active" id="tab_1">
+            <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                <div class="row">
+                    @if (isAdmin)
+                    {
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                @(Html.Kendo().DropDownList()
+                                      .Name("ListMerchant")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._merchant) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Events(e => e.Change("filter"))
+                                      .Filter("contains")
+                                      .MinLength(2)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetMerchantInfo", "CustomData");
+                                          }).ServerFiltering(false);
+                                      })
+
+                                )
+                            </div>
+                        </div>
+                    }
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            @(Html.Kendo().DropDownList()
+                .Name("trang_thai")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .Events(e => e.Change("filter"))
+                .OptionLabel("TRẠNG THÁI")
+                .BindTo(new List<SelectListItem>() {
+                                          new SelectListItem() {
+                                              Text = "MỚI",
+                                              Value = AllConstant.trang_thai_don_hang.NEW
+            },
+                                          new SelectListItem() {
+                Text = "XÁC NHẬN",
+                                              Value = AllConstant.trang_thai_don_hang.CONFIRM
+                                          },
+                                          new SelectListItem() {
+                Text = "ĐANG VẬN CHUYỂN",
+                                              Value = AllConstant.trang_thai_don_hang.SHIPPING
+                                          },
+                                          new SelectListItem() {
+                Text = "ĐÃ GIAO",
+                                              Value = AllConstant.trang_thai_don_hang.POD
+                                          },
+                                          new SelectListItem() {
+                Text = "HOÀN TẤT",
+                                              Value = AllConstant.trang_thai_don_hang.COMPLETED
+                                          }
+                                          ,
+                                          new SelectListItem() {
+                Text = "HỦY BỎ",
+                                              Value = AllConstant.trang_thai_don_hang.CANCEL
+                                          }
+        })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input type="text" class="form-control input-sm max100" id="txtSearch" name="txtSearch">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-primary btn-sm btn-circle" onclick='filter()'>@Html.Raw(Resources.Global._vin_search)</button>
+                    </div>
+                    
+                </div>
+            </form>
+                <div class="row-fluid">
+                    @(Html.Kendo().Grid<Merchant_OrderHeader>()
+                .Name("Grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.id).Hidden();
+                    columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-success' onClick='editorder(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                    columns.Bound(p => p.ma_don_hang).Title("Mã đơn hàng").Width(100).Filterable(false).Sortable(false);
+                    columns.Template(@<text></text>).Title("Thông tin đơn hàng").Width(150).ClientTemplate(
+                    "<span class='info-title'>Tên khách hàng :</span><span> #=hoten ? hoten : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Số điện thoại :</span><span> #=so_dien_thoai_giao ? so_dien_thoai_giao : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Địa chỉ giao :</span><span> #=dia_chi_giao_hang ? dia_chi_giao_hang : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Quận/Huyện :</span><span> #=quan_huyen_giao ? quan_huyen_giao : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Tỉnh/Thành :</span><span> #=tinh_thanh_giao ? tinh_thanh_giao : ''#</span>"
+                    );
+                    columns.Template(@<text></text>).Title("Tạo/cập nhật").Width(150).ClientTemplate(
+                    "<span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy HH:mm') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy HH:mm') : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span>"
+                    + "<br>"
+                    + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy HH:mm') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy HH:mm') : ''#</span>"
+                    );
+                    columns.Template(@<text></text>).Title("Trạng thái đơn hàng").Width(100).ClientTemplate(
+                    "#if(trang_thai_don_hang!='" + "Cancel" + "'){#"
+                    + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>#=trang_thai_don_hang ? trang_thai_don_hang : ''#</label>"
+                    + "#}else{#"
+                    + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>#=trang_thai_don_hang ? trang_thai_don_hang : ''#</label>"
+                    + "<br>"
+                    + "<span class='info-title'>Lý do hủy đơn hàng :</span><span> #=ly_do_huy ? ly_do_huy : ''#</span></br>"
+                    + "#}#"
+                    );
+                    columns.Template(@<text></text>).Title("Trạng thái tiếp theo").Width(100).ClientTemplate(
+                        "#if(trang_thai_don_hang=='New'){#"
+                        + "<a onclick='onConfirmGrid(this)'class='btn default btn-sm btn-circle blue'>"+@Html.Raw(Resources.Global._confirm)+"</a>"
+                        + "<a onclick='openCancelGrid(this)' class='btn default btn-sm btn-circle red'>hủy</a>"
+                        + "#}#"
+                        + "#if(trang_thai_don_hang =='Confirm'){#"
+                        + "<a onclick='onShippingGrid(this)' class='btn default btn-sm btn-circle blue'>Vận chuyển</a>"
+                        + "<a onclick='openCancelGrid(this)' class='btn default btn-sm btn-circle red'>hủy</a>"
+                        + "#}#"
+                        + "#if(trang_thai_don_hang =='Shipping'){#"
+                        + "<a onclick='onPODGrid(this)' class='btn default btn-sm btn-circle blue'>Đã giao</a>"
+                        + "<a onclick='openCancelGrid(this)' class='btn default btn-sm btn-circle red'>hủy</a>"
+                        + "#}#"
+                        + "#if(trang_thai_don_hang =='POD'){#"
+                        + "<a onclick='onCompletedGrid(this)' class='btn default btn-sm btn-circle blue'>hoàn tất</a>"
+                        + "<a onclick='openCancelGrid(this)' class='btn default btn-sm btn-circle red'>hủy</a>"
+                        + "#}#"
+                        );
+                }
+                    )
+                    .ToolBar(toolbar =>
+                        toolbar.Template(
+                @<text>
+                    @if (create || all || update)
+                        {
+                <button type="button" onclick="AddNewOrder()" class="btn btn-sm green"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._create)</button>
+                        }
+                </text>
+                        )
+                        )
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300, 500 }))
+                    .Scrollable()
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .HtmlAttributes(new { @style = "height:500px" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(false)
+                    .PageSize(20)
+                    .Sort(s => s.Add(a => a.id).Descending())
+                    .Model(model =>
+                    {
+                          model.Id(p => p.id);
+                    })
+                    .Read(c => c.Action("Read", "Merchant_Order"))
+                )
+                    )
+                </div>
+</div>
+        <div class="tab-pane" id="tab_2">
+            @*<div class="text-center text-uppercase bold text-primary">
+                <h2>Thông tin chi tiết đơn hàng</h2>
+            </div>*@
+                <div class="col-md-12 formEdit"></div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_From_Order_Detail")
+@Html.Partial("_Order_Grid_Partial")
+@Html.Partial("popup_AddDetail")
+@Html.Partial("popup_Cancel")
+<script>
+    $(document).ready(function () {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+        ////Search();
+    });
+    function AddNewOrder()
+    {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function filterDistrict() {
+        return {
+            ma_thanh_pho: $("#tinh_thanh_giao").val()
+        };
+    }
+    function editorder(e) {
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadForm(order);
+        $("#tab_2_click").trigger("click");
+
+    }
+    var trang_thai_don_hang = "";
+    var ma_don_hang = "";
+
+    function onConfirm() {
+        trang_thai_don_hang = "Confirm";
+        ChangeStatus();
+    }
+    function onConfirmGrid(e) {
+        trang_thai_don_hang = "Confirm";
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        ma_don_hang = order.ma_don_hang;
+        ChangeStatusGrid();
+    }
+    function onShipping() {
+        trang_thai_don_hang = "Shipping";
+        ChangeStatus();
+    }
+    function onShippingGrid(e) {
+        trang_thai_don_hang = "Shipping";
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        ma_don_hang = order.ma_don_hang;
+        ChangeStatusGrid();
+    }
+    function onPOD() {
+        trang_thai_don_hang = "POD";
+        ChangeStatus();
+    }
+    function onPODGrid(e) {
+        trang_thai_don_hang = "POD";
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        ma_don_hang = order.ma_don_hang;
+        ChangeStatusGrid();
+    }
+    function onCompleted() {
+        trang_thai_don_hang = "Completed";
+        ChangeStatus();
+    }
+    function onCompletedGrid(e) {
+        trang_thai_don_hang = "Completed";
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        ma_don_hang = order.ma_don_hang;
+        ChangeStatusGrid();
+    }
+    function Cancel() {
+        trang_thai_don_hang = "cancel";
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/Cancel",
+            data: { ma_don_hang: ma_don_hang, ly_do_huy: $("#ly_do_huy").val() },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                loadForm(data.data);
+                toastr.clear();
+                toastr.success('', 'Thành công');
+            }
+            else {
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+        }
+
+        function errorFunc() {
+            toastr.clear();
+            toastr.error('', "Lỗi");
+        }
+        bootbox.hideAll();
+    };
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+    function ChangeStatus() {
+        debugger
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/ChangeStatus",
+            data: { ma_don_hang: $("#ma_don_hang").val(), trang_thai_don_hang: trang_thai_don_hang },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                loadForm(data.data);
+                toastr.clear();
+                toastr.success('', 'Thành công');
+            }
+            else {gi
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+        }
+
+        function errorFunc() {
+            toastr.clear();
+            toastr.error('', "Lỗi");
+        }
+    };
+    function ChangeStatusGrid() {
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/ChangeStatus",
+            data: { ma_don_hang: ma_don_hang, trang_thai_don_hang: trang_thai_don_hang },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                loadForm(data.data);
+                toastr.clear();
+                toastr.success('', 'Thành công');
+            }
+            else {
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+        }
+
+        function errorFunc() {
+            toastr.clear();
+            toastr.error('', "Lỗi");
+        }
+    };
+    function deleteOrder(ma_don_hang) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa đơn hàng",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Order/deleteOrder", { ma_don_hang: ma_don_hang }, function (data) {
+                                if (data.success) {
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Xóa thành công');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function deleteRow(e) {
+        var data = $("#OrderDetailGrid").data("kendoGrid").dataItem($(e).parents('tr'));
+        if (data)
+            $("#OrderDetailGrid").data("kendoGrid").dataSource.remove(data);
+    }
+    function LineStatus(data) {
+        if (data.trang_thai_don_hang == "New") {
+            $("#New").removeClass("inactive").addClass("done");
+        }
+        else {
+            if (data.trang_thai_don_hang == "Confirm") {
+                $("#New,#Confirm").removeClass("inactive").addClass("done");
+
+            }
+            else {
+                if (data.trang_thai_don_hang == "Shipping") {
+                    $("#New,#Confirm").removeClass("inactive").addClass("done");
+                    $("#Shipping").removeClass("inactive").addClass("error");
+                }
+                else {
+                    if (data.trang_thai_don_hang == "POD") {
+                        $("#New,#Confirm,#Shipping,#POD").removeClass("inactive").addClass("done");
+                    }
+                    else if (data.trang_thai_don_hang == "Completed") {
+                        $("#New,#Confirm,#Shipping,#POD,#Completed").removeClass("inactive").addClass("done");
+                    }
+                }
+            }
+        }
+    }
+    function onDatabound(e) {
+        var holdMaSP = "";
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+    }
+    function onDataboundPopup(e) {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function loadForm(data) {
+
+        var EditTemplate = kendo.template($("#OrderHeader").html());
+        $(".formEdit").html(EditTemplate(data));
+        var GridTemplate = kendo.template($("#OrderDetailGrid").html());
+        $("#gridTemplate").html(GridTemplate(data));
+        loadValidate(data);
+        LineStatus(data);
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+    }
+    $("#txtSearch").keydown(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function filter()
+    {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+            filterOr.filters.push({ field: "hoten", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "so_dien_thoai_giao", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "tinh_thanh_giao", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "quan_huyen_giao", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "dia_chi_giao_hang", operator: "contains", value: noi_dung });
+            filter.filters.push(filterOr);
+        }
+        var ListMerchant = $('#ListMerchant').val();
+        if (ListMerchant != null && ListMerchant != "") {
+            filter.filters.push({ field: "ma_gian_hang", operator: "eq", value: ListMerchant });
+        }
+        var trang_thai = $('#trang_thai').val();
+        if (trang_thai != null && trang_thai != "") {
+            filter.filters.push({ field: "trang_thai_don_hang", operator: "eq", value: trang_thai });
+        }
+        grid.dataSource.filter(filter);
+    }
+    function gridSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function openCancel() {
+        var CancelTemplate = kendo.template($("#CancelTemplate").html());
+        ma_don_hang = $("#ma_don_hang").val();
+        bootbox.dialog({
+            closeButton: true,
+            message: CancelTemplate(0),
+            title: "Hủy đơn hàng",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._cancel)", className: "btn red btn-circle btn-sm", callback: function () { Cancel(); return false; } },
+            }
+        });
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+    }
+    function openCancelGrid(e) {
+        var CancelTemplate = kendo.template($("#CancelTemplate").html());
+        order = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        ma_don_hang = order.ma_don_hang;
+        bootbox.dialog({
+            closeButton: true,
+            message: CancelTemplate(0),
+            title: "Hủy đơn hàng",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._cancel)", className: "btn red btn-circle btn-sm", callback: function () { Cancel(); return false; } },
+            }
+        });
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+    }
+    function openCreateDetailPO() {
+        var CreatePOTemplate = kendo.template($("#CreatePOTemplate").html());
+        bootbox.dialog({
+            closeButton: true,
+            message: CreatePOTemplate(0),
+            title: "@Html.Raw(Resources.Global._add_product) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._po_new_buttonnew)", className: "btn green btn-circle btn-sm", callback: function () { SaveToGrid(); return false; } },
+            }
+        });
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+        loadValidateCreatePOForm();
+    }
+    function SaveToGrid() {
+        InsertToGrid();
+    }
+    function InsertToGrid() {
+        debugger
+        var ma_san_pham = item.ma_san_pham;
+        var so_luong = $("#so_luong").val();
+        var so_luong_khuyen_mai = $("#so_luong_khuyen_mai").val();
+        var khuyen_mai = $("#phan_tram_khuyen_mai").val();
+        if (!ma_san_pham) {
+            alert("Chọn Sản Phẩm");
+            return;
+        }
+        if (!so_luong) {
+            alert("Nhập số lượng");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/GetProductInfo",
+            data: { ma_san_pham: ma_san_pham },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                var ten_san_pham = data.data.ten_san_pham;
+                var don_gia = data.data.don_gia;
+                var thanh_tien = don_gia * so_luong;
+                var grid = $("#OrderDetailGrid").data("kendoGrid");
+                grid.dataSource.add({ ma_san_pham: ma_san_pham, ten_san_pham: ten_san_pham, don_gia: don_gia, so_luong: so_luong, khuyen_mai: khuyen_mai, thanh_tien: thanh_tien, sp_khuyen_mai: so_luong_khuyen_mai });
+                alert("Đã thêm sản phẩm " + $("#ma_san_pham").val());
+            }
+            else {
+                alert('error');
+            }
+        }
+
+        function errorFunc() {
+            alert('error');
+        }
+
+    }
+    function change_grid() {
+        var so_loai = 0;
+        var so_luong = 0;
+        var tong_tien = 0;
+        var khuyen_mai = 0;
+        for (var i = 0; i < $("#OrderDetailGrid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#OrderDetailGrid").data("kendoGrid").dataSource.data()[i];
+            so_loai++;
+            so_luong += parseInt(dataItem.so_luong);
+            tong_tien += parseInt(dataItem.thanh_tien);
+            if (dataItem.khuyen_mai != null) {
+                khuyen_mai += parseInt(dataItem.thanh_tien) * dataItem.khuyen_mai / 100;
+            }
+        }
+        $("#so_loai_sp").empty().append('Số loại sản phẩm: ' + so_loai);
+        $("#so_luong_sp").empty().append('Số lượng sản phẩm: ' + so_luong);
+        $("#tong_tien").empty().append('Tổng tiền đơn hàng: ' + tong_tien);
+        $("#khuyen_mai").empty().append('Tổng tiền khuyến mãi: ' + khuyen_mai);
+        $("#tien_thanh_toan").empty().append('Tổng tiền thanh toán: ' + (tong_tien - khuyen_mai));
+    }
+
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+
+        gridSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadValidateCreatePOForm() {
+
+    }
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+        {
+            errorElement: "span",
+            errorClass: "help-block help-block-error",
+            focusInvalid: !1,
+            ignore: "",
+            rules:
+                {
+                    dien_thoai: { minlength: 1, required: !0, maxlength: 11 },
+                    dia_chi_giao_hang: { minlength: 1, required: !0, maxlength: 255 },
+                    quan_huyen_giao: { minlength: 1, required: !0, maxlength: 55 },
+                    tinh_thanh_giao: { minlength: 1, required: !0, maxlength: 55 },
+                    hinh_thuc_thanh_toan: { minlength: 1, required: !0, maxlength: 100 },
+
+                },
+            invalidHandler: function (e, t) {
+                i.hide(), r.show(), App.scrollTo(r, -200)
+            },
+            errorPlacement: function (e, r) {
+                var i = $(r).parent(".input-icon").children("i");
+                i.removeClass("fa-check").addClass("fa-warning"),
+                i.attr("data-original-title",
+                    e.text()).tooltip({ container: "body" })
+            },
+            highlight: function (e) {
+                $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+            },
+            unhighlight: function (e) {
+            },
+            success: function (e, r) {
+                var i = $(r).parent(".input-icon").children("i");
+                $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                i.removeClass("fa-warning");
+            },
+            submitHandler: function (e) {
+                debugger
+                i.show(); r.hide();
+                $("#EditForm").append('<input type="text" name="ma_khach_hang" class="hidden" value="' + customer.ma_khach_hang + '" />');
+                kendo.toString(kendo.parseDate($("#EditForm input[name='ngay_mua']").val()), 'yyyy/MM/dd');
+                var obj = getDataFromGrid();
+                debugger
+                $(e).ajaxSubmit({
+                    type: 'POST',
+                    data: { details: obj },
+                    dataType: 'json',
+                    mimeType: "multipart/form-data",
+                    beforeSend: function () {
+                        App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            toastr.success('', '@Resources.Global._save_successfully')
+                            loadForm(data.data);
+                            $("#Grid").data("kendoGrid").dataSource.read();
+                            setTimeout(function () { $(".todo-tasklist-item_" + data.ma_don_hang).addClass("selected") }, 1000);
+                            Search();
+                        }
+                        else {
+                            toastr.error('', data.error)
+                        }
+                    },
+                    complete: function (xhr) {
+                        App.unblockUI();
+                    }
+
+                });
+            }
+        });
+    }
+    function changeCity(e) {
+        holdCity = $("#tinh_thanh_giao").val();
+    };
+    function changeDistrict(e) {
+        holdDistrict = $("#quan_huyen_giao").val();
+    };
+    function onDataProduct() {
+        return {
+            text: $("#ma_san_pham").val()
+        }
+    }
+    function onDataCustomer() {
+        return {
+            text: $("#ma_khach_hang").val()
+        }
+    }
+    var item;
+    function ChangeTenSP(e) {
+        item = this.dataItem(e.item.index());;
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/GetProductInfo",
+            data: { ma_san_pham: item.ma_san_pham },
+            //contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#createPOForm input[id='don_gia']").val(kendo.toString(data.data.don_gia, 'n0'));
+            }
+            else {
+                $("#createPOForm input[id='don_gia']").val(data.error)
+            }
+        }
+
+        function errorFunc() {
+            alert('error');
+        }
+    }
+    var customer;
+    function ChangeKH(e) {
+        debugger
+        customer = this.dataItem(e.item.index());
+        $("#EditForm input[id='so_dien_thoai_giao']").val(customer.sdt);
+    }
+    function onSave(data) {
+        if (data.values.so_luong < 1 || data.values.so_luong > 1000000) {
+            data.preventDefault();
+            toastr.warning(data.values.so_luong < 1 ? 'Số lượng tối thiểu là 1' : 'Số lượng tối đa là 1,000,000');
+        }
+        $("#OrderDetailGrid").data("kendoGrid").refresh();
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            if (e.errors) {
+                var message = "\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                toastr.error(message)
+            }
+        }
+    }
+    function Create() {
+        $("#OrderDetailGrid").data("kendoGrid").dataSource.insert()
+    }
+    function Validate() {
+        for (var i = 0; i < $("#OrderDetailGrid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#OrderDetailGrid").data("kendoGrid").dataSource.data()[i];
+            if (dataItem.ma_san_pham == '' || dataItem.ma_san_pham == null) {
+                $("#OrderDetailGrid").data("kendoGrid").dataSource.remove(dataItem);
+                i--;
+            }
+        }
+    }
+    function getDataFromGrid() {
+        Validate();
+        var obj = [];
+        $.each($("#OrderDetailGrid").data("kendoGrid").dataSource.data(), function () {
+            if (!this.ma_san_pham) {
+                return;
+            }
+            var detail = new Object();
+            detail.ma_san_pham = this.ma_san_pham;
+            detail.so_luong = this.so_luong;
+            detail.khuyen_mai = this.khuyen_mai;
+            detail.sp_khuyen_mai = this.sp_khuyen_mai;
+            obj.push(detail);
+        });
+        return obj;
+    }
+    function GridPartialonDatabound(e) {
+        var count = 0;
+        $.each($("#OrderDetailGrid").data("kendoGrid").dataSource.data(), function () {
+            if (this.ma_san_pham)
+                count++;
+        });
+    }
+    function Upsert() {
+        Validate();
+        var grid = $("#OrderDetailGrid").data("kendoGrid");
+        if (grid.dataSource.view().length == 0) {
+            toastr.error("Phiếu nhập kho này chưa có sản phẩm nào!");
+            return;
+        }
+        $("#EditForm").submit();
+    }
+    function saveAndClear() {
+        Validate();
+        var grid = $("#OrderDetailGrid").data("kendoGrid");
+        if (grid.dataSource.view().length == 0) {
+            toastr.error("Phiếu nhập kho này chưa có sản phẩm nào!");
+            return;
+        }
+        $("#EditForm").submit();
+        clearForm();
+    }
+</script>
+

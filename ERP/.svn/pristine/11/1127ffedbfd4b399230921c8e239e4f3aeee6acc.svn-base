@@ -1,0 +1,524 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Mobivi Portal - @ViewBag.Title</title>
+    <link href="@Url.Content("~/logo.ico")" rel="shortcut icon" type="image/x-icon" />
+    <meta name="description" content="Common form elements and layouts" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="@Url.Content("~/Scripts/assets/css/bootstrap.min.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Scripts/assets/css/bootstrap-responsive.min.css")" rel="stylesheet" />
+    <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/font-awesome.min.css")" />
+    @Styles.Render("~/Content/template")
+    @Styles.Render("~/Content/ace")
+
+    <!--[if IE 7]>
+          <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/font-awesome-ie7.min.css")" />
+        <![endif]-->
+
+    <link href="@Url.Content("~/Content/kendo/2014.3.1411/kendo.common.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/kendo/2014.3.1411/kendo.dataviz.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/customizekendo.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/kendo/2014.3.1411/kendo.dataviz.bootstrap.min.css")" rel="stylesheet" type="text/css" />
+
+    <!--[if lte IE 8]>
+          <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/ace-ie.min.css")" />
+        <![endif]-->
+    <!--inline styles related to this page-->
+    <!--ace settings handler-->
+    @*<script src="@Url.Content("~/Scripts/assets/js/ace-extra.min.js")"></script>*@
+    @Scripts.Render("~/bundles/setting")
+    <!--basic scripts-->
+    @Scripts.Render("~/bundles/jquery")
+
+    <script type="text/javascript">
+        if ("ontouchend" in document) document.write("<script src='@Url.Content("~/Scripts/assets/js/jquery.mobile.custom.min.js")'>" + "<" + "/script>");
+    </script>
+    @Scripts.Render("~/bundles/bootstrap")
+    <!--page specific plugin scripts-->
+    <!--[if lte IE 8]>
+          <script src="@Url.Content("~/Scripts/assets/js/excanvas.min.js")"></script>
+        <![endif]-->
+    @Scripts.Render("~/bundles/template")
+    @Scripts.Render("~/bundles/ace")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/kendo")
+    <script src="@Url.Content("~/ckeditor/ckeditor.js")"></script>
+    <script src="@Url.Content("~/ckfinder/ckfinder.js")"></script>
+    @RenderSection("scripts", required: false)
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        var ROOT = '@Url.Content("~/")';
+        var r = ROOT.substring(0, ROOT.length - 1);
+    </script>
+
+    @*<script src="~/signalr/hubs"></script>*@
+    <script src="@Url.Content("~/Scripts/jquery.validate.js")"></script>
+
+    <style>
+        .submenu {
+            z-index: 90000 !important;
+        }
+
+        .menu-text {
+            z-index: 99999 !important;
+        }
+
+        .error {
+            border: 1px solid #b94a48 !important;
+            background-color: #fee !important;
+        }
+    </style>
+</head>
+<body ng-app="app">
+    <div class="navbar" id="navbar">
+        <script type="text/javascript">
+            try { ace.settings.check('navbar', 'fixed') } catch (e) { }
+        </script>
+
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <a href="@Url.Content("~/")" class="brand">
+                 @*   <img src="@Url.Content("~/Images/MBVPortal.png")" />*@
+                </a>
+                @if (!Request.Browser.IsMobileDevice)
+                {
+                }
+                <!--/.brand-->
+              
+                <ul class="nav ace-nav pull-right">
+                    <li class="light-blue">
+                        <a data-toggle="dropdown" href="@Url.Content("~/")" class="dropdown-toggle">
+                            <img class="nav-user-photo" src="@Url.Content("~/Images/Avatar/profile-pic.jpg")" alt="Jason's Photo">
+                            <span class="user-info">
+                                <small>Welcome,</small>
+                                @User.Identity.Name
+                            </span>
+
+                            <i class="icon-caret-down"></i>
+                        </a>
+
+                        <ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-closer">
+                            <li>
+                                <a href="javascript:void(0)">
+                                    <i class="icon-cog"></i>
+                                    Settings
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="@Url.Content("~/Account/ChangeProfile")">
+                                    <i class="icon-user"></i>
+                                    Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Content("~/Account/ChangePassword")">
+                                    <i class="icon-key"></i>
+                                    Change Password
+                                </a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="http://125.234.17.38:7878/MBV" target="_blank">
+                                    <i class="icon-group"></i>
+                                    Project Management
+                                </a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="@Url.Content("~/Account/LogOff")">
+                                    <i class="icon-off"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+                <ul class="nav ace-nav pull-right" id="notificationTrackingOrder" style="display: none">
+                    <li class="purple open">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="icon-bell-alt"></i>
+                            <span class="badge badge-important" id="totalTrackingOrder"></span>
+                        </a>
+
+                        <ul class="pull-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-closer">
+                            <li class="nav-header">
+                                <i id="alertTotal">Reminder</i>
+                            </li>
+                            <li id="MyAssign">
+                                <a href="#" id="MyTask">
+                                    <div class="clearfix">
+                                        <span class="pull-left">
+                                            <i class="btn btn-mini no-hover btn-pink icon-comment"></i>
+                                            My task
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="num"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav ace-nav pull-right" id="notificationTaskAssingement" style="display: none">
+                    <li class="purple open">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="icon-bell-alt"></i>
+                            <span class="badge badge-important" id="totalTask"></span>
+                        </a>
+
+                        <ul class="pull-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-closer">
+                            <li class="nav-header">
+                                <i id="alertTotalTaskAssing">Reminder</i>
+                            </li>
+                            <li id="MyTaskAssign">
+                                <a href="#" id="MyTaskTaskAssing">
+                                    <div class="clearfix">
+                                        <span class="pull-left">
+                                            <i class="btn btn-mini no-hover btn-pink icon-comment"></i>
+                                            My task
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="numTask"></span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li id="MyAppointment">
+                                <a href="#" id="MyAppointment_">
+                                    <div class="clearfix">
+                                        <span class="pull-left">
+                                            <i class="btn btn-mini no-hover btn-purple icon-comment"></i>
+                                            My Appointment
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="numAppointment"></span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav ace-nav pull-right" id="notification" style="display: none">
+                    <li class="purple open">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="icon-bell-alt"></i>
+                            <span class="badge badge-important" id="total"></span>
+                        </a>
+
+                        <ul class="pull-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-closer">
+                            <li class="nav-header">
+                                <i id="alertTotal">Reminder</i>
+                            </li>
+                            <li id="day">
+                                <a href="#" id="linkRemindMinute" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left">
+                                            <i class="btn btn-mini no-hover btn-pink icon-comment"></i>
+                                            20 minute
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="contentMinute"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li id="minute">
+                                <a href="#" id="linkRemindDay" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left">
+                                            <i class="btn btn-mini no-hover btn-pink icon-comment"></i>
+                                            1 day
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="contentDay"></span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav ace-nav pull-right" id="alertdiv" style="display: none">
+
+
+                    <li class="purple open">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="icon-bell-alt"></i>
+                            <span class="badge badge-important" id="totalticket"></span>
+                        </a>
+
+                        <ul class="pull-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-closer">
+                            <li class="nav-header">
+                                <i id="alertTotalticket">Ticket Remind</i>
+                            </li>
+                            <li id="myticket">
+                                <a href="@Url.Content("~/Ticket?option=MyTicket")" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left" style="color: red">
+                                            <i class="btn btn-mini no-hover btn-danger icon-comment"></i>
+                                            My Ticket
+                                        </span>
+                                        <span class="pull-right badge btn-danger " id="contentmyticket"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li id="newticket">
+                                <a href="@Url.Content("~/Ticket?option=AssignToMe")" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left" style="color: #555">
+                                            <i class="btn btn-mini no-hover btn-inverse icon-comment"></i>
+                                            Waiting Accept Ticket
+                                        </span>
+                                        <span class="pull-right badge btn-info" id="contentnewticket"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li id="queueticket">
+                                <a href="@Url.Content("~/Ticket?option=AssignToQueue")" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left" style="color: purple">
+                                            <i class="btn btn-mini no-hover btn-purple icon-comment"></i>
+                                            Ticket In My Queue
+                                        </span>
+                                        <span class="pull-right badge badge-purple" id="contentqueueticket"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li id="createdticket">
+                                <a href="@Url.Content("~/Ticket?option=MyCreatedTicketWIP")" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left" style="color: rgb(135, 184, 127);">
+                                            <i class="btn btn-mini no-hover btn-success icon-comment"></i>
+                                            Follow-up WIP Ticket
+                                        </span>
+                                        <span class="pull-right badge badge-success" id="contentcreatedticket"></span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li id="resolvedticket">
+                                <a href="@Url.Content("~/Ticket?option=MyCreatedTicketResolved")" target="_blank">
+                                    <div class="clearfix">
+                                        <span class="pull-left" style="color: #2283c5">
+                                            <i class="btn btn-mini no-hover btn-info icon-comment"></i>
+                                            Follow-up Resolved Ticket
+                                        </span>
+                                        <span class="pull-right badge badge-info" id="contentresolvedticket"></span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @*    <li class="light-blue" style="background-color : #992D95">
+                        <a data-toggle="dropdown" href="@Url.Content("~/")" class="dropdown-toggle">
+
+                        <i class="icon-bell-alt icon-animated-bell"></i>
+                        <span class="badge badge-important" id="alertdivTotal"></span>
+                        <i class="icon-caret-down"></i>
+                        </a>
+
+                        <ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-closer" id="remindmenu">
+
+
+
+                        </ul>*@
+                </ul>
+                @*<ul class="nav ace-nav pull-right">
+                    <li style="background: #438eb9">
+                        <img src="@Url.Content("~/Images/hotline-icon.png")" alt="hotline">
+                    </li>
+                </ul>*@
+                <!--/.ace-nav-->
+            </div>
+           @* <div style="width: 40%;display: inline-block;font-size: 1.5em;color: #fff;font-weight: bold;margin-top: -30px;position: absolute;float: left;margin-left: 150px;"><marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">@Html.Raw(HttpUtility.HtmlDecode(MobiviPortal.Models.Deca_Login_Info.GetAllActiveDescription()))</marquee></div>*@
+
+            <!--/.container-fluid-->
+        </div>
+        <!--/.navbar-inner-->
+    </div>
+
+    <div class="main-container container-fluid">
+        <a class="menu-toggler" id="menu-toggler" href="#">
+            <span class="menu-text"></span>
+        </a>
+
+        <div class="sidebar menu-min" id="sidebar">
+            <script type="text/javascript">
+                try { ace.settings.check('sidebar', 'fixed') } catch (e) { }
+            </script>
+            <ul class="nav nav-list">
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-cogs"></i>
+                        <span class="menu-text">Administration</span>
+
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                     
+                        <li controllername="User">
+                            <a href="@Url.Content("~/Users")">
+                                <i class="icon-double-angle-right"></i>
+                                Manage User
+                            </a>
+                        </li>
+                        <li controllername="UserGroup">
+                            <a href="@Url.Content("~/Groups")">
+                                <i class="icon-double-angle-right"></i>
+                                Manage Role
+                            </a>
+                        </li>
+                        <li controllername="UserGroup">
+                            <a href="@Url.Content("~/Assets")">
+                                <i class="icon-double-angle-right"></i>
+                                Manage Controller
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-ticket"></i>
+                        <span class="menu-text">Request Ticket</span>
+
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li controllername="Ticket">
+                            <a href="@Url.Content("~/CSInfoCustomer")">
+                                <i class="icon-double-angle-right"></i>
+                                CS Tool
+                            </a>
+                        </li>
+                        <li controllername="Ticket">
+                            <a href="@Url.Content("~/Ticket")">
+                                <i class="icon-double-angle-right"></i>
+                                Ticket
+                            </a>
+                        </li>
+                        <li controllername="TicketMasterData">
+                            <a href="@Url.Content("~/TicketMasterData")">
+                                <i class="icon-double-angle-right"></i>
+                                RT configuration
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+            </ul>
+            <!--/.nav-list-->
+
+            <div class="sidebar-collapse" id="sidebar-collapse">
+                <i class="icon-double-angle-left" data-icon1="icon-double-angle-left" data-icon2="icon-double-angle-right"></i>
+            </div>
+
+            @*            <script type="text/javascript">
+                try { ace.settings.check('sidebar', 'collapsed') } catch (e) { }
+                </script>*@
+        </div>
+
+        <div class="main-content">
+            <div class="breadcrumbs" id="breadcrumbs">
+                <ul class="breadcrumb">
+                    <li>
+                        <i class="icon-home home-icon"></i>
+                        <a href="@Url.Content("~/Home/")">Home</a>
+
+                        <span class="divider">
+                            <i class="icon-angle-right arrow-icon"></i>
+                        </span>
+                    </li>
+
+                    <li class="active">@ViewBag.Title</li>
+                </ul>
+                <!--.breadcrumb-->
+            </div>
+
+            <div class="page-content">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <!--PAGE CONTENT BEGINS-->
+                        @RenderBody()
+                        <!--PAGE CONTENT ENDS-->
+                    </div>
+                    <!--/.span-->
+                </div>
+                <!--/.row-fluid-->
+            </div>
+            <!--/.page-content-->
+            @if (User.Identity.Name == "administrator" || User.Identity.Name == "haonn")
+            {
+                <div class="ace-settings-container" id="ace-settings-container">
+                    <div class="btn btn-app btn-mini btn-primary ace-settings-btn" id="ace-settings-btn">
+                        <i class="icon-cog bigger-150"></i>
+                    </div>
+
+                    <div class="ace-settings-box" id="ace-settings-box">
+                        <div>
+                            <textarea id="msg" rows="10" cols="10" style="width: 100%;"></textarea>
+                            <input type="button" id="broadcast" value="Send" style="width: 100%; margin-top: 5px;" />
+                        </div>
+                    </div>
+                </div>
+            <!--/#ace-settings-container-->
+            }
+        </div>
+        <!--/.main-content-->
+    </div>
+    <!--/.main-container-->
+
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-small btn-inverse">
+        <i class="icon-double-angle-up icon-only bigger-110"></i>
+    </a>
+
+
+    @Scripts.Render("~/bundles/layout")
+    <script>
+        var currentuserid = "@User.Identity.Name";
+
+ @*
+        $(document).ready(function () {
+            for (var i = 0; i < ListController.length; i++) {
+                var a = $('[controllername=' + ListController[i] + ']');
+                if (a.length > 0) {
+                    $(a).css('display', 'block');
+                    $(a).closest('.submenu').closest('li').css('display', 'block');
+                    $(a).closest('.submenu').closest('.submenu').closest('li').css('display', 'block');
+                    //$(a).closest('.subLI').css('display', 'block');
+                }
+            }
+            $('.nav-list').find('.subLI').each(function () {
+                var li = $(this).find('.submenu').find('li');
+                var i = 0;
+                $(this).find('.submenu').find('li').each(function () {
+                    if ($(this).css('display') == "none") {
+                        i++;
+                    }
+                });
+                if (li.length == i) {
+                    $(this).css('display', 'none');
+                }
+            });
+
+        });*@
+
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-52224516-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</body>
+</html>

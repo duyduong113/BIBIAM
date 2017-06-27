@@ -1,0 +1,532 @@
+﻿using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using BIBIAM.Core.Entities;
+using System.Data;
+using BIBIAM.Core.Data.DataObject;
+using System.Text.RegularExpressions;
+using System.Text;
+using MCC.Filters;
+using MCC.Models;
+using BIBIAM.Core;
+using MCC.Helpers;
+using System.IO;
+using OfficeOpenXml;
+using System.Web;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    //[CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class Merchant_StockInController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Create()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        //public ActionResult Detail(string id)
+        //{
+        //    if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+        //    {
+        //        using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+        //        {
+        //            if (!String.IsNullOrEmpty(id))
+        //            {
+        //                var data = db.FirstOrDefault<Merchant_StockInHeader>("ma_gian_hang = {0} and ma_phieu_nhap_kho = {1}", currentUser.ma_gian_hang, id);
+        //                if (data == null)
+        //                    return RedirectToAction("NotFound", "Error");
+        //                else
+        //                    ViewBag.GRN = data;
+        //            }
+        //            else
+        //                return RedirectToAction("NotFound", "Error");
+        //            if (isAdmin)
+        //                ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+        //            else
+        //                ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+        //            string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+        //            ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+        //        }
+        //        return View();
+        //    }
+        //    return RedirectToAction("NoAccess", "Error");
+        //}
+
+
+        public ActionResult Detail(string ma_phieu_nhap_kho)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (!String.IsNullOrEmpty(ma_phieu_nhap_kho))
+                    {
+                        var data = db.FirstOrDefault<Merchant_StockInHeader>(s => s.ma_phieu_nhap_kho == ma_phieu_nhap_kho);
+                        if (data == null)
+                            return RedirectToAction("NotFound", "Error");
+                        else
+                            ViewBag.GRN = data;
+                    }
+                    else
+                        return RedirectToAction("NotFound", "Error");
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            else
+                return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult ReadHeader([DataSourceRequest]DataSourceRequest request)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    //var data = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho = {0} and ma_gian_hang = {1}", ma_phieu, currentUser.ma_gian_hang).OrderBy(s => s.ma_san_pham);
+                    var data = new DataSourceResult();
+
+                    if (isAdmin)
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInHeader>(request);
+                    }
+                    else
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInHeader>(request, "ma_gian_hang = {0}".Params(currentUser.ma_gian_hang));
+                    }
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request, string ma_phieu)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    //var data = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho = {0} and ma_gian_hang = {1}", ma_phieu, currentUser.ma_gian_hang).OrderBy(s => s.ma_san_pham);
+                    var data = new DataSourceResult();
+                    if (isAdmin)
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInDetail>(request, "ma_phieu_nhap_kho={0}".Params(ma_phieu));
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>();
+                    }
+                    else
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInDetail>(request, "ma_phieu_nhap_kho={0} and ma_gian_hang = {1}".Params(ma_phieu, currentUser.ma_gian_hang));
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    }
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult CreateGoodReceivedNote(Merchant_StockInHeader GRN, List<Merchant_StockInDetail> details, List<Merchant_StockInDetail> lstImport, int error= 0 ,string linkerror = "",bool IsImport = false, bool trang_thai = false)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                if (GRN.id == 0)
+                    GRN.ma_gian_hang = currentUser.ma_gian_hang;
+                string rs = new Merchant_StockInHeader_DAO().Upsert(GRN, details, lstImport, trang_thai, currentUser.name, AppConfigs.MCCConnectionString);
+                string[] separators = { "@@" };
+                var str = rs.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (str[0] == "true")
+                {
+                    Merchant_Stock_ViewModel data;
+                    var item = new Merchant_StockInHeader();
+                    using (var db = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        data = db.FirstOrDefault<Merchant_Stock_ViewModel>(@"select 
+	                                                                            a.ma_phieu_nhap_kho as ma_phieu, 
+	                                                                            b.ten_kho, 
+                                                                                b.ma_kho,
+	                                                                            a.ma_don_hang, 
+	                                                                            a.ngay_nhap_kho as ngay_nhap_xuat,
+	                                                                            a.thu_kho, 
+	                                                                            a.nguoi_giao as nguoi_giao_nhan,
+	                                                                            a.nguoi_kiem_tra,
+	                                                                            a.ngay_tao,
+	                                                                            a.nguoi_tao, 
+	                                                                            a.dia_diem,
+	                                                                            a.trang_thai, 
+                                                                                a.ghi_chu,  	 	
+	                                                                            'GRN' as loai_phieu from Merchant_StockInHeader a left join Merchant_WareHouse b
+                                                                                on a.ma_kho = b.ma_kho
+                                                                                where ma_phieu_nhap_kho = {0}", str[1]);
+
+                        if (trang_thai)
+                        {
+                            List<Merchant_StockInDetail> stockDetail = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho={0} and ma_gian_hang={1}", data.ma_phieu, currentUser.ma_gian_hang);
+                            foreach (var row in stockDetail)
+                            {
+                                var exist = db.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_DetailLocation WHERE ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}", data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham);
+                                if (exist)
+                                {
+                                    db.Update<Merchant_DetailLocation>("so_luong=so_luong+{0}".Params(row.so_luong_thuc_te), "ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}".Params(data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham));
+                                }
+                                else
+                                {
+                                    Merchant_DetailLocation detailLocation = new Merchant_DetailLocation();
+                                    detailLocation.ma_kho = data.ma_kho;
+                                    detailLocation.ten_kho = data.ten_kho;
+                                    detailLocation.ma_gian_hang = currentUser.ma_gian_hang;
+                                    detailLocation.ten_vi_tri = row.vi_tri == null ? "" : row.vi_tri;
+                                    detailLocation.so_luong = row.so_luong_thuc_te;
+                                    detailLocation.ma_san_pham = row.ma_san_pham;
+                                    detailLocation.don_vi_tinh = row.don_vi_tinh;
+                                    detailLocation.ngay_tao = DateTime.Now;
+                                    detailLocation.nguoi_tao = currentUser.name;
+                                    detailLocation.ngay_cap_nhat = DateTime.Now;
+                                    detailLocation.nguoi_cap_nhat = currentUser.name;
+                                    db.Insert<Merchant_DetailLocation>(detailLocation);
+                                }
+                            }
+                            //Cập nhật tồn kho
+                            string result = new Merchant_StockInHeader_DAO().UpdateInventory_StockIN(data.ma_phieu);
+                            //db.ExecuteNonQuery("exec p_Merchant_Product_Warehouse_SyncToMySQL {0}".Params(data.ma_phieu));
+
+                        }
+                        item = db.FirstOrDefault<Merchant_StockInHeader>(s => s.ma_phieu_nhap_kho == str[1]);
+                    }
+
+                    //new Merchant_StockInHeader_DAO().UpdateInventoryMySQL(data.ma_phieu, currentUser.ma_gian_hang, currentUser.name, AppConfigs.MCCConnectionString);
+                   
+                    // return Json(new { success = true, data = item, JsonRequestBehavior.AllowGet });
+                    return Json(new { success = true, data = item, total = str[2], totalError = error, link = linkerror, JsonRequestBehavior.AllowGet });
+                }
+                else
+                {
+                    return Json(new { success = false, error = str[2], JsonRequestBehavior.AllowGet });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền thực hiên chức năng này" });
+            }
+        }
+
+        public ActionResult Export(string type)
+        {
+            using (var dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                FileInfo fileInfo = new FileInfo(Server.MapPath(@"~\ExportExcelFile\StockIn_Template.xlsx"));
+            
+                var excelPkg = new ExcelPackage(fileInfo);
+                string fileName = "StockIn_" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".xlsx";
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                ExcelWorksheet Sheet = excelPkg.Workbook.Worksheets["Data"];
+                ExcelWorksheet ws1 = excelPkg.Workbook.Worksheets["Products"];
+                ExcelWorksheet ws2 = excelPkg.Workbook.Worksheets["Units"];
+
+                int rowData2 = 2;
+                var products = dbConn.Select<Merchant_Product>(s => s.trang_thai_duyet == AllConstant.trang_thai_duyet.DA_DUYET && s.trang_thai == AllConstant.trang_thai.DANG_SU_DUNG && s.ma_gian_hang == currentUser.ma_gian_hang);
+                foreach (var item in products)
+                {
+                    int j = 1;
+                    ws1.Cells[rowData2, j++].Value = item.ma_san_pham + "-" + item.ten_san_pham;
+                    rowData2++;
+                }
+                rowData2 = 2;
+                var units = dbConn.Select<Code_Master>(s => s.Type == "UnitProduct");
+                foreach (var item in units)
+                {
+                    int j = 1;
+                    ws2.Cells[rowData2, j++].Value = item.Value + "-" + (culture == "vi" ? item.Name_Vi : item.Name);
+                    rowData2++;
+                }
+
+
+
+                //if (type == "1")
+                //{
+                //    List<Merchant_Product> lstProduct = new List<Merchant_Product>();
+                //    Hierarchy itemHierarchy;
+                //    if (isAdmin)
+                //        lstProduct = dbConn.Select<Merchant_Product>();
+                //    else
+                //        lstProduct = dbConn.Select<Merchant_Product>(s => s.ma_gian_hang == currentUser.ma_gian_hang);
+                //    rowData2 = 2;
+
+                //    foreach (var item in lstProduct)
+                //    {
+                //        int j = 1;
+                //        Sheet.Cells[rowData2, j++].Value = item.ma_san_pham;
+                //        if (!string.IsNullOrEmpty(item.ma_loai_san_pham))
+                //        {
+                //            itemHierarchy = products.Where(s => s.ma_phan_cap == item.ma_loai_san_pham).FirstOrDefault();
+                //            if (itemHierarchy != null)
+                //                Sheet.Cells[rowData2, j++].Value = itemHierarchy.ten_phan_cap + "-" + itemHierarchy.ma_phan_cap;
+                //            else
+                //                Sheet.Cells[rowData2, j++].Value = "";
+                //        }
+                //        else
+                //        {
+                //            Sheet.Cells[rowData2, j++].Value = "";
+                //        }
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.ten_san_pham) ? item.ten_san_pham : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.part_no) ? item.part_no : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.mo_ta) ? item.mo_ta : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.minimum_order.ToString()) ? item.minimum_order.ToString() : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.trong_so.ToString()) ? item.trong_so.ToString() : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.khoi_luong.ToString()) ? item.khoi_luong.ToString() : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.don_gia.ToString()) ? item.don_gia.ToString() : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.gia_si.ToString()) ? item.gia_si.ToString() : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.xuat_xu) ? item.xuat_xu : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.thuong_hieu) ? item.thuong_hieu : "";
+                //        Sheet.Cells[rowData2, j++].Value = !string.IsNullOrEmpty(item.model) ? item.model : "";
+
+                //        rowData2++;
+                //    }
+                //}
+
+                MemoryStream output = new MemoryStream();
+                excelPkg.SaveAs(output);
+                output.Position = 0;
+                return File(output.ToArray(), contentType, fileName);
+            }
+        }
+
+        public ActionResult Import(Merchant_StockInHeader data, List<Merchant_StockInDetail> details, HttpPostedFileBase FileUpload)
+        {
+            try
+            {
+                if (FileUpload == null || FileUpload.ContentLength == 0)
+                    return Json(new { success = false, message = "File rỗng." });
+                var fileExtension = System.IO.Path.GetExtension(FileUpload.FileName);
+                if (fileExtension != ".xlsx" && fileExtension != ".xls")
+                    return Json(new { success = false, message = "File không không đúng định dạng excel *.xlsx,*.xls" });
+                string timenow = DateTime.Now.ToString("yyyyMMddHHmmss");
+                string fileLocation = string.Format("{0}/{1}", Server.MapPath("~/ExcelImport"), "[" + currentUser.name + "-" + timenow + FileUpload.FileName);
+                string errorFileLocation = string.Format("{0}/{1}", Server.MapPath("~/ExcelImport"), "[" + currentUser.name + "-" + timenow + "-Error]" + FileUpload.FileName);
+                string linkerror = "[" + currentUser.name + "-" + timenow + "-Error]" + FileUpload.FileName;
+                if (!System.IO.Directory.Exists(Server.MapPath("~/ExcelImport")))
+                {
+                    System.IO.Directory.CreateDirectory(fileLocation);
+                }
+                if (System.IO.File.Exists(fileLocation)) System.IO.File.Delete(fileLocation);
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                FileUpload.SaveAs(fileLocation);
+                var rownumber = 2;//???????????????????????????????????????????????????????????????????????????????
+                //var total = 0;
+                var error = 0;
+                FileInfo fileInfo = new FileInfo(fileLocation);
+                var excelPkg = new ExcelPackage(fileInfo);
+                FileInfo template = new FileInfo(Server.MapPath(@"~\ExportExcelFile\StockIn_Template.xlsx"));
+                template.CopyTo(errorFileLocation);
+                FileInfo _fileInfo = new FileInfo(errorFileLocation);
+                var _excelPkg = new ExcelPackage(_fileInfo);
+                ExcelWorksheet oSheet = excelPkg.Workbook.Worksheets["Data"];
+                ExcelWorksheet eSheet = _excelPkg.Workbook.Worksheets["Data"];
+                int totalRows = oSheet.Dimension.End.Row;
+                string productcode = "";
+                string unitcode = "";
+                List<Merchant_StockInDetail> lstImport = new List<Merchant_StockInDetail>();
+                var item = new Merchant_StockInHeader();
+                if (data.id == 0)
+                    data.ma_gian_hang = currentUser.ma_gian_hang;
+
+                using (var dbConn = OrmliteConnection.openConn())
+                {
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    var listProduct = dbConn.Select<Merchant_Product>(s => s.trang_thai_duyet == AllConstant.trang_thai_duyet.DA_DUYET && s.trang_thai == AllConstant.trang_thai.DANG_SU_DUNG && s.ma_gian_hang == currentUser.ma_gian_hang);
+                    var listUnit = dbConn.Select<Code_Master>(s => s.Type == "UnitProduct");
+
+                    for (int i = 2; i <= totalRows; i++)
+                    {
+                        string masanpham = oSheet.Cells[i, 1].Value != null ? oSheet.Cells[i, 1].Value.ToString() : "";
+                        string donvitinh = oSheet.Cells[i, 2].Value != null ? oSheet.Cells[i, 2].Value.ToString() : "";
+                        string soluong = oSheet.Cells[i, 3].Value != null ? oSheet.Cells[i, 3].Value.ToString() : "0";
+                        string ghichu = oSheet.Cells[i, 4].Value != null ? oSheet.Cells[i, 4].Value.ToString() : "";
+
+                        if (string.IsNullOrEmpty(masanpham) || string.IsNullOrEmpty(donvitinh) || string.IsNullOrEmpty(soluong))
+                        {
+                            eSheet.Cells[rownumber, 1].Value = masanpham;
+                            eSheet.Cells[rownumber, 2].Value = donvitinh;
+                            eSheet.Cells[rownumber, 3].Value = soluong;
+                            eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                            eSheet.Cells[rownumber, 5].Value = "Vui lòng nhập (*).";
+                            rownumber++;
+                            error++;
+                            continue;
+                        }
+
+                        int sl = 0;
+                        bool result = int.TryParse(soluong, out sl);
+
+                        if (!result)
+                        {
+                            eSheet.Cells[rownumber, 1].Value = masanpham;
+                            eSheet.Cells[rownumber, 2].Value = donvitinh;
+                            eSheet.Cells[rownumber, 3].Value = soluong;
+                            eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                            eSheet.Cells[rownumber, 5].Value = "Vui lòng nhập số nguyên.";
+                            rownumber++;
+                            error++;
+                            continue;
+                        }
+
+                        if (sl <= 0)
+                        {
+                            eSheet.Cells[rownumber, 1].Value = masanpham;
+                            eSheet.Cells[rownumber, 2].Value = donvitinh;
+                            eSheet.Cells[rownumber, 3].Value = soluong;
+                            eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                            eSheet.Cells[rownumber, 5].Value = "Vui lòng số lượng > 0.";
+                            rownumber++;
+                            error++;
+                            continue;
+                        }
+
+                        if (masanpham.Split('-')[0].Length > 0)
+                        {
+                            productcode = masanpham.Split('-')[0];
+                            if (listProduct.Where(s => s.ma_san_pham == productcode).FirstOrDefault() == null)
+                            {
+                                eSheet.Cells[rownumber, 1].Value = masanpham;
+                                eSheet.Cells[rownumber, 2].Value = donvitinh;
+                                eSheet.Cells[rownumber, 3].Value = soluong;
+                                eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                                eSheet.Cells[rownumber, 5].Value = "Mã sản phẩm không tồn tại";
+                                rownumber++;
+                                error++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            eSheet.Cells[rownumber, 1].Value = masanpham;
+                            eSheet.Cells[rownumber, 2].Value = donvitinh;
+                            eSheet.Cells[rownumber, 3].Value = soluong;
+                            eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                            eSheet.Cells[rownumber, 5].Value = "Mã sản phẩm không hợp lệ";
+                            rownumber++;
+                            error++;
+                            continue;
+                        }
+
+                        if (donvitinh.Split('-')[0].Length > 0)
+                        {
+                            unitcode = donvitinh.Split('-')[0];
+                            if (listUnit.Where(s => s.Value == unitcode).FirstOrDefault() == null)
+                            {
+                                eSheet.Cells[rownumber, 1].Value = masanpham;
+                                eSheet.Cells[rownumber, 2].Value = donvitinh;
+                                eSheet.Cells[rownumber, 3].Value = soluong;
+                                eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                                eSheet.Cells[rownumber, 5].Value = "Đơn vị tính không tồn tại";
+                                rownumber++;
+                                error++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            eSheet.Cells[rownumber, 1].Value = masanpham;
+                            eSheet.Cells[rownumber, 2].Value = donvitinh;
+                            eSheet.Cells[rownumber, 3].Value = soluong;
+                            eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                            eSheet.Cells[rownumber, 5].Value = "Đơn vị tính không hợp lệ";
+                            rownumber++;
+                            error++;
+                            continue;
+                        }
+
+                        foreach (var items in lstImport)
+                        {
+                            if (items.ma_san_pham == productcode)
+                            {
+                                eSheet.Cells[rownumber, 1].Value = masanpham;
+                                eSheet.Cells[rownumber, 2].Value = donvitinh;
+                                eSheet.Cells[rownumber, 3].Value = soluong;
+                                eSheet.Cells[rownumber, 4].Value = ghichu;
+
+                                eSheet.Cells[rownumber, 5].Value = "Sản phẩm này đã được Import phía trên!";
+                                rownumber++;
+                                error++;
+                                continue;
+                            }
+                        }
+
+                        //Khoi tao 
+                        Merchant_StockInDetail detail = new Merchant_StockInDetail();
+                        detail.ma_san_pham = productcode;
+                        detail.don_vi_tinh = unitcode;
+                        detail.so_luong_thuc_te = detail.so_luong_yeu_cau = sl;
+                        detail.ghi_chu = ghichu;
+                        //them vao lstImport
+                        lstImport.Add(detail);
+                    }
+
+        
+
+                    //string msg = new Merchant_StockInHeader_DAO().Upsert(data, details, false, currentUser.name, true, AppConfigs.MCCConnectionString);
+
+                    //string[] separators = { "@@" };
+                    //total = int.Parse(msg.Split(separators, StringSplitOptions.RemoveEmptyEntries)[2]);
+
+                    
+                    //item = dbConn.FirstOrDefault<Merchant_StockInHeader>(s => s.ma_phieu_nhap_kho == msg.Split(separators, StringSplitOptions.RemoveEmptyEntries)[1]);
+
+                }
+                _excelPkg.Save();
+                return CreateGoodReceivedNote(data, details, lstImport, error, linkerror, true, false);
+
+                //_excelPkg.Save();
+                //return Json(new { success = true,data = item, total = total, totalError = error, link = linkerror, JsonRequestBehavior.AllowGet });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    JsonRequestBehavior.AllowGet
+                });
+            }
+        }
+
+
+    }
+}

@@ -1,0 +1,57 @@
+﻿
+<div id="popup-add-folder" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:300px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">@Html.Raw(@Resources.Global._folder_info)</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>@Html.Raw(@Resources.Global._folder_name)</label>
+                            <input id="ten_folder" name="ten_folder" class="form-control input-sm max100" type="text" style="font-weight:bold; color:red;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default btn-small" onclick="savefolder()">@Html.Raw(@Resources.Global._save)</a>
+                    <a class="btn btn-default btn-small" data-dismiss="modal">@Html.Raw(@Resources.Global._po_skip)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function show_popup_addfolder() {
+        $('#popup-add-folder').modal('show');
+    }
+    function onChangeStatus(type) {
+        onCloseForm();
+    }
+    function onCloseForm() {
+        $('#txtcontent').val('');
+        var myNode = document.getElementById("products");
+        myNode.innerHTML = '';
+        $('.modal').modal('hide');
+    }
+
+    function savefolder() {
+        var foldername = $('#ten_folder').val();
+        if (foldername != "" && foldername != null) {
+            $.post(r + "/Merchant_Image_Info/CreateFolder", { foldername: foldername }, function (data) {
+                if (data.success) {
+                    toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                    $("#ListFolder").data("kendoDropDownList").dataSource.read();
+                }
+                else {
+                    toastr.error('', data.message)
+                }
+                onCloseForm();
+            });
+        }
+        else
+            toastr.error('', '@Html.Raw(@Resources.Global._enter_folder_name)')
+    }
+</script>

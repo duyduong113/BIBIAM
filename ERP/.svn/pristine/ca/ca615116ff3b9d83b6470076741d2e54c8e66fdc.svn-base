@@ -1,0 +1,149 @@
+﻿@{
+    Layout = null;
+}
+<div id="body_print">
+    <style type="text/css">
+        .body-print {
+            margin: 0 auto;
+            font-family: "Times New Roman";
+            font-size: 12pt;
+            color: #000;
+            margin: 0px auto;
+            max-width: 750px;
+            background-color: #fff;
+            padding-bottom: 50px;
+        }
+
+        .hiddenTable {
+            background-color: #fff;
+            border: 0.5pt solid #ccc;
+        }
+
+        .text_head {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .textheadh2 {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 2mm;
+            padding-top: 6px;
+        }
+
+        .textdaudong {
+            margin-left: 5mm;
+        }
+
+        .headertxt {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .tab_head {
+            text-align: center;
+        }
+
+        .tdtxt {
+            text-align: center;
+        }
+
+        #body_print p {
+            margin: 0 0 2px;
+        }
+    </style>
+    <div style="padding:0 40px; text-align:justify;padding-bottom:50px;" class="body-print">
+        <div class="text_head" id="print_header" style="height:60px;"></div>
+        <div style="text-align:right;margin-bottom:20px;">TP.Hồ Chí Minh, ngày 20 tháng 05 năm 2016 </div>
+        <div class="text_head" style="font-size:16pt; font-weight:bold;">
+            <center>
+                <span>PHIẾU ĐĂNG KÝ PR</span><br />
+                <span style="color:red">THÔNG TIN DOANH NGHIỆP</span><br />
+                <span style="font-size:13pt;">Số: @ViewBag.itemDraff.Code</span><br />
+            </center>
+        </div>
+        
+        <div class="textdaudong" style="margin-top:3mm;">
+            <table border="0" cellpadding="0" cellspacing="2" width="650" class="textdaudong">
+                <colgroup>
+                    <col width="120">
+                    <col width="530">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td width="140" style="padding-left:20px;">Tên khách hàng:</td>
+                        <td width="530" colspan="5">@ViewBag.itemDraff.CustomerName</td>
+                    </tr>
+                    <tr>
+                        <td width="140" style="padding-left:20px;">Đại diện:</td>
+                        <td width="530" colspan="5">@ViewBag.itemDraff.DaiDienA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Chức vụ:</td>
+                        <td colspan="5">@ViewBag.itemDraff.ChucVuA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Địa chỉ:</td>
+                        <td colspan="5">@ViewBag.itemDraff.DiaChiA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Điện thoại:</td>
+                        <td colspan="5">
+                            @ViewBag.itemDraff.DienThoaiA
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding-left:20px;">Mã số thuế:</td>
+                        <td colspan="5" align="left">@ViewBag.itemDraff.MaSoThueA</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <br>
+        @{
+            string subWiewName = ViewBag.subWiewName;
+            @Html.Partial(subWiewName);
+        }
+        <br>
+
+
+        <p style="margin:0;">CÔNG TY CỔ PHẦN QUẢNG CÁO TRỰC TUYẾN 24H</p>
+        <div class="textdaudong" style="margin-top:3mm;">
+            <table border="0" cellpadding="0" cellspacing="2" width="650" class="textdaudong">
+                <colgroup>
+                    <col width="300">
+                    <col width="350">
+                </colgroup>
+                <tr>
+                    <td width="300" style="padding-left:20px;">Tài khoản số:</td>
+                    <td width="350" colspan="5">@ViewBag.itemDraff.TaiKhoanB</td>
+                </tr>
+                <tr>
+                    <td width="300" style="padding-left:20px;">Tại Ngân hàng:</td>
+                    <td width="350" colspan="5">@ViewBag.itemDraff.NganHangB - @ViewBag.itemDraff.ChiNhanhB</td>
+                </tr>
+            </table>
+        </div>
+        <div class="textdaudong" style="margin-top:3mm;">
+            <i>Vui lòng đăng đúng theo lịch đã đăng ký, nếu có thay đổi, vui lòng thông báo lại </i>
+        </div>
+        <div class="textdaudong" style="margin-top:3mm;">
+            <table border="0" cellpadding="0" cellspacing="2" width="650" class="textdaudong" style="text-align:center;">
+                <colgroup>
+                    <col width="330">
+                    <col width="320">
+                </colgroup>
+                <tr>
+                    <td width="330" style="padding-left:20px;"><b>KHÁCH HÀNG</b></td>
+                    <td width="320" colspan="5"><b>CTY CP QC TRỰC TUYẾN 24H</b></td>
+                </tr>
+                <tr>
+                    <td width="330" style="padding-left:20px;">Người có thẩm quyền</td>
+                    <td width="320" colspan="5">Đỗ Thị Xuân Liên </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

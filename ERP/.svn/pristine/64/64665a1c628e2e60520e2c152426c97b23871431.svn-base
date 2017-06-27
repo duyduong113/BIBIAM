@@ -1,0 +1,97 @@
+﻿@model ERPAPD.Models.DC_Article
+
+@{
+    ViewBag.Title = "Edit Article";
+}
+
+<script src="@Url.Content("~/ckeditor/ckeditor.js")"></script>
+<script src="@Url.Content("~/ckfinder/ckfinder.js")"></script>
+
+<div class="widget">
+    <div>
+        <div class="widget-main">
+            <form id="editform" action="@Url.Content("~/Article/Edit")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(m => m.ArticleId, new { @class = "span6" })
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Title(*)</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.Title, new { @class = "span6" })
+                        @* @Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Content(*)</label>
+                    <div class="controls">
+                        @Html.TextAreaFor(m => m.PostContent, new { @class = "span6" })
+                        @* @Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Active</label>
+                    <div class="controls">
+                        @Html.EditorFor(m => m.Active, new { @class = "span6" })
+                        @*@Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+            </form>
+            <fieldset class="form-actions">
+                <div class="pull-right">
+                    <button class="btn btn-primary btn-small" type="button" onclick="btnSubmit()">Save</button>
+                    <a class="btn btn-default btn-small" href="@Url.Content("~/Article")">Back</a>
+                </div>
+            </fieldset>
+        </div>     
+    </div>   
+</div>
+
+<script>
+    function btnSubmit()
+    {
+        $("#editform").submit();
+    }
+
+    if (CKEDITOR.instances['PostContent']) {
+        delete CKEDITOR.instances['PostContent'];
+    }
+    CKEDITOR.replace('PostContent');
+
+    CKFinder.setupCKEditor(null, '@Url.Content("/ckfinder/")');
+
+    (function () {
+        $("#editform").ajaxForm({
+            beforeSerialize: function (form, options) {
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+                var body = CKEDITOR.instances['PostContent'].getData();
+                $('#PostContent').val(body);
+            },
+            success: function (data) {
+                //setInterval(function () { $.unblockUI; }, 200);
+                if (data.success) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+
+                    setTimeout(function () { window.location = r + "/Article"; }, 200);
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+            }
+        });
+
+    })();
+</script>

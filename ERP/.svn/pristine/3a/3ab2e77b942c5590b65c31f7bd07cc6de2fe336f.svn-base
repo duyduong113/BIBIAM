@@ -1,0 +1,149 @@
+﻿@{
+    Layout = null;
+    int countBanner = ViewBag.countID;
+    int stt = ViewBag.STT;
+    
+}
+
+@foreach (var item in ViewBag.listData)
+{
+    <tr class="banner" data-pkservice="0">
+        <td><input class="edit" type="checkbox"></td>
+        <td>@stt</td>
+        <td><input type="hidden" class="input-mini total-days" value="0" />
+        <input type="text" class="input-mini  book-code" value="@item.BookCode" placeholder="Mã book" /></td>
+        <td><input onchange="resetWeekDay(this)" class="date-picker input-mini dateUp" type="text" value="@item.NgayLen.ToString("dd/MM/yyyy")" placeholder="Bắt đầu" data-date-format="dd/mm/yyyy" style="width:65px"></td>
+        <td><input onchange="resetWeekDay(this,1)" class="input-mini numWeek" type="text" placeholder="Số tuần"></td>
+        <td><input onchange="resetWeekDay(this)" class="date-picker input-mini dateDown" type="text"  value="@item.NgayXuong.ToString("dd/MM/yyyy")" placeholder="Kết thúc" data-date-format="dd/mm/yyyy" style="width:65px"></td>
+        <td><input onchange="resetWeekDay(this,0)"  class="input-small duration" type="text" placeholder="Thời gian"></td>
+        <td>
+            <input class="input-value-suggess item-web" type="hidden" value="@item.Website" />
+            @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Website")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web-name", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+            )
+            <script>
+                $("#txt-Adv-Banner-@countBanner").val("@Html.Raw(item.WebsiteName)");
+            </script>
+            @{countBanner++;}
+        </td>
+        <td>
+            <input class="input-value-suggess item-category" type="hidden" value="@item.Category" />
+            @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Chuyên mục")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+            )
+            <script>
+                $("#txt-Adv-Banner-@countBanner").val("@Html.Raw(item.CategoryName)");
+            </script>
+            @{countBanner++;}
+        </td>
+        <td>
+            <input class="input-value-suggess item-location" type="hidden" value="@item.Location" />
+            @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Hiển thị")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+            )
+            <script>
+                $("#txt-Adv-Banner-@countBanner").val("@Html.Raw(item.LocationName)");
+            </script>
+            @{countBanner++;}
+        </td>
+        <td>
+            <input class="input-value-suggess item-nature" type="hidden" value="@item.Nature" />
+            @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Cơ chế")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-nature-name", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+            )
+            <script>
+                $("#txt-Adv-Banner-@countBanner").val("@Html.Raw(item.NatureName)");
+            </script>
+            @{countBanner++;}
+        </td>
+        <td><input onchange="SumMoneyServiceBanner()" class="input-mini qty" type="text" placeholder="Số lượng"></td>
+        <td><input class="input-mini size" type="text" placeholder="Size"></td>
+        <td><input class="input-mini format" type="text" placeholder="Format"></td>
+        <td><input onchange="SumMoneyServiceBanner()" class="input-small currency unitPriceAfterTax"  type="text" value="@item.PriceCharged.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá sau CK"></td>
+        <td>
+            <input name="form-field-checkbox" type="checkbox" class="ace km">
+            <span class="lbl"></span>
+        </td>
+        <td><input class="input-small label-banner" type="text" placeholder="Nhãn hàng"></td>
+        <td><input class="input-small note" type="text" placeholder="Ghi chú"></td>
+        <td>
+            <button type="button" onclick="minusBanner(this)" class="btn btn-minier btn-danger"><i class="icon-minus"></i></button>
+            <button type="button" onclick="plusLink(this)" class="btn btn-minier btn-success pushLink"><i class="icon-plus"></i></button>
+        </td>
+    </tr>
+}
+<script>
+    countDays();
+</script>

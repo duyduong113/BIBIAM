@@ -1,0 +1,180 @@
+﻿<div id="popup-confirm" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">@Html.Raw(Resources.Global._inf_of_img)</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <input id="id" name="id" type="hidden" />
+                            <label>@Html.Raw(Resources.Global._id_of_img)</label>
+                            <input id="ma_thong_tin_anh" name="ma_thong_tin_anh" class="form-control input-sm max100" type="text" style="font-weight:bold; color:red;" readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label>@Html.Raw(Resources.Global._name_img)</label>
+                            <input class="form-control input-sm max10" id="ten_anh" name="ten_anh" />
+                        </div>
+                        <div class="form-group">
+                            <label>@Html.Raw(Resources.Global._type)</label>
+                            <input class="form-control input-sm max10" id="loai" name="loai" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>URL</label>
+                            <input class="form-control input-sm max10" id="url" name="url" />
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._capacity)</label>
+                                    <input class="form-control input-sm max10" id="dung_luong" name="dung_luong" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._size)</label >
+                                    <input class="form-control input-sm max10" id="kich_thuoc" name="kich_thuoc" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div>
+                                <label>@Html.Raw(Resources.Global._description)</label >
+                                <textarea id = "mo_ta" name = "mo_ta" class="form-control input-sm max10" style="overflow:hidden; word-wrap:break-word; resize:vertical; height:52px;"></textarea>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div>
+                                <label>@Html.Raw(Resources.Global._description_eng)</label>
+                                <textarea id = "mo_ta_khong_dau" name= "mo_ta_khong_dau" class="form-control input-sm max10" style="overflow:hidden; word-wrap:break-word; resize:vertical; height:52px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._status)</label>
+                                    <select id = "trang_thai" name= "trang_thai" class="select-chosen form-control input-sm max100" disabled>
+                                        @foreach(var item in ViewBag.listStatus)
+                                {
+                                            < option value = "@item.Value" > @item.Name </ option >
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._status_approval)</label>
+                                    <select id = "trang_thai_duyet" name="trang_thai_duyet" class="select-chosen form-control input-sm max100" disabled>
+                                        @foreach(var item in ViewBag.listStatusDuyet)
+                                {
+                                            @*<option value="@item.ParamID">@item.Value</option>*@
+                                            <option value="@item.Value">@item.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._date_created)</label>
+                                    <input id="ngay_tao" name="ngay_tao" class="format-right form-control input-sm max100 date-picker" disabled />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._created_by)</label>
+                                    <input id="nguoi_tao" name="nguoi_tao" class="form-control input-sm max100" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._date_update)</label>
+                                    <input id="ngay_cap_nhat" name="ngay_cap_nhat" class="format-right form-control input-sm max100 date-picker" disabled />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._update_by)</label>
+                                    <input id="nguoi_cap_nhat" name="nguoi_cap_nhat" class="form-control input-sm max100" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._date_approval)</label>
+                                    <input id="ngay_duyet" name="ngay_duyet" class="format-right form-control input-sm max100 date-picker" disabled />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._approval_by)</label>
+                                    <input id="nguoi_duyet" name="nguoi_duyet" class="form-control input-sm max100" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._date_publish)</label>
+                                    <input id="ngay_xuat_ban" name="ngay_xuat_ban" class="format-right form-control input-sm max100 date-picker" disabled />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._publish_by)</label>
+                                    <input id="nguoi_xuat_ban" name="nguoi_xuat_ban" class="form-control input-sm max100" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <img id="img-url" src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-circle" style="height: 190px!important;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-default btn-small" data-dismiss="modal">@Html.Raw(Resources.Global._cancel)</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    function show_popup_details(obj) {
+        // $('#popup-confirm').modal('show');
+
+        // $('#frm input[type=file]').ace_file_input('reset_input');
+        var dataItem = $("#Grid").data("kendoListView").dataItem($(obj));
+        onBindDataToForm(dataItem);
+        $("#dung_luong").val(Math.floor(dataItem.dung_luong / 1024) + "KB");
+        $('#popup-confirm').modal('show');
+        document.getElementById("img-url").src = dataItem.duong_dan_day_du;
+    }
+    function onChangeStatus(type) {
+        onCloseForm();
+    }
+    function onCloseForm() {
+        $('#txtcontent').val('');
+        var myNode = document.getElementById("products");
+        myNode.innerHTML = '';
+        $('.modal').modal('hide');
+    }
+</script>

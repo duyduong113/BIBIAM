@@ -1,0 +1,133 @@
+﻿<script src="@Url.Content("~/Scripts/utilitycommon.js")" type="text/javascript"></script>
+
+<style>
+    input {
+        width: 100%;
+    }
+
+    .margin-bottom-10 {
+        margin-bottom: 10px;
+    }
+
+    .row-fluid input-prepend .remove-date {
+        left: 205px;
+    }
+
+    #GridHistoryStaff .k-grid-header th.k-header, #GridHistoryCus .k-grid-header th.k-header{
+        padding:2px;
+    }
+    /*.k-header{
+        background-color:#000;
+        color:#fff;
+    }*/
+    .k-grid-header th.k-header
+    .screen-body{
+        margin: 20px 0;
+        padding: 20px 10px;
+        border: solid 1px #a6b1b7;
+    }
+    .btn-grid{
+         text-align:center;  
+         width: 15px;
+         margin-top: 5px;
+         margin-left: 2px;
+    }
+    .hr-number {
+        border-top: solid 1px #e7e7e7;
+        color:#006100;
+        height: 20px;
+        background-color: #c3dabf;
+        line-height: 20px;
+        text-align: right;
+    }
+    .k-grid-header th {
+        background-color: #edf3f4  !important;
+        /*color: #fff !important;*/
+        text-align: center !important;
+        font-weight: bold !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        vertical-align: middle !important;
+    }
+    .k-grid-header th.k-header{
+        padding:0;
+    }
+</style>
+@Html.Partial("partial/_general_infomation")
+<div class="row-fluid">
+    <p>
+        <button onclick="openPopupRemind('CUSTOMER')" type="button" class="btn btn-mini btn-success">Nhắc nợ KH</button>
+        <button onclick="openPopupRemind('STAFF')" type="button" class="btn btn-mini btn-success">Nhắc nợ NVKD</button>
+    </p>
+</div>
+<div class="tabbable">
+    <ul class="nav nav-tabs tab-color-blue" id="myTabToDoList">
+        <li id="tabContract" class="active">
+            <a data-notif="" data-toggle="tab" href="#byContract">
+                <i class="icon-calendar"></i>
+                Hợp đồng
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+        <li id="tabRemindCus" class="">
+            <a data-notif="" data-toggle="tab" href="#byRemindCus">
+                <i class="icon-legal"></i>
+                Lịch sử nhắc nợ khách hàng
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+        <li id="tabRemindStaff" class="">
+            <a data-notif="" data-toggle="tab" href="#byRemindStaff">
+                <i class="icon-legal"></i>
+                Lịch sử nhắc nợ NVKD
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content" style="padding: 0px">
+        <div id="byContract" class="tab-pane active">
+            <div class="row-fluid">
+                @Html.Partial("partial/_history_remind_contract")
+            </div>
+        </div>
+        <div id="byRemindCus" class="tab-pane">
+            <div class="row-fluid">
+                @Html.Partial("partial/_history_remind_customer")
+            </div>
+        </div>
+        <div id="byRemindStaff" class="tab-pane">
+            <div class="row-fluid">
+                @Html.Partial("partial/_history_remind_staff")
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("partial/_popup")
+
+<script>
+    var CustomerCode = '@ViewBag.CustomerCode';
+    $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    $("#myTabToDoList li").click(function () {
+        
+        debugger;
+        var id = $(this).attr("id");
+        if (id == "tabRemindCus") {
+            $("#GridHistoryCus").data("kendoGrid").dataSource.read();
+            resizeGridCus('GridHistoryCus');
+
+        }
+        if (id == "tabRemindStaff") {
+            $("#GridHistoryStaff").data("kendoGrid").dataSource.read();
+            
+        }
+        if (id == "tabContract") {
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    })
+    function resizeGridCus(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 465);
+
+    }
+</script>
+

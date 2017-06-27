@@ -1,0 +1,150 @@
+﻿@{
+    ViewBag.Title = "Thêm - Chỉnh sửa điều khoản";
+}
+<script src="@Url.Content("~/ckeditor/ckeditor.js")"></script>
+<script src="@Url.Content("~/ckfinder/ckfinder.js")"></script>
+
+<div class="row-fluid">
+    <div class="span12">
+        <form id="createformExtra" action="@Url.Action("Save_item","CRMContractExtra")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+            <div class="control-group">
+                <label class="control-label" >Tiêu đề</label>
+                <div class="controls">
+                    @if (ViewBag.rowItem != null)
+                    {
+                        <input class="span6" type="text" name="Title" value="@ViewBag.rowItem.Title"/>
+                        <input type="hidden" name="RowID" value="@ViewBag.rowItem.RowID" />
+                    }
+                    else
+                    {
+                        <input class="span6" type="text" name="Title" />
+                    }
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" >Loại điều khoản</label>
+                <div class="controls">
+                   <select id="listTypeContract" name="Type" class="chosen-select">
+                       <option value="">-- Chọn loại --</option>
+
+                       @foreach (var item in ViewBag.listContractTerms)
+                       {
+                           if (ViewBag.rowItem != null && ViewBag.rowItem.Type == item.ParamID)
+                           {
+                            <option value="@item.ParamID" selected>@item.Value</option>
+                           }
+                           else
+                           {
+                            <option value="@item.ParamID">@item.Value</option>
+                           }
+                       }
+                   </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Mô tả</label>
+                <div class="controls">
+                    @if (ViewBag.rowItem != null)
+                    {
+                        <input class="span12" type="text" name="Description" value="@ViewBag.rowItem.Description"/>
+                    }
+                    else
+                    {
+                        <input class="span12" type="text" name="Description" />
+                    }
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" >Nội dung</label>
+                <div class="controls">
+                    @if (ViewBag.rowItem != null)
+                    {
+                        <textarea type="text" name="Content">@ViewBag.rowItem.Content</textarea>
+                    }
+                    else
+                    {
+                        <textarea type="text" name="Content"></textarea>
+                    }
+                </div>
+            </div>
+            <div class="control-group pull-right ">
+                <button class="btn btn-primary btn-small" type="submit">@Resources.Multi.Save</button>
+                <a class="btn btn-grey btn-small" href="@Url.Content("~/CRMContractExtra")">@Resources.Multi.btnBack</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+<script>
+    $(".chosen-select").chosen();
+    if (CKEDITOR.instances['Content']) {
+        delete CKEDITOR.instances['Content'];
+    }
+    CKEDITOR.replace('Content');
+    CKFinder.setupCKEditor(null, '@Url.Content("~/ckfinder/")');
+   
+    $("#createformExtra").validate({
+        rules: {
+            Title: { required: true },
+            Description: { required: true },
+            Content: { required: true },
+        },
+        messages: {
+            Title: { required: "Thông tin bắt buộc" },
+            Description: { required: "Thông tin bắt buộc" },
+            Content: { required: "Thông tin bắt buộc" },
+
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            //error.insertAfter(element);
+        },
+        submitHandler: function (form) {
+            for (instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].updateElement();
+            }
+            if ($("#listTypeContract").val() == "") {
+                alert("Chưa chọn loại hợp đồng");
+                return;
+            }
+            //var body = CKEDITOR.instances['Content'].getData();
+            //$('#Content').val(body);
+            var url = $(form)[0].action;
+            var formContent = $("#createformExtra").serialize()
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formContent,
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    if (data.success) {
+                        $.gritter.add({
+                            title: 'Thành công',
+                            text: 'Đã thêm thành công !',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () { window.location = r + "/CRMContractExtra"; }, 200);
+                        
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+            return false;
+        }
+    });
+   
+</script>
+

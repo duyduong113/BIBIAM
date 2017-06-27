@@ -1,0 +1,139 @@
+﻿@{
+    Layout = null;
+    double total = 0;
+}
+<table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+    <tbody>
+        <tr>
+            <td colspan="6" class="headertxt">
+                THÔNG TIN BÀI PR
+            </td>
+        </tr>
+        <tr>
+            <td width="50" class="tab_head"><b>Website</b></td>
+            <td width="80" class="tab_head"><b>Đăng tại </b></td>
+            <td width="50" class="tab_head"><b>S.lượng </b></td>
+            <td width="100" class="tab_head"><b>Thời gian</b><br> <span style="font-size:9pt; font-width:normal;">(tuần)</span></td>
+            <td width="100" class="tab_head"><b>Đơn giá</b></td>
+            <td width="100" class="tab_head"><b>Thành tiền</b> <br><span style="font-size:9pt; font-width:normal;">(VNĐ)</span></td>
+        </tr>
+        @if (ViewBag.Product.Count > 0)
+        {
+
+            foreach (var item in ViewBag.Product)
+            {
+                if (item.Price != 0)
+                {
+                    int week = item.NumberDay / 7;
+                    int days = item.NumberDay % 7;
+                    double unitPrice = item.Price - item.CKTienMat;
+                    foreach (var dc in item.ListPromotion)
+                    {
+                        unitPrice = unitPrice - (dc.Discount * unitPrice / 100);
+                    }
+                    double lastMoneyOfItem = unitPrice * item.Number;
+                    total += lastMoneyOfItem;
+                    <tr>
+                        <td>
+                            <b>@item.WebsiteName</b>
+                        </td>
+                        <td class="tdtxt">
+                            @item.WebsiteName/<span style="color:red">@item.CategoryName</span>
+                        </td>
+                        <td class="tdtxt">@item.Number</td>
+                        <td class="tdtxt">
+                            @if (week != 0)
+                            {
+                                <span>@week tuần</span>
+                            }
+                            @if (days != 0)
+                            {
+                                <span>@days ngày</span>
+                            }
+                            <br>
+                            <font size="2pt">
+                                @foreach (var tm in item.ListTime)
+                                {
+                                    <span>(@tm.DateUp.ToString("dd/MM/yyyy") - @tm.DateDown.ToString("dd/MM/yyyy"))</span><br />
+                                }
+                            </font>
+                        </td>
+                        <td align="right">@unitPrice.ToString("#,##0")</td>
+                        <td align="right">@lastMoneyOfItem.ToString("#,##0")</td>
+                    </tr>
+                }
+            }
+
+        }
+
+        <tr>
+            <td colspan="5" align="right">Cộng</td>
+            <td align="right">@total.ToString("#,##0")</td>
+        </tr>
+        @if (ViewBag.discount.Count > 0)
+        {
+            foreach (var itd in ViewBag.discount)
+            {
+                double discountGen =  total * itd.ChietKhauChung / 100;
+                total = total - discountGen;
+                <tr>
+                    <td colspan="5" align="right">@itd.GhiChu (@itd.ChietKhauChung %)</td>
+                    <td align="right">@discountGen.ToString("#,##0")</td>
+                </tr>
+            }
+        }
+        @if (ViewBag.itemdraff.GiamTrucTiep > 0)
+        {
+            <tr>
+                <td align="right" colspan="5">Giảm giá trực tiếp</td>
+                <td align="right">@ViewBag.itemdraff.GiamTrucTiep.ToString("#,##0")</td>
+            </tr>
+            total = total - ViewBag.itemdraff.GiamTrucTiep;
+        }
+        @if (ViewBag.itemdraff.CheckVat == 1)
+        {
+            <tr>
+                <td align="right" colspan="5">Thuế GTGT 10%</td>
+                <td align="right">@((total * 10 / 100).ToString("#,##0"))</td>
+            </tr>
+            total = total + total * 10 / 100;
+        }
+        
+        
+        <tr>
+            <td colspan="5" align="right"><b>Tổng cộng</b></td>
+            <td align="right"><b>@total.ToString("#,##0")</b></td>
+        </tr>
+    </tbody>
+</table>
+<div align="left">
+    Bằng chữ:
+    <i>@ERPAPD.Helpers.SqlHelper.ToStringConvert((total + total * 10 / 100)) ./.</i><br>
+    @if (ViewBag.itemdraff.CheckVat == 0)
+            {
+        <i>(Đơn giá trên chưa bao gồm VAT 10%)</i>
+    }
+
+</div>
+<p style="margin:0;"><strong>PHƯƠNG THỨC THANH TOÁN</strong></p>
+<p style="margin:0;">Bên Khách hàng thanh toán cho Công ty CP quảng cáo trực tuyến 24h 100% giá trị phiếu lên bài là <b>@total.ToString("#,##0")</b> VNĐ sau khi kí phiếu và trước khi lên bài viết.</p>
+<div class="textdaudong" style="margin-top:3mm;">
+    <table border="0" cellpadding="0" cellspacing="2" width="650" class="textdaudong" style="text-align:left;margin-bottom:20px">
+        <tr>
+            @if (ViewBag.itemdraff.PhuongThucThanhToan == 0)
+            {
+                <td width="100" valign="top">Tiền mặt</td>
+                <td width="200" valign="top"><input value="MONEY" type="radio" name="paymentType" checked/> </td>
+                <td width="100" colspan="5">Chuyển khoản</td>
+                <td width="200" colspan="5"><input type="radio" value="BANK" name="paymentType" /></td>
+            }
+            else
+            {
+                <td width="100" valign="top">Tiền mặt</td>
+                <td width="200" valign="top"><input value="MONEY" type="radio" name="paymentType" /> </td>
+                <td width="100" colspan="5">Chuyển khoản</td>
+                <td width="200" colspan="5"><input type="radio" value="BANK" name="paymentType" checked/></td>
+            }
+        </tr>
+    </table>
+</div>

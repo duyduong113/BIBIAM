@@ -1,0 +1,624 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._vin);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new tw_VINManagement();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+</style>
+
+<div>
+    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._vin_list)</span>
+    <form method="post" id="FilterForm" novalidate="novalidate">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._vin_vincode)</label>
+                    <div class="input-icon right clearfix">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="VINF" id="VINF" placeholder="@Html.Raw(Resources.Global._vin_place_vincode)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._vin_orderdate)</label>
+                    <div class="input-group" id="defaultrange">
+                        <input type="text" class="form-control input-sm" id="orderdateRangeF" value="@DateTime.Now.AddDays(-30).ToString("yyyy/MM/dd") - @DateTime.Now.ToString("yyyy/MM/dd")">
+                        <span class="input-group-btn input-group-sm">
+                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            @*<div class="col-md-3">
+                    <div class="form-group">
+                        <label>@Html.Raw(Resources.Global._vin_stockoutdate)</label>
+                        <div class="input-group" id="defaultrangeout">
+                            <input type="text" class="form-control input-sm" id="stockoutdateRangeF">
+                            <span class="input-group-btn input-group-sm">
+                                <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                    <i class="fa fa-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>*@
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._vin_warehouse)</label>
+                    @(Html.Kendo().DropDownList()
+                    .Name("warehouseIdF")
+                    .Value("FordCRMWareHouse0007")
+                    .HtmlAttributes(new { style = "width:100%" })
+                    .OptionLabel(Html.Raw(Resources.Global._vin_warehouse) + "...")
+                    .DataTextField("Name")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeMaster", "CustomData", new { type = "FordCRMWareHouse" });
+                        });
+                    })
+                    )
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <label>@Html.Raw(Resources.Global._vin_status)</label>
+                @(Html.Kendo().MultiSelect()
+                .Name("statusF")
+                .DataTextField("Name")
+                .DataValueField("Value")
+                .HtmlAttributes(new { @style = "width:100%;" })
+                .Placeholder(Html.Raw(Resources.Global._vin_status).ToString())
+                .AutoBind(false)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeMasterName", "CustomData", new { type = "FordCRMVINStatus" });
+                    })
+                    .ServerFiltering(true);
+                })
+                )
+            </div>
+            <div class="col-md-3">
+                <label>@Html.Raw(Resources.Global._car_branchtype)<span class="required"> * </span></label>
+                @(Html.Kendo().DropDownList()
+                .Name("typeIdF")
+                .HtmlAttributes(new { style = "width:100%" })
+                .OptionLabel(Html.Raw(Resources.Global._car_branchtype) + "...")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Value("#=typeId#")
+                .Filter("contains")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("getCarTypeBranch", "CustomData");
+                    }).ServerFiltering(true);
+                })
+                )
+            </div>
+            <div class="col-md-2">
+                <label>@Html.Raw(Resources.Global._car_serial)<span class="required"> * </span></label>
+                @(Html.Kendo().DropDownList()
+                .Name("serialIdF")
+                .HtmlAttributes(new { style = "width:100%" })
+                .OptionLabel(Html.Raw(Resources.Global._car_serial) + "...")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Value("#=serialId#")
+                .Filter("contains")
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("typeIdF")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("getCarSerial", "CustomData").Data("filtertypeCode");
+                    }).ServerFiltering(true);
+                })
+                )
+            </div>
+            <div class="col-md-2">
+                <div class="form-actions" style="margin-top:22px;">
+                    <a onclick="filter()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        <div class="form-actions">
+            <a onclick="UpdateStatusVIN()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_updatestatus)</a>
+        </div>
+    </div>
+</div>
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<MCC.Models.tw_VINManagement_Get>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.VIN).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#'/>").Width(30).Filterable(false).Sortable(false);
+                columns.Bound(p => p.carId).Hidden();
+                columns.Bound(p => p.carName).Width(280).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_carname).ToString());
+                columns.Bound(p => p.VIN).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_vin).ToString());
+                columns.Bound(p => p.warehouseName).Width(150).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_warehouse).ToString());
+                columns.Bound(p => p.statusName).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_status).ToString());
+                columns.Bound(p => p.engineNo).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_engineno).ToString());
+                columns.Bound(p => p.model).Width(150).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_model).ToString());
+                columns.Bound(p => p.carCode).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_carcode).ToString());
+                columns.Bound(p => p.carColor).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_extcolor).ToString());
+                columns.Bound(p => p.descriptionColor).Width(150).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._vin_extcolordes).ToString());
+                columns.Bound(p => p.createdAt).Width(150).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString());
+                columns.Bound(p => p.createdBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString());
+                columns.Bound(p => p.updatedAt).Width(150).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString());
+                columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString());
+            })
+                //.Events(events => { events.DataBound("dataBound"); })
+                //.Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                .Pageable()
+                .Navigatable()
+                .Scrollable()
+                .HtmlAttributes(new { @style = "min-height:300px;" })
+                .Resizable(resizable => resizable.Columns(true))
+                .Events(events => { events.DataBound("onDatabound"); })
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .Model(model =>
+                {
+                    model.Id(p => p.VIN);
+                    model.Field(p => p.createdAt).Editable(false);
+                    model.Field(p => p.createdBy).Editable(false);
+                    model.Field(p => p.updatedAt).Editable(false);
+                    model.Field(p => p.updatedBy).Editable(false);
+                    model.Field(p => p.status).Editable(false);
+                    model.Field(p => p.VIN).Editable(false);
+                })
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                .Read("Read", "VINManagement")
+                //.Update("Update", "VINManagement")
+                )
+        )
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 35px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._vin_vin) @Html.Raw(Resources.Global._yet)</div>
+
+    </div>
+</script>
+
+@*Popup update status template*@
+<script type="text/x-kendo-template" id="UpdateStatusTemplate">
+    <form class="form-horizontal" id="updatestatusVINForm" method="post">
+        @*<input type="hidden" name="customerId" value="#=customerId#" />*@
+        <div class="row">
+            <div class="col-md-12">
+                <label>@Html.Raw(Resources.Global._vin_updatestatus)</label>
+                <select style="height:32px; width: 100%" name="status" id="status" class="max100">
+                    <option value="FordCRMVINStatus0005" selected>Cancel</option>
+                    <option value="FordCRMVINStatus0001">New</option>
+                    <option value="FordCRMVINStatus0002">Stock In</option>
+                    <option value="FordCRMVINStatus0003">Booking</option>
+                    <option value="FordCRMVINStatus0004">Stock Out</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script>
+    function UpdatePO() {
+        if ($('#grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#grid').data('kendoGrid').saveChanges();
+        }
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    var reset = false;
+
+    function onDatabound(e) {
+        resizeGrid();
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(".k-grid-pager").css("display", "none");
+            $(this.element).find("tbody").html(NoItemsTemplate({}));
+            $(this.element).css("border", "none");
+        } else {
+            $(".k-grid-pager").css("display", "block");
+            $(this.element).css("border", "1px solid #ccc");
+        }
+    }
+
+    function UpdateStatusVIN() {
+        var UpdateStatusVINTemplate = kendo.template($("#UpdateStatusTemplate").html());
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id")
+            }
+        });
+        if (listrowidd != null && listrowidd != "") {
+            bootbox.dialog({
+                closeButton: true,
+                message: UpdateStatusVINTemplate(0),
+                title: "@Html.Raw(Resources.Global._vin_updatestatus) ",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._vin_update_confirm)", className: "btn green btn-circle btn-sm", callback: function () { UpdateStatusVINRow(); return false; } }
+                }
+            });
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+
+    }
+
+    function loadValidateCreatePOForm() {
+        var e = $("#createPOForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                                bootbox.hideAll();
+                                toastr.success('', '@Resources.Global._po_create_successfully');
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function DeletePORow() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        $.post(r + "/POManagement/DeletePO", { data: listrowid, }, function (data) {
+            if (data.success) {
+                toastr.success('Xóa thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+            }
+            else {
+                toastr.error('', data.error)
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+    }
+
+    function DeletePO() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id")
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            bootbox.dialog({
+                message: "@Resources.Global._are_your_sure", title: "Xóa xe",
+                buttons:
+                    {
+                        danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { CancelDelete(); } },
+                        main: {
+                            label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                                DeletePORow();
+                            }
+                        }
+                    }
+            })
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            toastr.success('Cập nhật thành công')
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            toastr.error(message)
+        }
+    }
+
+    function UpdateStatusVINRow() {
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id")
+            }
+        });
+
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var status = $('#status>option:selected').val();
+        $.post(r + "/VINManagement/UpdateStatusVIN", { data: listrowid, status: status }, function (data) {
+            if (data.success) {
+                toastr.success('Cập nhật thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+                bootbox.hideAll();
+            }
+            else {
+                toastr.error('', data.error)
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+
+    }
+
+    $("#defaultrange").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#defaultrange input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    $("#defaultrangeout").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#defaultrangeout input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    function filtertypeCode() {
+        return {
+            typeCode: $("#typeIdF").val()
+        };
+    }
+
+    function filter() {
+        grid = $("#grid").data("kendoGrid");
+        var VINF = $("#VINF").val();
+        //var seachText = $(e).val();
+        var orderdateRangeF = $("#orderdateRangeF").val();
+        //var stockoutdateRangeF = $("#stockoutdateRangeF").val();
+        var warehouseIdF = $("#warehouseIdF").val();
+        var statusF = $("#statusF").data("kendoMultiSelect").value();
+        var typeIdF = $("#typeIdF").val();
+        var serialIdF = $("#serialIdF").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterVINF = { logic: "or", filters: [] };
+        var filterWarehouseIdF = { logic: "or", filters: [] };
+        var filterStatusF = { logic: "or", filters: [] };
+        var filterTypeIdF = { logic: "or", filters: [] };
+        var filterSerialIdF = { logic: "or", filters: [] };
+
+        if (VINF) {
+            filterVINF.filters.push({ field: "VIN", operator: "contains", value: VINF });
+            filter.filters.push(filterVINF);
+        }
+
+        if (statusF && statusF.length > 0) {
+            for (var i = 0; i < statusF.length; i++) {
+                var option = statusF[i];
+                filterStatusF.filters.push({ field: "status", operator: "eq", value: option });
+            }
+            filter.filters.push(filterStatusF);
+        }
+
+        if (orderdateRangeF) {
+            var startdate = orderdateRangeF.split('-')[0].trim();
+            var enddate = orderdateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "orderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "orderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (warehouseIdF) {
+            filterWarehouseIdF.filters.push({ field: "warehouseId", operator: "contains", value: warehouseIdF });
+            filter.filters.push(filterWarehouseIdF);
+        }
+
+        if (typeIdF) {
+            filterTypeIdF.filters.push({ field: "typeId", operator: "eq", value: typeIdF });
+            filter.filters.push(filterTypeIdF);
+        }
+
+        if (serialIdF) {
+            filterSerialIdF.filters.push({ field: "serialId", operator: "eq", value: serialIdF });
+            filter.filters.push(filterSerialIdF);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    $(document).keypress(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+</script>

@@ -1,0 +1,22 @@
+﻿@model IEnumerable<dynamic>
+
+@(Html.Kendo().Grid<dynamic>()
+                .Name("GridCustomerResult")
+                .Columns(columns =>
+                {
+                    foreach (var obj in Model)
+                    {
+                        var c = columns.Bound(obj.Name).Title(obj.Title).HtmlAttributes(new { @style = "min-width:100px;max-width:200px" });
+                    }
+                })
+                    .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+                    .Navigatable()
+                    .Scrollable()
+                    .Sortable()
+                    .Resizable(resize => resize.Columns(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(50)
+                    .Read(read => read.Action("ResultByCustomer_Read", "CRMSurveyManagement").Data("gridCustomerResultData"))
+                )
+)

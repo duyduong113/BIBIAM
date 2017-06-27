@@ -1,0 +1,104 @@
+﻿@{
+    Layout = null;
+    int countCpm = ViewBag.countID;
+    int sttCpm = ViewBag.STT;
+}
+
+<tr class="class-cpm" data-pkservice="0">
+    <td><input type="checkbox"></td>
+    <td>@sttCpm</td>
+    <td>
+        <input class="input-value-suggess item-channel" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-CPM-" + countCpm)
+                                .DataTextField("Name")
+                                .Placeholder("Website")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-channel-name", @onfocus = "setGlobalCpm(" + countCpm + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                            .Data("onDataCpm");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectCpmItem");
+                                })
+        )
+        @{countCpm++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-CPM-" + countCpm)
+                                .DataTextField("Name")
+                                .Filter("contains")
+                                .Placeholder("Chuyên mục")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalCpm(" + countCpm + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                            .Data("onDataCpm");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectCpmItem");
+                                })
+        )
+        @{countCpm++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-CPM-" + countCpm)
+                                .DataTextField("Name")
+                                .Placeholder("Vị trí")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalCpm(" + countCpm + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                            .Data("onDataCpm");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectCpmItem");
+                                })
+        )
+        @{countCpm++;}
+    </td>
+    <td>
+        <input class="date-picker input-medium dateUp" style="width:100%" type="text" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" />
+    </td>
+
+    <td>
+        <input class="date-picker input-medium dateDown" style="width:100%" type="text" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input  onchange="SumMoneyServiceCPM()" class="input-medium qty" type="text" style="width:100%" placeholder="Số lượng">
+    </td>
+    <td>
+        <input  onchange="SumMoneyServiceCPM()" class="input-medium currency moneyUnit" style="width:100%" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá">
+    </td>
+    <td>
+        <input class="input-medium note" type="text" style="width:100%" placeholder="Ghi chú">
+    </td>
+    <td>
+        <button type="button" onclick="minusCpm(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+    </td>
+</tr>

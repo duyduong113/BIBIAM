@@ -1,0 +1,807 @@
+﻿@using BIBIAM.Core.Entities;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = "Sản phẩm gian hàng";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new Merchant_Product();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 formEdit"></div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Merchant_Product/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase">Chỉnh sửa thông tin sản phẩm</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="tabbable-line">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Chọn cây phân cấp<span class="required"> * </span></label>
+                                    <div class="col-md-10">
+                                        <a class="btn btn-primary btn-xs col-md-1" onclick="showHier(1)">Chọn</a>
+                                        <div class="col-md-9" id="hierarchy-info">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Tên sản phẩm<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="ten_san_pham" value="#=ten_san_pham? ten_san_pham : ''#">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Mô tả<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="mo_ta" value="#=mo_ta? mo_ta : ''#">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Mã sản phẩm<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="ma_san_pham" value="#=ma_san_pham? ma_san_pham : ''#">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Đơn giá<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="don_gia" value="#=don_gia? don_gia : ''#">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Mô tả ngắn<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="mo_ta" value="#mo_ta? mo_ta : ''#">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label class="col-md-2">Từ khóa<span class="required"> * </span></label>
+                                    <div class="input-icon right col-md-10">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="tu_khoa" value="#tu_khoa? tu_khoa : ''#">
+                                    </div>
+                                </div>
+                                <div id="add_form">
+                                </div>
+                                @*<div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._showroom_representative)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("representative")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._showroom_representative) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Value("#=representative#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetUser", "CustomData");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>*@
+                                @*<div class="col-md-6 form-group">
+                                    <label>Trạng thái</label>
+                                    @(Html.Kendo().DropDownList()
+                                        .Name("trang_thai")
+                                        .HtmlAttributes(new { style = "width:100%" })
+                                        .OptionLabel("Trạng thái" + "...")
+                                        .DataTextField("Name")
+                                        .DataValueField("Value")
+                                        .Value("#=trang_thai!= null ? trang_thai:''#")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetCodeMaster", "CustomData", new { type = "CRMTitle" });
+                                            });
+                                        }).ToClientTemplate()
+                                    )
+                                    </div>
+                                                                @*
+                                                                <div>
+                                                                    <label>Đơn giá<span class="required"> * </span></label>
+                                                                    <div class="input-icon right">
+                                                                        <i class="fa"></i>
+                                                                        <input type="text" class="form-control input-sm mask_phone max100" name="ma_loai_san_pham" value="#=ma_loai_san_pham!=null ? ma_loai_san_pham : ''#" />
+                                                                    </div>
+                                                                </div>*@
+                                @*<div class="col-md-6 form-group">
+                                        <label>Mã gian hàng<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" name="ma_gian_hang" class="form-control input-sm max100" value="#=ma_gian_hang!=null ? ma_gian_hang : ''#" readonly>
+                                        </div>
+                                    </div>*@
+                                @*<div>
+                                        <label>Mô tả ngắn</label>
+                                        <input type="text" name="trang_thai" class="form-control input-sm max100" value="#=trang_thai!=null ? trang_thai : ''#">
+                                    </div>
+                                    <div>
+                                        <label>Từ khóa</label>
+                                        <input type="text" name="trong_so" class="form-control input-sm max100" value="#=trong_so!=null ? trong_so : ''#">
+                                    </div>
+                                    <div id="addedArea">
+
+                                    </div>*@
+                                @*<div class="col-md-6 form-group">
+                                        <label>Trạng thái</label>
+                                        <div class="input-icon right">
+                                            <select style="height:32px; max-width: 100%; width: 100%;" name="trang_thai">
+                                                <option value="">-- Trạng thái --</option>
+                                                #if(trang_thai=='Active'){#
+                                                <option value="Active" selected>Hoạt động</option>
+                                                <option value="InActive">Ngừng hoạt động</option>
+                                                #}else if(trang_thai=='Inactive'){#
+                                                <option value="Active">Hoạt động</option>
+                                                <option value="InActive" selected>Ngừng hoạt động</option>
+                                                #}else{#
+                                                <option value="Active">Hoạt động</option>
+                                                <option value="InActive">Ngừng hoạt động</option>
+                                                #}#
+                                            </select>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="form-group" style="margin-top:25px;">
+                                        <label>@Html.Raw(Resources.Global._showroom_parent)</label>
+
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("showroomParent")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._showroom_parent) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Value("#=showroomParent#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetShowroom", "CustomData");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>*@
+
+                                @*<div class="form-group" style="margin-top:35px;">
+                                            <div class="clearfix">
+                                                <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                    <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                                        #if(active==false){#
+                                                        <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._showroom_inactive)
+                                                        #}else{#
+                                                        <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._showroom_inactive)
+                                                        #}#
+                                                    </label>
+                                                    <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                                        #if(active==true){#
+                                                        <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._showroom_active)
+                                                        #}else{#
+                                                        <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._showroom_active)
+                                                        #}#
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                @*<div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                            <label>Ảnh sản phẩm</label>
+                                            <div class="clearfix">
+                                                <div class="input-group">
+                                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                        <div class="fileinput-new thumbnail" style="width: 280px; margin-bottom: 10px">
+                                                            <img src="#=url ? url : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" alt=""/>
+                                                        </div>
+                                                        <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 300px; "> </div>
+                                                        <div>
+                                                            <span class="btn default btn-file btn-sm btn-circle pull-right">
+                                                                <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                                <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                                <input type="file" name="file">
+                                                            </span>
+                                                            <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                                </div>
+                                        </div>
+                                    </div>*@
+                                @*<div class="form-actions right">
+                                        @if (all || create || update)
+                                        {
+                                            <a onclick="clearForm()" class="btn btn-sm default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                                        }
+                                        #if(id>0){#
+                                        @if (all || delete)
+                                        {
+                                            <a onclick="removeShowroom('#=id#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                                        }
+                                        #}#
+                                        @if (all || create || update)
+                                        {
+                                            <button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                            <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                                        }
+                                    </div>*@
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Mô tả</label>
+                                        @*<label for="mo_ta" class="hidden" style="color: red">Vui lòng nhập thông tin MÔ TẢ</label>*@
+                                        <div class="clearfix">
+                                            @(Html.Kendo().Editor().Name("mo_ta")
+                                        .Encode(false)
+                                                  .Value("#=mo_ta ? mo_ta : ''#")
+                                        .HtmlAttributes(new { style = "height:450px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                                        .Tools(tools => tools
+                                        .Clear()
+                                      
+                                        .Bold().Italic().Underline().Strikethrough()
+                                        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                        .InsertUnorderedList().InsertOrderedList()
+                                        .Outdent()
+                                        .Indent()
+                                        .CreateLink().Unlink()
+                                        .InsertImage()
+                                        .InsertFile()
+                                        .SubScript()
+                                        .SuperScript()
+                                        .TableEditing()
+                                        .ViewHtml()
+                                        .Formatting()
+                                        .CleanFormatting()
+                                        .FontColor()
+                                        .BackColor()
+                                        .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a>")))
+                                        .Messages(m => m
+                                            .ImageWebAddress("Đường dẫn ảnh")
+                                            .DialogCancel("Hủy")
+                                            .DialogInsert("Thêm")
+                                        ).ToClientTemplate()
+                                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+@Html.Partial("_popup_Hierarchy")
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    @*<div class="text-center" style="padding: 30px 0 20px 0;">
+            <img src="@Url.Content("~/Images/matbuon.png")" />
+            <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._showroom_lower) @Html.Raw(Resources.Global._yet)</div>
+            <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+        </div>*@
+</script>
+<script>
+
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    });
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+
+    function inputProperty(ma_san_pham) {
+        //$.post(r + "/Merchant_Product/GetPropertyFromProduct", { ma_san_pham: ma_san_pham }, function (data) {
+        //    if (data.success) {
+        //        console.log(data);
+        //        var html = '';
+        //        for (var i = 0; i < data.data.length; i++) {
+        //            html += property_detail_load(data.data[i]);
+        //        }
+        //    }
+        //});
+        $.ajax({
+            type: "POST",
+            async: "true",
+            url: r + "/Merchant_Product/GetPropertyFromProduct",
+            data: { ma_san_pham: ma_san_pham },
+            success: function (data) {
+                if (data.success) {
+                    var html = '';
+                    for (var i = 0; i < data.data.length; i++) {
+                        html += property_detail_load(data.data[i]);
+                    }
+                } else {
+                    return false;
+                }
+            }
+        });
+    }
+    function onFullScreen(e) {
+        var editor = $("#mo_ta").data("kendoEditor");
+        if ($(e).html() == "@Html.Raw(Resources.Global._full_screen)") {
+            $(e).html("@Html.Raw(Resources.Global._restore_down)");
+            editor.wrapper.css("height", $(window).height())
+            .css("width", "100%")
+            .css("position", 'fixed')
+            .css("top", 0)
+            .css("left", 0).css("z-index", 10000).css("overflow", "hidden");
+        } else {
+            $(e).html("@Html.Raw(Resources.Global._full_screen)");
+            editor.wrapper.css("height", "450px").css("position", 'relative').css("width", "100%").css("z-index", 10).css("overflow", "auto");
+        }
+    }
+    function generateProperty(element, ma_phan_cap, ma_san_pham) {
+        //$.post(r + "/Merchant_Product/ReadProperty", { ma_phan_cap: ma_phan_cap }, function (data) {
+        $.ajax({
+            type: "POST",
+            async: "true",
+            url: r + "/Merchant_Product/ReadProperty",
+            data: { ma_phan_cap: ma_phan_cap },
+            success: function (data) {
+                if(data.success) {
+                    //console.log(data);
+                    var html = '';
+                    for (var i = 0; i < data.data.length; i++) {
+                        html += property_detail(data.data[i]);
+                    }
+                    $(element).html(html);
+                    $(element).find(".classValidate").each(function () {
+                        $(this).rules('add', {
+                            required: true,
+                            messages: {
+                                required: "Thông tin bắt buộc"
+                            }
+                        });
+                    });
+                    inputProperty(ma_san_pham);
+                } else {
+                    return false;
+                }
+            }
+        });
+    }
+    function property_detail(data) {
+        var html = "";
+        switch (data.loai) {
+            case 'text': //text
+                html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+                                        "<label class='col-md-2'>" + data.ten_thong_so + "<span class='required'> * </span></label>";
+                html += "<div class='input-icon right col-md-10'>" +
+                            "<i class='fa'></i>" +
+                            "<input type='text' id ='" + data.ma_thong_so + "' class='form-control input-sm max100' name='gia_tri_thong_so' data = '" + data.detail[0].ma_thuoc_tinh + "'>" +
+                        "</div>";
+                html += "</div>";
+                break;
+            case 'select': //combobox
+                var kt = false;
+                for (var i = 0; i < data.detail.length; i++) {
+                    if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+                        kt = true;
+                        break;
+                    }
+                }
+                if (kt) {
+                    html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+                                    "<label class='col-md-2'>" + data.ten_thong_so + "<span class='required'> * </span></label>" +
+                                    "<div class='col-md-10'>";
+                    html += "<input type='text' class='hidden' name='ma_thong_so' value='" + data.ma_thong_so + "'>" +
+                             "<select id ='" + data.ma_thong_so + "' name='gia_tri_thong_so' class = 'col-md-12'>";
+                    html += "<option value=''>--Chọn--</option>";
+                    for (var i = 0; i < data.detail.length; i++) {
+                        if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+                            html += "<option value ='" + data.detail[i].ma_thuoc_tinh + "'>" + data.detail[i].ten_thuoc_tinh + "</option>";
+                        }
+                    }
+
+                    html += "</select>" +
+                            "</div>" +
+                        "</div>";
+                }
+                break;
+            case 'checkbox': //checkbox
+                if (data.detail.length < 1)
+                    break;
+                html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+                                "<input type='text' class='hidden' name='check_box_ma_thong_so' value='" + data.ma_thong_so + "'>" +
+                                        "<label class='col-md-2'>" + data.ten_thong_so + "<span class='required'> * </span></label>" +
+                                        "<div class='col-md-10'>";
+                for (var i = 0; i < data.detail.length; i++) {
+                    if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+                        html += "<div class='col-md-2'>" +
+                            "<label class='checkbox-inline'><input type='checkbox' value='" + data.detail[i].ma_thuoc_tinh + "'>" + data.detail[i].ten_thuoc_tinh + "</label>" +
+                        "</div>";
+                    }
+                }
+                html += "</div>" +
+                    "</div>";
+                break;
+            case 'radio': //checkbox
+                html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+                                "<input type='text' class='hidden' name='check_box_ma_thong_so' value='" + data.ma_thong_so + "'>" +
+                                        "<label class='col-md-2'>" + data.ten_thong_so + "<span class='required'> * </span></label>" +
+                                        "<div id ='" + data.ma_thong_so + "' class='col-md-10'>";
+                for (var i = 0; i < data.detail.length; i++) {
+                    if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+                        html += "<div class='col-md-2'>" +
+                            "<label class='radio-inline'><input type='radio' name='optradio' value='" + data.detail[i].ma_thuoc_tinh + "'>" + data.detail[i].ten_thuoc_tinh + "</label>" +
+                        "</div>";
+                    }
+                }
+                html += "</div>" +
+                    "</div>";
+                break;
+            case 'color': //color
+                html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+                                        "<label class='col-md-2'>" + data.ten_thong_so + "<span class='required'> * </span></label>" +
+                                        "<div class='col-md-10'>";
+                html += "<input type='text' class='hidden' name='ma_thong_so' value='" + data.ma_thong_so + "'>" +
+                        "<input class='col-md-2' id='color' name = 'gia_tri_thong_so' type='color'/>";
+                html += "</div>" +
+                    "</div>";
+                break;
+            default:
+                break;
+        }
+        return html;
+    }
+    function property_detail_load(data) {
+        switch (data.loai) {
+            case 'text': //text
+                $("#" + data.ma_thong_so + "").val(data.gia_tri_thong_so);
+                break;
+            case 'select': //combobox
+                $("#" + data.ma_thong_so + " option[value=" + data.ma_thuoc_tinh + "]").prop("selected", true);
+                break;
+            case 'checkbox': //checkbox
+                var arr = data.ma_thuoc_tinh.split(";");
+                for (var i = 0; i < arr.length; i++) {
+                    $('[value=' + arr[i] + ']').prop("checked", "checked");
+                }
+                break;
+            case 'radio': //checkbox
+                $('[value=' + data.ma_thuoc_tinh + ']').prop("checked", "checked");
+                break;
+            case 'color': //color
+                
+                break;
+            default:
+
+                break;
+        }
+    }
+    function edit(e) {
+        var product = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(product);
+        $.ajax({
+            type: "POST",
+            async: "true",
+            url: r + "/Merchant_Product/GetHierarchyByProduct",
+            data: { ma_san_pham: product.ma_san_pham },
+            success: function (data) {
+                if (data.success) {
+                    generateHierarchy(data.data);
+                    generateProperty($("#add_form"), data.data.ma_cay_phan_cap_3,product.ma_san_pham);
+                } else {
+                    return false;
+                }
+            }
+        });
+        //$.post(r + "/Merchant_Product/GetHierarchyByProduct", { ma_san_pham: product.ma_san_pham }, function (data) {
+        //    if (data.success) {
+        //        debugger;
+        //        generateProperty($("#add_form"), data.data.ma_cay_phan_cap_3);
+        //        inputProperty(product.ma_san_pham);
+        //    }
+        //    else {
+        //    }
+        //});
+        //inputProperty(product.ma_san_pham);
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+
+    function generateHierarchy(ProductHierarchy) {
+        var cay_1, cay_2, cay_3;
+        $.ajax({
+            type: "POST",
+            async: "true",
+            url: r + "/Merchant_Product/getNameFromHierarchy",
+            data: { ma_phan_cap: ProductHierarchy.ma_cay_phan_cap_1 },
+            success: function (data) {
+                if (data.success) {
+                    debugger;
+                    cay_1 = data.data.ten_phan_cap;
+                    $.ajax({
+                        type: "POST",
+                        async: "true",
+                        url: r + "/Merchant_Product/getNameFromHierarchy",
+                        data: { ma_phan_cap: ProductHierarchy.ma_cay_phan_cap_2 },
+                        success: function (data) {
+                            if (data.success) {
+                                debugger;
+                                cay_2 = data.data.ten_phan_cap;
+                                $.ajax({
+                                    type: "POST",
+                                    async: "true",
+                                    url: r + "/Merchant_Product/getNameFromHierarchy",
+                                    data: { ma_phan_cap: ProductHierarchy.ma_cay_phan_cap_3 },
+                                    success: function (data) {
+                                        if (data.success) {
+                                            debugger;
+                                            $("#hierarchy-info").html("<span>" + cay_1 + " -> " + cay_2 + " -> " + data.data.ten_phan_cap + "</span>");
+                                        }
+                                        else {
+                                            return false;
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                    });
+                }
+                else {
+                    return false;
+                }
+            }
+        });
+    }
+     
+    //function edit(e) {
+    //    var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+    //    loadForm(data);
+    //    cardSelected(e);
+    //    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    //        $("html, body").animate({
+    //            scrollTop: $(".formEdit").offset().top
+    //        }, 600);
+    //    } else {
+    //        $("html, body").animate({
+    //            scrollTop: $(".formEdit").offset().top - 70
+    //        }, 600);
+    //    }
+    //}
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        shortlyName: { minlength: 5, required: !0 },
+                        name: { minlength: 5, required: !0 },
+                        //size: { required: !0, number: !0 },
+                        email: { required: !0, email: !0 },
+                        phone: { required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    if (currentData.id == 0) {
+                                        loadForm(data.data);
+                                    }
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (typeof seachText != 'undefined') {
+            if (seachText.length) {
+                filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "ma_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "mo_ta", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "tag", operator: "contains", value: seachText });
+                filter.filters.push(filterDesc);
+            }
+        }
+
+        listView.dataSource.filter(filter);
+    }
+
+    function onDatabound(e) {
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+    function getHierarchy(ma_san_pham) {
+        $.ajax({
+            type: "POST",
+            async: "true",
+            url: r + "/Merchant_Product/GetHierarchyByProduct",
+            data: { ma_san_pham: product.ma_san_pham },
+            success: function (data) {
+                if (data.success) {
+                    generateProperty($("#add_form"), data.data.ma_cay_phan_cap_3, product.ma_san_pham);
+                } else {
+                    return false;
+                }
+            }
+        });
+    }
+    
+</script>

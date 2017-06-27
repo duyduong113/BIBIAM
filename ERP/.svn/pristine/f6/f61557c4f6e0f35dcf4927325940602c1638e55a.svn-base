@@ -1,0 +1,928 @@
+﻿@model IEnumerable<ERPAPD.Models.ERPAPD_Customer>
+@{
+    ViewBag.Title = "Danh sách khách hàng";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listCustomerType = ViewBag.listCustomerType;
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+    bool viewKT = (ViewData["KT"] != null && (bool)ViewData["KT"]);
+    bool viewLeader = (ViewData["TeamLeader"] != null && (bool)ViewData["TeamLeader"]);
+    
+
+}
+<style>
+    .margin-10 {
+        margin-right: 10px;
+    }
+
+    .chosen-container, .text-search {
+        margin-bottom: 10px;
+    }
+
+    #quicklyFilter {
+        margin-bottom: 10px;
+    }
+
+    .row-fluid .show-color {
+        min-height: 10px !important;
+        width: 18px;
+        margin: 0px 2px 2px 0;
+        border-radius: 2px;
+    }
+
+    .tag-input-style + .chosen-container-multi .chosen-choices li.search-choice {
+        margin-left: 2px;
+        height: 21px;
+        border-radius: 2px;
+    }
+
+    .chosen-container-multi .chosen-drop ul {
+        padding: 7px;
+    }
+
+    .chosen-container-multi .chosen-drop .chosen-results li {
+        margin-bottom: 5px;
+    }
+
+    .chosen-container .chosen-results {
+        max-height: 150px !important;
+    }
+
+    .tag-input-style + .chosen-container-multi .chosen-choices li.search-choice .search-choice-close {
+        line-height: 20px;
+    }
+
+    .label-cus .dropdown-menu > li > a {
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .label-cus .dropdown-default li a:hover {
+        background: none;
+        opacity: 0.8;
+    }
+  
+</style>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<div id="quicklyFilter">
+    <div class="row-fluid">
+        <div id="btn-count-contract" class="pull-left">
+            <button class="btn btn-small btn-info" id="btnAll">Tất cả (<span id="txtAll"></span>) </button>
+            <button class="btn btn-small btn-info" id="btnCHUA_DUYET">Chờ duyệt (<span id="txtChoDuyet"></span>) </button>
+            @*<button class="btn btn-small btn-info" id="btnDA_DUYET">Đã duyệt (<span id="txtChoDuyet"></span>) </button>*@
+            <button class="btn btn-small btn-info" id="btnTU_CHOI">Từ chối (<span id="txtTU_CHOI"></span>)</button>
+            <button class="btn btn-small btn-info" id="btnDA_CO_HD">Hợp đồng (<span id="txtDA_CO_HD"></span>)</button>
+            @*<button class="btn btn-small btn-info" id="btnDL_CHUA_HD">Đại lý chưa duyệt (<span id="txtDL_CHUA_HD"></span>)</button>
+                <button class="btn btn-small btn-info" id="btnDA_DUYET_CHUA_HD">Đã duyệt nhưng chưa có hợp đồng (<span id="txtDA_DUYET_CHUA_HD"></span>)</button>*@
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="span2">
+                <select id="listRegion" class="select" multiple data-placeholder="Vùng miền" style="width:100%">
+                    @foreach (var item in ViewBag.listRegion)
+                    {
+                        <option value="@item.HierarchyID">@item.Value</option>
+                    }
+                </select>
+            </div>
+           <div class="span4" id="divGroupByRegion">
+               <select id="listGroup" class="select" multiple data-placeholder="Nhóm" style="width:99%">
+                   <option value=""></option>
+                   @foreach (var item in ViewBag.listTeam)
+                   {
+                       <option value="@item.TeamID">@item.TeamName</option>
+                   }
+               </select>
+
+            </div>
+            <div class="span4" id="emloyeebygroup">
+                <select id="listStaff" class="select" multiple data-placeholder="Nhân viên" style="width:99%">
+                    <option value=""></option>
+                    @foreach (var item in ViewBag.listStaff)
+                    {
+                        <option value="@item.RefStaffId">@item.UserName -@item.FullName </option>
+                    }
+                </select>
+            </div>
+            <div class="span2 ">
+                <div class="btncleardatetimepicker">
+                    <input type="text" class="input-xs" style="width:160px" id="approveDate" placeholder="Ngày duyệt" />
+                    <span class="remove-date"><a onclick="delExitsDate(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span12" style="margin-top: -5px">
+            <div class="span2">
+                <select id="listCustomerType" class="select span12" multiple data-placeholder="Loại khách hàng">
+                    @foreach (var item in ViewBag.listCustomerType)
+                    {
+                        <option value="@item.Code">@item.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="span2">
+                <select id="listPotentialLevel" class="select span12" multiple data-placeholder="Mức độ tiềm năng">
+                    @foreach (var item in ViewBag.listPotentialLevel)
+                    {
+                        <option value="@item.ParamID">@item.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="span2">
+                <select id="listContract" class="select span12" multiple data-placeholder="Hợp đồng">
+
+                    @foreach (var item in ViewBag.listCustomerContract)
+                    {
+                        <option value="@item.ParamID">@item.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="span2">
+                <select id="listPresentation" class="select span12" multiple data-placeholder="Thuyết trình">
+
+                    @foreach (var item in ViewBag.listPresent)
+                    {
+                        <option value="@item.ParamID">@item.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="span2">
+                <select id="listCareLevel" class="select span12" multiple data-placeholder="Mật độ chăm sóc">
+                    @*
+                        <option value="">Mật độ chăm sóc</option>*@
+                    @foreach (var item in ViewBag.listCustomerCare)
+                    {
+                        <option value="@item.ParamID">@item.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="span2">
+                <div class="btncleardatetimepicker">
+                    <input type="text" name="ngaydangky" class="input-xs" style="width:160px" id="orderDate" placeholder="Ngày đăng ký" onkeypress="return KeyCode(event);" />
+                    <span class="remove-date"><a onclick="delExitsDate(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span12" style="margin-top: -5px">
+            <div class="span2">
+                <select id="listCategory" class="select span12" data-placeholder="Ngành hàng">
+                    <option value="">Chọn ngành hàng</option>
+                    @foreach (var item in ViewBag.listCategory)
+                    {
+                        <optgroup label="@item.Value">
+                            @foreach (var itemsub in ViewBag.listSubCategory)
+                            {
+                                if (item.HierarchyID == itemsub.ParentID)
+                                {
+                                    <option value="@itemsub.HierarchyID">@itemsub.Value</option>
+                                }
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+            <div class="span4">
+                <input type="text" class="input-xs" style="width:97%" id="txtsearch" placeholder="Mã, tên khách hàng" />
+            </div>
+            <div class="span2">
+                <select id="listStatus" class="select span12" multiple data-placeholder="Trạng thái">
+                    @foreach (var item in ViewBag.listStatus)
+                    {
+                        <option value="@item.ParamID">@item.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="span2">
+                <select multiple="" class="tag-input-style span12" id="select-filter-lable" data-placeholder="Nhãn">
+                    @foreach (var lb in ViewBag.listLabel)
+                    {
+                        <option value="@lb.Value" style="background-color:@lb.Value ;color:@lb.Value">@lb.Value </option>
+                    }
+                </select>
+            </div>
+
+            <div class="span2" @*style="margin-left: 10px" *@>
+                <button type="button" class="btn btn-small btn-primary" style="width:174px" onclick="setfilter(keyfilter)">@*<i class="icon-search"></i>*@Tìm kiếm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid(Model)
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.CustomerID)
+        .Width(25).Filterable(false).Sortable(false).Groupable(false)
+        .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+        .ClientTemplate("<input style='text-align:center' class='checkvalue' type='checkbox' data-id= '#=CustomerID#' id='#=CustomerID#' />");
+
+        columns.Bound(p => p.CustomerID)
+        .Title("")
+        .Width(15)
+        .ClientTemplate("<span class ='tooltip-info' data-rel='tooltip' data-placement='top' title ='Thông tin chung'><a target='_blank' class='btn btn-minier btn-reverse' style=' text-align: center; width: 15px;margin-top: 5px;' href=" + Url.Action("Index", "MnDetailEmployer", new { @CustomerID = "#=CustomerID#" }) + "  data-id='#=CustomerID#' ><i class='fa fa-pencil'></i> </a></span>" +
+             "<span class ='tooltip-warning' data-rel='tooltip' data-placement='right' title ='Thông tin chi tiết'><a target='_blank' class='btn btn-minier btn-warning' style=' text-align: center;  width: 15px;margin-top: 5px;' href=" + Url.Action("Index", "CRMCustomerSupportDetail", new { @CustomerID = "#=CustomerID#" }) + " data-id='#=CustomerID#' > <i class='fa fa-smile-o'></i></a></span>")
+             .HtmlAttributes(new { style = "text-align:center" });
+
+        columns.Bound(p => p.CustomerID)
+        .Title("Thông tin khách hàng")
+        .Width(400)
+        .ClientTemplate("<div>" +
+            //"<span> #=CustomerID# </span></br>" +
+            "<span> #=CustomerName#</span></br>" +
+            "<span> Mã: #=CustomerID# </span>" +
+            "<span> Loại: #=TypeName# </span> </br>" +
+            //"<span> Nguồn khách hàng: </span>  #=SourceName#  </br>" +
+            "<span class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='cuộc gọi'> <i class='fa fa-phone'></i>  11  </span>" +
+            "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='thuyết trình'> <i class='fa fa-bullhorn'></i> 7 </span> " +
+            "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='hợp đồng'> <i class='fa fa-file-pdf-o'></i>  21 </span>" +
+             "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='loại khác'>  <i class='fa fa-bookmark'></i>  112 </span>" +
+             "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='doanh thu'>  <i class='fa fa-usd'></i> 120,000,000 </span>" +
+           "<div class='row-label'>#=getHTML(Label)#</div>" +
+            "</div>");
+
+        columns.Bound(p => p.CustomerID)
+        .Title("Thông tin liên hệ")
+        .Width(300)
+        .ClientTemplate("<div>" +
+            "#if(Address == ''){#<i class='fa fa-building'></i> N/A </br>#} else{#<i class='fa fa-building'></i> #=Address# </br>#}#" +
+            "#if(Phone == ''){#<i class='fa fa-phone'></i> N/A </br>#} else{# <div class='phone'><i class='fa fa-phone'></i> <span>#=Phone#</span> </div>#}#" +
+            "#if(Website == ''){#<i class='fa fa-globe'></i> N/A </br>#} else{# <div class='web'><i class='fa fa-globe'></i> <a href='#=Website#' target='_blank'>#=Website#</a> </div>#}#" +
+            "</div>");
+
+        columns.Bound(p => p.CustomerID)
+                .Title("Trạng thái")
+                .Width(250)
+                .ClientTemplate("<div>" +
+                "<span><i class='fa fa-calendar'></i> Tạo lúc </span>  #=kendo.toString(RowCreatedAt,'dd/MM/yyyy')# " +
+                "<span> - </span>  #=RowCreatedUser#  </br>" +
+                "#if(Status == 'MOI'){#<font style = 'font-weight:bold' >Chưa gửi</font></br> #}# " +
+                "#if(Status == 'CHUA_DUYET'){#<font style = 'color:\\#6FB3E0;font-weight:bold' ><i class='fa fa-spinner'></i> Chờ duyệt</font></br> #}# " +
+                "#if(Status == 'HOAT_DONG'){# <font style = 'color:green;font-weight:bold' ><i class='fa fa-check'></i> Đã duyệt</font></br> #}# " +
+                "#if(Status == 'DUNG_HOAT_DONG'){# <font style ='color:red;font-weight:bold' ><i class='fa fa-times'></i> Từ chối</font> : #=DeniedContent#</br> #}# " +
+                "<span><i class='fa fa-calendar'></i> Cập nhật lúc </span>#=kendo.toString(RowUpdatedAt,'dd/MM/yyyy')#" +
+                "<span> - </span> #=RowUpdatedUser# " +
+                "</div>");
+
+        columns.Bound(p => p.CustomerID)
+        .Title("Nhân viên")
+        .Width(200)
+        .ClientTemplate("<div class='span12'>" +
+            "<div class='span12'>" +
+            "<i class='fa fa-user'></i> #=EmployeeName#</br>" +
+            "<i class='fa fa-users'></i> #=TeamName# </br>" +
+            "<i class='fa fa-globe'></i> #=RegionName#  </br>" +
+            "</div>" +
+            "</div>");
+        //columns.Bound(p => p.CustomerID)
+        //.Title("Thống kê")
+        //.Width(110)
+        //.ClientTemplate("<div>" +
+        //    "<i class='fa fa-phone'></i> 11 <font style='color:\\#868686; font-size: 11px'>cuộc gọi</font>  </br>" +
+        //    "<i class='fa fa-bullhorn'></i> 7 <font style='color:\\#868686; font-size: 11px'>thuyết trình</font> </br>" +
+        //    "<i class='fa fa-file-pdf-o'></i>  21 <font style='color:\\#868686; font-size: 11px'>hợp đồng</font></br>" +
+        //    "<i class='fa fa-bookmark'></i>  112 <font style='color:\\#868686; font-size: 11px'>khác</font> </br>" +
+        //    "<i class='fa fa-usd'></i> 120,000,000 <font style='color:\\#868686; font-size: 11px'>đ</font> </br>" +
+        //    "</div>");
+        columns.Bound(p => p.Status).Hidden();
+        columns.Bound(p => p.Category).Hidden();
+        columns.Bound(p => p.Label).Hidden();
+
+        columns.Bound(p => p.ApprovedDate).Format("{0:dd/MM/yyyy}").Width(120).Hidden();
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-mini btn-success" href="~/CRMCustomerInfo/Create" id="btnGridAdd">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                    </a>
+                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="showConfirmPopup(1)">
+                        @*<i class="fa fa-paper-plane"></i>*@ Gửi
+                    </a>
+                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="showConfirmPopup(2)">
+                        @*<i class="icon-check"></i>*@ Duyệt
+                    </a>
+                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="showConfirmPopup(3)">
+                        @*<i class="fa fa-thumbs-o-down"></i>*@ Từ chối
+                    </a>
+
+                    <div class="btn-group label-cus">
+                        <button data-toggle="dropdown" class="btn btn-mini btn-success dropdown-toggle">
+                            Gán nhãn
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-default" style="min-width:110px !important; padding:0px">
+                            @foreach (var lb in ViewBag.listLabel)
+                            {
+                                <li style="background-color:@lb.Value">
+                                    <a data-color="@lb.Value" onclick="setLabelOnGrid(this)">@lb.Name</a>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+                    <div class="btn-group label-cus" style="margin-left:-1px">
+                        <button data-toggle="dropdown" class="btn btn-mini btn-inverse dropdown-toggle">
+                            Gỡ nhãn
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-default" style="min-width:110px !important; padding:0px">
+                            @foreach (var lb in ViewBag.listLabel)
+                            {
+                                <li style="background-color:@lb.Value">
+                                    <a data-color="@lb.Value" onclick="removeLabelOnGrid(this)">@lb.Name</a>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+                    <div class="btn-group" style="margin-left:-1px">
+                        <button data-toggle="dropdown" class="btn btn-mini btn-inverse dropdown-toggle">
+                            Thao tác khác
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" style="min-width:110px !important; padding:0px">
+                            <li>
+                                @if (AllowDelete)
+                                {
+                                    if (AllowExport)
+                                    {
+                                        <a id="exportGrid" href="@Url.Action("ExportCustomerInfo", "CRMCustomerInfo", new { page = "~", pageSize = "~", filter = "~", sort = "~", group = "~" })" class="btn btn-mini btn-info">
+                                            @*<i class="fa fa-file-excel-o fa-1"></i>*@ @Resources.Multi.GridExport
+                                        </a>
+                                        <a style="text-align:left" href="javascript:void(0)" id="importOther" class="btn btn-mini btn-purple">
+                                            @*<i class="fa fa-file-excel-o fa-1"></i>*@ @Resources.Multi.GridImport
+                                        </a>
+                                    }
+                                    <a href="javascript:void(0)" id="btnGridDelete" onclick="Delete()" class="btn btn-mini btn-light">
+                                        @*<i class="icon-search">  </i>*@ Tìm khách hàng trùng
+                                    </a>
+                                    <a href="javascript:void(0)" id="btnGridDelete" onclick="Delete()" class="btn btn-mini btn-default">
+                                        @*<i class="icon-link">   </i>*@ Gộp
+                                    </a>
+                                    <a href="javascript:void(0)" id="btnGridDelete" onclick="Delete()" class="btn btn-mini btn-danger">
+                                        @*<i class="icon-trash">  </i>*@  @Resources.Multi.GridDelete
+                                    </a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                }
+                @*<a class="btn btn-small btn-grey" href="javascript:void(0)" id="btnGridAdd">
+                        <i class="icon-plus"></i> Tùy chỉnh hiển thị dữ liệu
+                    </a>*@
+            </div>
+        </text>);
+    })
+                                        .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+            //.Navigatable()
+                                        .Resizable(r => r.Columns(true))
+            //.ColumnMenu()
+            //.Filterable
+                                        .Events(events => { events.DataBound("dataBound"); })
+                                        .DataSource(dataSource => dataSource
+                                            .Ajax()
+                                            .Batch(true)
+                                            .PageSize(20)
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.CustomerID);
+                                            })
+                                            .Read(read => read.Action("Read", "CRMCustomerInfo"))))
+</div>
+@Html.Partial("_popup")
+<script>
+    //DuyVND
+
+    $("#select-filter-lable").chosen();
+    $("#select-filter-lable").change(function () {
+        var val = $(this).val();
+        $("#select_filter_lable_chosen .chosen-choices li.search-choice").each(function (e) {
+            var span = $(this).find("span");
+            if ($(this).attr("data-color") == '' || !$(this).attr("data-color")) {
+                $(this).css("background-color", $(this).find("span").text());
+                $(this).attr("data-color", $(this).find("span").text());
+            } else {
+                $(this).css("background-color", $(this).attr("data-color"));
+            }
+            span.text('');
+        });
+        setfilter(keyfilter);
+    });
+    function getHTML(lb) {
+        var html = '';
+        if (lb != '') {
+            try {
+                obj = JSON.parse(lb);
+                for (var i = 0; i < obj.length; i++) {
+                    html += '<span onclick="deleteLabel(this)" data-color="' + obj[i] + '" style="background-color:' + obj[i] + ';" class="span1 show-color"></span>';
+                }
+            } catch (e) {
+                console.log("can not parse json");
+            }
+        }
+        return html;
+    }
+    function deleteLabel(e) {
+        var ob = [];
+        var array = [];
+        var parent = $(e).parents("tr");
+        $(e).remove();
+        ob[0] = parent.find(".checkvalue").attr("id");
+        var arr = [];
+        parent.find("td .row-label span").each(function (e) {
+            arr[e] = $(this).attr("data-color");
+        });
+
+        ob[1] = JSON.stringify(arr);
+        array[0] = ob;
+
+        $.post(r + "/CRMCustomerInfo/SetLabel", { listID: array }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    text: 'Xóa label thành công',
+                    class_name: 'gritter-success'
+                });
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    //remove label group
+    function removeLabelOnGrid(e) {
+        var label = $(e).attr("data-color");
+        $('#Grid').find(".checkvalue").each(function (index) {
+            if ($(this).prop('checked') == true) {
+                var ele = $(this).parents("tr").find("td .row-label span");
+                ele.each(function (e) {
+                    var color = $(this).attr("data-color");
+                    if (color == label) {
+                        $(this).remove();
+                    }
+                });
+            }
+        });
+        setLabelOnGrid();
+    }
+    //set label one - group
+    function setLabelOnGrid(e) {
+        var listrowid = "";
+        var label = $(e).attr("data-color");
+        var array = []
+        var c = 0;
+        $('#Grid').find(".checkvalue").each(function (index) {
+            if ($(this).prop('checked') == true) {
+                var ob = [];
+                ob[0] = $(this).attr("id");
+                var ele = $(this).parents("tr").find("td .row-label span");
+                var arr = [];
+                ele.each(function (e) {
+                    arr[e] = $(this).attr("data-color");
+                });
+                if (label != undefined) {
+                    var act_push = false;
+                    for (var i = 0; i < arr.length; i++) {
+
+                        if (arr[i] == label) {
+                            act_push = true;
+                            break;
+                        }
+                    }
+                    if (act_push == false) {
+                        arr.push(label);
+                    }
+                }
+                ob[1] = JSON.stringify(arr);
+                array[c] = ob;
+                c++;
+            }
+        });
+        if (array.length > 0) {
+            $.post(r + "/CRMCustomerInfo/SetLabel", { listID: array }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: 'Thay đổi trạng thái thành công',
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkAll').prop('checked', false);
+                    // onCloseForm();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+    //End DuyVND
+    //BaoHV
+    $("#btn-count-contract button").click(function () {
+        $("#btn-count-contract button").addClass("btn-info").removeClass("btn-grey");
+        $(this).addClass("btn-grey").removeClass("btn-info");
+    });
+    var keyfilter = "";
+    function CountStatus() {
+        $('#txtChoDuyet').text(0);
+        $.post(r + "/Ajax/CountStatus", { view: 'Customer' }, function (data) {
+            $('#txtAll').text(data.TAT_CA);
+            $('#txtChoDuyet').text(data.CHUA_DUYET);
+            $('#txtTU_CHOI').text(data.TU_CHOI);
+            $('#txtDA_CO_HD').text(data.DA_CO_HD);
+            $('#txtDL_CHUA_HD').text(data.DL_CHUA_HD);
+            $('#txtDA_DUYET_CHUA_HD').text(data.DA_DUYET_CHUA_HD);
+        });
+    }
+    $('#btnAll').bind('click', function () {
+        callFilter("", false);
+    });
+    $('#btnCHUA_DUYET').bind('click', function () {
+        callFilter("CHUA_DUYET", true);
+    });
+    $('#btnTU_CHOI').bind('click', function () {
+        callFilter("DUNG_HOAT_DONG", true);
+    });
+    $('#btnDA_CO_HD').bind('click', function () {
+        callFilter("HOAT_DONG", true);
+    });
+    $('#btnDL_CHUA_HD').bind('click', function () {
+        callFilter("MOI", true);
+    });
+    $('#btnDA_DUYET_CHUA_HD').bind('click', function () {
+        // setfilter("HOAT_DONG");
+    });
+    function callFilter(statusFilter, stActive) {
+        $('#listStatus option:selected').removeAttr('selected');
+        $('#listStatus').prop('disabled', stActive);
+        keyfilter = statusFilter;
+        setfilter(keyfilter);
+    }
+    function setfilter(keyfilter) {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        if (keyfilter != "") {
+            $('#listStatus').val(keyfilter);
+        }
+        var listStatus = $('#listStatus option:selected');
+        $('#listStatus').trigger('chosen:updated');
+        var fillterStatus = { logic: "or", filters: [] }
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "Status", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "Status", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        var listRegion = $('#listRegion option:selected');
+        if (listRegion.length > 0) {
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "UnitId", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "UnitId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        var listGroup = $('#listGroup option:selected');
+        var fillterlistGroup = { logic: "or", filters: [] }
+        if (listGroup.length > 0) {
+            for (var i = 0; i < listGroup.length; i++) {
+                var option = listGroup[i].value;
+                if (option == '') {
+                    fillterlistGroup.filters.push({ field: "GroupId", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistGroup.filters.push({ field: "GroupId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistGroup);
+        }
+        var listStaff = $('#listStaff option:selected');
+        var fillterlistStaff = { logic: "or", filters: [] }
+        if (listStaff.length > 0) {
+            for (var i = 0; i < listStaff.length; i++) {
+                var option = listStaff[i].value;
+                if (option == '') {
+                    fillterlistStaff.filters.push({ field: "StaffId", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistStaff.filters.push({ field: "StaffId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistStaff);
+        }
+
+        var listCustomerType = $('#listCustomerType option:selected');
+        var fillterCustomerType = { logic: "or", filters: [] }
+        if (listCustomerType.length > 0) {
+            for (var i = 0; i < listCustomerType.length; i++) {
+                var option = listCustomerType[i].value;
+                if (option == '') {
+                    fillterCustomerType.filters.push({ field: "CustomerType", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCustomerType.filters.push({ field: "CustomerType", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCustomerType);
+        }
+        var listPotentialLevel = $('#listPotentialLevel option:selected');
+        var fillterPotentialLevel = { logic: "or", filters: [] }
+        if (listPotentialLevel.length > 0) {
+            for (var i = 0; i < listPotentialLevel.length; i++) {
+                var option = listPotentialLevel[i].value;
+                if (option == '') {
+                    fillterPotentialLevel.filters.push({ field: "CustomerType", operator: "contains", value: '' });
+                }
+                else {
+                    fillterPotentialLevel.filters.push({ field: "CustomerType", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCustomerType);
+        }
+        var listCategory = $('#listCategory option:selected');
+        var fillterCategory = { logic: "or", filters: [] }
+        if (listCategory.length > 0) {
+            for (var i = 0; i < listCategory.length; i++) {
+                var option = listCategory[i].value;
+                if (option == '') {
+                    fillterCategory.filters.push({ field: "Category", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCategory.filters.push({ field: "Category", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCategory);
+        }
+
+        var orderDate = $('#orderDate').val();
+        if (orderDate) {
+            var startdate = orderDate.split('-')[0].trim();
+            var enddate = orderDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "RowCreatedAt", operator: "gte", value: startdate });
+            filter.filters.push({ field: "RowCreatedAt", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        var approveDate = $('#approveDate').val();
+        if (approveDate) {
+            var startdate = approveDate.split('-')[0].trim();
+            var enddate = approveDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "ApprovedDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "ApprovedDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        var text = $('#txtsearch').val();
+        var filtertext = { logic: "or", filters: [] };
+        if (text) {
+            filtertext.filters.push({ field: "CustomerID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerCode", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var labelOption = $("#select-filter-lable option:selected");
+        console.log(labelOption);
+        var fillterLabel = { logic: "or", filters: [] }
+        if (labelOption.length > 0) {
+            for (var i = 0; i < labelOption.length; i++) {
+                var option = labelOption[i].value;
+                if (option == '') {
+                    fillterLabel.filters.push({ field: "Label", operator: "contains", value: '' });
+                }
+                else {
+                    fillterLabel.filters.push({ field: "Label", operator: "contains", value: option });
+                }
+            }
+            filter.filters.push(fillterLabel);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    //End BaoHV
+
+    $(document).ready(function () {
+        CountStatus();
+        setfilter(keyfilter);
+    })
+    $("#btnAll").addClass("btn-grey").removeClass("btn-info");
+    $("#listTypeTask").chosen();
+    $("#listRegion,#listGroup,#listPotentialLevel,#listCareLevel,#listStaff,#listStatus,#listCustomerType,#listCategory,#listContract,#listPresentation").chosen();
+    //$("#listContract_chosen").css("float", "right")
+    //$("#listCareLevel_chosen").css("float", "right")
+
+    $('#orderDate,#approveDate').daterangepicker({
+        ranges: {
+            'Hôm nay': [moment(), moment()],
+            'Hôm qua': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            '7 ngày trước': [moment().subtract('days', 6), moment()],
+            '30 ngày trước': [moment().subtract('days', 29), moment()],
+            'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+            'Tháng trươc': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        }, format: 'YYYY/MM/DD',
+        locale: {
+            applyLabel: 'Xác nhận',
+            cancelLabel: 'Đóng lại',
+            fromLabel: 'Từ',
+            toLabel: 'Đến',
+            customRangeLabel: 'Tuỳ chọn',
+            daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+            monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            firstDay: 1,
+        }
+    });
+    function delExitsDate(e) {
+        $(e).parents(".btncleardatetimepicker").find("input").val('');
+    }
+    function dataBound(e) {
+        formatHTMLWebsite();
+        formatHTMLPhone();
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+        // reset url export
+        var grid = $("#Grid").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            pageSize: grid.dataSource.total(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter(),
+            group: grid.dataSource.group()
+        });
+        //resizeGrid("Grid");
+        var $exportLink = grid.element.find('#exportGrid');
+        var href = $exportLink.attr('href');
+        if (href) {
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + (requestObject.pageSize || '~'));
+            href = href.replace(/page=([^&]*)/, 'page=' + (requestObject.page || '~'));
+            href = href.replace(/sort=([^&]*)/, 'sort=' + (requestObject.sort || '~'));
+            href = href.replace(/group=([^&]*)/, 'group=' + (requestObject.group || '~'));
+            $exportLink.attr('href', href);
+        }
+    }
+
+    function formatHTMLWebsite() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listWebsite = jQuery.parseJSON(row.Website);
+                if (typeof listWebsite == 'object') {
+                    // It is JSON
+                    var linkWebsite = '<i class="fa fa-globe"></i> ';
+                    $.each(listWebsite, function (index, value) {
+                        linkWebsite += '<a href=' + value + ' target="_blank">' + value + '</a> - ';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(4)').find('.web').html(linkWebsite.substring(0, linkWebsite.length - 2));
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+
+    function formatHTMLPhone() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listdataPhone = jQuery.parseJSON(row.Phone);
+                if (typeof listdataPhone == 'object') {
+                    // It is JSON
+                    var listPhone = '<i class="fa fa-phone"></i> ';
+                    $.each(listdataPhone, function (index, value) {
+                        listPhone += '<span>' + value + '</span> - ';
+                    })
+                    console.log(listPhone.substring(0, listPhone.length - 2));
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(4)').find('.phone').html(listPhone.substring(0, listPhone.length - 2));
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    $("#txtsearch").keypress(function (e) {
+        if (e.keyCode == 13) {
+            setfilter(keyfilter);
+        }
+    });
+    $('#listRegion').on('change', function () {
+        LoadGroupByRegion($('#listRegion').val());
+        setfilter(keyfilter);
+    });
+    $('#listCustomerType').on('change', function () {
+        setfilter(keyfilter);
+    });
+    $('#listStatus').on('change', function () {
+        setfilter(keyfilter);
+    });
+    $('#listCategory').on('change', function () {
+        setfilter(keyfilter);
+    });
+    function LoadGroupByRegion(Regionid) {
+        $.post(r + "/Ajax/GetlistGroupByRegion", { RegionID: Regionid, type: '' }, function (data) {
+            $("#divGroupByRegion").html(data);
+        });
+    }
+
+    if ('@viewall' == "True") {
+        $('#listRegion').prop('disabled', false);
+        $('#listGroup').prop('disabled', false);
+        $('#listStaff').prop('disabled', false);
+        $('#listRegion').trigger('chosen:updated');
+        LoadGroupByRegion($('#listRegion').val());
+        $('#listGroup').on('change', function () {
+            LoadUserByGroup($('#listGroup').val());
+            setfilter(keyfilter);
+        });
+        function LoadUserByGroup(groupid) {
+            $.post(r + "/Ajax/GetlistEmployeeByGroup", { GroupID: groupid }, function (data) {
+                $("#emloyeebygroup").html(data);
+            });
+        }
+        //$('#listStaff').on('change', function () {
+        //    LoadUserByGroup($('#listGroup').val());
+        //    setfilter(keyfilter);
+        //});
+    }
+    else {
+        if ('@viewKT' == "True") {
+            $('#listRegion').prop('disabled', false);
+            $('#listGroup').prop('disabled', false);
+            $('#listStaff').prop('disabled', false);
+           
+        }
+        else {
+            if ('@viewLeader' == "True") {
+                $('#listRegion').prop('disabled', true);
+                $('#listGroup').prop('disabled', true);
+                $('#listStaff').prop('disabled', false);
+                $('#listRegion').val('@ViewBag.listRegion[0].HierarchyID');
+                $('#listRegion').trigger('chosen:updated');
+                $('#listGroup').val('@ViewBag.listTeam[0].TeamID');
+                $('#listGroup').trigger('chosen:updated');
+                $('#listStaff').val('@ViewBag.IdLeader');
+                $('#listStaff').trigger('chosen:updated');
+
+            }
+            else {
+                $('#listRegion').prop('disabled', true);
+                $('#listGroup').prop('disabled', true);
+                $('#listStaff').prop('disabled', true);
+                $('#listRegion').val('@ViewBag.listRegion[0].HierarchyID');
+                $('#listRegion').trigger('chosen:updated');
+                $('#listGroup').val('@ViewBag.listTeam[0].TeamID');
+                $('#listGroup').trigger('chosen:updated');
+                $('#listStaff').val('@ViewBag.listStaff[0].RefStaffId');
+                $('#listStaff').trigger('chosen:updated');
+            }
+        }
+    }
+
+</script>

@@ -1,0 +1,99 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent"></span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    var type = 100;
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $("#divMaskPopup").show();
+            if (e == 1) { // Send
+                $('#txtcontent').text("Are you sure you want to Active this record?");
+                type = 1;
+            }
+            else if (e == 0) {
+                $('#txtcontent').text("Are you sure you want to inactive this record?");
+                type = 0;
+            }
+            else if (e == 2) {
+                $('#txtcontent').text("Are you sure you want reset password this record?");
+                type = 2;
+            }
+            $('#popup-confirm').modal('show'); 
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onChangeStatus() {
+        var listrowid = "";
+        $('#grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var paramAction = "";
+        var txtResult = "";
+        if (listrowid != "" && listrowid != null) {
+            if (type == 1) {
+                paramAction = "Active";
+                txtResult = '@Resources.Multi.Update @Resources.Multi.Successfully';
+            }
+            else if (type == 0) {
+                paramAction = "Inactive";
+                txtResult = '@Resources.Multi.Update @Resources.Multi.Successfully';
+            }
+            else if (type == 2) {
+                paramAction = "ResetPass";
+                txtResult = "Reset password successfully records!";
+            }
+            $.post(r + "/Users/" + paramAction, { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: txtResult,
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    
+                }
+            });
+            onCloseForm();
+        }
+    }
+    function onCloseForm() {
+        $("#grid").data("kendoGrid").dataSource.read();
+        $('#checkboxcheckAll').prop('checked', false);
+        type = 100;
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

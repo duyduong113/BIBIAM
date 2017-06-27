@@ -1,0 +1,160 @@
+﻿<style>
+    .page-header.navbar .top-menu .navbar-nav > li.dropdown-extended .dropdown-menu .dropdown-menu-list > li > a {
+        line-height: 5px;
+    }
+    .page-header.navbar .top-menu .navbar-nav > li.dropdown > .dropdown-toggle > .badge {
+        font-weight: normal;
+        padding: 3px 3px;
+        font-size: 10px !important;
+        width: 18px;
+    }
+</style>
+<li class="dropdown dropdown-extended dropdown-tasks" id="header_task_bar">
+
+</li>
+
+<script>
+    $(function () {
+        var notification = $.connection.NotificationHub;
+        notification.client.reloadNotification = function () {
+            loadNotification();
+        };
+        $.connection.hub.start();
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (Notification.permission !== "granted")
+            Notification.requestPermission();
+    });
+
+    function notifyMe(message) {
+        if (!Notification) {
+            alert('Desktop notifications not available in your browser. Try Chromium.');
+            return;
+        }
+
+        if (Notification.permission !== "granted")
+            Notification.requestPermission();
+        else {
+            var notification = new Notification('Notification title', {
+                icon: 'https://res.cloudinary.com/twin-solution/image/upload/v1470801404/_0016_TWIN_Software_Solutions_Logo_iragzc.png',
+                body: message,
+            });
+
+            notification.onclick = function () {
+                window.open("https://google.com.vn");
+            };
+
+        }
+
+    }
+</script>
+<script>
+    function loadNotification() {
+        $.post(r + "/CustomData/getNotification", function (data) {
+            if (data) {
+                var notificationTemplate = kendo.template($("#notificationTemplate").html());
+                $("#header_task_bar").html(notificationTemplate(data));
+                
+                $(".homeTotalCustomer").html(data.totalCustomer ? kendo.toString(data.totalCustomer, 'n0') : 0);
+                var totalActivities = data.allOppTentative + data.allOppPassed + data.allTaskWIP + data.allTaskDone;
+                $(".homeTotalActivity").html(totalActivities ? kendo.toString(totalActivities, 'n0') : 0);
+                var totalBooking = data.deposit + data.booked + data.sold;
+                $(".homeTotalTransaction").html(totalBooking ? kendo.toString(data.deposit + data.booked + data.sold, 'n0') : 0);
+            }
+        });
+    }
+    loadNotification();
+</script>
+<script type="text/x-kendo-tmpl" id="notificationTemplate">
+    <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+        <i class="icon-bell"></i>
+        #if(totalCustomer - totalRating + (totalCustomer > 0 ? cusNoActivities : 0) + allOppTentative + allOppPassed + allTaskWIP + allTaskDone + deposit + booked + sold > 0){#<span class="badge badge-default"> #=(totalCustomer - totalRating + (totalCustomer > 0 ? cusNoActivities : 0) + allOppTentative + allOppPassed + allTaskWIP + allTaskDone + deposit + booked) > 9 ? '9+' : kendo.toString(totalCustomer - totalRating + (totalCustomer > 0 ? cusNoActivities : 0) + allOppTentative + allOppPassed + allTaskWIP + allTaskDone + deposit + booked + sold,'n0')# </span>#}#
+    </a>
+    <ul class="dropdown-menu extended tasks">
+        <li class="external">
+            <h3 style=" color: \\#37474F; text-transform: uppercase;">
+                @Html.Raw(Resources.Global._notification)
+            </h3>
+        </li>
+        <li>
+
+            <ul class="dropdown-menu-list">
+                <li style="padding: 10px 0 7px 15px; font-size: inherit; background-color: \\#f6f6f6;">
+                    @Html.Raw(Resources.Global._customer) (<b>#=kendo.toString(totalCustomer,'n0')#</b>) 
+                    <a style="float: right; padding: 7px 10px 0 0; color: \\#39a495; font-size: 12px; " href="@Url.Content("~/Customer")">@Html.Raw(Resources.Global._view_all)</a>
+                </li>
+                #if(totalCustomer - totalRating > 0){#
+                <li>
+                    <a href="javascript:;" style="color: \\#ff7e22;">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global._no_rating)</span>
+                            <span class="percent">#=kendo.toString(totalCustomer - totalRating,'n0')#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+                #if(cusNoActivities > 0){#
+                <li>
+                    <a href="javascript:;" style="color: \\#F44336">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global.no_activity)</span>
+                            <span class="percent">#=totalCustomer > 0 ? kendo.toString(cusNoActivities,'n0') : 0#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+                <li style="padding: 10px 0 7px 15px; font-size: inherit; background-color: \\#f6f6f6; color: \\#4c4c4c;">
+                    @Html.Raw(Resources.Global._activities) (<b>#=kendo.toString(allOppTentative + allOppPassed + allTaskWIP + allTaskDone,'n0')#</b>) 
+                    <a style="float: right; padding: 7px 10px 0 0; color: \\#39a495; font-size: 12px; " href="@Url.Content("~/ActivityManagement")">@Html.Raw(Resources.Global._view_all)</a>
+                </li>
+                #if(allOppTentative + allOppPassed > 0){#
+                <li>
+                    <a href="javascript:;">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global._appointment)</span>
+                            <span class="percent">#=kendo.toString(allOppTentative + allOppPassed,'n0')#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+                #if(allTaskWIP + allTaskDone > 0){#
+                <li>
+                    <a href="javascript:;">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global._task)</span>
+                            <span class="percent">#=kendo.toString(allTaskWIP + allTaskDone,'n0')#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+                <li style="padding: 10px 0 7px 15px; font-size: inherit; background-color: \\#f6f6f6;">
+                    @Html.Raw(Resources.Global._transaction) (<b>#=deposit + booked + sold#</b>) 
+                    <a style="float: right; padding: 7px 10px 0 0; color: \\#39a495; font-size: 12px; " href="@Url.Content("~/ApartmentBookingCardView")">@Html.Raw(Resources.Global._view_all)</a>
+                </li>
+                #if(deposit > 0){#
+                <li>
+                    <a href="javascript:;">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global._deposit)</span>
+                            <span class="percent">#=deposit#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+                #if(booked > 0){#
+                <li>
+                    <a href="javascript:;">
+                        <span class="task">
+                            <span class="desc">@Html.Raw(Resources.Global._booked)</span>
+                            <span class="percent">#=booked#</span>
+                        </span>
+                    </a>
+                </li>
+                #}#
+            </ul>
+        </li>
+    </ul>
+</script>
+

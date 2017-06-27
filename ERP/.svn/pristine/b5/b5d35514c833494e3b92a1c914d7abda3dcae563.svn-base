@@ -1,0 +1,232 @@
+﻿@using BIBIAM.Core.Entities;
+@using MCC.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.order_info);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+<link href="~/Content/assets/global/css/step.css" rel="stylesheet" />
+<script type="text/x-kendo-template" id="OrderHeader">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>       
+                <span class="caption-subject bold uppercase">Thông tin đơn hàng</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <form action="@Url.Content("~/Merchant_Order/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+                <div class="toolbar col-md-12">
+                    #if(id==0){#
+                    @if (all || create || update)
+                    {
+                        <a onclick="Upsert()" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</a>
+                        <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                    #}#
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label>Mã đơn hàng</label>                              
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" id="ma_don_hang" class="form-control input-sm max100" value="#=ma_don_hang?ma_don_hang:''#" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Tên khách hàng</label>
+                                #if (id>0){#
+                                <input type="text" class="form-control input-sm max100" value="#=hoten?hoten:''#" readonly>
+                                #}else{#
+                                @(Html.Kendo().AutoComplete()
+                                .Name("ten_khach_hang")
+                                .HtmlAttributes(new { style = "width:100%" })
+                                .DataTextField("hoten")
+                                .Filter("contains")
+                                .MinLength(2)
+                                .Events(e => e.Select("ChangeKH"))
+                                .DataSource(
+                                            source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetCustomer", "Merchant_Order").Data("onDataCustomer"); 
+                                                }).ServerFiltering(true);
+                                }).ToClientTemplate())
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Điện thoại giao hàng</label>
+                                #if(id>0){#                               
+                                <input type="text" class="form-control input-sm max100" id="so_dien_thoai_giao" value="#=so_dien_thoai_giao?so_dien_thoai_giao:''#" readonly> 
+                                #}else{#
+                                <input type="text" class="form-control input-sm max100" id="so_dien_thoai_giao" name="so_dien_thoai_giao" placeholder="số điện thoại" value="#=so_dien_thoai_giao?so_dien_thoai_giao:''#"> 
+                                #}#                                                             
+                            </div>                            
+                            <div class="form-group col-md-3">
+                                <label>Ngày mua</label>
+                                <input type="text" class="form-control input-sm max100"  value="#=ngay_tao?kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy'):''#" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                <label>Địa chỉ</label>
+                                #if (id>0){#
+                                <input type="text" class="form-control input-sm max100" value="#=dia_chi_giao_hang?dia_chi_giao_hang:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" placeholder="địa chỉ" name="dia_chi_giao_hang" value="#=dia_chi_giao_hang?dia_chi_giao_hang:''#">
+                                </div>
+                                #}#
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label>Tỉnh/Thành</label>
+                                #if (id>0){#
+                                <input type="text" class="form-control input-sm max100" value="#=tinh_thanh_giao?tinh_thanh_giao:''#" readonly>
+                                #}else{#
+                                @(Html.Kendo().DropDownList()
+                                                  .Name("tinh_thanh_giao")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel("Tỉnh/Thành")
+                                                  .DataTextField("ten_thanh_pho")
+                                                  .DataValueField("ma_thanh_pho")
+                                                  .Events(e => e.Change("changeCity"))
+                                                  .Value(@Request["ma_thanh_pho"])
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("GetCity", "Merchant_Order");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                                )
+                                #}#
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Quận/Huyện</label>
+                                #if (id>0){#
+                                <input type="text" class="form-control input-sm max100" value="#=quan_huyen_giao?quan_huyen_giao:''#" readonly>
+                                #}else{#
+                                @(Html.Kendo().DropDownList()
+                                                  .Name("quan_huyen_giao")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel("Quận/Huyện")
+                                                  .DataTextField("ten_quan_huyen")
+                                                  .DataValueField("ma_quan_huyen")
+                                                  .Events(e => e.Change("changeDistrict"))
+                                                  .Value(@Request["ma_quan_huyen"])
+                                                  .Enable(false)
+                                                  .AutoBind(false)
+                                                  .CascadeFrom("tinh_thanh_giao")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("GetDistrict", "Merchant_Order").Data("filterDistrict");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                                )
+                                #}#
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Hình thức thanh toán</label>
+                                #if (id>0){#
+                                <input type="text" class="form-control input-sm max100" value="#=hinh_thuc_thanh_toan?hinh_thuc_thanh_toan:''#" readonly>
+                                #}else{#
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" placeholder="Hình thức thanh toán" name="hinh_thuc_thanh_toan" value="#=hinh_thuc_thanh_toan?hinh_thuc_thanh_toan:''#">
+                                </div>
+                                #}#
+                            </div>
+                        </div>
+                    </div>
+
+                    #if(trang_thai_don_hang=="Cancel"){#
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Lý do hủy đơn hàng</label>
+                                <textarea class="form-control input-sm max100" rows="5" style="width:100%" placeholder="Đơn hàng đã bị hủy" readonly>#=ly_do_huy?ly_do_huy:''#</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    #}#
+ 
+                    <div class="form-group col-md-12">
+                        <label>Trạng thái đơn hàng</label>
+                        <div class="row step-line">
+                            <div id ="New" class="col-md-3 mt-step-col first inactive">
+                                <div class="mt-step-number bg-white"><i class="fa fa-shopping-cart" aria-hidden="true"></i></div>
+                                <div class="mt-step-title uppercase font-grey-cascade">Mới</div>
+                                <div class="mt-step-content font-grey-cascade">Người mua đặt hàng</div>
+                            </div>
+                            <div id="Confirm" class="col-md-2 mt-step-col inactive">
+                                <div class="mt-step-number bg-white"><i class="fa fa-check" aria-hidden="true"></i></div>
+                                <div class="mt-step-title uppercase font-grey-cascade">Xác nhận</div>
+                                <div class="mt-step-content font-grey-cascade">Người bán xác nhận</div>
+                            </div>
+                            <div  id="Shipping" class="col-md-2 mt-step-col inactive">
+                                <div class="mt-step-number bg-white"><i class="fa fa-truck" aria-hidden="true"></i></div>
+                                <div class="mt-step-title uppercase font-grey-cascade">Vận chuyển</div>
+                                <div class="mt-step-content font-grey-cascade">Hàng đang được vận chuyển</div>
+                            </div>
+                            <div id="POD" class="col-md-2 mt-step-col inactive">
+                                <div class="mt-step-number bg-white"><i class="fa fa-ship" aria-hidden="true"></i></div>
+                                <div class="mt-step-title uppercase font-grey-cascade">Đã giao</div>
+                                <div class="mt-step-content font-grey-cascade">Hàng đã được giao</div>
+                            </div>
+                            <div id="Completed" class="col-md-3 mt-step-col inactive last">
+                                <div class="mt-step-number bg-white"><i class="fa fa-money" aria-hidden="true"></i></div>
+                                <div class="mt-step-title uppercase font-grey-cascade">Hoàn tất</div>
+                                <div class="mt-step-content font-grey-cascade">Đơn hàng hoàn tất</div>
+                            </div>
+                            
+                        </div>
+                        <div class="toolbar " style="float: right;">
+                            #if (id>0){#
+                            #if(trang_thai_don_hang=="New"){#
+                            <a  onclick="onConfirm()" class=" btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._confirm)</a>
+                            #}# 
+                            #if(trang_thai_don_hang=="Confirm"){#  
+                            <a onclick="onShipping()" class="btn default btn-sm btn-circle blue">Vận chuyển</a>
+                            #}#
+                            #if(trang_thai_don_hang=="Shipping"){# 
+                            <a onclick="onPOD()" class="btn default btn-sm btn-circle blue">Đã giao</a>
+                            #}#
+                            #if(trang_thai_don_hang=="POD"){# 
+                            <a onclick="onCompleted()" class="btn default btn-sm btn-circle blue">Hoàn tất</a>
+                            #}#
+                            #if(trang_thai_don_hang!="Cancel"&&trang_thai_don_hang!="POD"&&trang_thai_don_hang!="Completed"){#
+                            <a onclick="openCancel()" class="btn default btn-sm btn-circle red">@Html.Raw(Resources.Global._cancel)</a>
+                            #}#
+                            
+                            #}#
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="row" id="gridTemplate"></div>
+            <div id="so_loai_sp"></div>
+            <div id="so_luong_sp"></div>
+            <div id="tong_tien"></div>
+            <div id="khuyen_mai"></div>
+            <div id="tien_thanh_toan"></div>
+        </div>
+    </div>
+
+</script>

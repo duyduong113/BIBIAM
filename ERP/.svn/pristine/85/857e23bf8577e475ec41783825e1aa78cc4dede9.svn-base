@@ -1,0 +1,367 @@
+﻿@model IEnumerable<ERPAPD.Models.khu_vuc>
+@{
+    ViewBag.Title = Resources.Multi.AliasDefinition;
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid">
+                <div id="newlistICareID" style="display: inline-block;">
+                    <input type="text" id="txtAliasName" placeholder="@Resources.Multi.Search @Resources.Multi.Follow.ToLower() @Resources.Multi.Multiple.ToLower() @Resources.Multi.Definition.ToLower() (@Resources.Multi.Space @Resources.Multi.By.ToLower() ;)" style="width: 335px;" />
+                </div>
+                <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="doSearch()" style="float:none">@Resources.Multi.Filter</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+        .Grid(Model)
+        .Name("Grid")
+        .HtmlAttributes(new { style = "height: auto;" })
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ma_khu_vuc).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ma_khu_vuc#'  />").Width(35).Filterable(false).Sortable(false);
+            columns.Bound(p => p.ma_khu_vuc).Width(80).Title(Resources.Multi.Code);
+            columns.Bound(p => p.ten_khu_vuc).Title(Resources.Multi.Name).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+            columns.Bound(p => p.trang_thai).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title(Resources.Multi.Active);
+            columns.Bound(p => p.nguoi_tao).Width(110).Title(Resources.Multi.CreatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.ngay_tao).Width(130).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(ngay_tao," + Constants.TIME_ZONE + ")#");
+            columns.Bound(p => p.nguoi_cap_nhat).Width(110).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.ngay_cap_nhat).Format("{0:" + Resources.Multi.DateFormat + "}").Width(130).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(ngay_cap_nhat,'dd/MM/yyyy') != '01/01/1900'){#" + "#= ConvertTimeZone(ngay_cap_nhat," + Constants.TIME_ZONE + ") #" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                <div class="pull-left">
+                    @if (AllowCreate)
+                    {
+                        <a class="btn btn-success btn-small" href="javascript:void(0)" id="btnGridAdd">
+                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                        </a>
+                    }
+                    @if (AllowUpdate)
+                    {
+                        <a class="btn btn-primary btn-small " href="javascript:void(0)" id="btnGridSave">
+                            @*<i class="icon-ok"></i>*@ @Resources.Multi.GridSave
+                        </a>
+                        <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel">
+                            @*<i class="icon-remove"></i>*@ @Resources.Multi.GridCancel
+                        </a>
+                    }
+                    <div class="btn-group" style="margin-left: 20px">
+                        <button data-toggle="dropdown" class="btn btn-small btn-inverse dropdown-toggle">
+                            Thao tác khác
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" style="min-width:110px !important">
+                            <li>
+                                @if (AllowDelete)
+                                {
+                                    <a class="btn btn-small btn-danger" href="javascript:void(0)" id="btnGridDelete" onclick="showConfirmPopup(1)">
+                                        @*<i class=" icon-trash"></i>*@ @Resources.Multi.GridDelete
+                                    </a>
+                                }
+                            </li>
+                            @*<li>
+                                    @if (AllowExport)
+                                    {
+                                        <a class="btn btn-small btn-info" href="@Url.Content("~/AliasDefinition/ExportExcel")" id="btnGridExport">
+                                            <i class="fa fa-file-excel-o fa-1"></i> @Resources.Multi.GridExport
+                                        </a>
+                                    }
+                                </li>
+                                <li>
+                                    <a class="btn btn-small btn-purple" style="text-align:left" href="javascript:void(0)" id="importOther">
+                                        <i class="fa fa-file-excel-o fa-1"></i> @Resources.Multi.GridImport
+                                    </a>
+                                </li>*@
+                        </ul>
+                    </div>
+
+
+                </div>
+            </text>);
+        })
+        .Events(events => { events.DataBound("dataBound"); events.DetailExpand("detailExpand"); })
+        .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Scrollable(scrollable => scrollable.Virtual(false))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(50)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+            .Model(model =>
+            {
+                model.Id(p => p.ma_khu_vuc);
+                model.Field(p => p.ma_khu_vuc).Editable(false);
+                model.Field(p => p.nguoi_tao).Editable(false);
+                model.Field(p => p.ngay_tao).Editable(false);
+                model.Field(p => p.ngay_cap_nhat).Editable(false);
+                model.Field(p => p.nguoi_cap_nhat).Editable(false);
+                model.Field(p => p.trang_thai).DefaultValue(true);
+            })
+            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+            .Read("Alias_Read", "CRMAliasDefinition")
+            .Create("Alias_Create", "CRMAliasDefinition")
+            .Update("Alias_Update", "CRMAliasDefinition")
+            )
+        )
+    </div>
+</div>
+@Html.Partial("_popup")
+@(Html.Kendo()
+      .Window()
+      .Name("windowimport")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importform" action="@Url.Content("~/AliasDefinition/ImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+<script>
+    $('#FileUpload').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+    $('#importOther').bind('click', function () {
+        $("#windowimport").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+   
+    $('#btnImport').bind('click', function () {
+        $('#importform').submit();
+    });
+    (function () {
+        $("#importform").ajaxForm({
+            beforeSend: function () {
+                $("#windowimport").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimport").data("kendoWindow").open();
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownload').css('display', 'none');
+                        $('#btndownload').attr('href', "");
+                    }
+
+
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+    function doSearch() {
+        debugger;
+        var grid = $("#Grid").data("kendoGrid");
+        var AliasName = $("#txtAliasName").val();
+        var filter = { logic: "and", filters: [] };
+        var filterAliasName = { logic: "or", filters: [] };
+        if (AliasName) {
+            for (var i = 0; i < AliasName.split(';').length; i++) {
+                filterAliasName.filters.push({ field: "ten_khu_vuc", operator: "contains", value: AliasName.split(';')[i] });
+            }
+            filter.filters.push(filterAliasName);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#txtAliasName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            doSearch();
+        }
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    var expandedRow;
+    var curunitid;
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#Grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#Grid').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.ExamID;
+    }
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        //Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportClass');
+        //var href = $exportLink.attr('href');
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //$exportLink.attr('href', href);
+
+        // Get the export link as jQuery object
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+    $('#btnGridAdd').click(function () {
+        $("#Grid").data("kendoGrid").dataSource.insert();
+    })
+
+    $('#btnGridSave').bind('click', function () {
+       
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    })
+
+    $('#btnGridCancel').bind('click', function () {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    })
+</script>
+<style>
+    .dropdown-menu > li > a {
+        margin-bottom: 4px !important;
+        text-align: left;
+    }
+</style>

@@ -1,0 +1,616 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.Providers;
+using System.Data.SqlClient;
+using ServiceStack.OrmLite;
+using System.IO;
+using System.Web;
+using MySql.Data.MySqlClient;
+namespace BIBIAM.Core.Data.DataObject
+{
+    public class Merchant_Product_DAO
+    {
+        public DataTable ReadAll(string connectionString)
+        {
+            List<SqlParameter> param = new List<SqlParameter>();
+            return new SqlHelper(connectionString).ExecuteString("select * from Merchant_Product", param);
+        }
+        public string Delete(string[] ids, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        var checkID = db.SingleOrDefault<Merchant_Product>("id={0}", ids[0]);
+                        foreach (var id in ids)
+                        {
+                            List<SqlParameter> param = new List<SqlParameter>();
+                            param.Add(new SqlParameter("@id", id));
+                            new SqlHelper().ExecuteNoneQuery("delete Merchant_Product where id = @id", param, CommandType.Text);
+                        }
+                        dbTrans.Commit();
+                        return "true";
+                    }
+                    catch (Exception e)
+                    {
+                        dbTrans.Rollback();
+                        return e.Message.ToString();
+                    }
+                }
+            }
+        }
+        //Chuyển trạng thái sản phẩm sang trạng thái ngưng sử dụng
+        public string ChangeStatus(string[] ids, string connectionString, string Username, string status)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+
+                    foreach (var id in ids)
+                    {
+                        var checkID = db.SingleOrDefault<Merchant_Product>("id={0}", id);
+                        if (checkID != null)
+                        {
+                            checkID.trang_thai = (status == AllConstant.trang_thai.DANG_SU_DUNG) ? AllConstant.trang_thai.DANG_SU_DUNG : AllConstant.trang_thai.KHONG_SU_DUNG;
+                            checkID.nguoi_cap_nhat = Username;
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            db.UpdateOnly(checkID,
+                                            onlyFields: p =>
+                                            new
+                                            {
+                                                p.trang_thai,
+                                                p.nguoi_cap_nhat,
+                                                p.ngay_cap_nhat
+                                            },
+                                             where: p => p.id == checkID.id);
+                            string rs = SyncToMySQL(id, connectionString);
+                            if (rs != "true")
+                            {
+                                return "Lỗi đồng bộ!";
+                            }
+                        }
+                    }
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+        }
+        public string UpSert(List<Merchant_Product> list, string UserName, string Type, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        foreach (Merchant_Product row in list)
+                        {
+                            var checkID = db.SingleOrDefault<Merchant_Product>("id={0}", row.id);
+                            if (checkID != null)
+                            {
+                                row.ma_san_pham = checkID.ma_san_pham;
+                                row.ma_loai_san_pham = checkID.ma_loai_san_pham;
+                                row.ngay_cap_nhat = DateTime.Now;
+                                db.Update(EmptyIfNull(row));
+                                if (!String.IsNullOrEmpty(row.url))
+                                {
+                                    List<SqlParameter> param = new List<SqlParameter>();
+                                    param.Add(new SqlParameter("@url", row.url));
+                                    param.Add(new SqlParameter("@ma_san_pham", row.ma_san_pham));
+                                    new SqlHelper().ExecuteString("update Product_Info set url = @url where ma_san_pham = @ma_san_pham", param);
+                                }
+                            }
+                            else
+                            {
+                                string ProductID = String.Empty;
+                                var lastId = db.FirstOrDefault<Product_Info>("SELECT TOP 1 * FROM Product_Info ORDER BY ma_san_pham DESC");
+                                if (lastId.ma_san_pham.Contains("SP"))
+                                {
+                                    var nextNo = Int32.Parse(lastId.ma_san_pham.Substring(2, 7)) + 1;
+                                    ProductID = "SP" + String.Format("{0:0000000}", nextNo);
+                                }
+                                else
+                                {
+                                    ProductID = "SP" + "0000001";
+                                }
+                                row.ma_san_pham = ProductID;
+                                row.ngay_duyet = row.ngay_tao = row.ngay_cap_nhat = DateTime.Now;
+                                row.nguoi_duyet = row.nguoi_tao = UserName;
+                                db.Insert(EmptyIfNull(row));
+                                // Insert vao Product_Info
+                                var ProdInfo = new Product_Info();
+                                ProdInfo.ma_san_pham = row.ma_san_pham;
+                                ProdInfo.ma_loai_san_pham = row.ma_loai_san_pham;
+                                ProdInfo.ten_san_pham = row.ten_san_pham;
+                                ProdInfo.trang_thai = row.trang_thai;
+                                ProdInfo.trang_thai_duyet = row.trang_thai_duyet;
+                                ProdInfo.trang_thai_xuat_ban = AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN;
+                                ProdInfo.ngay_tao = ProdInfo.ngay_duyet = ProdInfo.ngay_cap_nhat = ProdInfo.ngay_xuat_ban = row.ngay_tao;
+                                ProdInfo.nguoi_tao = ProdInfo.nguoi_duyet = ProdInfo.nguoi_cap_nhat = row.nguoi_tao;
+                                ProdInfo.url = String.IsNullOrEmpty(row.url) ? "" : row.url;
+                                ProdInfo.mo_ta = row.mo_ta;
+                                ProdInfo.nguoi_xuat_ban = ProdInfo.tu_khoa = ProdInfo.tag = ProdInfo.slug = "";
+                                db.Insert(ProdInfo);
+                            }
+                        }
+                        dbTrans.Commit();
+                        return "true";
+                    }
+                    catch (Exception e)
+                    {
+                        dbTrans.Rollback();
+                        return e.Message.ToString();
+                    }
+                }
+            }
+        }
+        public string CreateProduct(Merchant_Product product, Merchant_Product_Hierarchy hierarchy, List<Merchant_Product_Image> listimage, List<Merchant_Product_Property> listproperty, string connectstring)
+        {
+            using (var db = new OrmliteConnection().openConn(connectstring))
+            {
+                //using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(product.ma_san_pham))
+                        {
+                            var Checkproduct = db.FirstOrDefault<Merchant_Product>(s => s.ma_san_pham == product.ma_san_pham);
+                            if (Checkproduct != null)
+                            {
+                                return UpdateProduct(product, hierarchy, listimage, listproperty, connectstring);
+                            }
+                        }
+                        if (product.id == 0 && !String.IsNullOrEmpty(product.nguoi_tao) && !String.IsNullOrEmpty(product.ma_gian_hang))
+                        {
+                            var lastId = db.FirstOrDefault<Merchant_Product>("SELECT TOP 1 * FROM Merchant_Product ORDER BY ma_san_pham DESC");
+                            if (lastId != null && lastId.ma_san_pham.Contains("SP"))
+                            {
+                                var nextNo = Int32.Parse(lastId.ma_san_pham.Substring(2, 7)) + 1;
+                                product.ma_san_pham = "SP" + String.Format("{0:0000000}", nextNo);
+                            }
+                            else
+                            {
+                                product.ma_san_pham = "SP" + "0000001";
+                            }
+                            product.ma_loai_san_pham = !string.IsNullOrEmpty(product.ma_loai_san_pham) ? product.ma_loai_san_pham : "";
+                            product.part_no = !string.IsNullOrEmpty(product.part_no) ? product.part_no : "";
+                            product.mo_ta = !string.IsNullOrEmpty(product.mo_ta) ? product.mo_ta : "";
+                            product.noi_dung = !string.IsNullOrEmpty(product.noi_dung) ? product.noi_dung : "";
+                            product.tu_khoa = !string.IsNullOrEmpty(product.tu_khoa) ? product.tu_khoa : "";
+                            product.tag = !string.IsNullOrEmpty(product.tag) ? product.tag : "";
+                            product.slug = !string.IsNullOrEmpty(product.slug) ? product.slug : "";
+                            product.xuat_xu = !string.IsNullOrEmpty(product.xuat_xu) ? product.xuat_xu : "";
+                            product.model = !string.IsNullOrEmpty(product.model) ? product.model : "";
+                            product.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG; //giá trị đang hoạt động
+                            product.trang_thai_duyet = AllConstant.trang_thai_duyet.CHUA_DUYET; //giá trị chờ duyệt
+                            product.trang_thai_xuat_ban = AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN; //giá trị chờ xuất bản
+                            product.nguoi_xuat_ban = product.nguoi_duyet = "";
+                            product.ngay_xuat_ban = product.ngay_duyet = product.ngay_cap_nhat = DateTime.Parse("1900-01-01");
+                            product.ngay_tao = DateTime.Now;
+                            db.Insert(product);
+                            Int64 productId = (Int64)db.GetLastInsertId();
+
+                            //List<SqlParameter> param = new List<SqlParameter>();
+                            //param.Add(new SqlParameter("@id", productId));
+                            //new SqlHelper().ExecuteNoneQuery("p_UpdateSlugForMerchantProduct", param);
+
+
+                            if (hierarchy.id == 0)
+                            {
+                                hierarchy.ma_san_pham = product.ma_san_pham;
+                                hierarchy.ma_gian_hang = product.ma_gian_hang;
+                                hierarchy.ngay_tao = DateTime.Now;
+                                hierarchy.nguoi_tao = product.nguoi_tao;
+                                hierarchy.ngay_cap_nhat = DateTime.Parse("1900-01-01");
+                                hierarchy.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG; // Giá trị đang hoạt động
+                                db.Insert(hierarchy);
+                                if (listimage != null)
+                                {
+                                    foreach (Merchant_Product_Image item in listimage)
+                                    {
+                                        if (item.id == 0)
+                                        {
+                                            item.ma_san_pham = product.ma_san_pham;
+                                            item.ma_gian_hang = product.ma_gian_hang;
+                                            item.ngay_tao = DateTime.Now;
+                                            item.nguoi_tao = product.nguoi_tao;
+                                            db.Insert(item);
+                                        }
+                                        else
+                                        {
+                                            //dbTrans.Rollback();
+                                            return "Lỗi khi tạo thumbnail hình ảnh";
+                                        }
+                                    }
+                                }
+                                if (listproperty != null)
+                                    foreach (Merchant_Product_Property item in listproperty)
+                                    {
+                                        if (item.id == 0)
+                                        {
+                                            item.ma_gian_hang = product.ma_gian_hang;
+                                            item.ma_san_pham = product.ma_san_pham;
+                                            item.ngay_tao = DateTime.Now;
+                                            item.nguoi_tao = product.nguoi_tao;
+                                            item.ngay_cap_nhat = DateTime.Parse("1900-01-01");
+                                            db.Insert(item);
+                                        }
+                                        else
+                                        {
+                                            //dbTrans.Rollback();
+                                            return "Lỗi khi tạo thuộc tính";
+                                        }
+                                    }
+                                //dbTrans.Commit();
+                                new Merchant_Product_Warehouse_DAO().CreateUpdate(product.ma_san_pham, product.ma_gian_hang, product.nguoi_tao, connectstring);
+                                return "true@@" + product.ma_san_pham;
+                            }
+                            else
+                            {
+                                // dbTrans.Rollback();
+                                return "Lỗi khi tạo ngành hàng";
+                            }
+                        }
+                        else
+                        {
+                            // dbTrans.Rollback();
+                            return "Lỗi khi tạo sản phẩm";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        //dbTrans.Rollback();
+                        return "Lỗi thao tác dữ liệu";
+                    }
+                }
+            }
+        }
+        public string UpdateProduct(Merchant_Product product, Merchant_Product_Hierarchy hierarchy, List<Merchant_Product_Image> listimage, List<Merchant_Product_Property> listproperty, string connectstring)
+        {
+            using (var db = new OrmliteConnection().openConn(connectstring))
+            {
+
+                try
+                {
+                    Merchant_Product checkProduct;
+                    if (product.ma_gian_hang == "All")
+                        checkProduct = db.FirstOrDefault<Merchant_Product>("ma_san_pham = {0}", product.ma_san_pham);
+                    else
+                        checkProduct = db.FirstOrDefault<Merchant_Product>("ma_san_pham = {0} and ma_gian_hang = {1}", product.ma_san_pham, product.ma_gian_hang);
+                    if (checkProduct == null)
+                    {
+                        return "Thông tin không hợp lệ";
+                    }
+                    checkProduct.url = (!string.IsNullOrEmpty(product.url) && checkProduct.url != product.url) ? product.url : checkProduct.url;
+                    checkProduct.catalog = (!string.IsNullOrEmpty(product.catalog) && checkProduct.catalog != product.catalog) ? product.catalog : checkProduct.catalog;
+                    checkProduct.ma_loai_san_pham = !string.IsNullOrEmpty(product.ma_loai_san_pham) ? product.ma_loai_san_pham : checkProduct.ma_loai_san_pham;
+                    checkProduct.part_no = !string.IsNullOrEmpty(product.part_no) ? product.part_no : checkProduct.part_no;
+                    checkProduct.ten_san_pham = !string.IsNullOrEmpty(product.ten_san_pham) ? product.ten_san_pham : checkProduct.ten_san_pham;
+                    checkProduct.mo_ta = !string.IsNullOrEmpty(product.mo_ta) ? product.mo_ta : "";
+                    checkProduct.noi_dung = !string.IsNullOrEmpty(product.noi_dung) ? product.noi_dung : "";
+                    checkProduct.tu_khoa = !string.IsNullOrEmpty(product.tu_khoa) ? product.tu_khoa : "";
+                    checkProduct.tag = !string.IsNullOrEmpty(product.tag) ? product.tag : "";
+                    checkProduct.slug = !string.IsNullOrEmpty(product.slug) ? product.slug : "";
+                    checkProduct.xuat_xu = !string.IsNullOrEmpty(product.xuat_xu) ? product.xuat_xu : "";
+                    checkProduct.thuong_hieu = !string.IsNullOrEmpty(product.thuong_hieu) ? product.thuong_hieu : "";
+                    checkProduct.model = !string.IsNullOrEmpty(product.model) ? product.model : "";
+                    checkProduct.khoi_luong = product.khoi_luong;
+                    checkProduct.gia_si = product.gia_si;
+                    checkProduct.don_gia = product.don_gia;
+                    checkProduct.trang_thai = product.trang_thai;
+                    checkProduct.trang_thai_xuat_ban = AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN;
+                    checkProduct.trang_thai_duyet = AllConstant.trang_thai_duyet.CHUA_DUYET;
+                    checkProduct.nguoi_cap_nhat = product.nguoi_cap_nhat;
+                    checkProduct.ngay_cap_nhat = DateTime.Now;
+                    db.Update(checkProduct);
+                    //List<SqlParameter> param = new List<SqlParameter>();
+                    //param.Add(new SqlParameter("@id", checkProduct.id));
+                    //new SqlHelper().ExecuteQuery("p_UpdateSlugForMerchantProduct", param);
+                    // Update Hierarchy
+                    var checkHierarchy = db.FirstOrDefault<Merchant_Product_Hierarchy>(@"ma_san_pham = {0} and ma_gian_hang = {1} and 
+                                                                                            ma_cay_phan_cap_1 = {2} and ma_cay_phan_cap_2 = {3} 
+                                                                                            and ma_cay_phan_cap_3 = {4} ",
+                                                                                        checkProduct.ma_san_pham,
+                                                                                        checkProduct.ma_gian_hang,
+                                                                                        hierarchy.ma_cay_phan_cap_1,
+                                                                                        hierarchy.ma_cay_phan_cap_2,
+                                                                                        hierarchy.ma_cay_phan_cap_3);
+                    if (checkHierarchy != null)
+                    {
+                        db.ExecuteNonQuery(@"update Merchant_Product_Hierarchy set
+                                        ma_cay_phan_cap_1 = {0},
+                                        ma_cay_phan_cap_2 = {1},
+                                        ma_cay_phan_cap_3 = {2},
+                                        nguoi_cap_nhat = {3},
+                                        ngay_cap_nhat = {4}
+                                        where ma_san_pham = {5} and ma_gian_hang = {6}".Params(hierarchy.ma_cay_phan_cap_1,
+                                                                                        hierarchy.ma_cay_phan_cap_2,
+                                                                                        hierarchy.ma_cay_phan_cap_3,
+                                                                                        product.nguoi_cap_nhat,
+                                                                                        DateTime.Now,
+                                                                                        checkProduct.ma_san_pham,
+                                                                                        checkProduct.ma_gian_hang));
+                    }
+                    else
+                    {
+                        hierarchy.ma_san_pham = checkProduct.ma_san_pham;
+                        hierarchy.ma_gian_hang = checkProduct.ma_gian_hang;
+                        hierarchy.ngay_tao = DateTime.Now;
+                        hierarchy.nguoi_tao = checkProduct.nguoi_tao;
+                        hierarchy.ngay_cap_nhat = DateTime.Parse("1900-01-01");
+                        hierarchy.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG; // Giá trị đang hoạt động
+                        db.Insert(hierarchy);
+                    }
+                    // Update Thumbnail
+                    if (listimage != null)
+                    {
+                        db.Delete<Merchant_Product_Image>("ma_san_pham = {0} and ma_gian_hang = {1}", checkProduct.ma_san_pham, checkProduct.ma_gian_hang);
+                        foreach (Merchant_Product_Image item in listimage)
+                        {
+                            if (item.id == 0)
+                            {
+                                item.ma_san_pham = checkProduct.ma_san_pham;
+                                item.ma_gian_hang = checkProduct.ma_gian_hang;
+                                item.ngay_tao = DateTime.Now;
+                                item.nguoi_tao = product.nguoi_tao;
+                                item.ngay_cap_nhat = DateTime.Now;
+                                item.nguoi_cap_nhat = product.nguoi_cap_nhat;
+                                db.Insert(item);
+                            }
+                            else
+                            {
+                                return "Lỗi khi tạo thumbnail hình ảnh";
+                            }
+                        }
+                    }
+                    // Update Property
+                    if (listproperty != null)
+                    {
+                        db.Delete<Merchant_Product_Property>("ma_san_pham = {0} and ma_gian_hang = {1}", checkProduct.ma_san_pham, checkProduct.ma_gian_hang);
+                        foreach (Merchant_Product_Property item in listproperty)
+                        {
+                            if (item.id == 0)
+                            {
+                                item.ma_gian_hang = checkProduct.ma_gian_hang;
+                                item.ma_san_pham = checkProduct.ma_san_pham;
+                                item.ngay_tao = DateTime.Now;
+                                item.ngay_cap_nhat = DateTime.Parse("1900-01-01");
+                                item.nguoi_cap_nhat = product.nguoi_cap_nhat;
+                                item.ngay_cap_nhat = DateTime.Now;
+                                db.Insert(item);
+                            }
+                            else
+                            {
+                                return "Lỗi khi cập nhật thuộc tính";
+                            }
+                        }
+                    }
+                    //SyncToMySQL(checkProduct.id.ToString(), product.nguoi_cap_nhat);
+                    SyncToMySQL(checkProduct.id.ToString(), connectstring);
+                    return "true";
+                }
+                catch (Exception ex)
+                {
+                    return "Lỗi thao tác dữ liệu";
+                }
+            }
+        }
+
+        public string SyncToMySQL(string id, string connectionString)// if(type = full){ sync product+image+hierarchy} else{sync product}
+        {
+            Merchant_Product SyncProduct;
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    SyncProduct = db.FirstOrDefault<Merchant_Product>("id = {0}", id);
+                    if (SyncProduct == null)
+                        return "Không tìm thấy sản phẩm";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+            try
+            {
+                List<SqlParameter> param = new List<SqlParameter>();
+                //Sync Product
+                param.Add(new SqlParameter("@ma_san_pham", SyncProduct.ma_san_pham));
+                param.Add(new SqlParameter("@ma_gian_hang", SyncProduct.ma_gian_hang));
+                new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Product_SyncToMySQL", param);
+
+                //Sync Hierarchy
+                param.Clear();
+                param.Add(new SqlParameter("@ma_san_pham", SyncProduct.ma_san_pham));
+                param.Add(new SqlParameter("@ma_gian_hang", SyncProduct.ma_gian_hang));
+                new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Product_Hierarchy_SyncToMySQL", param);
+
+                //Sync Warehouse
+                param.Clear();
+                param.Add(new SqlParameter("@ma_san_pham", SyncProduct.ma_san_pham));
+                param.Add(new SqlParameter("@ma_gian_hang", SyncProduct.ma_gian_hang));
+                new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Product_Warehouse_SyncToMySQL", param);
+
+                //Sync Image
+                param.Clear();
+                param.Add(new SqlParameter("@ma_san_pham", SyncProduct.ma_san_pham));
+                param.Add(new SqlParameter("@ma_gian_hang", SyncProduct.ma_gian_hang));
+                new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Product_Image_SyncToMySQL", param);
+
+                return "true";
+            }
+            catch (Exception e)
+            {
+                return e.Message.ToString();
+            }
+        }
+
+        //public string SyncToMySQL(string id, string UserName)
+        //{
+        //    Merchant_Product SyncProduct;
+        //    Merchant_Product_Hierarchy SyncHierarchy;
+        //    List<Merchant_Product_Image> SyncListImage;
+        //    List<Merchant_Product_Property> SyncListProperty;
+        //    string ProductID, MerchantID;
+        //    using (var db = new OrmliteConnection().openConn(AppConfigs.MCCConnectionString))
+        //    {
+        //        try
+        //        {
+        //            SyncProduct = db.FirstOrDefault<Merchant_Product>("id = {0}", id);
+        //            if (SyncProduct == null)
+        //                return "Không tìm thấy sản phẩm";
+        //            ProductID = SyncProduct.ma_san_pham;
+        //            MerchantID = SyncProduct.ma_gian_hang;
+        //            SyncHierarchy = db.FirstOrDefault<Merchant_Product_Hierarchy>("ma_san_pham = {0} and ma_gian_hang = {1}", ProductID, MerchantID);
+        //            SyncListImage = db.Select<Merchant_Product_Image>("ma_san_pham = {0} and ma_gian_hang = {1}", ProductID, MerchantID);
+        //            SyncListProperty = db.Select<Merchant_Product_Property>("ma_san_pham = {0} and ma_gian_hang = {1}", ProductID, MerchantID);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            return e.Message.ToString();
+        //        }
+        //    }
+        //    string sqlProduct, sqlHierarchy, whereImage = "";
+        //    List<string> sqlListImage = new List<string>();
+        //    //List<string> sqlListProperty = new List<string>();
+        //    using (MySqlConnection con = new MySqlConnection(AppConfigs.FEConnectionString))
+        //    {
+        //        con.Open();
+        //        string sql = @"select * from Merchant_Product where ma_san_pham = {0} and ma_gian_hang = {1}".Params(ProductID, MerchantID);
+        //        using (MySqlCommand cmd = new MySqlCommand(sql, con))
+        //        {
+        //            var rs = cmd.ExecuteReader();
+        //            if (!rs.Read())
+        //                sqlProduct = @"insert into Merchant_Product(ma_loai_san_pham,ten_san_pham,part_no,mo_ta,noi_dung,trong_so,khoi_luong,don_gia,gia_si,tu_khoa,tag,slug,url,catalog,xuat_xu,thuong_hieu,model,minimum_order,trang_thai_xuat_ban,trang_thai_duyet,trang_thai,ma_san_pham,ma_gian_hang) 
+        //                                values({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22})".Params(SyncProduct.ma_loai_san_pham, SyncProduct.ten_san_pham, SyncProduct.part_no, SyncProduct.mo_ta, SyncProduct.noi_dung,
+        //                SyncProduct.trong_so, SyncProduct.khoi_luong, SyncProduct.don_gia, SyncProduct.gia_si, SyncProduct.tu_khoa, SyncProduct.tag, SyncProduct.slug, SyncProduct.url, SyncProduct.catalog,
+        //                SyncProduct.xuat_xu, SyncProduct.thuong_hieu, SyncProduct.model, SyncProduct.minimum_order, SyncProduct.trang_thai_xuat_ban,
+        //                SyncProduct.trang_thai_duyet, SyncProduct.trang_thai, SyncProduct.ma_san_pham, SyncProduct.ma_gian_hang);
+        //            else
+        //                sqlProduct = @"update Merchant_Product 
+        //                                set ma_loai_san_pham = {0}, ten_san_pham = {1}, part_no = {2}, mo_ta = {3},
+        //                                noi_dung = {4},trong_so = {5},don_gia = {6},gia_si = {7},tu_khoa = {8},tag = {9},
+        //                                slug  = {10},url  = {11},xuat_xu = {12},thuong_hieu = {13},model = {14},minimum_order = {15},
+        //                                trang_thai_xuat_ban  = {16},trang_thai_duyet = {17},trang_thai = {18}, khoi_luong = {21}, catalog = {22}
+        //                                where ma_san_pham  = {19} and ma_gian_hang = {20}".Params(SyncProduct.ma_loai_san_pham, Utility.ConvertUTF(SyncProduct.ten_san_pham), SyncProduct.part_no, SyncProduct.mo_ta, SyncProduct.noi_dung,
+        //                SyncProduct.trong_so, SyncProduct.don_gia, SyncProduct.gia_si, SyncProduct.tu_khoa, SyncProduct.tag, SyncProduct.slug, SyncProduct.url,
+        //                SyncProduct.xuat_xu, SyncProduct.thuong_hieu, SyncProduct.model, SyncProduct.minimum_order, SyncProduct.trang_thai_xuat_ban,
+        //                SyncProduct.trang_thai_duyet, SyncProduct.trang_thai, SyncProduct.ma_san_pham, SyncProduct.ma_gian_hang, SyncProduct.khoi_luong, SyncProduct.catalog);
+        //            rs.Close();
+        //        }
+        //        sql = @"select * from Merchant_Product_Hierarchy where ma_san_pham = {0} and ma_gian_hang = {1}".Params(ProductID, MerchantID);
+        //        using (MySqlCommand cmd = new MySqlCommand(sql, con))
+        //        {
+        //            var rs = cmd.ExecuteReader();
+        //            if (!rs.Read())
+        //                sqlHierarchy = @"insert into Merchant_Product_Hierarchy(ma_cay_phan_cap_1,ma_cay_phan_cap_2,ma_cay_phan_cap_3, trang_thai, ma_san_pham, ma_gian_hang) 
+        //                                values({0},{1},{2},{3},{4},{5})".Params(SyncHierarchy.ma_cay_phan_cap_1, SyncHierarchy.ma_cay_phan_cap_2,
+        //                                SyncHierarchy.ma_cay_phan_cap_3, SyncHierarchy.trang_thai, SyncHierarchy.ma_san_pham, SyncHierarchy.ma_gian_hang);
+        //            else
+        //                sqlHierarchy = @"update Merchant_Product_Hierarchy 
+        //                                set ma_cay_phan_cap_1 = {0}, ma_cay_phan_cap_2 = {1}, ma_cay_phan_cap_3 = {2}, trang_thai = {3}
+        //                                where ma_san_pham  = {4} and ma_gian_hang = {5}".Params(SyncHierarchy.ma_cay_phan_cap_1, SyncHierarchy.ma_cay_phan_cap_2,
+        //                                SyncHierarchy.ma_cay_phan_cap_3, SyncHierarchy.trang_thai, SyncHierarchy.ma_san_pham, SyncHierarchy.ma_gian_hang);
+        //            rs.Close();
+        //        }
+        //        if (SyncListImage.Count > 0)
+        //            foreach (var Index in SyncListImage)
+        //            {
+        //                sql = @"select * from Merchant_Product_Image where ma_san_pham = {0} and ma_gian_hang = {1} and ma_anh_goc = {2}".Params(ProductID, MerchantID, Index.ma_anh_goc);
+        //                using (MySqlCommand cmd = new MySqlCommand(sql, con))
+        //                {
+        //                    var rs = cmd.ExecuteReader();
+        //                    if (!rs.Read())
+        //                        sqlListImage.Add(@"insert into Merchant_Product_Image(url,ma_anh_goc,ma_san_pham,ma_gian_hang) 
+        //                                    values({0},{1},{2},{3});".Params(Utility.ConvertUTF(Index.url), Index.ma_anh_goc, Index.ma_san_pham, Index.ma_gian_hang));
+        //                    else
+        //                        sqlListImage.Add(@"update Merchant_Product_Image 
+        //                                    set url = {0}
+        //                                    where ma_anh_goc = {1} and ma_san_pham  = {2} and ma_gian_hang = {3};".Params(Utility.ConvertUTF(Index.url), Index.ma_anh_goc, Index.ma_san_pham, Index.ma_gian_hang));
+        //                    rs.Close();
+        //                }
+        //                whereImage += "{0},".Params(Index.ma_anh_goc);
+        //            }
+        //        /*if (SyncListProperty.Count > 0)
+        //            foreach (var Index in SyncListProperty)
+        //            {
+        //                sql = @"select * from Merchant_Product_Property where ma_san_pham = {0} and ma_gian_hang = {1} and ma_anh_goc = {2}".Params(ProductID, MerchantID, Index.ma_thong_so);
+        //                using (MySqlCommand cmd = new MySqlCommand(sql, con))
+        //                {
+        //                    var rs = cmd.ExecuteReader();
+        //                    if (!rs.Read())
+        //                        sqlListProperty.Add(@"insert into Merchant_Product_Image(ma_thong_so,ma_thuoc_tinh,gia_tri,ma_san_pham,ma_gian_hang) 
+        //                                    values({0},{1},{2},{3},{4});".Params(Index.ma_thong_so, Index.ma_thuoc_tinh, Index.gia_tri, Index.ma_san_pham, Index.ma_gian_hang));
+        //                    else
+        //                        sqlListProperty.Add(@"update Merchant_Product_Image 
+        //                                    set ma_thong_so = {0}, ma_thuoc_tinh = {1}, gia_tri = {2}
+        //                                    where ma_san_pham  = {3} and ma_gian_hang = {4};".Params(Index.ma_thong_so, Index.ma_thuoc_tinh, Index.gia_tri, Index.ma_san_pham, Index.ma_gian_hang));
+        //                    rs.Close();
+        //                }
+        //            }*/
+        //        using (MySql.Data.MySqlClient.MySqlTransaction trans = con.BeginTransaction())
+        //        {
+        //            try
+        //            {
+        //                using (MySqlCommand cmd = new MySqlCommand(Utility.ConvertUTF(sqlProduct), con, trans))
+        //                {
+        //                    cmd.ExecuteNonQuery();
+        //                    cmd.CommandText = sqlHierarchy;
+        //                    cmd.ExecuteNonQuery();
+        //                    if (sqlListImage.Count > 0)
+        //                    {
+        //                        foreach (string sqlString in sqlListImage)
+        //                        {
+        //                            cmd.CommandText = sqlString;
+        //                            cmd.ExecuteNonQuery();
+        //                        }
+        //                        cmd.CommandText = "delete from Merchant_Product_Image where ma_san_pham = {0} and ma_gian_hang = {1}".Params(ProductID, MerchantID) +
+        //                                            "and ma_anh_goc not in (" + whereImage.Substring(0, whereImage.Length - 1) + ")";
+        //                        cmd.ExecuteNonQuery();
+        //                    }
+        //                }
+        //                //using (MySqlCommand cmd = new MySqlCommand("", con, trans))
+        //                //{
+        //                //    if (sqlListProperty.Count > 0)
+        //                //        foreach (string sqlString in sqlListProperty)
+        //                //        {
+        //                //            cmd.CommandText = sqlString;
+        //                //            cmd.ExecuteNonQuery();
+        //                //        }
+        //                //}
+        //                trans.Commit();
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                trans.Rollback();
+        //                return e.Message.ToString();
+        //            }
+        //        }
+        //    }
+        //    return "true";
+        //}
+        private Merchant_Product EmptyIfNull(Merchant_Product p1)
+        {
+            p1.ma_san_pham = (p1.ma_san_pham == null) ? "" : p1.ma_san_pham;
+            p1.ma_loai_san_pham = (p1.ma_loai_san_pham == null) ? "" : p1.ma_loai_san_pham;
+            p1.ten_san_pham = (p1.ten_san_pham == null) ? "" : p1.ten_san_pham;
+            p1.ma_gian_hang = (p1.ma_gian_hang == null) ? "" : p1.ma_gian_hang;
+            p1.mo_ta = (p1.mo_ta == null) ? "" : p1.mo_ta;
+            p1.nguoi_duyet = (p1.nguoi_duyet == null) ? "" : p1.nguoi_duyet;
+            p1.nguoi_duyet = (p1.nguoi_duyet == null) ? "" : p1.nguoi_duyet;
+            p1.trang_thai_duyet = (p1.trang_thai_duyet == null) ? "" : p1.trang_thai_duyet;
+            p1.trang_thai = (p1.trang_thai == null) ? "" : p1.trang_thai;
+            return p1;
+        }
+    }
+}

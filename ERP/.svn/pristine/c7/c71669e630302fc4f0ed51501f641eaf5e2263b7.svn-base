@@ -1,0 +1,233 @@
+﻿using CMS.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using CMS.Helpers;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using CMS.Filters;
+using System.Data.SqlClient;
+using CMS.Controllers;
+
+namespace CMS.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete")]
+    public class MenuController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                ViewBag.isAdmin = isAdmin;
+                using (IDbConnection db = OrmliteConnection.openConn())
+                {
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.listAll = db.Select<DropListDown>("Select isnull(ma_menu,'') as Value , isnull(ten_menu,'') as Text from cms_Menu");
+                    ViewBag.listHierarchyType = db.Select<DropListDown>("SELECT  Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " as Text FROM Code_Master WHERE Type = 'LoaiMenu' Order By order_Num");
+                    ViewBag.listStatus = db.Select<DropListDown>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " as Text FROM Code_Master WHERE Type = 'MenuStatus' Order By order_Num");
+                    ViewBag.listWebsite = db.Select<DropListDown>("Select  ma_website as Value , ten_website as Text from cms_Websites");
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        #region Read_Action
+
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = KendoApplyFilter.KendoData<cms_Menu>(request);
+            return Json(data);
+        }
+
+        #endregion
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Create([DataSourceRequest] DataSourceRequest request, [Bind(Prefix = "models")]IEnumerable<cms_Menu> listrow)
+        {
+            ModelState.Clear(); // phải clear
+            try
+            {
+                if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]))
+                {
+                    string success = Upsert(listrow.ToList());
+                    if (success == "true")
+                        return Json(new { success = true });
+                    else
+                        return Json(new { success = false, error = success });
+                }
+                else
+                {
+                    return Json(new { success = false, error = "Don't have permission to create" });
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = e.Message
+                });
+            }
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Update([DataSourceRequest] DataSourceRequest request, [Bind(Prefix = "models")]IEnumerable<cms_Menu> listrow)
+        {
+            ModelState.Clear(); // phải clear
+            try
+            {
+                if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                {
+                    string success = Upsert(listrow.ToList());
+                    if (success == "true")
+                        return Json(new { success = true });
+                    else
+                        return Json(new { success = false, error = success });
+                }
+                else
+                {
+                    return Json(new { success = false, error = "Don't have permission to update" });
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = e.Message
+                });
+            }
+        }
+
+
+        public ActionResult getMenuParent(int cap_menu, string loai_menu, string ma_website)
+        {
+            IDbConnection db = OrmliteConnection.openConn();
+            try
+            {
+                var data = new List<DropListDown>();
+                data = db.Select<DropListDown>(@"Select isnull(ma_menu,'') as Value , isnull(ten_menu,'') as Text from cms_Menu where cap_menu={0} and ma_website = {1}".Params(cap_menu - 1, ma_website));
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = e.Message });
+            }
+        }
+
+        private string Upsert(List<cms_Menu> listmenu)
+        {
+            using (IDbConnection db = OrmliteConnection.openConn())
+            {
+                try
+                {
+                    foreach (cms_Menu row in listmenu)
+                    {
+
+                        var checkID = db.FirstOrDefault<cms_Menu>("id={0}", row.id);
+                        if (checkID != null)
+                        {
+                            checkID.ten_menu = !string.IsNullOrEmpty(row.ten_menu) ? row.ten_menu : "";
+                            checkID.ma_menu_cha = !string.IsNullOrEmpty(row.ma_menu_cha) ? row.ma_menu_cha : "";
+                            if (checkID.ma_website != row.ma_website)
+                            {
+                                string ma_tu_tang = String.Empty;
+                                var lastId = db.FirstOrDefault<cms_Menu>
+                                    ("SELECT TOP 1 * FROM cms_Menu where ma_website={0} ORDER BY ma_menu DESC".Params(row.ma_website));
+                                if (lastId != null)
+                                {
+                                    if (lastId.ma_menu.Contains(row.ma_website))
+                                    {
+                                        var nextNo = Int32.Parse(lastId.ma_menu.Substring(row.ma_website.Length + 4, 2)) + 1;
+                                        ma_tu_tang = row.ma_website + "_cap" + String.Format("{0:00}", nextNo);
+                                    }
+                                }
+                                else
+                                {
+                                    ma_tu_tang = row.ma_website + "_cap01";
+                                }
+                                checkID.ma_menu = ma_tu_tang;
+                            }
+                            checkID.cap_menu = row.cap_menu;
+                            checkID.ma_website = !string.IsNullOrEmpty(row.ma_website) ? row.ma_website : "";
+                            checkID.loai_menu = !string.IsNullOrEmpty(row.loai_menu) ? row.loai_menu : "";
+                            checkID.trang_thai = !string.IsNullOrEmpty(row.trang_thai) ? row.trang_thai : "Active";
+                            checkID.nguoi_cap_nhat = currentUser.name;
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            db.Update(checkID);
+                        }
+                        else
+                        {
+                            string ma_tu_tang = String.Empty;
+                            var lastId = db.FirstOrDefault<cms_Menu>
+                                ("SELECT TOP 1 * FROM cms_Menu where ma_website={0} ORDER BY ma_menu DESC".Params(row.ma_website));
+                            if (lastId != null)
+                            {
+                                if (lastId.ma_menu.Contains(row.ma_website))
+                                {
+                                    var nextNo = Int32.Parse(lastId.ma_menu.Substring(row.ma_website.Length + 4, 2)) + 1;
+                                    ma_tu_tang = row.ma_website + "_cap" + String.Format("{0:00}", nextNo);
+                                }
+                            }
+                            else
+                            {
+                                ma_tu_tang = row.ma_website + "_cap01";
+                            }
+                            row.ma_menu_cha = !string.IsNullOrEmpty(row.ma_menu_cha) ? row.ma_menu_cha : "";
+                            row.ma_menu = ma_tu_tang;
+                            row.nguoi_tao = currentUser.name;
+                            row.ngay_tao = DateTime.Now;
+                            row.nguoi_cap_nhat = currentUser.name;
+                            row.ngay_cap_nhat = DateTime.Now;
+                            db.Insert(row);
+                        }
+                    }
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+        }
+
+        public ActionResult Delete(string data)
+        {
+            if (isAdmin && accessDetail != null && (accessDetail.access["all"] || accessDetail.access["delete"]))
+            {
+                string[] separators = { "@@" };
+                var ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (ids.Length == 0)
+                {
+                    return Json(new { success = false, message = "Chọn mã phân cấp cần xóa!" });
+                }
+                else
+                {
+                    var dbConn = Helpers.OrmliteConnection.openConn();
+                    try
+                    {
+                        foreach (var item in ids)
+                        {
+                            dbConn.Delete<cms_Menu>(s => s.id == int.Parse(item));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = "Có lỗi khi xóa!"+ ex.Message });
+                    }
+                }
+            }
+            return Json(new { success = false, message = "Bạn không có quyền xóa" });
+        }
+    }
+}

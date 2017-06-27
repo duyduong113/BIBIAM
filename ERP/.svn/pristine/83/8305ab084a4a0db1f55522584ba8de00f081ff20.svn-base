@@ -1,0 +1,235 @@
+﻿@using BIBIAM.Core.Entities;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._category_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+</style>
+<div class="portlet light bordered">
+    <div class="portlet-title">
+        <div class="caption">
+            <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._category_list)</span>
+        </div>
+        <div class="inputs">
+            <div class="portlet-input input-inline input-small ">
+                <div class="input-icon right">
+                    <i class="icon-magnifier"></i>
+                    <input type="text" id="txtCategorys" class="form-control form-control-solid input-circle tooltips" data-container="body" data-placement="top"
+                           data-original-title="Tìm kiếm" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="portlet-body">
+        @(Html.Kendo().Grid<CMS.Models.cms_Categorys>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Template(@<text></text>)
+            .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+            .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ma_chuyen_muc#'/> ")
+            .HtmlAttributes(new { style = "text-align: center;" })
+            .HeaderHtmlAttributes(new { style = "text-align: center" })
+            .Width(25);
+            columns.Bound(p => p.ma_chuyen_muc).Title(@Resources.Global._category_id).Width(110).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ten_chuyen_muc).Title(@Resources.Global._name_Caps).Width(300).HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(p => p.website, (System.Collections.IEnumerable)ViewBag.listWebsites, "Value", "Text").Title("Website").Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.ForeignKey(p => p.trang_thai, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Text").Title(Resources.Global._status).Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ngay_tao).Width(110).Title(@Resources.Global._date_created).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_tao).Width(100).Title(@Resources.Global._created_by);
+            columns.Bound(p => p.ngay_cap_nhat).Title(@Resources.Global._date_update).Width(110).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_cap_nhat).Title(@Resources.Global._updated_by).Width(100);
+        })
+        .Pageable()
+        .Navigatable()
+        .Scrollable()
+        .Sortable()
+        .ToolBar(toolbar =>
+        {
+        toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (create || all)
+                {
+                    <a class="btn btn-success btn-small" onclick="Create()" href="javascript:void(0)" id="">
+                        @Html.Raw(Resources.Global._add)
+                    </a>
+                }
+                @if (all || create || update)
+                {
+                    <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                        @Html.Raw(Resources.Global._save)
+                    </a>
+                }
+                @if (all || create || update)
+                {
+                    <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                        @Html.Raw(Resources.Global._cancel)
+                    </a>
+                }
+                @if (delete || all)
+                {
+                    <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="removeCategory()" id="btnGridDelete">
+                        @Html.Raw(Resources.Global._delete)
+                    </a>
+                }
+            </div>
+        </text>);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Pageable(x => x.PageSizes(new int[] { 100, 200, 300, 500 }))
+        .Events(events => { events.DataBound("dataBound"); events.Edit("onEdit"); })
+        .Reorderable(reorderable => reorderable.Columns(true))
+        .Resizable(resizable => resizable.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(100)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.id);
+            model.Field(p => p.ma_chuyen_muc).Editable(false);
+            model.Field(p => p.trang_thai).DefaultValue("Active");
+            model.Field(p => p.ngay_tao).Editable(false);
+            model.Field(p => p.nguoi_tao).Editable(false);
+            model.Field(p => p.ngay_cap_nhat).Editable(false);
+            model.Field(p => p.nguoi_cap_nhat).Editable(false);
+        })
+
+        .Read(c => c.Action("Read", "CategorysManage"))
+        .Create(c => c.Action("Create", "CategorysManage"))
+        .Update(c => c.Action("Update", "CategorysManage"))
+        )
+        )
+    </div>
+</div>
+
+
+<script>
+        function removeCategory() {
+            var data = Getlistcheck();
+            bootbox.dialog({
+                message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete_category)",
+                buttons:
+                    {
+
+                        danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                        main: {
+                            label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                                App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                                $.post(r + "/CategorysManage/Delete", { data: data }, function (data) {
+                                    if (data.success) {
+                                        toastr.clear();
+                                        toastr.success('', '@Html.Raw(Resources.Global._delete_successfully)');
+                                        $("#Grid").data("kendoGrid").dataSource.read();
+                                    } else {
+                                        toastr.clear();
+                                        toastr.error('', data.message);
+                                    }
+                                    App.unblockUI();
+                                });
+                            }
+                        }
+                    }
+            })
+        }
+
+        function Create() {
+            $("#Grid").data("kendoGrid").dataSource.insert();
+
+        }
+        function Update() {
+            if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid').data('kendoGrid').saveChanges();
+            }
+        }
+        function Cancel() {
+            $('#Grid').data('kendoGrid').cancelChanges();
+        }
+        $(document).ready(function () {
+            filter();
+        });
+        function resizeGrid(gridname) {
+            var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+            $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+        }
+        function dataBound(e) {
+            resizeGrid('Grid');
+        }
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br>";
+                        });
+                    }
+                });
+
+                toastr.error(message)
+            }
+        }
+
+        function onRequestEnd(e) {
+            if ((e.type == "create") && !e.response.Errors) {
+                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                $("#Grid").data("kendoGrid").dataSource.read();
+            }
+            else
+                if ((e.type == "update") && !e.response.Errors) {
+                    toastr.success('', '@Html.Raw(Resources.Global._update_successfully)')
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                }
+
+        }
+        function filter() {
+            grid = $("#Grid").data("kendoGrid");
+            var filter = { logic: "and", filters: [] };
+
+            var tenchuyenmuc = $("#txtCategorys").val();
+            if (tenchuyenmuc) {
+                filter.filters.push({ field: "ten_chuyen_muc", operator: "contains", value: tenchuyenmuc });
+            }
+
+            grid.dataSource.filter(filter);
+        }
+
+
+        function checkAll(e) {
+            var x = $(e).prop('checked');
+            $('#Grid').find(".checkrowid").each(function () {
+                $(this).prop('checked', x);
+            });
+        }
+
+        function Getlistcheck() {
+            var listrowid = '';
+            $('#Grid').find(".checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ',';
+                    $(this).data();
+                }
+            });
+            return listrowid;
+        }
+
+        function onEdit(e) {
+            if (e.model.isNew() == false) {
+                $("#ma_chuyen_muc").attr("readonly", true);
+            }
+        }
+</script>

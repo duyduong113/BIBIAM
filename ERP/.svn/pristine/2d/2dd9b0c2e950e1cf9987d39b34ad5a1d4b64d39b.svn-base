@@ -1,0 +1,467 @@
+﻿@model IEnumerable<ERPAPD.Models.ERPAPD_Contacts>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    string selected = "selected";
+    var listDay = new List<int>();
+    for (int i = 1; i <= 31; i++)
+    {
+        listDay.Add(i);
+    }
+    var listMonth = new List<int>();
+    for (int i = 1; i <= 12; i++)
+    {
+        listMonth.Add(i);
+    }
+    var listYear = new List<int>();
+    for (int i = DateTime.Now.Year; i > DateTime.Now.Year - 200; i--)
+    {
+        listYear.Add(i);
+    }
+}
+
+<div class="row-fluid">
+    <div class="row-fluid" id="formheaderContactList">
+        <form data-id="" data-cus="@ViewBag.detailCustomer.CustomerID" action="@Url.Action("CRMContactList_Create","CRMContactList")" method="post" id="contactForm" class="form-inline">
+            <div id="box-contact">
+                <div class="span4">
+                    <div class="form-horizontal">
+                        <div class="control-group">
+                            <label class="span2" style="text-align:left">Họ tên</label>
+                            <div class="controls span10">
+
+                                <input class="span4" name="FirstName" id="FirstName_GridContact" type="text" value="" placeholder="Họ" />
+                                <input class="span5" name="MiddleName" id="MiddleName_GridContact" type="text" value="" placeholder="Tên đệm" />
+                                <input class="span3" name="LastName" id="LastName_GridContact" type="text" value="" placeholder="Tên" />
+                                <input id="CustomerID_GridContact" name="CustomerID" type="hidden" value="@ViewBag.detailCustomer.CustomerID" />
+                                <input id="PKContactID_GridContact" name="PKContactID" type="hidden" value="0" />
+
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-group">
+                                <label class="span2" style="text-align:left">Nhân xưng</label>
+                                <div class="controls span10">
+                                    <input id="Gender" name="Gender" type="text" style="display:none;" />
+                                    @Html.DropDownList("Gender_GridContact", new SelectList(ViewBag.listGender, "ParamID", "Value", 1),
+                                "-Chọn-", new { @style = "width: 95px;height: 30px;" })
+                                </div>
+                            </div>
+
+                            @*<div class="controls span10">
+                                    <select name="Sex" id="listSex" class="span12">
+                                        <option value="anh" selected>Anh</option>
+                                        <option value="anh">Chị</option>
+                                    </select>
+                                </div>*@
+                        </div>
+                        <div class="control-group">
+                            <label class="span2">Ngày sinh</label>
+                            <div class="controls span10">
+                                <select id="DayOfBirth_GridContact" class="span3" name="DayOfBirth" data-placeholder="Chọn ngày">
+                                    <option disabled selected> Ngày</option>
+                                    @foreach (var item in listDay)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                                <select id="MonthOfBirth_GridContact" class="span4" name="MonthOfBirth">
+                                    <option disabled selected> Tháng</option>
+                                    @foreach (var item in listMonth)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+
+                                <select id="YearOfBirth_GridContact" name="YearOfBirth" class="span5" data-placeholder="Chọn năm">
+                                    <option disabled selected> Năm</option>
+                                    @foreach (var item in listYear)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        @*<div class="control-group">
+                                <label class="span2" style="text-align:left">Ngày sinh</label>
+                                <div class="controls span10">
+                                    <input class="span3" name="DayOfBirth" id="DayOfBirth" type="text" value="" placeholder="Ngày" />
+                                    <input class="span4" name="MonthOfBirth" id="MonthOfBirth" type="text" value="" placeholder="Tháng" />
+                                    <input class="span5" name="YearOfBirth" id="YearOfBirth" type="text" value="" placeholder="Năm" />
+
+                                </div>
+                            </div>*@
+
+
+                    </div>
+                </div>
+                <div class="span4">
+
+                    <div class="form-horizontal">
+
+                        <div class="control-group">
+                            <label class="span2" style="text-align:left">Điện thoại</label>
+                            <div class="controls span10">
+                                <input class="span12" name="Mobile" id="Mobile_GridContact" type="text" value="" placeholder="Nhập số điện thoại" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="span2 " style="text-align:left">Email</label>
+                            <div class="controls span10">
+                                <input class="span12" name="Email" id="Email_GridContact" type="text" value="" placeholder="Nhập Email" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="span2" style="text-align:left">Chức vụ</label>
+                            <div class="controls span10">
+                                <input name="Title" id="Title_GridContact" class="span12" type="text" value="" placeholder="Nhập chức vụ" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="form-horizontal">
+                        <div class="control-group">
+                            <label class="span3" style="text-align:left">Ngành</label>
+                            <div class="controls span9">
+                                <select name="Category" id="Category_GridContact" class="span12">
+                                    <option disabled selected>Ngành hàng (s)</option>
+                                    @foreach (var item in ViewBag.listCategory)
+                                    {
+                                        <optgroup label="@item.Value">
+                                            @foreach (var subitem in ViewBag.listSubCategory)
+                                            {
+                                                if (item.HierarchyID == subitem.ParentID)
+                                                {
+                                                    <option value="@subitem.HierarchyID">@subitem.Value</option>
+                                                }
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="span3" style="text-align: left; margin-top: 5px;">Người quyết định</label>
+                            <div class="controls span9">
+                                <input onchange="onCheck(this)" name="Decided" id="Decided_GridContact" value="0" type="checkbox" style="margin-top: 8px" />
+                                <input type="hidden" name="Status" id="Status_GridContact" value="HOAT_DONG" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="span3" style="text-align:left">ghi chú</label>
+                            <div class="controls span9">
+                                <textarea name="Notes" id="Notes_GridContact" class="autosize-transition span12" style="overflow: hidden; resize: vertical; word-wrap: break-word; height: 10px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*<div class="span10">
+                    <p class="pull-right">
+                        <a id="NewContact" class="btn btn-small btn-success">Tạo mới</a>
+                        <button type="reset" class="btn btn-small btn-default">Hủy</button>
+                        <a id="saveContact" class="btn btn-small btn-primary">Lưu lại</a>
+                    </p>
+
+                </div>*@
+        </form>
+    </div>
+    <div class="row-fluid">
+        @(Html.Kendo()
+        .Grid(Model)
+        .Name("GridContact")
+        .Editable()
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.PKContactID)
+                       .HeaderTemplate("<input style='text-align:center' hidden type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />")
+                       .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=PKContactID#'  />")
+                       .Width(20)
+                       .Filterable(false)
+                       .Sortable(false);
+
+            columns.Bound(p => p.FirstName).Hidden();
+            columns.Bound(p => p.MiddleName).Hidden();
+            columns.Bound(p => p.LastName).Hidden();
+            columns.Bound(p => p.CustomerID).Hidden();
+            columns.Bound(p => p.DayOfBirth).Hidden();
+            columns.Bound(p => p.MonthOfBirth).Hidden();
+            columns.Bound(p => p.YearOfBirth).Hidden();
+            columns.Bound(p => p.Mobile).Hidden();
+            columns.Bound(p => p.Gender).Hidden();
+            
+            columns.Bound(p => p.PKContactID).Hidden();
+            columns.Bound(p => p.TelephoneHome).Width(50).Title("#").ClientTemplate(
+                         "<span> <button type='button' class=' btn btn-minier btn-success'><i class='icon-phone'></i>Call</button></span>"
+                         );
+            columns.Bound(p => p.PKContactID).Width(120).Title("Người liên hệ").ClientTemplate(
+                       "<span><a href='javascript:void(0)' onclick='setData(this)'>#=Name#</a></span><br>");
+            columns.Bound(p => p.Birthday).Width(100).Title("Ngày sinh").Format("{0:dd/MM/yyyy}");
+            columns.Bound(p => p.TelephoneHome).Width(100).Title("Điện thoại").ClientTemplate(
+                      "<span>#=Mobile# #=TelephoneOffice# #=TelephoneHome#</span><br>"
+                    // + "<span></span><br>"
+                     + "<span></span>");
+
+            columns.Bound(p => p.Email).Width(120).Title("Email");
+            columns.Bound(p => p.Title).Width(100).Title("Chức vụ");
+            columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listSubCategory, "HierarchyID", "Value").Title("Nhóm ngành").Width(100);
+            columns.Bound(p => p.Decided).Width(90).Title("Người quyết định").ClientTemplate(
+                          "#if(Decided==1){# <input style='text-align:center ;   margin-left: 40%;'  type='checkbox' checked='checked'  /> #} "
+                          + " else {# <input style='text-align:center;     margin-left: 40%;'  type='checkbox'  /> #} # <br>"
+                         );
+
+            columns.Bound(p => p.Notes).Width(100).Title("Ghi chú");
+            columns.Bound(p => p.RowCreatedAt).Width(100).Title("Ngày tạo").Format("{0:" + Resources.Multi.DateFormat + "}");
+
+
+        })
+
+        .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50 }))
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.PopUp))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .ToolBar(toolbar => toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-success btn-small" href="javascript:void(0)" id="NewContact">
+                        @Resources.Multi.Add
+                    </a>
+                }
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-small btn-primary" href="javascript:void(0)" id="saveContact">
+                        @Resources.Multi.Save
+                    </a>
+                }
+                @if (AllowDelete)
+                {
+                    <a class="btn btn-small btn-danger" href="javascript:void(0)" onclick="showConfirmPopup(-1)">
+                        @Resources.Multi.Delete
+                    </a>
+                }
+            </div>
+        </text>))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(10)
+    .Model(model =>
+    {
+        model.Id(p => p.PKContactID);
+
+    })
+    .Read("CRMContactList_Read", "MnDetailEmployer", new { @CustomerID = @ViewBag.detailCustomer.CustomerID })
+    //.Create("CRMContactList_Create", "CRMContactList")
+    //.Update("CRMContactList_Create", "CRMContactList")
+    )
+        )
+    </div>
+</div>
+<div id="popup-confirm" class="row" style="margin:0 auto;display:none">
+    <div class="widget-box">
+        <p> <span id="txtcontent"></span> </p>
+    </div>
+    <div class="form-footer-custom">
+        <div class="pull-right" style="padding-right:15px">
+            <button type="button" class="btn btn-info btn-small " onclick="onChangeStatus()">
+                @*<i class="icon-ok"></i>*@ Đồng ý
+            </button>
+            <button type="button" class="btn btn-default btn-small" onclick="onCloseForm()">
+                @*<i class="icon-undo"></i>*@ Đóng lại
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    //BaoHV
+    $('#formheaderContactList').hide();
+    $('#popup-confirm').kendoWindow({
+        width: "300",
+        actions: ["Close"],
+        visible: false,
+        resizable: false,
+        title: 'Thông báo',
+        close: function (e) {
+            $("#divMaskPopup").hide();
+        }
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#GridContact').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function onCloseForm() {
+        $('#popup-confirm').data('kendoWindow').close();
+    }
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#GridContact').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid = $(this).attr("id");
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $("#divMaskPopup").show();
+            if (e == -1) {
+                $('#txtcontent').text("Are you sure you want to delete this record?");
+            }
+            var popup = $('#popup-confirm').data("kendoWindow");
+            popup.center().open();
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onChangeStatus() {
+        var listrowid = "";
+        $('#GridContact').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id")+'@@@@';
+            }
+        });
+
+        $.post(r + "/CRMContactList/Delete", { id: listrowid }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                    class_name: 'gritter-success'
+                });
+                type = 100;
+                $('#popup-confirm').data('kendoWindow').close();
+                $("#GridContact").data("kendoGrid").dataSource.read();
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+                type = 100;
+                $('#popup-confirm').data('kendoWindow').close();
+            }
+        });
+    }
+    function setData(obj)
+    {
+        var currentRow = $(obj).closest("tr");
+        var dataItem = $("#GridContact").data("kendoGrid").dataItem(currentRow);
+        onBindDataToForm(dataItem, "GridContact");
+        var checkDecided = dataItem.Decided == 1 ? true : false;
+        $("#Decided_GridContact").prop("checked", checkDecided);
+        $('#formheaderContactList').show();
+
+    }
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem, formName) {
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName + "_" + formName).val(d);
+                }
+            }
+            else {
+                $("#" + propName + "_" + formName).val(dataItem[propName]);
+            }
+        }
+    }
+    //
+    $("#NewContact").click(function () {
+        $("#contactForm")[0].reset();
+        $("#contactForm").attr("data-id", "");
+        $("#contactForm input").val("");
+        $("#CustomerID_GridContact").val($("#contactForm").attr("data-cus"));
+        $('#formheaderContactList').show();
+        //BaoHV      
+    })
+    
+    function onCheck(e) {
+        if ($(e).is(":checked")) {
+            $(e).val(1);
+        } else {
+            $(e).val(0);
+        }
+    }
+
+    $("#listSex, #listBranch").chosen();
+    $("#contactForm").validate({
+        submitHandler: function (form) {
+            // do other things for a valid form
+            var  url = r + "/CRMContactList/CRMContactList_Create";
+            var formContent = $("#contactForm").serialize();
+            //console.log(formContent);
+            $.post(url, formContent).done(function (data) {
+                if (data.success) {
+                    $("#GridContact").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        text: 'Thành công !',
+                        class_name: 'gritter-success'
+                    });
+                    $('#formheaderContactList').hide();
+                }
+            });
+        },
+        showErrors: function (errorMap, errorList) {
+            if (errorList[0] != undefined) {
+                console.log(errorMap);
+                console.log(errorList);
+
+                $.gritter.add({
+                    title: '@Resources.Multi.Error',
+                    text: errorList[0].message,
+                    class_name: 'gritter-error'
+                });
+            }
+
+        },
+        rules: {
+            LastName: "required",
+            Mobile: "required",
+            FirstName: "required",
+            Email: {
+                required: true,
+                //email: true
+            }
+        },
+        messages: {
+            LastName: "Vui lòng nhập tên !",
+            Mobile: "Vui lòng nhập điện thoại !",
+            FirstName: "Vui lòng nhập họ !",
+            Email: {
+                required: "Vui lòng nhập Email",
+                //email: "Your email address must be in the format of name@domain.com"
+            }
+        }
+    });
+
+    $("#saveContact").click(function () {
+        $('#Gender').val($('#Gender_GridContact').val());
+        $("#contactForm").submit();
+        return;
+    });
+    function readata(id) {
+        $.post(r + "/Ajax/GetlistUser", { PKContactID: id }, function (data) {
+            $("#box-contact").html(data);
+            $('html, body').animate({
+                scrollTop: $("#contactForm").offset().top - 100
+            }, 1000);
+            $("#contactForm").attr("data-id", id);
+            $("#listSex, #listBranch,#listCats").chosen();
+
+        });
+    }
+    
+</script>

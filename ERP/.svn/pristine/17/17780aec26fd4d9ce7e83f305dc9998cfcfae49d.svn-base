@@ -1,0 +1,136 @@
+﻿<div style="margin-top:20px" class="row-fluid">
+    <div class="tabbable">
+        <ul class="nav nav-tabs tab-color-blue" id="myTabEmulat">
+            <li id="tabKPINotif" class="active">
+                <a data-notif="KPI" data-toggle="tab" href="#tabKPI">
+                    <i class="icon-bar-chart"></i>
+                    KPI
+                    <div class="number" style="display:none"></div>
+                </a>
+            </li>
+            <li id="tabEmulat" class="">
+                <a data-notif="Emulation" data-toggle="tab" href="#tabEmulation">
+                    <i class="icon-calendar"></i>
+                    Chương trình thi đua
+                    <div class="number" style="display:none"></div>
+                </a>
+            </li>
+            <li id="tabNotice" class="">
+                <a data-notif="Annoucement" data-toggle="tab" href="#tabNotification">
+                    <i class="icon-bell"></i>
+                    Thông báo
+                    <div class="number" style="display:none"></div>
+                </a>
+            </li>            
+        </ul>
+        <div class="tab-content" style="padding: 0 0px 0px 0px;">
+            <div id="tabKPI" class="tab-pane active">
+                <div style="height: 490px;padding:10px">
+                    <div class="row-fluid">
+                        @Html.Partial("_KPI")
+                    </div>
+                </div>
+            </div>
+            <div id="tabEmulation" class="tab-pane ">
+                <div style="overflow: auto; height: 490px">
+                    @(Html.Kendo().ListView<ERPAPD.Models.DC_CS_ManageInfo>()
+                        .Name("GridViewEmulation")
+                                .HtmlAttributes(new { @style = "border:none;" })
+                        .TagName("div")
+                            //.Events(e => e.DataBound("resizeGrid"))
+                        .ClientTemplateId("GridEmulationRowTemplate")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                            dataSource.Read(read => read.Action("EmulationRead", "CRM_CustomerSupport", new { Type = "Emulation" }));
+                            // dataSource.PageSize(5);
+                        })
+                    )
+                </div>
+            </div>
+            <div id="tabNotification" class="tab-pane">
+                <div style="overflow: auto; height: 490px">
+                    @(Html.Kendo().ListView<ERPAPD.Models.DC_CS_ManageInfo>()
+                        .Name("GridViewAnnoucement")
+                        .HtmlAttributes(new { @style = "border:none;" })
+                        .TagName("div")
+                            //.Events(e => e.DataBound("resizeGrid"))
+                        .ClientTemplateId("GridAnnoucementRowTemplate")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                            dataSource.Read(read => read.Action("AnnoucementRead", "CRM_CustomerSupport", new { Type = "Annoucement" }));
+                            // dataSource.PageSize(5);
+                        })
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-template" id="GridAnnoucementRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style="padding:5px; display inline-flex; border-bottom: 1px dotted \\#ccc">
+            <div style="margin-top: 5px ;margin-right:5px;display: inline;">
+                #if(Priority=='H'){#
+                <span style="background:\\#D15B47; padding: 3px 8px 3px 8px; color: white; border-radius:5px;">H</span>
+                #}else if(Priority == 'M'){#
+                <span style="background:\\#3A87AD; padding: 3px 8px 3px 8px; color: white; border-radius: 5px; ">M</span>
+                #}else{#
+                <span style="background:\\#A0A0A0; padding: 3px 8px 3px 8px; color: white; border-radius: 5px; ">L</span>
+                #}#
+            </div>
+            <div style="display: inline;">
+                #if(Priority=='H'){#
+                <span style="color: \\#D15B47; ">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else if(Priority == 'M'){#
+                <span style="color: \\#3A87AD">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else{#
+                <span style="color: \\#A0A0A0">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}#
+                <span style="font-weight:bold; color:\\#555555">#=Title#</span>
+            </div>
+            <div style="margin-top:10px;@*margin-bottom:-10px*@">
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="GridEmulationRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style="padding:5px; display inline-flex; border-bottom: 1px dotted \\#ccc">
+            <div style="margin-top: 5px ;margin-right:5px;display: inline;">
+                #if(Priority=='H'){#
+                <span style="background: \\#D15B47; padding: 3px 8px 3px 8px; color: white; border-radius: 5px;">H</span>
+                #}else if(Priority == 'M'){#
+                <span style="background: \\#3A87AD; padding: 3px 8px 3px 8px; color: white; border-radius: 5px; ">M</span>
+                #}else{#
+                <span style="background: \\#A0A0A0; padding: 3px 8px 3px 8px; color: white; border-radius: 5px; ">L</span>
+                #}#
+            </div>
+            <div style="display: inline;">
+                #if(Priority=='H'){#
+                <span style="color: \\#D15B47; ">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else if(Priority == 'M'){#
+                <span style="color: \\#3A87AD">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else{#
+                <span style="color: \\#A0A0A0">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}#
+                <span style="font-weight:bold; color:\\#555555">#=Title#</span>
+            </div>
+            <div style="margin-top:10px;@*margin-bottom:-10px*@">
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    function htmlDecodeForAnnoucement(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+    $("#myTabEmulat li a").click(function () {
+        if ($(this).attr("class") == "is_active") {
+            UpdateIsRead(this);
+        }
+    })
+</script>

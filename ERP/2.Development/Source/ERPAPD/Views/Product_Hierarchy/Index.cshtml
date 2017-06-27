@@ -1,0 +1,262 @@
+﻿@{
+    ViewBag.Title = "Cây phân cấp sản phẩm";
+}
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+</style>
+
+<div class="row-fluid">
+    <div class="span12">
+        @*<div class="widget-box">
+            <div class="row-fluid frame-search">
+                <input class="input-medium" id="txtHierarchy" type="text" placeholder="Tìm kiếm">
+                <button type="button" class="btn btn-small btn-primary" onclick='filter()'>Search</button>
+            </div>
+        </div>*@
+    </div>
+</div>
+
+
+<div class="row-fluid">
+    @(Html.Kendo().Grid<BIBIAM.Core.Entities.Product_Hierarchy>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.id).Hidden();
+        columns.Bound(p => p.ten_san_pham).Title("Tên sản phẩm").Width(120).HtmlAttributes(new { @class = "editable" });
+        //columns.ForeignKey(p => p.ma_cay_phan_cap_1, (System.Collections.IEnumerable)ViewBag.listHierarchy1, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 1").Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_1, (System.Collections.IEnumerable)ViewBag.listHierarchy1, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 1").Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_2, (System.Collections.IEnumerable)ViewBag.listHierarchy2, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 2").Width(120).EditorTemplateName("CayPhanCap2").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_3, (System.Collections.IEnumerable)ViewBag.listHierarchy3, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 3").Width(120).EditorTemplateName("CayPhanCap3").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_4, (System.Collections.IEnumerable)ViewBag.listHierarchy4, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 4").Width(120).EditorTemplateName("CayPhanCap4").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_5, (System.Collections.IEnumerable)ViewBag.listHierarchy5, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 5").Width(120).EditorTemplateName("CayPhanCap5").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_6, (System.Collections.IEnumerable)ViewBag.listHierarchy6, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 6").Width(120).EditorTemplateName("CayPhanCap6").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_7, (System.Collections.IEnumerable)ViewBag.listHierarchy7, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 7").Width(120).EditorTemplateName("CayPhanCap7").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_8, (System.Collections.IEnumerable)ViewBag.listHierarchy8, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 8").Width(120).EditorTemplateName("CayPhanCap8").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_9, (System.Collections.IEnumerable)ViewBag.listHierarchy9, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 9").Width(120).EditorTemplateName("CayPhanCap9").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.ma_cay_phan_cap_10, (System.Collections.IEnumerable)ViewBag.listHierarchy10, "ma_phan_cap", "ten_phan_cap").Title("Cây Cấp 10").Width(120).EditorTemplateName("CayPhanCap10").HtmlAttributes(new { @class = "editable" });
+        columns.ForeignKey(p => p.trang_thai, (System.Collections.IEnumerable)ViewBag.listStatus, "ParamID", "Value").Title("Trạng thái").Width(120).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+        columns.Bound(p => p.ngay_tao).Width(110).Title("Ngày tạo").Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+        columns.Bound(p => p.nguoi_tao).Width(100).Title("Người tạo");
+        columns.Bound(p => p.ngay_cap_nhat).Title("Ngày cập nhật").Width(110).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });           
+        columns.Bound(p => p.nguoi_cap_nhat).Title("Người cập nhật").Width(100);
+    })
+    .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+    .Scrollable()
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+                                       <div class="pull-left">
+                                        <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                                            <i class="icon-save"></i> @Resources.Multi.btnSave
+                                        </a>
+                                        <a class="btn btn-success btn-small" href="javascript:void(0)" id="btnGridCancel" onclick="Refresh()">
+                                            <i class="icon-refresh"></i> Refresh
+                                        </a>  
+                                        <a class="btn btn-danger btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                                            <i class="icon-undo"></i> Hủy thay đổi
+                                        </a>                                                       
+                                                                 
+                                    </div>
+                                    </text>);
+    })
+    .Sortable()
+    .Filterable(filterable => filterable
+        .Extra(false)                
+        .Operators(operators => operators            
+            .ForString(str => str.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+            .IsNotEqualTo("Is not equal to")
+           ))
+     )   
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable(x => x.PageSizes(new int[] { 100, 200, 300, 500 }))
+    .Events(events => { events.DataBound("dataBound"); })
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(100)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.id);
+            model.Field(p => p.ten_san_pham).Editable(false); 
+            model.Field(p => p.ngay_tao).Editable(false);
+            model.Field(p => p.nguoi_tao).Editable(false);
+            model.Field(p => p.ngay_cap_nhat).Editable(false);
+            model.Field(p => p.nguoi_cap_nhat).Editable(false);
+            
+        })        
+        .Read(c => c.Action("Read", "Product_Hierarchy"))
+        .Update(c => c.Action("Upsert", "Product_Hierarchy"))
+        )
+    )       
+</div>
+@Html.Partial("_popup")
+<script>        
+    function Update() {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    }
+    function Cancel() {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    }
+    function Clear()
+    {
+        $("form.k-filter-menu button[type='reset']").trigger("click");
+    }
+    function Refresh() {
+        Clear();
+        $('#Grid').data('kendoGrid').dataSource.read();
+    }
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+    }
+    function dataBound(e) {
+        resizeGrid('Grid');
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: 'Lỗi',
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function onRequestEnd(e) {
+        if ((e.type == "create") && !e.response.Errors) {
+            if (e.response.success)
+                $.gritter.add({
+                title: '',
+                text: 'Lưu thành công',
+                class_name: 'gritter-success'
+            });
+        }
+        else
+            if ((e.type == "update") && !e.response.Errors) {
+                if (e.response.success)
+                    $.gritter.add({
+                    title: '',
+                    text: 'Cập nhật thành công',
+                    class_name: 'gritter-success'
+                });
+            }
+    }
+    function getCurrentEditedModel() {
+        var grid = $("#Grid").data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+    function refreshValue(model, level) {
+        while (level < 10) {
+            level++;
+            var str = "ma_cay_phan_cap_" + level;
+            model.set(str, "");
+        }
+    }
+    function filterCayPhanCap2()
+    {
+        var model = getCurrentEditedModel();                
+        return {            
+            ma_phan_cap_cha: model.ma_cay_phan_cap_1
+        };
+    }
+    function filterCayPhanCap3() {        
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_2
+        };
+    }
+    function filterCayPhanCap4() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_3
+        };
+    }
+    function filterCayPhanCap5() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_4
+        };
+    }
+    function filterCayPhanCap6() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_5
+        };
+    }
+    function filterCayPhanCap7() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_6
+        };
+    }
+    function filterCayPhanCap8() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_7
+        };
+    }
+    function filterCayPhanCap9() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_8
+        };
+    }
+    function filterCayPhanCap10() {
+        var model = getCurrentEditedModel();
+        return {
+            ma_phan_cap_cha: model.ma_cay_phan_cap_9
+        };
+    }
+    function onSelect1() {
+        refreshValue(getCurrentEditedModel(), 1);
+    }
+    function onSelect2() {
+        refreshValue(getCurrentEditedModel(), 2);
+    }
+    function onSelect3() {
+        refreshValue(getCurrentEditedModel(), 3);
+    }
+    function onSelect4() {
+        refreshValue(getCurrentEditedModel(), 4);
+    }
+    function onSelect5() {
+        refreshValue(getCurrentEditedModel(), 5);
+    }
+    function onSelect6() {
+        refreshValue(getCurrentEditedModel(), 6);
+    }
+    function onSelect7() {
+        refreshValue(getCurrentEditedModel(), 7);
+    }
+    function onSelect8() {
+        refreshValue(getCurrentEditedModel(), 8);
+    }
+    function onSelect9() {
+        refreshValue(getCurrentEditedModel(), 9);
+    }
+    
+    
+</script>

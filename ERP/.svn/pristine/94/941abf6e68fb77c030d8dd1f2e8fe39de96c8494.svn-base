@@ -1,0 +1,725 @@
+﻿@using BIBIAM.Core.Entities;
+@{
+    ViewBag.Title = "Sản phẩm gian hàng";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var data = ViewBag.data == null ? new Merchant_Product() : ViewBag.data;
+    var data_product_image = new Merchant_Product_Image();
+    var data_product_hierarchy = new Merchant_Product_Hierarchy();
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    /*.fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }*/
+    .flex{
+        display:flex;
+    }
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        max-width:300px;
+        max-height:200px;
+    }
+
+    .image-products {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-products img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-products .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-products:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            top:0;
+            color: #ff7d5e;
+        }
+</style>
+
+<div class="row">
+    <div class="col-md-12 formEdit">
+    </div>
+    @Html.Partial("_popup_Product_Info")
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Merchant_Product/UpdateProduct")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase">Chỉnh sửa thông tin sản phẩm</span>
+                </div>
+                <div class="actions">
+                    
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="tabbable-line">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                        <label>Hình ảnh</label>
+                                        <div class="clearfix">
+                                            <div class="input-group">
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                    <div class="fileinput-new thumbnail" style="width: 180px;">
+                                                        <img src="#=url ? url : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image'#" alt="" />
+                                                    </div>
+                                                    <div class="fileinput-preview fileinput-exists thumbnail" style="width: 200px;"> </div>
+                                                    <div>
+                                                        <span id="SelectImage" class="btn default btn-file btn-sm btn-circle" onclick="show_popup_select_image_index()">Chọn ảnh từ thư viện</span>
+                                                        <span class="btn default btn-file btn-sm btn-circle">
+                                                            <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                            <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                            <input type="file" name="file">
+                                                        </span>
+                                                        <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:5px">
+                                            <div id="image-products" >
+                                            </div>
+                                        </div>
+                                    </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._status)</label>
+                                            <div class="clearfix">
+                                                <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                    <label class="btn red btn-sm btn-outline #=trang_thai=='NGUNG_SU_DUNG'?'active':''#">
+                                                        <input type="radio" name="trang_thai" value="NGUNG_SU_DUNG" class="toggle" #=trang_thai =='NGUNG_SU_DUNG' ?'checked':''#> @Html.Raw(Resources.Global._showroom_inactive)
+                                                    </label>
+                                                    <label class="btn green btn-sm btn-outline #=trang_thai=='DANG_SU_DUNG'?'active':''#">
+                                                        <input type="radio" name="trang_thai" value="DANG_SU_DUNG" class="toggle" #=trang_thai =='DANG_SU_DUNG' ?'checked':''#> @Html.Raw(Resources.Global._showroom_active)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                <div class="col-md-7 form-group">
+                                    <div class="col-md-12 form-group">
+                                        <a class="btn btn-primary btn-xs col-md-2" onclick="showHier(1)">Cây phân cấp</a>
+                                        <div class="col-md-10">
+                                            <div id="hierarchy-info_product">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Mã sản phẩm<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ma_san_pham" value="#=ma_san_pham!=null ? ma_san_pham : ''#" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Tên sản phẩm<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ten_san_pham" value="#=ten_san_pham!=null ? ten_san_pham : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Part-no<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="part_no" value="#=part_no? part_no : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Model<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="model" value="#=model? model : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Mô tả<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="mo_ta" value="#=mo_ta? mo_ta : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Khối lượng<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="khoi_luong" value="#=khoi_luong? khoi_luong : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Minium Order<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="minimum_order" value="#=minimum_order? minimum_order : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Đơn giá<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="don_gia" value="#=don_gia ? don_gia: ''#" onkeyup="PriceToCurrency(this, event)">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Giá bản sỉ<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="gia_si" value="#=gia_si ? gia_si : ''#" onkeyup="PriceToCurrency(this, event)">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>@Html.Raw(Resources.Global._sms_brand_name)<span class="required"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                        .Name("thuong_hieu")
+                                        .DataTextField("Name")
+                                        .DataValueField("Value")
+                                        .OptionLabel("--Thương Hiệu--")
+                                        .Value("#=thuong_hieu ? thuong_hieu : ''#")
+                                        .BindTo(ViewBag.thuong_hieu)
+                                        .HtmlAttributes(new { style = "width: 100%" })
+                                        .ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>@Html.Raw(Resources.Global._made_in)<span class="required"> * </span></label>
+                                        @(Html.Kendo().DropDownList().
+                                            Name("xuat_xu")
+                                            .HtmlAttributes(new { style = "width:100%" })
+                                            .OptionLabel(@Html.Raw(Resources.Global._made_in) + "...")
+                                            .Value("#=xuat_xu ? xuat_xu : ''#")
+                                            .DataTextField("Name")
+                                            .DataValueField("Name")
+                                            .Filter("contains").DataSource(source =>
+                                            {
+                                                source.Read(read => { read.Action("GetCountry", "CustomData"); })
+                                                    .ServerFiltering(false);
+                                            })
+                                            .ToClientTemplate())
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Từ khóa<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="tu_khoa" value="#=tu_khoa? tu_khoa : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Slug<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="slug" value="#=slug? slug : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label>Catalog</label>
+                                        <br />
+                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                            <div class="input-group input-large">
+                                                <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                                    <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                                    <span class="fileinput-filename"> </span>
+                                                </div>
+                                                <span class="input-group-addon btn default btn-file">
+                                                    <span class="fileinput-new"> Chọn file </span>
+                                                    <span class="fileinput-exists"> Thay đổi </span>
+                                                    <input type="hidden"><input type="file" name="FileUploadCatalog">
+                                                </span>
+                                                <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Xóa </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>@Html.Raw(Resources.Global._content_Caps)</label>
+                                                <div class="clearfix">
+                                                    @(Html.Kendo().Editor().Name("noi_dung")
+                                        .Value("#=noi_dung ? noi_dung : ''#")
+                                        .Encode(false)
+                                        .HtmlAttributes(new { style = "height:450px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                                        .Tools(tools => tools
+                                        .Clear()
+                                        .Bold().Italic().Underline().Strikethrough()
+                                        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                        .InsertUnorderedList().InsertOrderedList()
+                                        .Outdent()
+                                        .Indent()
+                                        .CreateLink().Unlink()
+                                        .InsertFile()
+                                        .SubScript()
+                                        .SuperScript()
+                                        .TableEditing()
+                                        .ViewHtml()
+                                        .Formatting()
+                                        .CleanFormatting()
+                                        .FontColor()
+                                        .BackColor()
+                                        .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a><a class='k-button' onclick='show_popup_selectimage()'>" + Html.Raw(Resources.Global._select_image) + "</a>")))
+                                        .Messages(m => m
+                                            .ImageWebAddress(@Resources.Global._image_addr)
+                                            .DialogCancel(@Resources.Global._cancel)
+                                            .DialogInsert(@Resources.Global._add)
+                                        )
+                                        .FileBrowser(fileBrowser => fileBrowser
+                                        .File(@HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + "/Content/Upload/docs/{0}")
+                                        .Read("Read", "FileBrowser")
+                                        .Create("Create", "FileBrowser")
+                                        .Destroy("Destroy", "FileBrowser")
+                                        .Upload("Upload", "FileBrowser")
+                                        ).ToClientTemplate()
+                                                    )
+                                                </div>
+                                            </div>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+         </div>
+    </form>
+</script>
+
+<div id="popup-hierarchy_product" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Chọn cây phân cấp sản phẩm</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul id="hierarchy-1"></ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul id="hierarchy-2"></ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul id="hierarchy-3"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_popup_select_image_content")
+@Html.Partial("_popup_select_image_index")
+<script>
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $.validator.addMethod("minCost", function (value, element) {
+            value = parseFloat(value.replace(/,/g, ''));
+            if (value < 50000)
+                return false;
+            return true;
+        }, "Tối thiểu 50,000 VNĐ");
+        $.validator.addMethod("maxCost", function (value, element) {
+            value = parseFloat(value.replace(/,/g, ''));
+            if (value > 1000000000)
+                return false;
+            return true;
+        }, "Tối đa 1,000,000,000 VNĐ");
+        $.validator.addMethod("checkContent", function (value, element) {
+            if (value == "") {
+                $("label[for='mo_ta']").html('<b>Vui lòng nhập thông tin cho @Html.Raw(Resources.Global._content)</b>').removeClass('hidden')
+                return false;
+            }
+            $("label[for='mo_ta']").text("").addClass('hidden')
+            return true;
+        });
+        $.validator.addMethod("customselect", function (value, element) {
+            if (value != 'Xuất xứ...') {
+                return true;
+            }
+            return false;
+        });
+        $.validator.addMethod("customnumber", function (value, element) {
+            if (currencyToNumber($(element).val()) > 0) {
+                return true;
+            }
+            return false;
+        });
+        $.validator.addMethod("customnumeric", function (value, element) {
+            var number = $(element).val();
+            $(element).val(number > 0 ? number : 0);
+            if (currencyToNumber($(element).val()).toFixed(2) > 0) {
+                return true;
+            }
+            return false;
+        });
+    });
+    var reset = false;
+    function showHier() {
+        debugger
+        $("#popup-hierarchy_product").modal('show');
+    }
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(@Html.Raw(Json.Encode(data)));
+    }
+    function show_popup_selectimage()
+    {
+
+    }
+    function loadForm(data) {
+        debugger
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadHierarchy(data.ma_loai_san_pham);
+        loadValidate(data);
+    }
+    function PriceToCurrency(ele, e) {
+        switch (e.keyCode) {
+            case 16: case 17: case 35: case 36: case 37: case 38: case 39: case 40:
+                break;
+            default:
+                num = $(ele).val(numberToCurrency(currencyToNumber($(ele).val())))
+                break;
+        }
+    }
+    function getHierarchyChild(cap, e) {
+        debugger
+        switch (cap) {
+            case 1:
+                $("#hierarchy-1 li").removeClass('active');
+                $("#hierarchy-2 li").removeClass('active');
+                $("#hierarchy-3 li").removeClass('active');
+                $(e).addClass('active');
+                $("#hierarchy-2 li").addClass('hidden');
+                $("#hierarchy-3 li").addClass('hidden');
+                $("#hierarchy-2 li").each(function (index, ele) {
+                    if ($(e).attr('id') == $(ele).attr('idref'))
+                        $(ele).removeClass('hidden');
+                });
+                break;
+            case 2:
+                $("#hierarchy-2 li").removeClass('active');
+                $("#hierarchy-3 li").removeClass('active');
+                $(e).addClass('active');
+                $("#hierarchy-3 li").addClass('hidden');
+                $("#hierarchy-3 li").each(function (index, ele) {
+                    if ($(e).attr('id') == $(ele).attr('idref'))
+                        $(ele).removeClass('hidden');
+                });
+                break;
+            case 3:
+                $("#hierarchy-3 li").removeClass('active');
+                $(e).addClass('active');
+                $("#hierarchy-info_product").html("<span>" + $("#hierarchy-1 li.active").text() + " -> " + $("#hierarchy-2 li.active").text() + " -> " + $("#hierarchy-3 li.active").text() + "</span>");
+                $("#hierarchy-info_product").attr("ma_phan_cap", $("#hierarchy-3 li.active").attr('id'));
+                $("#popup-hierarchy_product").modal('hide');
+
+                break;
+        }
+    }
+    function getDataBeforeSubmit() // return object, messageError
+    {
+        debugger
+        var messageError = "";
+        var object = [];
+        var listimage = [];
+        $("#image-products .image-products img").each(function(){
+            var mpi = @Html.Raw(Json.Encode(new Merchant_Product_Image()));
+            var dataItems = $("#popup_Gridindex").data("kendoListView").dataSource.data();
+            for (var i = 0; i < dataItems.length; i++){
+                if (dataItems[i].duong_dan_day_du == $(this).attr('src')){
+                    mpi.url = dataItems[i].duong_dan_day_du;
+                    mpi.ma_anh_goc = dataItems[i].ma_anh_goc;
+                    listimage.push(mpi);
+                    break;
+                }
+            }
+        });
+        object.listimage = listimage;
+        var hierarchy = @Html.Raw(Json.Encode(new Merchant_Product_Hierarchy()));
+        var properties = [];
+        hierarchy.ma_cay_phan_cap_3 = $("#hierarchy-info_product").attr("ma_phan_cap");
+        if (!(hierarchy.ma_cay_phan_cap_3 && hierarchy.ma_cay_phan_cap_3.startsWith('CAP')))
+        {
+            return{
+                messageError : "Bạn chưa chọn cây phân cấp",
+                object : object
+            };
+        }
+        var messageError = "";
+        var dataItems = [];
+        
+       
+        object.hierarchy = hierarchy;
+        //object.properties = properties;
+        return{
+            messageError : messageError,
+            object : object
+        }
+    }
+    function getHierarchy(ma_san_pham) {
+        $.ajax({
+            type: "POST",
+            async: false,
+            url:  r + "/Merchant_Product_Hierarchy/GetByProductID",
+            data: { ma_san_pham: ma_san_pham },
+            success: function (data) {
+                if (data.success)
+                    obj =  data.data;
+            }
+        });
+    }
+    function loadHierarchy(ma_phan_cap){
+    debugger
+            $.ajax({
+                type: "POST",
+                async: true,
+                url: r + "/CustomData/ReadHierarchy",
+                success: function (data) {
+                    var html1 = "";
+                    var html2 = "";
+                    var html3 = "";
+                    $.each(data, function () {
+                        switch (this.cap) {
+                            case 1:
+                                html1 += '<li class="list-group-item" id="' + this.ma_phan_cap + '" onclick="getHierarchyChild(1,this)">';
+                                html1 += '<span>' + this.ten_phan_cap + '</span>';
+                                html1 += '<i class="fa fa-check pull-left"></i></li>';
+                                break;
+                            case 2:
+                                html2 += '<li class="list-group-item" id="' + this.ma_phan_cap + '"idref ="' + this.ma_phan_cap_cha + '" onclick="getHierarchyChild(2,this)">';
+                                html2 += '<span>' + this.ten_phan_cap + '</span>';
+                                html2 += '<i class="fa fa-check pull-left"></i></li>';
+                                break;
+                            case 3:
+                                html3 += '<li class="list-group-item" id="' + this.ma_phan_cap + '"idref ="' + this.ma_phan_cap_cha + '" onclick="getHierarchyChild(3,this)">';
+                                html3 += '<span>' + this.ten_phan_cap + '</span>';
+                                html3 += '<i class="fa fa-check pull-left"></i></li>';
+                                break;
+                            default:
+                                break;
+                        }
+                        $("#hierarchy-1").html(html1);
+                        $("#hierarchy-2").html(html2);
+                        $("#hierarchy-3").html(html3);
+                        $("#hierarchy-2 li").addClass('hidden');
+                        $("#hierarchy-3 li").addClass('hidden');
+                    });
+                }
+            });
+    }
+    loadForm(@Html.Raw(Json.Encode(data)));
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_san_pham: { minlength: 4, maxlength: 512, required: !0 },
+                        part_no: { maxlength: 128, required: !0 },
+                        //slug :  { required: !0 },
+                        model: { maxlength: 512, required: !0 },
+                        mo_ta: { minlength: 4, maxlength: 512, required: !0 },
+                        minimum_order: { customnumber: true, required: !0 },
+                        khoi_luong: { customnumeric: true, required: !0 },
+                        don_gia: { minCost: true, maxCost: true, required: !0},
+                        gia_si: { minCost: true, maxCost: true, required: !0 },
+                        thuong_hieu: { minlength: 2, maxlength: 128, required: !0 },
+                        xuat_xu: { customselect:true, required: !0 },
+                        tu_khoa: { minlength: 2, maxlength: 512, required: !0 },
+                        noi_dung: { checkContent:true }
+                    },
+                messages:
+                    {
+                        ten_san_pham: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        //slug :{
+                        //    required: "Thông tin bắt buộc"
+                        //},
+                        part_no: {
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        model: {
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        mo_ta: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        minimum_order: {
+                            customnumber: "Số lượng phải lớn hơn 1",
+                            required: "Thông tin bắt buộc"
+                        },
+                        khoi_luong: { 
+                            customnumeric: "Số lượng phải lớn hơn 0", 
+                            required: "Thông tin bắt buộc"
+                        },
+                        don_gia: {
+                            number: "Kiểu dữ liệu số"
+                        },
+                        gia_si: {
+                            number: "Kiểu số 1,000,000"
+                        },
+                        thuong_hieu: {
+                            minlength: "Tối thiểu 2 ký tự",
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        xuat_xu: {
+                            required: "Thông tin bắt buộc"
+                        },
+                        tu_khoa: {
+                            minlength: "Tối thiểu 2 ký tự",
+                            maxlength: "Tối đa 128 ký tự",
+                            required: "Thông tin bắt buộc"
+                        }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    debugger
+                    var rs = getDataBeforeSubmit(); // return messageError, object
+                    if(rs.messageError != "") // messageError != "" -> has Error
+                    {
+                        toastr.error(rs.messageError);
+                        return;
+                    }
+                    var element = $("#EditForm").find("input[name='don_gia']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='gia_si']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='khoi_luong']");
+                    element.val(currencyToNumber(element.val()));
+                    var imgurl=$(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url" value="'+imgurl+'"/>');
+                    $(e).ajaxSubmit({
+                        data: { hierarchy: rs.object.hierarchy, listimage: rs.object.listimage},
+                        dataType: "json",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            $("#EditForm").find("input[name='url']").remove();
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                    loadForm(data.data);
+                                }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            if (XMLHttpRequest.status == 500)
+                                toastr.error('ERROR');
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+</script>

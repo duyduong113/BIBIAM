@@ -1,0 +1,145 @@
+﻿@{ 
+    HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", "*");
+}
+<style>
+    .label-tax{
+       font-size:10px;
+       color:darkblue;
+    }
+    .span-tax{
+        font-size:12px;
+        color:blue;
+    }
+</style>
+<div id="popup-check-tax" class="modal hide" style="width:50%">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông tin mã số thuế Doanh nghiệp</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">     
+        <div class="row-fluid form-horizontal" style="width:50%;float:left" >
+            <div class="row-fluid form-v">
+                <label>Mã số thuế:<span class="span-tax" id="MaSoThue"></span></label>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <label>Ngày cấp: <span  class="span-tax" id="NgayCap"></span></label>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <label>Tên Tiếng Việt:<span  class="span-tax" id="Title"> Ty TNHH Mtv Ngô Trọng Phát</span></label>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <label>Tên Tiếng Anh: <span  class="span-tax" id="TitleEn">NGO TRONG PHAT CO., LTD</span> </label>
+            </div>        
+        </div>
+        <div class="row-fluid form-horizontal" style="width:50%;float:right">  
+            <div class="row-fluid form-horizontal">
+                <label>Địa chỉ cty:<span  class="span-tax" id="DiaChiCongTy"></span></label>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <label>Giấy phép kinh doanh:<span  class="span-tax" id="GiayPhepKinhDoanh"></span><span id="GiayPhepKinhDoanh_NgayCap"></span></label>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <label>Giám đốc:<span  class="span-tax" id="ChuSoHuu"></span></label>
+            </div>
+            @*<div class="row-fluid form-horizontal">
+                <label>Điện thoại:<span id="NoiDangKyQuanLy_DienThoai"></span></label>
+            </div>*@
+            <div class="row-fluid form-horizontal">
+                <label>Ngành nghề:<span  class="span-tax" id="NganhNgheTitle"></span></label>
+            </div>
+            
+        </div>
+    </div>
+    <div class="modal-footer">
+        @*<a class="btn btn-info btn-small" onclick="onChangeStatus1(1)"> Đồng ý</a>*@
+        <a class="btn btn-default btn-small" data-dismiss="modal">Đóng</a>
+    </div>
+</div>
+
+<script>
+    //$(document).ready(function () {
+
+    //});
+    //function showConfirmTax(mst) {   
+        
+    //}
+  //  var invocation = new XMLHttpRequest();
+   // var url = 'https://thongtindoanhnghiep.co/api/company/3901212654';
+    //var datajson = { 'Type': '11', "SolrID": 'null', "ID": '0' };
+   
+    function showConfirmTax() {
+       
+
+        //$.ajax({
+        //    url: "https://thongtindoanhnghiep.co/api/company/3901212654",
+        //    dataType: "json",
+        //    contentType: 'application/json; charset=utf-8',
+        //    success: function (data) {
+        //        alert("Name:" + data.Type + "nage:" + data.SolrID);
+        //    }
+        //});
+        //mycallback(data);
+        //$.ajax({
+        //    url: 'https://thongtindoanhnghiep.co/api/company/3901212654',
+        //    type: "POST",
+        //   // dataType: 'json',
+        //    contentType: 'application/json; charset=utf-8',
+        //    success: function (data) {
+        //       // console.log(data);
+        //        console.log(JSON.decode(data));
+             
+        //       // // var len = dataWeGotViaJsonp.length;
+        //       // //JSON.parse(json, :quirks_mode => true);
+        //       // console.log(ss);
+        //       // console(JSON.stringify(dataWeGotViaJsonp));
+        //       // var obj = jQuery.parseJSON(dataWeGotViaJsonp);
+        //       // console.log(obj);
+        //    }
+        //});
+        //$.getJSON('https://thongtindoanhnghiep.co/api/company/' +'3901212654', function (data) {
+        //    console.log(data);
+        //});
+        //$.ajax({
+        //    url: "https://thongtindoanhnghiep.co/api/company/3901212654",
+        //    type: "GET",
+        //    contentType: 'application/json; charset=utf-8',
+        //    success: function (resultData) {
+        //        //here is your json.
+        //        // process it
+        //        console.log(resultData);
+        //    },
+        //    error: function (jqXHR, textStatus, errorThrown) {
+        //    },
+        //    timeout: 120000,
+        //});
+        //$.get("https://thongtindoanhnghiep.co/api/company/" + $('#TaxCode').val(), function (data) {
+        //    var obj = jQuery.parseJSON(data);
+        //    // alert(obj);
+        //    if (obj != null) {
+        //        $('#popup-check-tax').modal('show');
+        //    }
+            @*if (data.success) {
+                $.gritter.add({
+                    text: 'Thay đổi trạng thái thành công',
+                    class_name: 'gritter-success'
+                });
+                onCloseForm();
+                window.location = '@Request.Url';
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+
+            }*@
+       // });
+    }
+
+    function onCloseForm() {
+        $('#popup-check-tax').val('');
+        $('.modal').modal('hide');
+    }
+
+</script>

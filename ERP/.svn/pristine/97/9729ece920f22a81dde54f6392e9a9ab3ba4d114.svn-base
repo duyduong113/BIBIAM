@@ -1,0 +1,99 @@
+﻿<div id="popup-send" class="modal hide">
+
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn Gửi dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus1(1)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="popup-approve" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>Bạn chắc chắn Duyệt các khách hàng được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus1(2)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+<div id="popup-denied" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>Vui lòng nhập lý do nếu bạn từ chối khách hàng?</p>
+            <textarea id="denied-content" style="width:96%"></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus1(3)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    function showConfirmPopup1(e) {   
+        if (e == 1) { // Send
+            $('#popup-send').modal('show');
+        }
+        if (e == 2) { // Approve
+            $('#popup-approve').modal('show');
+        }
+        if (e == 3) { // Denied
+            $('#popup-denied').modal('show');
+        }
+    }
+    function onChangeStatus1(type) {
+        if (type == 3) {
+            if ($('#denied-content').val() == '') {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng nhập lý do từ chối',
+                    class_name: 'gritter-error'
+                });
+                return false;
+            }
+        }
+        $.post(r + "/CRMCustomerInfo/ChangeStatus", { data: '', type: type, reasons: $('#denied-content').val(), CustomerID: '@ViewBag.detailCustomer.CustomerID' }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    text: 'Thay đổi trạng thái thành công',
+                    class_name: 'gritter-success'
+                });
+                onCloseForm();
+                window.location = '@Request.Url';
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+
+            }
+        });
+
+    }
+
+    function onCloseForm() {
+        $('#denied-content').val('');
+        $('.modal').modal('hide');
+    }
+
+</script>

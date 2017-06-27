@@ -1,0 +1,1240 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_Telesales_Agent>
+
+
+@{
+    ViewBag.Title = "Quản lý Agent";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listIsLeader = new List<Object>();
+    listIsLeader.Add(new { Value = "True", Name = "True" });
+    listIsLeader.Add(new { Value = "False", Name = "False" });
+    ViewBag.listIsLeader = listIsLeader;
+    ViewBag.listIsManager = listIsLeader;
+}
+<div class="tabbable">
+    <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+            Quản lý Agent
+            </a>
+        </li>
+
+        <li class="">
+            <a data-toggle="tab" href="#accessright">
+                Quản lý nhóm
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane active">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-header widget-header-blue widget-header-flat">
+                            <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                            <span class="widget-toolbar">
+                                <a href="#" data-action="collapse">
+                                    <i class="icon-chevron-up"></i>
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="widget-body">
+                            <div class="widget-main">
+                                <div class="row-fluid">
+                                    <div class="span12">
+                                        <select name="select" id="listAgent" class='chosen-select span3' style="width: 200px" data-placeholder="chọn Agent..." multiple>
+                                            @foreach (var a in ViewBag.listUserName)
+                                            {
+                                                <option value="@a.UserName">@a.UserName</option>
+                                            }
+                                        </select>
+
+                                        <select name="select" id="listTeam" class='chosen-select span3' data-placeholder="@Resources.Multi.Select @Resources.Multi.Group.ToLower()..." multiple>
+                                            @foreach (var a in ViewBag.listTeamDistinc)
+                                            {
+                                                <option value="@a.CodeID">@a.Description</option>
+                                            }
+                                        </select>
+
+
+                                        <select name="select" id="listRegion" class='chosen-select span3' data-placeholder="Chọn vùng miền..." multiple>
+                                            @foreach (var a in ViewBag.listRegion)
+                                            {
+                                                <option value="@a.RegionID">@a.RegionName</option>
+                                            }
+                                        </select>
+                                        <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="span12">
+                        @(Html.Kendo()
+          .Grid(Model)
+          .Name("Grid")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.UserName).Width(110).Title("Tài khoản");
+              columns.ForeignKey(p => p.Team, (System.Collections.IEnumerable)ViewBag.listTeamDistinc, "CodeID", "Description").EditorTemplateName("GridNullableForeignKey").Width(110).Title(Resources.Multi.Group).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.XLiteID).Width(100).Title("XLiteID").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Command(command => command.Custom("RemoveFromTeles").Text("Loại bỏ").Click("RemoveFromTeles").HtmlAttributes(new { @class = "btn btn-danger" })).Width(100).HeaderHtmlAttributes("");
+              columns.Bound(p => p.CreatedAt).Width(110).Title(Resources.Multi.CreatedAt).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+              columns.Bound(p => p.CreatedBy).Width(110).Title(Resources.Multi.CreatedBy);
+          })
+          .Events(events => { events.DataBound("dataBound"); events.DetailExpand("detailExpand"); })
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          .Scrollable(scrollable => scrollable.Virtual(true))
+          .Pageable(pager => pager
+                                  .PageSizes(new[] { 20, 100, 200, 300 }))
+          .Sortable()
+          .ColumnMenu()
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+
+          .Resizable(resize => resize.Columns(true))
+          .ToolBar(toolBar =>
+          {
+              toolBar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+
+              //toolBar.Custom()
+              //       .Text("Import from Excel")
+              //       .HtmlAttributes(new { id = "import", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+              //toolBar.Custom()
+              //       .Text("Export To Excel")
+              //       .HtmlAttributes(new { @class = "export", @style = "display:" + (AllowExport ? "inline-block" : "none") })
+              //       .Url(Url.Action("TelesalesAgent_Export", "TelesalesAgent", new { filter = "~", sort = "~" }));
+
+          })
+          .DataSource(dataSource => dataSource
+                                    .Ajax()
+                                    .Batch(true)
+                                    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                    .Model(model =>
+                                    {
+                                        model.Id(p => p.UserName);
+                                        model.Field(p => p.UserName).Editable(false);
+                                    })
+                                    .PageSize(100)
+                                    .Read("TelesalesAgent_Read", "TelesalesAgent")
+                                    .Update("TelesalesAgent_Save", "TelesalesAgent"))
+                                            .ClientDetailTemplateId("DetailsBranch")
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="accessright" class="tab-pane">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-header widget-header-blue widget-header-flat">
+                            <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                            <span class="widget-toolbar">
+                                <a href="#" data-action="collapse">
+                                    <i class="icon-chevron-up"></i>
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="widget-body">
+                            <div class="widget-main">
+                                <div class="row-fluid">
+                                    <input id="Information" style="height:20px" type="text" placeholder="Vùng miền..." />
+                                    <button type="button" id="btnSearchAT" class="btn btn-primary btn-small" onclick="filter2()" style="float:none">@Resources.Multi.Filter</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row-fluid">
+                <div class="span12">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Location_Region>()
+                    .Name("Grid2")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.RegionName).Width(100).Title("Tên vùng miền").Width(90);
+                        columns.Bound(p => p.listUser).Width(100).Title("Người dùng").Width(600);
+                    })
+                            .Events(events => { events.DataBound("dataBound2"); events.DetailExpand("detailExpand2"); })
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                    .Navigatable()
+                    .ColumnMenu()
+                    .ToolBar(toolBar =>
+                    {
+                        //toolBar.Create().HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                        //toolBar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+
+                        //toolBar.Custom()
+                        //.Text("Import from Excel")
+                        //.HtmlAttributes(new { id = "import2", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+
+                        //toolBar.Custom()
+                        //       .Text("Export To Excel")
+                        //       .HtmlAttributes(new { @class = "export2", @style = "display:" + (AllowExport ? "inline-block" : "none") })
+                        //       .Url(Url.Action("Agent_Branch_Region_Export", "TelesalesAgent", new { filter = "~", sort = "~" }));
+
+                        //toolBar.Custom()
+                        //.Text("Delete")
+                        //.HtmlAttributes(new { @id = "btnDeletePro", @class = "btn-danger", @style = "background-color:#AF4E96;color:white;display:" + (AllowUpdate ? "inline-block" : "none"), @Href = "javascript:RemoveAgent1()" });
+                    })
+                    .Sortable()
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Filterable()
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .PageSize(50)
+                                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd2"); })
+                                .Model(model =>
+                                {
+                                    model.Id(p => p.RegionID);
+                                    model.Field(p => p.RowCreatedUser).Editable(false);
+                                    model.Field(p => p.RowCreatedTime).Editable(false);
+                                    model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                                    model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                    model.Field(p => p.RegionID).Editable(false);
+                                })
+                                .Read(read => read.Action("Read_Agent_Branch_Region", "TelesalesAgent")
+                                        )).ClientDetailTemplateId("DetailsAgent_Branch_Region"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .divBranch .chosen-container {
+        width: 400px !important;
+    }
+
+    .divBranch .chosen-container {
+        width: 400px !important;
+    }
+</style>
+
+<script id="DetailsAgent_Branch_Region" type="text/kendo-tmpl">
+    <div class="row-fluid">
+        <div class="span12">
+            @(Html.Kendo()
+                .TabStrip()
+                .Name("tabStrip_#=RegionID#")
+                .SelectedIndex(0)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .Items(items =>
+                {
+                    items.Add().Text("Danh sách người dùng").Content(@<text>
+                        <span class="divBranchIDRegionID_#=RegionID# span9" style="display: inline-block;"></span>
+                        <a onclick='SaveBranchIDRegionID()' class="btn btn-success btn-small">Thêm vào </a>
+                        <a onclick='deleteBranchIDRegionID()' class="btn btn-danger btn-small">Loại bỏ </a>
+                        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_TeleSale_Agent_Region>()
+                    .Name("Grid2_#=RegionID#")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll5'  onClick='checkAll5(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=Id\\#'  />").Width(35).Filterable(false).Sortable(false);
+                        columns.Bound(p => p.UserName).Width(90);
+                        columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                    })
+                    .Pageable(pager => pager
+                    .PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                    .Sortable()
+                    .ColumnMenu()
+                    .Filterable()
+                    .Resizable(resize => resize.Columns(true))
+                    .Events(events => { events.DataBound("dataBound4"); })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Events(events => { events.Error("error_handler"); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.RowCreatedUser).Editable(false);
+                        model.Field(p => p.RowCreatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                    })
+                    .PageSize(20)
+                    .Read(read => read.Action("Read_Agent_Branch_Region2", "TelesalesAgent", new { RegionID = "#=RegionID#" }))
+                    ).ToClientTemplate())
+                    </text>);
+                }).ToClientTemplate())
+        </div>
+    </div>
+</script>
+
+<script id="DetailsBranch" type="text/kendo-tmpl">
+    <div class="row-fluid">
+        <div class="span12">
+            @(Html.Kendo()
+                .TabStrip()
+                .Name("tabStrip_#=UserName#")
+                .SelectedIndex(0)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .Items(items =>
+                {
+                    items.Add().Text("Vùng miền").Content(@<text>
+                        <input type="hidden" name="UserName" class="UserName" />
+                        <span class="divBranch" style="display: inline-block;"></span>
+                        <a onclick='SaveBranch()' class="btn btn-success btn-small">Thêm vào </a>
+                        <a onclick='deleteBranch()' class="btn btn-danger btn-small">Loại bỏ </a>
+                        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_TeleSale_Agent_Region>()
+                                            .Name("Grid2_#=UserName#")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Id).Width(50).Hidden();
+                        columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll4'  onClick='checkAll4(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=Id\\#'  />").Width(35).Filterable(false).Sortable(false);
+                        columns.Bound(p => p.RegionID).Title("Mã vùng miền").Width(100);
+                        columns.Bound(p => p.RegionName).Title("Tên vùng miền").Width(100);
+                        columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                        columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("\\#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){\\#" + "\\#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') \\#" + "\\#}\\#").Hidden();
+                        columns.Bound(p => p.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(100).Hidden();
+                    })
+                    .Pageable(pager => pager
+                    .PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                    .Sortable()
+                    .ColumnMenu()
+                    .Filterable()
+                    .Resizable(resize => resize.Columns(true))
+                    .Events(events => { events.DataBound("dataBound3"); })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Events(events => { events.Error("error_handler"); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.RowCreatedUser).Editable(false);
+                        model.Field(p => p.RowCreatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                    })
+                    .PageSize(20)
+                                    .Read(read => read.Action("Branch_Region_Read", "TelesalesAgent", new { UserName = "#=UserName#" }))
+                    ).ToClientTemplate())
+                    </text>);
+                }).ToClientTemplate())
+        </div>
+    </div>
+</script>
+
+@(Html.Kendo()
+      .Window()
+      .Name("window")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importform" action="@Url.Content("~/TelesalesAgent/ImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span12">
+                @(Html.Kendo()
+          .Grid<ERPAPD.Models.DC_Telesales_Agent>()
+          .Name("gridImportOrganization")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.UserName).Width(70);
+              columns.Bound(p => p.Team).Width(70);
+              columns.Bound(p => p.ImportNote).Width(150).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+          })
+          .Sortable()
+          .ColumnMenu()
+          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                )
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+@(Html.Kendo()
+      .Window()
+      .Name("window2")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importform2" action="@Url.Content("~/TelesalesAgent/ImportFromExcelAgent_Branch_Region")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload2" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport2" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                @(Html.Kendo()
+                  .Grid<ERPAPD.Models.DC_TeleSale_Agent_Region>()
+                  .Name("gridImportAgent_Branch_Region")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.UserName).Width(70);
+              columns.Bound(p => p.RegionID).Width(70);
+              columns.Bound(p => p.ImportNote).Width(150).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+          })
+          .Sortable()
+          .ColumnMenu()
+          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                )
+            </div>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload2" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+<script src="@Url.Content("~/Scripts/date.format.js")"></script>
+<script src="@Url.Content("~/Scripts/underscore.js")"></script>
+
+<script>
+    $('#FileUpload2').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+
+    $('#import2').bind('click', function () {
+        $("#window2").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImport2').bind('click', function () {
+        $('#importform2').submit();
+    });
+
+    (function () {
+        $("#importform2").ajaxForm({
+            beforeSend: function () {
+                $("#window2").data("kendoWindow").close();
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                // $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                if (data.success) {
+                    //$(".blockUI").hide();
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                    //$.unblockUI;
+                    document.location.reload();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.data.length > 0) {
+                        var ds = new kendo.data.DataSource();
+                        ds.data(data.data);
+                        $("#gridImportAgent_Branch_Region").data("kendoGrid").setDataSource(ds);
+                        //$("#gridImportOrganization").data("kendoGrid").dataSource.read();
+                        $("#window2").data("kendoWindow").open();
+                        $('#btndownload2').css('display', 'inline-block');
+                        $('#btndownload2').click(function () {
+                            window.location = r + "/TelesalesAgent/Download2?file=" + data.link;
+                        })
+                    }
+                }
+            },
+            complete: function (xhr) {
+            }
+        });
+    })();
+</script>
+
+<script type="text/javascript">
+    function RemoveAgent1() {
+        var listrowid = '';
+        $('#Grid2').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: '',
+                text: 'Chọn người dùng',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            var c = confirm('Are you sure to Remove this Agent');
+            if (c == true) {
+                $.post(r + "/TelesalesAgent/RemoveAgent1", { data: listrowid }, function (data) {
+                    if (data.error > 0) {
+                        $.gritter.add({
+                            title: '',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Delete sucesssfully ' + data.success + ' Agent',
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    $("#Grid2").data("kendoGrid").dataSource.read();
+                });
+            }
+        }
+    }
+
+    var click1 = false;
+    var click2 = false;
+    var click3 = false;
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href");
+        if (target == '#home' && !click2) {
+            click2 = true;
+            resizeGrid();
+        }
+        if (target == '#accessright' && !click3) {
+            click3 = true;
+            $("#listAgent2").chosen();
+            resizeGrid2();
+        }
+    });
+
+    function RemoveFromTeles(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var c = confirm("Are you sure you want to remove this user from telesales group?");
+        if (c) {
+            $.post(r + "/TelesalesAgent/RemoveUserFromTelesales", { UserName: dataItem.UserName }, function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        title: '',
+                        text: "Remove successfully",
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+
+    function dataBound3(e) {
+        $('#checkboxcheckAll4').prop('checked', false);
+        var g = $("#Grid2_" + currentid).data("kendoGrid");
+    }
+
+    function dataBound4(e) {
+        $('#checkboxcheckAll5').prop('checked', false);
+        var g = $("#Grid2_" + currentidBranchID + "_" + currentidRegionID).data("kendoGrid");
+    }
+
+    function checkAll4(e) {
+        var x = $(e).prop('checked');
+        $("#Grid2_" + $('.UserName').val()).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function checkAll5(e) {
+        var x = $(e).prop('checked');
+        $("#Grid2_" + currentidBranchID + "_" + currentidRegionID).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function loadListBranch() {
+        $.post(r + "/TelesalesAgent/GetBranch", function (data) {
+            $('.divBranch').html('<select name="listBranch" id="listBranch" class="chosen-select span" data-placeholder="Chọn vùng miền..." multiple style="width:306px;"></select>')
+            var html = '<option></option>';
+            for (var i = 0; i < data.length; i++) {
+                html += '<option value="' + data[i].RegionID + '">' + data[i].RegionName + '</option>';
+            }
+            $('#listBranch').html(html);
+            $('#listBranch').chosen();
+        });
+    }
+
+    function loadListAgent() {
+        $.post(r + "/TelesalesAgent/GetUser", function (data) {
+            $('.divBranchIDRegionID' + "_" + currentidRegionID).html('<select name="listBranchIDRegionID" id="listBranchIDRegionID' + currentidBranchID + "_" + currentidRegionID + '" class="chosen-select span9" data-placeholder="Chọn người dùng..." multiple ></select>');
+            var html = '<option></option>';
+            for (var i = 0; i < data.length; i++) {
+                html += '<option value="' + data[i].UserName + '">' + data[i].UserName + '</option>';
+            }
+            $('#listBranchIDRegionID' + currentidBranchID + "_" + currentidRegionID).html(html);
+            $('#listBranchIDRegionID' + currentidBranchID + "_" + currentidRegionID).chosen();
+        });
+    }
+
+    function SaveBranch() {
+        var listPro = $(".divBranch option:selected");
+        var data = "";
+        if (listPro.length == 0) {
+            $.gritter.add({
+                title: '',
+                text: "Chọn vùng miền.",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            for (var i = 0; i < listPro.length; i++) {
+                data += listPro[i].value + ",";
+            }
+            $.post(r + "/TelesalesAgent/SaveBranch", { listBranch: data, UserName: $('.UserName').val() }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: "" + data.dataCount + " item Save Changes success",
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid2_" + $('.UserName').val()).data("kendoGrid").dataSource.read();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: "Save Changes Fail",
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+
+    function SaveBranchIDRegionID() {
+        var listPro = $(".divBranchIDRegionID" + "_" + currentidRegionID + " option:selected");
+        var data = "";
+        if (listPro.length == 0) {
+            $.gritter.add({
+                title: '',
+                text: "Chọn người dùng",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            for (var i = 0; i < listPro.length; i++) {
+                data += listPro[i].value + ",";
+            }
+            $.post(r + "/TelesalesAgent/SaveBranchIDRegionID", { listUser: data, BranchID: currentidBranchID, RegionID: currentidRegionID }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: "" + data.dataCount + " item Save Changes success",
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid2_" + currentidRegionID).data("kendoGrid").dataSource.read();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: "Save Changes Fail",
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+
+    function deleteBranch() {
+        var listrowid = "";
+        $("#Grid2_" + $('.UserName').val()).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Are you sure you want to REMOVE ");
+            if (c == true) {
+                $.post(r + "/TelesalesAgent/Branch_Remove", { data: listrowid, UserName: $('.UserName').val() }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid2_" + $('.UserName').val()).data("kendoGrid").dataSource.read();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    function deleteBranchIDRegionID() {
+        var listrowid = "";
+        $("#Grid2_" + currentidRegionID).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Are you sure you want to REMOVE ");
+            if (c == true) {
+                $.post(r + "/TelesalesAgent/deleteBranchIDRegionID", { data: listrowid, RegionID: currentidRegionID }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid2_" + currentidRegionID).data("kendoGrid").dataSource.read();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    var expandedRow; var currentid;
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#Grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        id = expandedRow[0].cells[0].innerText;
+        var masterDataItem = $('#Grid').data('kendoGrid').dataItem(expandedRow);
+        currentid = masterDataItem.UserName;
+        $('.UserName').val(masterDataItem.UserName);
+        loadListBranch();
+    }
+
+    var expandedRow2; var currentidBranchID; var currentidRegionID;
+    function detailExpand2(e) {
+        // Only one open at a time
+        if (expandedRow2 != null && expandedRow2[0] != e.masterRow[0]) {
+            var grid = $('#Grid2').data('kendoGrid');
+            grid.collapseRow(expandedRow2);
+        }
+        expandedRow2 = e.masterRow;
+        id = expandedRow2[0].cells[0].innerText;
+        var masterDataItem = $('#Grid2').data('kendoGrid').dataItem(expandedRow2);
+        currentidBranchID = masterDataItem.BranchID;
+        currentidRegionID = masterDataItem.RegionID;
+
+        loadListAgent();
+    }
+
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        // Update the 'href' attribute
+        //$exportLink.attr('href', href);
+
+        //load selected
+        var gridDataSource = $("#Grid").data("kendoGrid").dataSource;
+        var $Grid = $("#Grid");
+
+        $('#Grid').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-kendoGrid-rowid', data_entry.RequestID);
+        });
+
+        //Mark any selected rows as selected (persists selections from page to page)
+        var selectedRowIds = $Grid.attr('data-kendoGrid-selected');
+        if (selectedRowIds != null) {
+            var selectedRowIdArray = selectedRowIds.split(',');
+            var visibleRows = $Grid.find('.kendo-data-row');
+            $(visibleRows).each(function () {
+                $row = $(this);
+                var rowID = $row.attr('data-kendoGrid-rowid');
+                if (_.contains(selectedRowIdArray, rowID)) {
+                    //$row.addClass('k-state-selected');
+                    $row.find('.checkValue').attr('checked', 'checked');
+                }
+            });
+            var totalview = $("#Grid").data("kendoGrid").dataSource.view().length;
+            var totalchecked = $('.checkValue:checked').length;
+            if (totalview != totalchecked) {
+                $('#checkAll').removeAttr("checked");
+            }
+            else {
+                $('#checkAll').attr("checked", "checked");
+            }
+        }
+    }
+
+    function dataBound2(e) {
+        resizeGrid2();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        $("#Grid2").find('#checkboxcheckAll8').prop('checked', false);
+    }
+
+    function checkAll8(e) {
+        var x = $(e).prop('checked');
+        $('#Grid2').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    $(document).ready(function () {
+        $('#checkAll').bind('click', function () {
+            if ($(this).is(':checked')) {
+                $('.checkValue').each(function () {
+                    if (!$(this).is(':checked')) {
+                        $(this).trigger('click');
+                    }
+                })
+            }
+            else {
+                $('.checkValue').each(function () {
+                    if ($(this).is(':checked')) {
+                        $(this).trigger('click');
+                    }
+                })
+            }
+        });
+
+        $("#listAgent").css('witdh', "30%");
+        $("#listAgent").chosen();
+        $("#listAgent").val(['']);
+        $("#listTeam").css('witdh', "30%");
+        $("#listTeam").chosen();
+        $("#listTeam").val(['']);
+        $("#listMCAUser").chosen();
+        $("#listMCAUser").val(['']);
+
+        $("#listRegion").chosen();
+        $("#listIsManager").chosen();
+        $("#listIsLeader").chosen();
+    });
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    function resizeGrid2() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid2').offset().top);
+        var gridElement = $("#Grid2"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $("#Grid").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $("#Grid").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+
+    }
+
+    function onRequestEnd2(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $("#Grid2").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $("#Grid2").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+    $('.icon-chevron-down').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+    function readData(e) {
+        var $Grid = $("#Grid");
+        var $cb = $(e);
+
+        //Get Current Selected Values
+        var selectedVals = [];
+        var selectedRowIds = $Grid.attr('data-kendoGrid-selected');
+        if (selectedRowIds != null && selectedRowIds != "") {
+            selectedVals = selectedRowIds.split(',');
+        }
+
+        var $row = $cb.parents('.kendo-data-row').first();
+        var rowId = $row.attr('data-kendoGrid-rowid');
+        if ($cb.is(':checked')) {
+            //$row.addClass('k-state-selected');
+            selectedVals.push(rowId);
+        }
+        else {
+            $('#checkAll').removeAttr("checked");
+            //$row.removeClass('k-state-selected');
+            selectedVals = _.without(selectedVals, rowId);
+        }
+
+        //Set selected values to a custom data attribute on the grid
+        $Grid.attr('data-kendoGrid-selected', selectedVals);
+
+    }
+
+    function getValue(e) {
+        readData(e);
+    }
+</script>
+<script>
+    function filter() {
+
+        grid = $("#Grid").data("kendoGrid");
+        var listAgent = $("#listAgent option:selected");
+        var listTeam = $("#listTeam option:selected");
+        var listRegion = $('#listRegion option:selected');
+
+        var filter = { logic: "and", filters: [] };
+        var fillterAgent = { logic: "or", filters: [] };
+        var fillterTeam = { logic: "or", filters: [] };
+        var fillterMCAUser = { logic: "or", filters: [] }
+        var fillterRegion = { logic: "or", filters: [] }
+        var fillterIsLeader = { logic: "or", filters: [] }
+        var fillterIsManager = { logic: "or", filters: [] }
+
+
+
+        if (listAgent.length > 0) {
+            for (var i = 0; i < listAgent.length; i++) {
+                var option = listAgent[i].value;
+                if (option == '') {
+                    fillterAgent.filters.push({ field: "UserName", operator: "contains", value: '' });
+                }
+                else {
+                    fillterAgent.filters.push({ field: "UserName", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterAgent);
+        }
+
+        if (listTeam.length > 0) {
+            for (var i = 0; i < listTeam.length; i++) {
+                var option = listTeam[i].value;
+                if (option == '') {
+                    fillterTeam.filters.push({ field: "Team", operator: "contains", value: '' });
+                }
+                else {
+                    fillterTeam.filters.push({ field: "Team", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterTeam);
+        }
+
+     
+        if (listRegion.length > 0) {
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == '') {
+                    fillterRegion.filters.push({ field: "Region", operator: "contains", value: '' });
+                }
+                else {
+                    fillterRegion.filters.push({ field: "Region", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterRegion);
+        }
+
+
+        grid.dataSource.filter(filter);
+    }
+
+    function filter2() {
+        grid = $("#Grid2").data("kendoGrid");
+        var Information = $("#Information").val();
+        var filter = { logic: "and", filters: [] };
+        var fillterAgent = { logic: "or", filters: [] };
+
+        if (Information) {
+            fillterAgent.filters.push({ field: "RegionName", operator: "contains", value: Information });
+            filter.filters.push(fillterAgent);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    $('#btnSearch').bind('click', function () {
+        filter();
+    });
+
+    $('#CustomerInfo').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+</script>
+<script>
+    $('#FileUpload').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+
+    $('#import').bind('click', function () {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImport').bind('click', function () {
+        $('#importform').submit();
+    });
+
+    (function () {
+        $("#importform").ajaxForm({
+
+            beforeSend: function () {
+                $("#window").data("kendoWindow").close();
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                // $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                if (data.success) {
+                    //$(".blockUI").hide();
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                    //$.unblockUI;
+                    document.location.reload();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.data.length > 0) {
+                        var ds = new kendo.data.DataSource();
+                        ds.data(data.data);
+                        $("#gridImportOrganization").data("kendoGrid").setDataSource(ds);
+                        //$("#gridImportOrganization").data("kendoGrid").dataSource.read();
+                        $("#window").data("kendoWindow").open();
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').click(function () {
+                            window.location = r + "/CreditRequest/Download?file=" + data.link;
+                        })
+                    }
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+</script>
+
+
+
+

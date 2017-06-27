@@ -1,0 +1,281 @@
+﻿using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using BIBIAM.Core.Entities;
+using System.Data;
+using BIBIAM.Core.Data.DataObject;
+using System.Text.RegularExpressions;
+using System.Text;
+using MCC.Filters;
+using MCC.Models;
+using BIBIAM.Core;
+using MCC.Helpers;
+using System.IO;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,create,export,update")]
+    public class Merchant_ReportPriceController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ReadHeader([DataSourceRequest]DataSourceRequest request)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = new DataSourceResult();
+
+                    if (isAdmin)
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_ReportPriceHeader>(request);
+                    }
+                    else
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_ReportPriceHeader>(request, "ma_gian_hang = {0}".Params(currentUser.ma_gian_hang));
+                    }
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ReadDetail([DataSourceRequest]DataSourceRequest request, string ma_bao_gia)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<Merchant_ReportPriceDetail>();
+                if (isAdmin)
+                    data = dbConn.Select<Merchant_ReportPriceDetail>("ma_bao_gia = {0}", ma_bao_gia);
+                else
+                    data = dbConn.Select<Merchant_ReportPriceDetail>("ma_gian_hang ={0} and ma_bao_gia = {1}", currentUser.ma_gian_hang, ma_bao_gia);
+                return Json(data.ToDataSourceResult(request));
+            }
+        }
+        public ActionResult GetTemplate(int Id = 0, bool isView = true, string ma_bao_gia = "")
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                Merchant_ReportPriceHeader reportpriceheader= new Merchant_ReportPriceHeader();
+                if (isAdmin)
+                {
+                    reportpriceheader = dbConn.FirstOrDefault<Merchant_ReportPriceHeader>("ma_bao_gia={0}".Params(ma_bao_gia));
+                    ViewBag.reportpriceheader = reportpriceheader;
+                    List<Merchant_ReportPriceDetail> listproduct = dbConn.Select<Merchant_ReportPriceDetail>("select a.*,b.mo_ta,b.xuat_xu,b.url from Merchant_ReportPriceDetail a left join Merchant_Product b on a.ma_san_pham=b.ma_san_pham where a.ma_bao_gia={0}".Params(ma_bao_gia));
+                    ViewBag.listproduct = listproduct;
+                }
+                else
+                {
+                    reportpriceheader = dbConn.FirstOrDefault<Merchant_ReportPriceHeader>("ma_bao_gia={0} and ma_gian_hang={1}".Params(ma_bao_gia,currentUser.ma_gian_hang));
+                    ViewBag.reportpriceheader = reportpriceheader;
+                    List<Merchant_ReportPriceDetail> listproduct = dbConn.Select<Merchant_ReportPriceDetail>("select a.*,b.mo_ta,b.xuat_xu,b.url from Merchant_ReportPriceDetail a left join Merchant_Product b on a.ma_san_pham=b.ma_san_pham where a.ma_bao_gia={0} a.ma_gian_hang={1}".Params(ma_bao_gia, currentUser.ma_gian_hang));
+                    ViewBag.listproduct = listproduct;
+                }
+                if(reportpriceheader==null)
+                {
+                    return Json(new { success = false, message = "Không có báo giá này!" });
+                }
+                var subtemplate = "_template_product_table";
+                ViewBag.subWiewName = subtemplate;
+                string viewName = "_template_export_contract_header1";
+                string html = RenderPartialViewToString(viewName);
+                if (isView)
+                {
+                    return View(viewName);
+                }
+                try
+                {
+                    ExportToWord(html, ma_bao_gia);
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, message = e });
+                }
+            }
+            return Json(new { success = true });
+        }
+        public void ExportToWord(string content, string ma_bao_gia)
+        {
+            StringBuilder sbTop = new System.Text.StringBuilder();
+            string strDocbody = "";
+            strDocbody = "<html " + "xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                            "xmlns:w='urn:schemas-microsoft-com:office:word'" +
+                            "xmlns='http://www.w3.org/TR/REC-html40'>" +
+                            "<head><title></title></head>";
+
+            strDocbody += "<body lang = 'EN' style = 'tab-interval:.5in'>" +
+                            "<div id = 'container'>" + content + "</div>" +
+                            "</body></html>"
+                            ;
+            sbTop.Append(strDocbody);
+
+            string strBody = sbTop.ToString();
+            string fileName = "BaoGia_" + ma_bao_gia;
+            Response.AppendHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            Response.AppendHeader("Content-disposition", "attachment; filename=" + fileName + ".doc");
+            Response.Write(strBody);
+            Response.End();
+            Response.Flush();
+        }
+        public ActionResult CreateUpdate(Merchant_ReportPriceHeader header, List<Merchant_ReportPriceDetail> details,string savesas="no")
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]|| accessDetail.access["update"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    if (header.id > 0 && savesas == "no")
+                    {
+                        if (details == null)
+                        {
+                            return Json(new { success = false, error = "Vui lòng chọn sản phẩm!" });
+                        }
+                        //Update header
+                        Merchant_ReportPriceHeader existheader;
+                        if(isAdmin)
+                        {
+                            existheader = dbConn.FirstOrDefault<Merchant_ReportPriceHeader>("ma_bao_gia={0}".Params(header.ma_bao_gia));
+                        }
+                        else
+                        {
+                            existheader = dbConn.FirstOrDefault<Merchant_ReportPriceHeader>("ma_bao_gia={0} and ma_gian_hang={1}".Params(header.ma_bao_gia,currentUser.ma_gian_hang));
+                        }
+                        existheader.ten_khach_hang = header.ten_khach_hang;
+                        existheader.email = header.email;
+                        existheader.so_dien_thoai = header.so_dien_thoai;
+                        existheader.ngay_bao_gia = DateTime.Now;
+                        existheader.nguoi_bao_gia = currentUser.name;
+                        existheader.ghi_chu = header.ghi_chu;
+                        dbConn.UpdateOnly(existheader,
+                                   onlyFields: p =>
+                                   new
+                                   {
+                                       p.ten_khach_hang,
+                                       p.email,
+                                       p.so_dien_thoai,
+                                       p.ngay_bao_gia,
+                                       p.nguoi_bao_gia,
+                                       p.ghi_chu
+                                   },
+                                    where: p => p.ma_bao_gia == existheader.ma_bao_gia && p.ma_gian_hang ==existheader.ma_gian_hang);
+
+                        //Xóa các detail đã tồn tại
+                        if(isAdmin)
+                        {
+                            dbConn.Delete<Merchant_ReportPriceDetail>("ma_bao_gia={0}".Params(existheader.ma_bao_gia));
+                        }
+                        else
+                        {
+                            dbConn.Delete<Merchant_ReportPriceDetail>("ma_bao_gia={0} and ma_gian_hang{0}".Params(header.ma_bao_gia,existheader.ma_gian_hang));
+                        }
+
+                        //Insert các detail mới
+                        foreach(var item in details)
+                        {
+                            Merchant_Product productinfo;
+                            if (isAdmin)
+                            {
+                                productinfo = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0}".Params(item.ma_san_pham));
+                            }
+                            else
+                            {
+                                productinfo = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0} and ma_gian_hang={1}".Params(item.ma_san_pham,currentUser.ma_gian_hang));
+                            }
+                            item.don_gia = productinfo.don_gia;
+                            item.ma_bao_gia = existheader.ma_bao_gia;
+                            item.ma_gian_hang = existheader.ma_gian_hang;
+                            item.ten_san_pham = productinfo.ten_san_pham;
+                            item.thanh_tien = item.don_gia * item.so_luong;
+                            dbConn.Insert(item);
+                        }
+                        return Json(new { success = true, data = existheader });
+                    }
+                    else
+                    {
+                        if (details == null)
+                        {
+                            return Json(new { success = false, error = "Vui lòng chọn sản phẩm!" });
+                        }
+                        //Create header
+                        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                        var beginString = new char[3];
+                        var lastString = new char[3];
+                        var random = new Random();
+
+                        for (int i = 0; i < beginString.Length; i++)
+                        {
+                            beginString[i] = chars[random.Next(chars.Length)];
+                        }
+                        for (int i = 0; i < lastString.Length; i++)
+                        {
+                            lastString[i] = chars[random.Next(chars.Length)];
+                        }
+                        header.ma_bao_gia = string.Join("", beginString) + DateTime.Now.ToString("yyyyMMddHHmm") + string.Join("", lastString);
+                        header.ma_gian_hang = currentUser.ma_gian_hang;
+                        header.nguoi_bao_gia = currentUser.name;
+                        header.ngay_bao_gia = DateTime.Now;
+                        dbConn.Insert(header);
+                        int Id = (int)dbConn.GetLastInsertId();
+                        header.id = Id;
+                        //Insert các detail
+                        foreach (var item in details)
+                        {
+                            Merchant_Product productinfo;
+                            if (isAdmin)
+                            {
+                                productinfo = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0}".Params(item.ma_san_pham));
+                            }
+                            else
+                            {
+                                productinfo = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0} and ma_gian_hang={1}".Params(item.ma_san_pham, currentUser.ma_gian_hang));
+                            }
+                            if(productinfo==null)
+                            {
+                                continue;
+                            }
+                            item.don_gia = productinfo.don_gia;
+                            item.ma_bao_gia = header.ma_bao_gia;
+                            item.ma_gian_hang = header.ma_gian_hang;
+                            item.ten_san_pham = productinfo.ten_san_pham;
+                            item.thanh_tien = item.don_gia * item.so_luong;
+                            dbConn.Insert(item);
+                        }
+                        return Json(new { success = true, data = header });
+                    }
+                    
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        protected string RenderPartialViewToString(string viewName, object model = null)
+        {
+            if (string.IsNullOrEmpty(viewName))
+                viewName = ControllerContext.RouteData.GetRequiredString("action");
+            ViewData.Model = model;
+            using (StringWriter sw = new StringWriter())
+            {
+                ViewEngineResult viewResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName);
+                ViewContext viewContext = new ViewContext(ControllerContext, viewResult.View, ViewData, TempData, sw);
+                viewResult.View.Render(viewContext, sw);
+                return sw.GetStringBuilder().ToString();
+            }
+        }
+    }
+}

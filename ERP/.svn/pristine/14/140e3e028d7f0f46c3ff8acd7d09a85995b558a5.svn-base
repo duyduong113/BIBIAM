@@ -1,0 +1,376 @@
+﻿<div id="popup-list-service" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title" id="lbltitle">Danh sách các dịch vụ đã yêu cầu đăng QC</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div class="row-fluid">
+            <p style="font-size:15px">ĐĂNG BANNER</p>
+            <div style="margin:0" class="span12">
+                @(Html.Kendo()
+                    .Grid<ERPAPD.Models.CRM_Adv_Services>()
+                    .Name("gridBanner")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.pk_services).Width(100).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllBanner(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=pk_services#'  />").Width(25);
+                        columns.Bound(p => p.c_ngay_len).Width(100).Title("Ngày lên").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("#if(kendo.toString(c_ngay_len,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_len,'dd/MM/yyyy') #" + "#}#");
+                        columns.Bound(p => p.c_ngay_xuong).Width(100).Title("Ngày xuống").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("#if(kendo.toString(c_ngay_xuong,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_xuong,'dd/MM/yyyy') #" + "#}#");
+                        columns.ForeignKey(p => p.c_website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Website").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.ForeignKey(p => p.c_category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Chuyên mục").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.ForeignKey(p => p.c_location, (System.Collections.IEnumerable)ViewBag.listLocationBanner, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Vị trí").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.ForeignKey(p => p.c_nature, (System.Collections.IEnumerable)ViewBag.listNature, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Tính chất").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_so_luong).Width(80).Title("Số lượng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_size).Width(100).Title("Size").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_format).Width(100).Title("Format").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_don_gia).Width(100).Title("Đơn giá").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_km).Width(100).Title("KM").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_label).Width(100).Title("Nhãn hàng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_note).Width(100).Title("Ghi chú").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.c_input_date).Width(100).Title("Ngày order").ClientTemplate("#if(kendo.toString(c_input_date,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_input_date,'dd/MM/yyyy') #" + "#}#");
+                    })
+                    .ToolBar(toolbar =>
+                    {
+                        toolbar.Template(@<text>
+                    <div class="pull-left">
+                        <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Update('gridBanner')">Lưu</a>
+                        <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Cancel('gridBanner')">Bỏ qua</a>
+                        <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Delete('gridBanner')">Xóa</a>
+                        <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="ExportExcel('gridBanner')">Xuất Excel</a>
+                    </div>
+
+                        </text>);
+                    })
+                    .Excel(excel => excel
+                        .FileName("QC_Banner.xlsx")
+                        .Filterable(true)
+                        //.ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+                    )
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+                    .Navigatable()
+                    .Resizable(r => r.Columns(true))
+                    //.Events(events => { events.DataBound("dataBound"); })
+                    .Editable(e => e.Mode(GridEditMode.InCell))
+                    //.Events(e => { e.Edit("OnEdit"); })
+                    //.Scrollable(scrollable => scrollable.Virtual(false))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+                    .PageSize(50)
+                    .Events(events =>
+                    {
+                        events.Error("error_handler");
+                        events.RequestEnd("onRequestEnd");
+                    })
+
+                    .Model(model =>
+                    {
+                        model.Id(p => p.pk_services);
+                        model.Field(p => p.c_input_date).Editable(false);
+                        model.Field(p => p.RowCreatedAt).Editable(false);
+                        model.Field(p => p.RowCreatedUser).Editable(false);
+
+                    })
+                    .Read(read => read.Action("ReadAdvService", "CRM_ProposedAdvertisement", new { @pkAdv = @ViewBag.pkAdv, @type = 1 }))
+                   .Update(read => read.Action("UpdateAdvService", "CRM_ProposedAdvertisement", new { @dot_order = @ViewBag.c_dot_order })))
+)
+            </div>
+        </div>
+        <div id="HDGOI" class="row-fluid" style="margin-top:10px">
+            <p style="font-size:15px">ĐĂNG GÓI</p>
+            <div style="margin:0" class="span12">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.CRM_Adv_Services>()
+                        .Name("gridGOI")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.pk_services).Width(100).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllGoi(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=pk_services#'  />").Width(25);
+                            columns.Bound(p => p.c_book_code).Width(100).Title("Mã book").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_ngay_len).Width(100).Title("Ngày lên").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("#if(kendo.toString(c_ngay_len,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_len,'dd/MM/yyyy') #" + "#}#");
+                            columns.ForeignKey(p => p.c_gio, (System.Collections.IEnumerable)ViewBag.listTime, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Giờ đăng").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Website").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Chuyên mục").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_location, (System.Collections.IEnumerable)ViewBag.listLocationBanner, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Vị trí").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_vung_mien, (System.Collections.IEnumerable)ViewBag.listRegion, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Vị trí").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_so_luong).Width(100).Title("Số TT").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_don_gia).Width(100).Title("Đơn giá").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_don_gia_sau_ck).Width(100).Title("Đơn giá sau ck").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_luy_ke_da_dang).Width(100).Title("Lũy kế đa năng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_label).Width(100).Title("Nhãn hàng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_note).Width(100).Title("Ghi chú").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }); 
+                            columns.Bound(p => p.c_input_date).Width(100).Title("Ngày order").ClientTemplate("#if(kendo.toString(c_input_date,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_input_date,'dd/MM/yyyy') #" + "#}#");
+
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Template(@<text>
+                            <div class="pull-left">
+                                <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Update('gridGOI')">Lưu</a>
+                                <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Cancel('gridGOI')">Bỏ qua</a>
+                                <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Delete('gridGOI')">Xóa</a>
+                                <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="ExportExcel('gridGOI')">Xuất Excel</a>
+
+                            </div>
+
+                            </text>);
+                        })
+                        .Excel(excel => excel
+                            .FileName("QC_GOI.xlsx")
+                            .Filterable(true)
+                            //.ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+                        )
+
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+                        .Navigatable()
+                        .Resizable(r => r.Columns(true))
+                        //.Events(events => { events.DataBound("dataBound"); })
+                        .Editable(e => e.Mode(GridEditMode.InCell))
+                        //.Events(e => { e.Edit("OnEdit"); })
+                        //.Scrollable(scrollable => scrollable.Virtual(false))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+                        .PageSize(50)
+                        .Events(events =>
+                        {
+                            events.Error("error_handler");
+                            events.RequestEnd("onRequestEnd");
+                        })
+
+                        .Model(model =>
+                        {
+                            model.Id(p => p.pk_services);
+                            model.Field(p => p.c_input_date).Editable(false);
+                            model.Field(p => p.RowCreatedAt).Editable(false);
+                            model.Field(p => p.RowCreatedUser).Editable(false);
+
+                        })
+                        .Read(read => read.Action("ReadAdvService", "CRM_ProposedAdvertisement", new { @pkAdv = @ViewBag.pkAdv, @type = 2 }))
+                        .Update(read => read.Action("UpdateAdvService", "CRM_ProposedAdvertisement", new { @dot_order = @ViewBag.c_dot_order })))
+   )
+            </div>
+        </div>
+        <div id="HDTHUONG" class="row-fluid" style="margin-top:10px">
+            <p style="font-size:15px">ĐĂNG THƯỜNG</p>
+            <div style="margin:0" class="span12">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.CRM_Adv_Services>()
+                        .Name("gridTHUONG")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.pk_services).Width(100).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=pk_services#'  />").Width(25);
+                            columns.Bound(p => p.c_book_code).Width(100).Title("Mã book").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_ngay_len).Width(100).Title("Ngày lên").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("#if(kendo.toString(c_ngay_len,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_len,'dd/MM/yyyy') #" + "#}#");
+                            columns.ForeignKey(p => p.c_gio, (System.Collections.IEnumerable)ViewBag.listTime, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Giờ đăng").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Website").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Chuyên mục").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_location, (System.Collections.IEnumerable)ViewBag.listLocationBanner, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Vị trí").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.ForeignKey(p => p.c_vung_mien, (System.Collections.IEnumerable)ViewBag.listRegion, "Code", "Name").EditorTemplateName("GridNullableForeignKey").Title("Vị trí").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_so_luong).Width(100).Title("Số TT").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_don_gia).Width(100).Title("Đơn giá").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_don_gia_sau_ck).Width(100).Title("Đơn giá sau ck").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_luy_ke_da_dang).Width(100).Title("Lũy kế đa năng").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_label).Width(100).Title("Nhãn hàng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_note).Width(100).Title("Ghi chú").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_input_date).Width(100).Title("Ngày order").ClientTemplate("#if(kendo.toString(c_input_date,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_input_date,'dd/MM/yyyy') #" + "#}#");
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Template(@<text>
+                                <div class="pull-left">
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Update('gridTHUONG')">Lưu</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Cancel('gridTHUONG')">Bỏ qua</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Delete('gridTHUONG')">Xóa</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="ExportExcel('gridTHUONG')">Xuất Excel</a>
+
+                                </div>
+                            </text>);
+                        })
+                         .Excel(excel => excel
+                            .FileName("QC_Thuong.xlsx")
+                            .Filterable(true)
+                        //.ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+                        )
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+                        .Navigatable()
+                        .Resizable(r => r.Columns(true))
+                        //.Events(events => { events.DataBound("dataBound"); })
+                        .Editable(e => e.Mode(GridEditMode.InCell))
+                        //.Events(e => { e.Edit("OnEdit"); })
+                        //.Scrollable(scrollable => scrollable.Virtual(false))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+                        .PageSize(50)
+                        .Events(events =>
+                        {
+                            events.Error("error_handler");
+                            events.RequestEnd("onRequestEnd");
+                        })
+
+                        .Model(model =>
+                        {
+                            model.Id(p => p.pk_services);
+                            model.Field(p => p.c_input_date).Editable(false);
+                            model.Field(p => p.RowCreatedAt).Editable(false);
+                            model.Field(p => p.RowCreatedUser).Editable(false);
+
+                        })
+                        .Read(read => read.Action("ReadAdvService", "CRM_ProposedAdvertisement", new { @pkAdv = @ViewBag.pkAdv, @type = 3 }))
+                        .Update(read => read.Action("UpdateAdvService", "CRM_ProposedAdvertisement", new { @dot_order = @ViewBag.c_dot_order })))
+                          )
+            </div>
+        </div>
+        <div id="CPM" class="row-fluid" style="margin-top:10px">
+            <p style="font-size:15px">ĐĂNG CPM</p>
+            <div style="margin:0" class="span12">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.CRM_Adv_Services>()
+                        .Name("gridCpm")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.pk_services).Width(100).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=pk_services#'  />").Width(25);
+                            columns.Bound(p => p.c_ngay_len).Width(100).Title("Ngày lên").Width(100).ClientTemplate("#if(kendo.toString(c_ngay_len,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_len,'dd/MM/yyyy') #" + "#}#").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_ngay_xuong).Width(100).Title("Ngày xuống").ClientTemplate("#if(kendo.toString(c_ngay_xuong,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(c_ngay_xuong,'dd/MM/yyyy') #" + "#}#").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_kenh_qc).Width(100).Title("Website").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_chuyen_muc_kenhqc).Width(100).Title("Chuyên mục").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_vi_tri_kenhqc).Width(100).Title("Vị trí").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_so_luong).Width(100).Title("Số lượng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_don_gia_sau_ck).Width(100).Title("Đơn giá").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                           // columns.Bound(p => p.c_don_gia).Width(100).Title("Đơn giá sau ck").Format("{0:N0}").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.c_note).Width(100).Title("Ghi chú").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Template(@<text>
+                                <div class="pull-left">
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Update('gridCpm')">Lưu</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Cancel('gridCpm')">Bỏ qua</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="Delete('gridCpm')">Xóa</a>
+                                    <a class="btn btn-mini btn-success" href="javascript:void(0)" onclick="ExportExcel('gridCpm')">Xuất Excel</a>
+                                </div>
+                            </text>);
+                        })
+                        .Excel(excel => excel
+                            .FileName("CpmQC.xlsx")
+                            .Filterable(true)
+                        //.ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+                        )
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+                        .Navigatable()
+                        .Resizable(r => r.Columns(true))
+                        //.Events(events => { events.DataBound("dataBound"); })
+                        .Editable(e => e.Mode(GridEditMode.InCell))
+                        //.Events(e => { e.Edit("OnEdit"); })
+                        //.Scrollable(scrollable => scrollable.Virtual(false))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+                        .PageSize(50)
+                        .Events(events =>
+                        {
+                            events.Error("error_handler");
+                            events.RequestEnd("onRequestEnd");
+                        })
+
+                        .Model(model =>
+                        {
+                            model.Id(p => p.pk_services);
+                            model.Field(p => p.c_input_date).Editable(false);
+                            model.Field(p => p.RowCreatedAt).Editable(false);
+                            model.Field(p => p.RowCreatedUser).Editable(false);
+
+                        })
+                        .Read(read => read.Action("ReadAdvService", "CRM_ProposedAdvertisement", new { @pkAdv = @ViewBag.pkAdv, @type = 4 }))
+                        .Update(read => read.Action("UpdateAdvService", "CRM_ProposedAdvertisement", new { @dot_order = @ViewBag.c_dot_order })))
+   )
+            </div>
+        </div>
+    </div>
+    @*<div class="modal-footer">
+        <a class="btn btn-success btn-small"> Xuất Excel</a>
+        <a class="btn btn-success btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>*@
+</div>
+
+<script>
+    function checkAllBanner(e) {
+        var x = $(e).prop('checked');
+        $('#gridBanner').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllGoi(e) {
+        var x = $(e).prop('checked');
+        $('#gridGOI').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+   
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            alertMessage('', message,false);
+          
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            alertMessage('Thành công', 'Cập nhật dữ liệu thành công', true);
+            $("#gridGOI").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            alertMessage('Thành công', 'Thêm mới dữ liệu thành công', true);  
+        }
+    }
+    function Update(g) {
+        if ($('#' + g).data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#' + g).data('kendoGrid').saveChanges();
+        }
+    }
+    function Delete(g)
+    {
+        var listrowid = '';
+        $('#' + g).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            alertMessage('Lỗi', 'Chọn dữ liệu để xóa', false);
+            
+            return;
+        }
+        $.post(r + "/CRM_ProposedAdvertisement/DeleteAdvService", { listdata: listrowid }, function (data) {
+            if (data.success) {
+                alertMessage('Thành công', 'Xóa dữ liệu thành công', true);
+               
+                $('#' + g).data("kendoGrid").dataSource.read();
+            }
+            else {
+                alertMessage('Lỗi', data.message, false); 
+            }
+          
+        });
+    }
+    function Cancel(g) {
+        $('#' + g).data('kendoGrid').cancelChanges();
+    }
+    function ExportExcel(e) {
+        var grid = $("#" + e).data("kendoGrid");
+        grid.saveAsExcel();
+    }
+    
+</script>

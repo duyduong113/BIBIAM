@@ -1,0 +1,174 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.Providers;
+using System.Data.SqlClient;
+using ServiceStack.OrmLite;
+using System.IO;
+using System.Web;
+using MySql.Data.MySqlClient;
+namespace BIBIAM.Core.Data.DataObject
+{
+    public class Merchant_Order_DAO
+    {
+        public void SyncOrderToFE(string ma_don_hang,string ma_gian_hang,string connectionString)
+        {
+            List<SqlParameter> param = new List<SqlParameter>();
+            param.Add(new SqlParameter("@ma_don_hang", ma_don_hang));
+            param.Add(new SqlParameter("@ma_gian_hang", ma_gian_hang));
+            new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Order_SyncToMySQL", param);
+        }
+        public string ChangeStatus(string ma_don_hang, string trang_thai_don_hang, string Username, string connectstring)
+        {
+            
+            using (var dbConn = new OrmliteConnection().openConn(connectstring))
+            {
+                {
+                    try
+                    {
+
+                        var exist = dbConn.FirstOrDefault<Merchant_OrderHeader>("ma_don_hang={0}".Params(ma_don_hang));
+                        if (exist != null)
+                        {
+
+                            if (exist.trang_thai_don_hang == "New" && trang_thai_don_hang == "Confirm")
+                            {
+                                exist.trang_thai_don_hang = "Confirm";
+                            }
+                            if (exist.trang_thai_don_hang == "Confirm" && trang_thai_don_hang == "Shipping")
+                            {
+                                exist.trang_thai_don_hang = "Shipping";
+                            }
+                            if (exist.trang_thai_don_hang == "Shipping" && trang_thai_don_hang == "POD")
+                            {
+                                exist.trang_thai_don_hang = "POD";
+                            }
+                            if (exist.trang_thai_don_hang == "POD" && trang_thai_don_hang == "Completed")
+                            {
+                                exist.trang_thai_don_hang = "Completed";
+                            }
+                            exist.ngay_cap_nhat = DateTime.Now;
+                            exist.nguoi_cap_nhat = Username;
+
+                            dbConn.UpdateOnly(exist,
+                                            onlyFields: p =>
+                                            new
+                                            {
+                                                p.trang_thai_don_hang,
+                                                p.nguoi_cap_nhat,
+                                                p.ngay_cap_nhat
+                                            },
+                                             where: p => p.ma_don_hang == exist.ma_don_hang);
+                            if (exist.trang_thai_don_hang == "Confirm")
+                            {
+                                List<SqlParameter> param = new List<SqlParameter>();
+                                //Update Merchant_Product_Warehouse
+                                param.Add(new SqlParameter("@ma_don_hang", exist.ma_don_hang));
+                                new SqlHelper(connectstring).ExecuteQuery("p_Update_Merchant_Product_Warehouse_Order", param);
+                            }
+                            using (MySqlConnection con = new MySqlConnection(AppConfigs.FEConnectionString))
+                            {
+                                con.Open();
+                                string sqlOrder = @"update order_merchant set trang_thai_don_hang={0}, ngay_cap_nhat={1}, nguoi_cap_nhat={2} where ma_don_hang={3} and ma_gian_hang={4}".Params(exist.trang_thai_don_hang,exist.ngay_cap_nhat,exist.nguoi_cap_nhat, exist.ma_don_hang_cha, exist.ma_gian_hang);
+                                using (MySql.Data.MySqlClient.MySqlTransaction trans = con.BeginTransaction())
+                                {
+                                    try
+                                    {
+                                        using (MySqlCommand cmd = new MySqlCommand(sqlOrder, con, trans))
+                                        {
+                                            cmd.ExecuteNonQuery();
+                                        }
+                                        
+                                        trans.Commit();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        trans.Rollback();
+                                        return e.Message.ToString();
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    catch (Exception e)
+                    {
+
+                        return "false@@" + e.Message;
+                    }
+                }
+            }
+            return "true@@" + trang_thai_don_hang;
+        }
+        public string Cancel(string ma_don_hang, string ly_do_huy, string Username, string connectstring)
+        {
+            using (var dbConn = new OrmliteConnection().openConn(connectstring))
+            {
+                {
+                    try
+                    {
+
+                        var exist = dbConn.FirstOrDefault<Merchant_OrderHeader>("ma_don_hang={0}".Params(ma_don_hang));
+                        if (exist != null)
+                        {
+                            if (exist.trang_thai_don_hang == "New" || exist.trang_thai_don_hang == "Confirm" || exist.trang_thai_don_hang == "Shipping")
+                            {
+                                exist.trang_thai_don_hang = "Cancel";
+                                exist.ly_do_huy = ly_do_huy;
+                            }
+                            else
+                            {
+                                return "false@@"+"Không thể hủy";
+                            }
+                            exist.ngay_cap_nhat = DateTime.Now;
+                            exist.nguoi_cap_nhat = Username;
+
+                            dbConn.UpdateOnly(exist,
+                                            onlyFields: p =>
+                                            new
+                                            {
+                                                p.trang_thai_don_hang,
+                                                p.ly_do_huy,
+                                                p.nguoi_cap_nhat,
+                                                p.ngay_cap_nhat
+                                            },
+                                             where: p => p.ma_don_hang == exist.ma_don_hang);
+                            using (MySqlConnection con = new MySqlConnection(AppConfigs.FEConnectionString))
+                            {
+                                con.Open();
+                                string sqlOrder = @"update order_merchant set trang_thai_don_hang={0} ngay_cap_nhat={1} nguoi_cap_nhat={2} where ma_don_hang={3} and ma_gian_hang={4}".Params(exist.trang_thai_don_hang, exist.ngay_cap_nhat, exist.nguoi_cap_nhat, exist.ma_don_hang_cha, exist.ma_gian_hang);
+                                using (MySql.Data.MySqlClient.MySqlTransaction trans = con.BeginTransaction())
+                                {
+                                    try
+                                    {
+                                        using (MySqlCommand cmd = new MySqlCommand(sqlOrder, con, trans))
+                                        {
+                                            cmd.ExecuteNonQuery();
+                                        }
+
+                                        trans.Commit();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        trans.Rollback();
+                                        return e.Message.ToString();
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    catch (Exception e)
+                    {
+
+                        return "false@@" + e.Message;
+                    }
+                }
+            }
+            return "true@@" + ly_do_huy;
+        }
+
+    }
+}

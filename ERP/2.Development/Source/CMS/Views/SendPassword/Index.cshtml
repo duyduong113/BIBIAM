@@ -1,0 +1,223 @@
+﻿@using CMS.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._customermanagement);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+}
+@{
+    var newData = new Customer();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._cm_list)</span>
+                </div>
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2" style="margin-bottom:10px">
+        <div class="form-actions">
+            @*<a href="#myModal" role="button" class="btn green default btn-sm btn-circle" data-toggle="modal"><i class="fa fa-upload"></i>Nhập phiếu thu</a>*@
+            <a onclick="sendmessage()" id="filterbtn" class="btn default btn-sm btn-circle blue">Gửi tin nhắn</a>
+            <a onclick="sendmail()" id="filterbtn" class="btn default btn-sm btn-circle blue">Gửi e-mail</a>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<CMS.Models.Customer>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                //columns.Bound(p => p.id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onClick='checkAll(this)' />")
+                //    .ClientTemplate("#if(id != 0){#" + "<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#'/>" + "#}#")
+                //    .Width(30).Filterable(false).Sortable(false);
+                columns.Bound(p => p.id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllHeader(this)' />")
+              .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#'/>").Width(30).Filterable(false).Sortable(false);
+                columns.Bound(p => p.name).Width(200).Title("Tên");
+                columns.Bound(p => p.username).Width(200).Title("Tài khoản");
+                columns.Bound(p => p.mobile_phone).Width(120).Title("Điện thoại");
+                columns.Bound(p => p.email).Width(120).Title("Email");
+                columns.Bound(p => p.phone_fix).Width(120).Title("Điện thoại cố định");
+                columns.Bound(p => p.password_noencrypt).Width(120).Title("Mật khẩu");
+                columns.Bound(p => p.password_tran_noencrypt).Width(120).Title("Mật khẩu giao dịch");
+                columns.Bound(p => p.identify_card).Width(120).Title("CMND");
+                columns.Bound(p => p.createdAt).Width(200).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString());
+                columns.Bound(p => p.createdBy).Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString());
+                columns.Bound(p => p.updatedAt).Width(200).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString());
+                columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString());
+                columns.Bound(p => p.password).Width(200).Hidden();
+                columns.Bound(p => p.password_tran).Width(200).Hidden();
+            })
+                            .Pageable()
+                            .Navigatable()
+                            .Scrollable()
+                            .Resizable(resizable => resizable.Columns(true))
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Batch(true)
+                            .PageSize(20)
+                            .Model(model =>
+                            {
+                                model.Id(p => p.id);
+                            })
+                            // .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                            .Read("Read", "SendPassword")
+                            )
+        )
+    </div>
+</div>
+
+<script>
+
+    function Search(e) {
+        listView = $("#grid").data("kendoGrid");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "username", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "mobile_phone", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "phone_fix", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "email", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+
+    function onDatabound(e) {
+        var listView = this;
+        resizeGrid();
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+            //update filter descriptor with the filters applied
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+    }
+
+    function checkAllHeader(e) {
+        var x = $(e).prop('checked');
+        $('#grid').find(".checkrowid:not(:disabled)").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function sendmessage() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            bootbox.dialog({
+                message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._article)",
+                buttons:
+                    {
+                        danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                        main: {
+                            label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                                App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                                $.post(r + "/SendPassword/SendMessage", { data: listrowid }, function (data) {
+                                    if (data.success) {
+                                        $("#grid").data("kendoGrid").dataSource.read();
+                                        $('#checkboxcheckAll').prop('checked', false);
+                                        toastr.clear();
+                                        toastr.success('', 'Gửi tin nhắn thành công');
+                                    } else {
+                                        toastr.clear();
+                                        toastr.error('', data.error);
+                                    }
+                                    App.unblockUI();
+                                });
+                            }
+                        }
+                    }
+            })
+        }
+    }
+
+</script>

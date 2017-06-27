@@ -1,0 +1,216 @@
+﻿using CMS.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using CMS.Helpers;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using CMS.Filters;
+using System.Data.SqlClient;
+
+namespace CMS.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete")]
+    public class PostNotifyController : CustomController
+    {
+        //private readonly bool overwrite;
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+
+                ViewBag.isAdmin = isAdmin;
+                using (IDbConnection db = OrmliteConnection.openConn())
+                {
+                    ViewBag.listWebsite = db.GetDictionary<string, string>("SELECT ma_website,ten_website FROM cms_Websites").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new DataSourceResult();
+                string sqlquery = @"select a.*,b.ten_website, c.hashtagname from cms_PostNotify a left join cms_Websites b on a.ma_website=b.ma_website left join Hashtag c on a.hashtagcode=c.hashtagcode";
+                data = KendoApplyFilter.KendoDataByQuery<cms_PostNotify>(request, sqlquery, "");
+                return Json(data);
+            }
+        }
+
+        public ActionResult CreateUpdate(cms_PostNotify data, List<string> hashtagcodes)
+        {
+            try
+           {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    data.hashtagcode = "";
+                    if (hashtagcodes != null)
+                    {
+                        foreach (string item in hashtagcodes)
+                            data.hashtagcode += item + ";";
+                    }
+
+                    if (!string.IsNullOrEmpty(data.hashtagcode))
+                        data.hashtagcode = data.hashtagcode.Substring(0, data.hashtagcode.Length - 1);
+                    if (data.id > 0)
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                        {
+                            var exist = dbConn.SingleOrDefault<cms_PostNotify>("id={0}", data.id);
+                            data.hashtagcode = !string.IsNullOrEmpty(data.hashtagcode) ? data.hashtagcode : "";
+                            data.ngay_thong_bao = !string.IsNullOrEmpty(data.ngay_thong_bao.ToString()) ? data.ngay_thong_bao : DateTime.Parse("1900-01-01 00:00");
+                            data.ngay_cap_nhat = DateTime.Now;
+                            data.nguoi_cap_nhat = currentUser.name;
+                            data.trang_thai = exist.trang_thai;
+                            data.noi_dung = (!string.IsNullOrEmpty(data.noi_dung) && data.noi_dung != data.noi_dung) ? data.noi_dung : data.noi_dung;
+                            dbConn.UpdateOnly(data,
+                                    onlyFields: p =>
+                                        new
+                                        {
+                                            p.ten,
+                                            p.trang_thai,
+                                            p.hashtagcode,
+                                            p.ngay_thong_bao,
+                                            p.ngay_cap_nhat,
+                                            p.nguoi_cap_nhat,
+                                            p.noi_dung
+                                        },
+                                where: p => p.id == data.id);
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Don't have permission to update" });
+                        }
+                    }
+                    else
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]))
+                        {
+                            
+
+                            data.ngay_tao = DateTime.Now;
+                            data.nguoi_tao = currentUser.name;
+                            data.ngay_cap_nhat = DateTime.Now;
+                            data.nguoi_cap_nhat = "";
+                            data.ngay_thong_bao = !string.IsNullOrEmpty(data.ngay_thong_bao.ToString()) ? data.ngay_thong_bao : DateTime.Parse("1900-01-01 00:00");
+                            data.hashtagcode = !string.IsNullOrEmpty(data.hashtagcode) ? data.hashtagcode : "";
+                            data.noi_dung= !string.IsNullOrEmpty(data.noi_dung) ? data.noi_dung : "";
+
+                            dbConn.Insert(data);
+                           
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Don't have permission to create" });
+                        }
+                    }
+                    //List<SqlParameter> lstParameter = new List<SqlParameter>();
+                    //lstParameter.Clear();
+                    // lstParameter.Add(new SqlParameter("@hashtagcode", data.hashtagcode));
+                    // new SqlHelper().ExecuteNoneQuery("p_Hashtag_SyncToMySQL", lstParameter);
+                }
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, error = e.Message });
+            }
+        }
+        public ActionResult deleteNotitfy(Int64 id)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["delete"]))
+            {
+                try
+                {
+                    using (var dbConn = CMS.Helpers.OrmliteConnection.openConn())
+                    {
+                        var exists = dbConn.FirstOrDefault<cms_PostNotify>("id={0}".Params(id));
+                        if (exists == null)
+                        {
+                            return Json(new { success = false, error = "Xóa thất bại!" });
+                        }
+
+                        dbConn.Delete<cms_PostNotify>("id={0}".Params(id));
+                        return Json(new { success = true });
+                    }
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền xóa" });
+            }
+        }
+        public ActionResult Active(string data)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                try
+                {
+                    string[] separators = { "," };
+                    string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    if (ids.Length == 0)
+                    {
+                        return Json(new { success = false, message = "Chọn các Footer cần kích hoạt!" });
+                    }
+
+                    using (var dbConn = CMS.Helpers.OrmliteConnection.openConn())
+                    {
+                        foreach (var id in ids)
+                        {
+                            var exists = dbConn.FirstOrDefault<cms_PostNotify>("id={0}".Params(id));
+                            if (exists.trang_thai != true)
+                            {
+                                dbConn.UpdateOnly(new cms_PostNotify { trang_thai = exists.trang_thai = true ? true : false, nguoi_cap_nhat = currentUser.name, ngay_cap_nhat = DateTime.Now }, onlyFields: p => new { p.trang_thai, p.nguoi_cap_nhat, p.ngay_cap_nhat }, where: p => p.id == int.Parse(id));
+                            }
+                            else
+                            {
+                                dbConn.UpdateOnly(new cms_PostNotify { trang_thai = exists.trang_thai = true ? false : true, nguoi_cap_nhat = currentUser.name, ngay_cap_nhat = DateTime.Now }, onlyFields: p => new { p.trang_thai, p.nguoi_cap_nhat, p.ngay_cap_nhat }, where: p => p.id == int.Parse(id));
+                            }
+                        }
+                    }
+                    return Json(new { success = true, message = "Thành công!" });
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền thực hiên chức năng này!" });
+            }
+        }
+        public ActionResult GetHashtag()
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = new List<DropDownHashtag>();
+                data = dbConn.GetDictionary<string, string>("select distinct hashtagcode ,hashtagname from Hashtag ").Select(s => new DropDownHashtag { hashtagcode = s.Key, hashtagname = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+    }
+
+}
+        
+
+

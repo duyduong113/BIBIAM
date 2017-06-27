@@ -1,0 +1,279 @@
+﻿@*Popup add PO detail*@
+@using BIBIAM.Core.Entities
+@{
+    var data = ViewBag.data == null ? new Merchant_Product_Related() : ViewBag.data;
+}
+<link href="~/Content/assets/global/plugins/icheck/skins/minimal/_all.css" rel="stylesheet" />
+<script src="~/Content/assets/global/plugins/icheck/icheck.min.js"></script>
+<style>
+    .search {
+    }
+
+    .box-search {
+        margin-bottom: 15px;
+    }
+
+    .search .box-search > span {
+        display: inline-block;
+        width: 100px;
+    }
+
+    .search .box-search .k-multiselect {
+        display: inline-block;
+        width: 70%;
+    }
+
+    .box-search .k-multiselect .k-button {
+        color: #fff;
+        border-color: #6dbd35;
+        background-color: #42ca45;
+        border-radius: 8px !important;
+    }
+
+    .search .box-search > input {
+        display: inline-block;
+        width: 70%;
+    }
+
+    .search > button {
+        position: absolute;
+        right: 5%;
+        top: 20px;
+    }
+</style>
+
+<div id="popup-add-product" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">@Html.Raw(@Resources.Global._add_product) </h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="search">
+                    <div class="box-search">
+                        <span>@Html.Raw(@Resources.Global._hierarchy) :</span>
+                        @(Html.Kendo().MultiSelect()
+                            .Name("cay_phan_cap")
+                            .MaxSelectedItems(5)
+                            .Placeholder(@Html.Raw(Resources.Global._all).ToString())
+                            //.OptionLabel(Resources.Global._please_choose_data + "...")
+                            .DataTextField("ten_cay_phan_cap_3")
+                            .DataValueField("ma_cay_phan_cap_3")
+                            .Filter("contains")
+                            .DataSource(source =>
+                            {
+                                source.Read(read => { read.Action("GetAll", "Merchant_Product_Hierarchy"); }).ServerFiltering(false);
+                            })
+                            .ItemTemplate("#=data.ten_cay_phan_cap_1?'<span class=\"text-primary\">'+data.ten_cay_phan_cap_1+'</span>->':''#" +
+                                    "#=data.ten_cay_phan_cap_2?'<span class=\"text-danger\">'+data.ten_cay_phan_cap_2+'</span>->':''#" +
+                                    "#=data.ten_cay_phan_cap_3?'<span class=\"text-warning bold\">'+data.ten_cay_phan_cap_3+'</span>':''#")
+                            .TagTemplate("#=data.ten_cay_phan_cap_3?'<span class=\"text-white bold\">'+data.ten_cay_phan_cap_3+'</span>':''#")
+                        )
+                    </div>
+                    <div class="box-search">
+                        <span>@Html.Raw(@Resources.Global._product_name) :</span>
+                        <input type="text" id="search_product_name" name="search_product_name" class="fourper form-control" placeholder="@Html.Raw(Resources.Global._all).ToString()">
+                    </div>
+                    @*<div id="cap-view" class="demo-section k-content">
+                                      <span>Mức gía</span>
+                                      @(Html.Kendo().DropDownList()
+                        .Name("gia")
+                        .OptionLabel("Chọn sản phẩm...")
+                        .DataTextField("ten_san_pham")
+                        .DataValueField("ma_san_pham")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetProduct", "Merchant_Product");
+                            });
+                        })
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        )
+                                  </div>*@
+                    <div class="box">
+                        <div class="checkbox-nice">
+                            @*<input type="checkbox" id="checkbox-isNotPromotion">*@
+                            <label for="checkbox-isNotPromotion"></label>
+                        </div>
+                    </div>
+                    <button class="search_promotion btn btn-primary" onclick="SearchProducts()">@Html.Raw(@Resources.Global._search) </button>
+                </div>
+                <div class="magin">
+                    @(Html.Kendo().Grid<Merchant_Product_Related>()
+         .Name("ProductGrid")
+         .Columns(columns =>
+         {
+         columns.Bound(p => p.id)
+   .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onClick='checkAllProduct(this)' />")
+   .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#' /> ")
+   .Width(25).Filterable(false).Sortable(false);
+         columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._picture).ToString().ToUpper()).Width(60).HtmlAttributes(new { @class = "editable" })
+                                .ClientTemplate("<img src=#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'# class='img-responsive' style='display:inline; height:50px;'>");
+             columns.Bound(p => p.part_no).Title(@Html.Raw(Resources.Global._part_number).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+             columns.Bound(p => p.ten_san_pham).Title(@Html.Raw(Resources.Global._product).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+             columns.Bound(p => p.don_gia).Title(@Html.Raw(Resources.Global._access_price).ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+             columns.Bound(p => p.gia_si).Title(@Html.Raw(Resources.Global._wholesale_price).ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+         })
+         .Scrollable()
+         .Navigatable()
+         .Filterable()
+         .ColumnMenu()
+                    .AutoBind(false)
+                      //.Editable(editable => editable.Mode(GridEditMode.InCell))
+                      .Pageable(x => x.PageSizes(new int[] { 20, 100, 200, 300, 500 }))
+                    .Events(events => { events.DataBound("dataBoundgrid"); })
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .ServerOperation(false)
+                        .Events(events => { events.Error("error_handler"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.id).Editable(false);
+                            //model.Field(p => p.ten_san_pham).Editable(false);
+                            //model.Field(p => p.ma_san_pham).Editable(false);
+                        })
+                        .Read(c => c.Action("ReadDetail", "Merchant_Product_Related"))
+                        )
+                    )
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary center-block" id="btnAddProductToPromotion">@Html.Raw(@Resources.Global._done)</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function showModal() {
+        //$("label[for='checkbox-isNotPromotion']").text('Tìm sản phẩm gợi ý từ ngày ' + $("#ngay_bat_dau").val() + " - " + $("#ngay_ket_thuc").val());
+        $("#popup-add-product").modal('show');
+    }
+    function checkAllProduct(e) {
+        var x = $(e).prop('checked');
+        $('#ProductGrid').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function addProductToPromotion() {
+        $('#ProductGrid').find(".checkrowid").each(function () {
+            var dataItem = $("#ProductGrid").data("kendoGrid").dataSource.getByUid($(this).parents('tr').attr("data-uid"));
+            if (dataItem && $(this).find('input.icheck').prop('checked') == true) {
+                if (dataItem) {
+                    var obj = new Object();
+                    obj.ma_san_pham = dataItem.ma_san_pham_de_nghi;
+                    //obj.part_no = dataItem.part_no;
+                    //obj.ten_san_pham = dataItem.ten_san_pham;
+                    obj.don_gia = dataItem.don_gia
+                    //obj.gia_si = dataItem.gia_si;
+                    //obj.gia_tri = currencyToNumber($("input[name='gia_tri']").val());
+                    //obj.loai = $("input[name='loai']:checked").val();
+                    //obj.url = dataItem.url;
+                    if (!isExistsProduct(obj))
+                        $("#RelatedGrid").data("kendoGrid").dataSource.add(obj)
+                }
+            }
+            else if (dataItem) {
+                var dataItem = $("#ProductGrid").data("kendoGrid").dataSource.getByUid($(this).parent().parent().attr("data-uid"));
+                $.each($("#RelatedGrid").find('span.text-danger.bold'), function () {
+                    var data = $("#RelatedGrid").data("kendoGrid").dataSource.getByUid($(this).parents('tr').attr("data-uid"));
+                    if (data && data.ma_san_pham == dataItem.ma_san_pham) {
+                        $("#RelatedGrid").data("kendoGrid").dataSource.remove(data);
+                        return;
+                    }
+                });
+
+            }
+        });
+        review();
+    }
+    function isExistsProduct(Item) {
+        var flag = false;
+        $.each($("#RelatedGrid").data("kendoGrid").dataSource.data(), function () {
+            if (this.ma_san_pham == Item.ma_san_pham) {
+                flag = true;
+                return;
+            }
+        });
+        return flag;
+    }
+    $("#btnAddProductToPromotion").bind("click", function () {
+        var listrowid = "";
+        $('#ProductGrid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Product_Related/AddProduct_Related",
+            data: { data: listrowid, ma_san_pham: $("#ma_san_pham").val() },
+            beforeSend: function () {
+                App.blockUI({ boxed: !0, message: '@Html.Raw(@Resources.Global._just_amoment)...' });
+            },
+            success: function (data) {
+                if (data.success) {
+                    toastr.success('@Html.Raw(@Resources.Global._added_related_product)!')
+                    App.unblockUI();
+                    $('.modal').modal('hide');
+                    $("#RelatedGrid").data("kendoGrid").dataSource.read();
+                }
+                else
+                    toastr.error(data.message)
+            },
+            complete: function (xhr) {
+                App.unblockUI();
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                App.unblockUI();
+            }
+        });
+
+    });
+
+    function SearchProducts() {
+        //searchgridpopup
+        var listView = $("#ProductGrid").data("kendoGrid");
+        var seachText = $("#search_product_name").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+        if (typeof seachText != 'undefined') {
+            if (seachText.length) {
+                filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: seachText });
+
+                filter.filters.push(filterDesc);
+            }
+        }
+        var topicf = "";
+        topicf = $("#cay_phan_cap option:selected");
+        if (topicf.length > 0) {
+            for (var i = 0; i < topicf.length; i++) {
+                var option = topicf[i].value;
+                if (option != '') {
+                    filterTopic.filters.push({ field: "ma_loai_san_pham", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterTopic);
+        }
+        listView.dataSource.filter(filter);
+    }
+    //enter
+    $("#search_product_name").keypress(function (e) {
+        if (e.keyCode == 13) {
+            SearchProducts();
+        }
+    });
+
+</script>

@@ -1,0 +1,1046 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+    ViewBag.Title = "Quản lý thẻ khuyến mãi";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+    var data = new Merchant_Voucher();
+    data.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG;
+    data.loai_khuyen_mai = "tien";
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .title-news {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .label {
+        border-radius: 3px;
+        text-shadow: none;
+        font-size: 11px !important;
+        font-weight: bold;
+        padding: 2px 2px 2px 2px !important;
+    }
+
+    .label-success {
+        background-color: #468847 !important;
+    }
+
+    .label-warning {
+        background-color: #f89406 !important;
+    }
+
+    .label-important {
+        background-color: #b94a48 !important;
+    }
+
+    .label-default {
+        background-color: #999 !important;
+    }
+
+    .label-info {
+        background-color: #3a87ad !important;
+    }
+
+    .btn2 {
+        width: 70% !important;
+    }
+
+    .btn-danger {
+    }
+
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        max-width: 300px;
+        max-height: 200px;
+    }
+
+    .image-voucher {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-voucher img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-voucher .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-voucher:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #ff7d5e;
+        }
+</style>
+
+
+
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách thẻ khuyến mại</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                    <div class="row">
+                        <div class="col-md-4">
+                            @if (isAdmin)
+                            {
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("ListMerchant")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._merchant) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Events(e => e.Change("filter"))
+                                      .Filter("contains")
+                                      .MinLength(2)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetMerchantInfo", "CustomData");
+                                          }).ServerFiltering(false);
+                                      })
+
+                                        )
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                        .Name("trang_thai")
+                                        .DataTextField("Text")
+                                        .DataValueField("Value")
+                                        .Events(e => e.Change("filter"))
+                                        .OptionLabel("TRẠNG THÁI")
+                                        .BindTo(new List<SelectListItem>() {
+                                          new SelectListItem() {
+                                              Text = "ĐANG SỬ DỤNG",
+                                              Value = AllConstant.trang_thai.DANG_SU_DUNG
+                                          },
+                                          new SelectListItem() {
+                                              Text = "KHÔNG SỬ DỤNG",
+
+                                              Value = AllConstant.trang_thai.KHONG_SU_DUNG
+                                          }
+                                    })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                
+                                    <div class="input-icon right">
+                                        <div class="input-group-btn input-icon right">
+                                            <i class="icon-magnifier" onclick="filter()"></i>
+                                            <input type="text" class="form-control form-control-solid" id="txtSearch" name="txtSearch" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                                        </div>
+                                    </div>
+                             
+                                </div>
+                            </div>
+                        </div>
+                
+                    </div>
+                </form>
+                <div class="row-fluid">
+                    @(Html.Kendo().Grid<BIBIAM.Core.Entities.Merchant_Voucher>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                    columns.Bound(p => p.id)
+                         .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+                         .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#+@@+#=trang_thai#+@@+#=ten_khuyen_mai#'/>")
+                         .Width(25).Filterable(false).Sortable(false).HtmlAttributes(new { @class = "text-center" });
+                    columns.Bound(p => p.ma_khuyen_mai).Visible(false);
+                    columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(#=id#)'><i class='fa fa-trash-o'></i></a>" +
+                        "<a class='btn btn-xs btn-success' onClick='editVoucher(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                        columns.Template(@<text></text>).Width(400).Title("Thông tin Thẻ")
+                        .ClientTemplate("<div class='col-md-3' style='padding-left: 0; text-align: left;'><img src='#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#' class='img-responsive' style='display:inline' height='144' width='144'></div>"
+                        + "<div class='col-md-8' style='padding-left:0;'"
+                        + "</br><span class='info-title'>Mã Thẻ:</span><span>  #=ma_khuyen_mai ? ma_khuyen_mai : ''#</span>"
+                        + "</br><span class='info-title'>Tên Thẻ :</span><span> #=ten_khuyen_mai ? ten_khuyen_mai : ''#</span>"
+                        + "</br><span class='info-title'>Giá bán:</span><span>  #=gia_ban ? kendo.format('{0:N0}',gia_ban) : '0'#Đ</span>"
+                        + "</br><span class='info-title'>Số lượng : </span><span> #=so_luong ? so_luong : '0'# (Thẻ)</span>"
+                        + "</br><span class='info-title'>Đã sử dụng:</span><span>  #=su_dung ? su_dung : '0'# (Thẻ)</span></br>"
+                        + "</div>");
+                    columns.Template(@<text></text>).Width(350).Title("Chi tiết Thẻ")
+                        .ClientTemplate(
+                         "<span class='info-title'>Số tiền khuyến mãi : </span><span> #=loai_khuyen_mai=='tien' ? kendo.format('{0:N0}',gia_tri) : gia_tri ##=loai_khuyen_mai=='tien'?'Đ':'%'#</span>"
+                        + "</br><span class='info-title'>Điều kiện sử dụng thẻ: </span><span> #=dieu_kien?kendo.format('{0:N0}',dieu_kien):'0'#Đ</span>"
+                        + "</br><span class='info-title'>Ngày bắt đầu:</span><span> #=kendo.toString(kendo.parseDate(ngay_bat_dau),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_bat_dau),'dd/MM/yyyy') : ''#</span>"
+                        + "</br><span class='info-title'>Ngày kết thúc:</span><span> #=kendo.toString(kendo.parseDate(ngay_ket_thuc),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_ket_thuc),'dd/MM/yyyy') : ''#</span>"
+                        + "</br><span class='info-title'>Miêu tả:</span><span>  #:getTheSubstring(data.mieu_ta,300)#</span></br>"
+                        );
+                        columns.Template(@<text></text>).Width(210).Title("Trạng thái sử dụng")
+                        .ClientTemplate(
+                        "#if(trang_thai=='" + AllConstant.trang_thai.DANG_SU_DUNG + "'){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đang sử dụng</label>"
+                        + "#}else{#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Không sử dụng</label>"
+                        + "#}#"
+                        + "</br><span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span></br>"
+                        + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') : ''#</span></br>"
+                        + "</br><span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span></br>"
+                        + "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') : ''#</span></br>"
+                        );
+                    })
+
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300, 500 }))
+                    .Scrollable()
+                    .ToolBar(toolbar =>
+                    {
+                    toolbar.Template(@<text>
+                        <div class="pull-left">
+                            @if (create || all)
+                            { <a onclick='create()' class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>}
+
+                            @if (delete || all)
+                            {
+                                <button class="btn btn-small btn-danger" onclick=DelVoucher()><i class="fa fa-trash" aria-hidden="true"></i> @Resources.Global._delete</button>
+                            }
+                            @if (all || create || update)
+                            {
+                                <button class="btn btn-small btn-primary" onclick="ActiveVoucher()"><i class="fa fa-check-square-o" aria-hidden="true"></i> Sử dụng</button>
+                                <button class="btn btn-small btn-warning" onclick="InActiveVoucher()"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Không sử dụng</button>
+                            }
+
+                        </div>
+                    </text>);
+                    })
+                    .Events(events =>
+                    {
+                        events.DataBound("dataBound");
+                    })
+
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .HtmlAttributes(new { @style = "height:610px" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(false)
+                    .PageSize(20)
+                    .Sort(s => s.Add(a => a.id).Descending())
+                    .Model(model =>
+                    {
+                        model.Id(p => p.id);
+                    })
+                    .Read(c => c.Action("Read", "Merchant_Voucher")
+                    )))
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12 formVoucher"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Merchant_Voucher/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="actions" style="float: right;">
+                    @if (all || update || create)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle"><i class="fa fa-ban" aria-hidden="true"></i> @Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0){#
+                    @if (delete || all)
+                    {  <button type="button" class="btn btn-circle btn-danger" onclick="deleteRow('#=id#')"><i class="fa fa-trash" aria-hidden="true"></i> @Html.Raw(Resources.Global._delete)</button>}
+
+                    #}#
+                    @if (all || update || create)
+                    {
+                        <button type="submit" class="btn blue btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                  
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>Mã thẻ<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            #if(id>0){#
+                                            <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ma_khuyen_mai" value="#=ma_khuyen_mai?ma_khuyen_mai:''#" readonly>
+                                            #}
+                                            else{#
+                                            <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ma_khuyen_mai" value="#=ma_khuyen_mai?ma_khuyen_mai:''#">
+                                            #}#
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 form-group">
+                                        <label>Tên thẻ<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ten_khuyen_mai" value="#=ten_khuyen_mai?ten_khuyen_mai:''#">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+
+                               <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>Hình thức khuyến mãi<span class="text-danger"> *</span></label>
+                                        <div class="clearfix">
+                                            <div class="btn-group" data-toggle="buttons">
+                                                <label class="btn green btn-sm btn-outline #=loai_khuyen_mai=='tien'?'active':''#">
+                                                    <input type="radio" name="loai_khuyen_mai" value="tien" class="toggle" #=loai_khuyen_mai=='tien' ?'checked':''#> Theo VNĐ
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=loai_khuyen_mai=='phan_tram'?'active':''#">
+                                                    <input type="radio" name="loai_khuyen_mai" value="phan_tram" class="toggle" #=loai_khuyen_mai=='phan_tram' ?'checked':''#> Theo %
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-6 form-group">
+                                        <label>Số tiền khuyến mãi<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="gia_tri" value="#=gia_tri?gia_tri:'0'#" onkeyup="changeValue(this,event)">
+                                        </div>
+                                    </div>
+                               </div>
+                               <div class="row">
+                                   <div class="col-md-6 form-group">
+                                       <label>Điều kiện sử dụng<span class="text-danger"> (>=)* </span></label>
+                                       <div class="input-icon right">
+                                           <i class="fa"></i>
+                                           <input type="text" class="form-control input-sm" name="dieu_kien" value="#=dieu_kien?kendo.format('{0:N0}',dieu_kien):'0'#" onkeyup="changeValue(this,event)">
+                                       </div>
+                                   </div>
+                                   <div class="col-md-6 form-group">
+                                       <label>Giá bán<span class="text-danger"> *</span></label>
+                                       <div class="input-icon right">
+                                           <i class="fa"></i>
+                                           <input type="text" class="form-control input-sm max100 left" name="gia_ban" value="#=gia_ban?kendo.format('{0:N0}',gia_ban):'0'#" onkeyup="changeValue(this,event)">
+                                       </div>
+                                   </div>
+                               </div>
+                               <div class="row">
+                                   <div class="col-md-6 form-group">
+                                       <label> Ngày bắt đầu<span class="text-danger"> *</span></label>
+                                        @(Html.Kendo().DatePicker()
+                                          .Name("ngay_bat_dau")
+                                          .Format("dd/MM/yyyy")
+                                          .HtmlAttributes(new { style = "width: 100%"}).ToClientTemplate()
+                                       )
+                                   </div>
+                                   <div class="col-md-6 form-group">
+                                       <label>Ngày kết thúc<span class="text-danger"> *</span></label>
+                                       @(Html.Kendo().DatePicker()
+                                          .Name("ngay_ket_thuc")
+                                          .Format("dd/MM/yyyy")
+                                          .HtmlAttributes(new { style = "width: 100%" }).ToClientTemplate()
+                                       )
+                                   </div>
+                               </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>Số lượng<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            @(Html.Kendo().NumericTextBox<int>()
+                                            .Name("so_luong")
+                                            .Format("n0")
+                                            .Step(1)
+                                            .Min(1)
+                                            .Max(10000)
+                                            .Placeholder("Nhập số lượng thẻ")
+                                            .HtmlAttributes(new { style = "width: 100%", value = "#=so_luong #" })
+                                            .ToClientTemplate()
+                                            )
+                                        </div>
+                                    </div>
+                                     #if(id>0){#
+                                        <div class="col-md-6 form-group">
+                                            <label>Đã sử dụng</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                @(Html.Kendo().NumericTextBox<int>()
+                                                .Name("su_dung")
+                                                .Enable(false)
+                                                .Format("n0")
+                                                .Step(1)
+                                                .Min(0)
+                                                .Max(10000)
+                                                .HtmlAttributes(new { style = "width: 100%", value = "#=su_dung#" })
+                                                .ToClientTemplate()
+                                                )
+                                            </div>
+                                        </div>
+                                    #}#
+                                </div>
+                     
+                                #if(id>0){#
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>@Html.Raw(Resources.Global._date_created):</label>
+                                        @(Html.Kendo().DatePicker()
+                                          .Name("ngay_tao")
+                                          .Enable(false)
+                                          .HtmlAttributes(new { style = "width: 100%" }).ToClientTemplate()
+                                          )
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>@Html.Raw(Resources.Global._date_update):</label>
+                                        @(Html.Kendo().DatePicker()
+                                          .Name("ngay_cap_nhat")
+                                          .Enable(false)
+                                          .HtmlAttributes(new { style = "width: 100%" }).ToClientTemplate()
+                                          )
+                                    </div>
+                                </div>
+                                
+                                #}#
+
+                                <div class="form-group">
+                                    <label>Miêu tả</label>
+                                    <textarea class="form-control" name="mieu_ta" placeholder="Miêu tả ngắn gọn" rows="2">#=mieu_ta!=null ? mieu_ta : ''#</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._status)</label>
+                                    <div class="clearfix">
+                                        <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                            <label class="btn red btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.KHONG_SU_DUNG'?'active':''#">
+                                                <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.KHONG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.KHONG_SU_DUNG' ?'checked':''#> @Html.Raw(Resources.Global._not_used)
+                                            </label>
+                                            <label class="btn green btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.DANG_SU_DUNG'?'active':''#">
+                                                <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.DANG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.DANG_SU_DUNG' ?'checked':''#> @Resources.Global._used
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                
+
+             
+                        </div>
+                        <div class="col-md-6">
+                            <div class="col-md-2"></div>
+                            <div class="col-md-10 form-group">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>Hình ảnh thẻ</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 255px; height:200px;">
+                                                    <img src="#=url ? url : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" style="width: 255px; height:200px;" alt="#=ma_anh_goc#" />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="width: 255px; height:200px;"> </div>
+                                                <div>
+                                                    <span id="SelectImage" class="btn default btn-file btn-sm btn-circle" onclick="show_popup_selectimage()">Chọn ảnh từ thư viện</span>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wapper">
+                                    <div id="image-voucher">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+   
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script>
+
+    function dataBound(e) {
+    }
+    //$("#txtSearch").keydown(function (e) {
+    //    if (e.keyCode == 13) {
+    //        filter();
+    //    }
+    //});
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+            filterOr.filters.push({ field: "ten_khuyen_mai", operator: "contains", value: noi_dung });
+
+            filterOr.filters.push({ field: "ma_khuyen_mai", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "mieu_ta", operator: "contains", value: noi_dung });
+            filter.filters.push(filterOr);
+        }
+        //
+        var ListMerchant = $('#ListMerchant').val();
+        if (ListMerchant != null && ListMerchant != "") {
+            filter.filters.push({ field: "ma_gian_hang", operator: "eq", value: ListMerchant });
+        }
+
+        var trang_thai = $('#trang_thai').val();
+        if (trang_thai != null && trang_thai != "") {
+            filter.filters.push({ field: "trang_thai", operator: "eq", value: trang_thai });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function checkAll(e) {
+
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function Getlistcheck(type) {
+        var listrowid = [];
+        var listrowidyes = '';
+        var listrowidno = '';
+        switch (type) {
+            case 1:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true){
+                            if($(this).attr("id").split(/@@@@/)[1].trim()!='@AllConstant.trang_thai.DANG_SU_DUNG'){
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else
+                            {
+                                toastr.error('',$(this).attr("id").split(/@@@@/)[2].trim()+" đang được sử dụng!" );
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 2:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true){
+                            if($(this).attr("id").split(/@@@@/)[1].trim()!='@AllConstant.trang_thai.KHONG_SU_DUNG'){
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else
+                            {
+                                toastr.error('',$(this).attr("id").split(/@@@@/)[2].trim()+" đã không sử dụng!" );
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 3:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                            $(this).data();
+                        }
+                    })
+                }
+                break;
+        }
+        listrowid.listrowidyes = listrowidyes;
+        listrowid.listrowidno = listrowidno;
+        return listrowid;
+    }
+
+
+    function DelVoucher() {
+        var data = Getlistcheck(3);
+        if(data.listrowidyes=='')
+        {
+            toastr.error('', "Vui lòng chọn Thẻ cần xóa!");
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa các Thẻ đã chọn!",
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Voucher/Delete", { data: data.listrowidyes}, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Xóa thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+     function ActiveVoucher() {
+        var data = Getlistcheck(1);
+        if(data.listrowidyes=='')
+        {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Sử dụng các Thẻ đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Voucher/ActiveVoucher", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+     function InActiveVoucher() {
+        var data = Getlistcheck(2);
+        if(data.listrowidyes=='')
+        {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Không sử dụng các Thẻ đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Voucher/ActiveVoucher", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Ngưng sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+
+     function deleteRow(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa các Thẻ đã chọn!",
+            buttons:
+                {
+               
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                       
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                             
+                            $.post(r + "/Merchant_Voucher/Delete", { data: id}, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    clearForm();
+                                    toastr.success('', 'Xóa thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function getTheSubstring(value, length) {
+        if (value != null)
+        {
+            if (value.length > length)
+                return kendo.toString(value.substring(0, length)) + "...";
+            else return kendo.toString(value);
+        }
+
+    }
+</script>
+
+@Html.Partial("_popup_select_image")
+
+<script>
+    $(document).ready(function () {
+        loadform(@Html.Raw(Json.Encode(data)));
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+
+        $.validator.addMethod("promotionpercent", function (value, element) {
+            if ($("#EditForm input[name='loai_khuyen_mai']:checked").val() == 'phan_tram')
+                return ValidateVoucher();
+            return true;
+        }, "Giá trị = [5%, 50%]");
+        $.validator.addMethod("promotionmoney", function (value, element) {
+            if ($("#EditForm input[name='loai_khuyen_mai']:checked").val() == 'tien')
+                return ValidateVoucher();
+            return true;
+        }, "Giá trị = [50000Đ, 1000000Đ]");
+
+        $.validator.addMethod("ktngaybatdau", function (value, element) {
+             
+            var ngaybatdau = $("#ngay_bat_dau").data("kendoDatePicker").value();
+            var today = new Date();
+            var ngayhientai = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            if ($('input[name=id]').val() == 0) {
+                if (ngaybatdau < ngayhientai)
+                    return false;
+            }
+            return true;
+        }, "Ngày bắt đầu không được nhỏ hơn ngày hiện tại");
+        $.validator.addMethod("ktngayketthuc", function (value, element) {
+            var ngaybatdau = $("#ngay_bat_dau").data("kendoDatePicker").value();
+            var ngayketthuc = $("#ngay_ket_thuc").data("kendoDatePicker").value();
+            var today = new Date();
+            var ngayhientai = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            if (ngayketthuc < ngaybatdau)
+                return false;
+            if ($('input[name=id]').val() == 0)
+            {
+                if (ngayketthuc < ngayhientai)
+                    return false;
+            }
+            return true;
+        }, "Ngày kết thúc không được nhỏ hơn ngày hiện tại và ngày bắt đầu");
+
+    });
+
+    function ValidateVoucher() {
+        var gia_tri = currencyToNumber($("#EditForm input[name='gia_tri']").val());
+        if (!gia_tri)
+            gia_tri = 0;
+        var loai = $("#EditForm input[name='loai_khuyen_mai']:checked").val();
+        if ((loai == 'tien' && 50000 > gia_tri) || (loai == 'tien' && 1000000 < gia_tri) || (loai == 'phan_tram' && 50 < gia_tri) || (loai == 'phan_tram' && 5 > gia_tri))
+            return false;
+
+        return true;
+    }
+    var reset = false;
+
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function SaveChange() {
+        $('#EditForm').submit();
+        $("#Grid").data("kendoGrid").dataSource.read();
+    }
+    function loadform(data)
+    {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formVoucher").html(EditTemplate(data));
+
+        loadValidateEdit(data);
+
+        $('.fileinput').fileinput().on('change.bs.fileinput', function(e, files){
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+
+        if ($('input[name=id]').val() > 0)
+        {
+            $("[name=ngay_tao]").val(kendo.toString(kendo.parseDate(data.ngay_tao), "dd-MM-yyyy"));
+            $("[name=ngay_cap_nhat]").val(kendo.toString(kendo.parseDate(data.ngay_cap_nhat), "dd-MM-yyyy"));
+            $("[name=ngay_bat_dau]").val(kendo.toString(kendo.parseDate(data.ngay_bat_dau), "dd-MM-yyyy"));
+            $("[name=ngay_ket_thuc]").val(kendo.toString(kendo.parseDate(data.ngay_ket_thuc), "dd-MM-yyyy"));
+        }
+
+
+    }
+    function editVoucher(e) {
+        var voucher = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadform(voucher);
+
+        //$("[name=ngay_bat_dau]").val(kendo.toString(kendo.parseDate(voucher.ngay_bat_dau), "dd-MM-yyyy"));
+        //$("[name=ngay_ket_thuc]").val(kendo.toString(kendo.parseDate(voucher.ngay_ket_thuc), "dd-MM-yyyy"));
+        //$("[name=ngay_tao]").val(kendo.toString(kendo.parseDate(voucher.ngay_tao), "dd-MM-yyyy"));
+        //$("[name=ngay_cap_nhat]").val(kendo.toString(kendo.parseDate(voucher.ngay_cap_nhat), "dd-MM-yyyy"));
+
+        $("#tab_2_click").trigger("click");
+
+    }
+    function clearForm() {
+        loadform(@Html.Raw(Json.Encode(data)));
+    }
+    function create(){
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function loadForm(data) {
+
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+
+    }
+    function changeValue(ele, e) {
+        switch (e.keyCode) {
+            case 16: case 17: case 35: case 36: case 37: case 38: case 39: case 40:
+                break;
+            default:
+                num = $(ele).val(numberToCurrency(currencyToNumber($(ele).val())))
+                break;
+        }
+    }
+
+    function getDataBeforeSubmit() // return object, messageError
+    {
+         
+        var object = [];
+        var listimage = [];
+        $("#image-voucher .image-voucher img").each(function(){
+            var mpi = @Html.Raw(Json.Encode(new Merchant_Image_Info()));
+            var dataItems = $("#popup_Grid").data("kendoListView").dataSource.data();
+            for (var i = 0; i < dataItems.length; i++){
+                if (dataItems[i].duong_dan_day_du == $(this).attr('src')){
+                    mpi.duong_dan_day_du = dataItems[i].duong_dan_day_du;
+                    mpi.ma_anh_goc = dataItems[i].ma_anh_goc;
+                    listimage.push(mpi);
+                    break;
+                }
+            }
+        });
+        object.listimage = listimage;
+        return{
+            object : object
+        }
+    }
+
+
+    function loadValidateEdit(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                {
+                        ma_khuyen_mai: { minlength: 4, maxlength: 512, required: !0 },
+                        ten_khuyen_mai: { minlength: 4, maxlength: 512, required: !0 },
+                        gia_tri: { promotionpercent: true, promotionmoney: true, number: true, required: true },
+                        so_luong: { required: true },
+                        ngay_bat_dau: { required: true, ktngaybatdau:true },
+                        ngay_ket_thuc: { required: true,ktngayketthuc:true },
+                    },
+                messages:
+                    {
+                        ma_khuyen_mai: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        ten_khuyen_mai: {
+                            minlength: "Tối thiểu 4 ký tự",
+                            maxlength: "Tối đa 512 ký tự",
+                            required: "Thông tin bắt buộc"
+                        },
+                        gia_tri: {
+                            number: "Kiểu số nguyên",
+                            required: "Thông tin bắt buộc"
+                        },
+                        so_luong: {
+                            required: "Thông tin bắt buộc",
+                        },
+                        ngay_bat_dau: {
+                            required: "Thông tin bắt buộc",
+                        },
+                        ngay_ket_thuc: {
+                            required: "Thông tin bắt buộc",
+                        },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+
+                    var rs = getDataBeforeSubmit(); // return messageError, object
+                   
+                    var element = $("#EditForm").find("input[name='gia_ban']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='dieu_kien']");
+                    element.val(currencyToNumber(element.val()));
+                    element = $("#EditForm").find("input[name='gia_tri']");
+                    element.val(currencyToNumber(element.val()));
+
+                    var imgurl=$(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url" value="' + imgurl + '"/>');
+
+                    $(e).ajaxSubmit({
+                        data: {listimage: rs.object.listimage},
+                        dataType: "json",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            $("#EditForm").find("input[name='url']").remove();
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#Grid").data("kendoGrid").dataSource.read();
+                                loadform(data.data);
+                               
+                                if (reset) {
+                                    reset = false;
+                                    clearForm();
+                                }
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            if (XMLHttpRequest.status == 500)
+                                toastr.error('ERROR');
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+</script>

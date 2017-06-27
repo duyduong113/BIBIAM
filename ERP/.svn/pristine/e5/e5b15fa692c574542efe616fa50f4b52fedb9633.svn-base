@@ -1,0 +1,230 @@
+﻿<style>
+    #GridViewAgentAnnoucement .k-grid-header {
+        display: none;
+    }
+
+    #GridViewAgentAnnoucement {
+        min-height: 180px !important;
+    }
+    #listViewAgentProduct{
+        min-height: 149px !important;
+    }
+    #GridViewAgentScript {
+        min-height: 180px !important;
+    }
+</style>
+<div class="row-fluid">
+    <ul class="nav nav-tabs padding-12 tab-color-blue background-blue">
+        <li class="active">
+            <a data-toggle="tab" href="#AgentAnnoucementTab" onclick="$('#divFilterAgentAnnoucement').show()">
+                Thông báo
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#AgentProductTab" onclick="$('#divFilterAgentAnnoucement').hide()">
+                Danh sách sản phẩm
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#AgentOtherInfoTab" onclick="$('#divFilterAgentAnnoucement').show()">
+                Thông tin khác
+            </a>
+        </li>
+        <li class="pull-right" style="margin: -6px 10px 0px 0px;" id="divFilterAgentAnnoucement">
+            <div class="row-fluid">
+                <div class="span12" style="padding: 10px 5px 2px 10px; display: inline-flex;">
+                    <label style="margin-right:15px">
+                        <input type="radio" class="ace" value="Today" onclick="LoadGridViewAgentInfo()" checked name="AgentInfoFilter">
+                        <span class="lbl"> Mới nhất</span>
+                    </label>
+                    <label>
+                        <input type="radio" class="ace " value="All" onclick="LoadGridViewAgentInfo()" name="AgentInfoFilter">
+                        <span class="lbl"> Tất cả</span>
+                    </label>
+                </div>
+            </div>
+        </li>
+    </ul>
+    <div class="tab-content" style="padding: 0 0px 0px 0px;min-height:180px;">
+
+        @* nội dung tab appointment *@
+        <div id="AgentAnnoucementTab" class="tab-pane in active">
+            <div class="row-fluid">
+                @(Html.Kendo().ListView<ERPAPD.Models.DC_Telesales_ManageInfo>()
+                                           .Name("GridViewAgentAnnoucement")
+                                    .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                                    .TagName("div")
+                                            .Events(e => e.DataBound("resizeGridAnnoucementAgent"))
+                                                    .ClientTemplateId("GridAnnoucementAgentRowTemplate")
+                                    .DataSource(dataSource =>
+                                    {
+                                        dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                                        dataSource.Read(read => read.Action("AnnoucementAgentRead", "Telesale", new { Type = "Annoucement" }));
+                                        dataSource.PageSize(5);
+                                    })
+                )
+            </div>
+        </div>
+        <div id="AgentProductTab" class="tab-pane in">
+            <div class="row-fluid">
+                @(Html.Kendo().ListView<ERPAPD.Models.DC_SKU_Property>()
+                                    .Name("listViewAgentProduct")
+                                    .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                                    .TagName("div")
+                                            .Events(e => e.DataBound("resizeGridAnnoucementAgent"))
+                                    .Pageable(pageable => pageable.ButtonCount(5))
+                                            .ClientTemplateId("AgentProductsListViewTemplate")
+                                    .DataSource(dataSource =>
+                                    {
+                                        dataSource.Sort(s => s.Add(m => m.promotionPercent).Descending());
+                                        dataSource.Read(read => read.Action("listViewProductRead", "Telesale"));
+                                        dataSource.PageSize(20);
+                                    })
+                )
+            </div>
+        </div>
+        <div id="AgentOtherInfoTab" class="tab-pane in">
+            <div class="row-fluid">
+                @(Html.Kendo().ListView<ERPAPD.Models.DC_Telesales_ManageInfo>()
+                                    .Name("GridViewAgentScript")
+                                    .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                                    .TagName("div")
+                                            .Events(e => e.DataBound("resizeGridAnnoucementAgent"))
+                                    .ClientTemplateId("GridViewAgentScriptRowTemplate")
+                                    .DataSource(dataSource =>
+                                    {
+                                        dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                                        dataSource.Read(read => read.Action("AnnoucementAgentRead", "Telesale", new { Type = "Others" }));
+                                        dataSource.PageSize(5);
+                                    })
+                )
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-template" id="AgentProductsListViewTemplate">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="profile-activity clearfix">
+                <div>
+                    <img class="pull-left" style="max-width: 20px !important; padding: 0 0 0 7px;" src="https://deca.vn/#:thumbnailImageUrl#">
+                    <div style="margin-top:5px;">
+                        <a class="user" style="color:\\#555555; font-size: 12px;" href="https://deca.vn/ajax/box_chi_tiet_san_pham_previewocm/index/#=productId#/119/1/" target="_blank">
+                            #:productId# - #:name#
+                        </a>
+                        <span>
+                            - Màu #:colorName# | Giá: <span style="color:red;font-weight:bold;">#:kendo.toString(sellingprice,'N0')#đ</span>
+                            #if(promotionPercent>0){#
+                            | <span style="text-decoration:line-through">#:kendo.toString(price,'N0')#</span> | <span style="color:red;font-weight:bold;"> -#:promotionPercent#%</span>
+                            #}#
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="GridAnnoucementAgentRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style=" padding: 10px 0px 0px 10px; display: inline-flex; border-bottom: 1px dotted \\#ccc;">
+            <div style="margin-top: 5px ;margin-right:5px;">
+                #if(Priority=='H'){#
+                <span style="background: \\#D15B47; padding: 4px 10px 4px 10px; color: white; border-radius:2px;">H</span>
+                #}else if(Priority == 'M'){#
+                <span style="background: \\#3A87AD; padding: 4px 10px 4px 10px; color: white; border-radius: 2px; ">M</span>
+                #}else{#
+                <span style="background: \\#A0A0A0; padding: 4px 10px 4px 10px; color: white; border-radius: 2px; ">L</span>
+                #}#
+            </div>
+            <div>
+                #if(Priority=='H'){#
+                <span style="color: \\#D15B47; ">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else if(Priority == 'M'){#
+                <span style="color: \\#3A87AD">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else{#
+                <span style="color: \\#A0A0A0">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}#
+                <span style="font-weight:bold; color:\\#555555">#=Title#</span>
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="GridViewAgentScriptRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style=" padding: 5px 15px 5px 15px; border-bottom: 1px dotted \\#ccc; ">
+            <div>
+                <span style="color:\\#00B4C1; font-size: 16px">#=Title#</span>
+                <br />
+                <span style="font-size:10px;color:\\#808080;">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#</span>
+                <br />
+            </div>
+            <div style="margin-top:5px;">
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+
+@( Html.Kendo().Window().Name("SkipCustomerWindow")
+      .Title("Bỏ qua")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script type="text/javascript">
+    function htmlDecodeForAnnoucement(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+    function resizeGridAnnoucementAgent() {
+        var offsetbottom
+        //check tab nào đang hiển thị
+        if (parseInt($('#GridViewAgentAnnoucement').offset().top) > 0) {
+            //tab thông báo đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#GridViewAgentAnnoucement').offset().top);
+            $("#GridViewAgentAnnoucement").height(offsetbottom - 25);
+            $("#listViewAgentProduct").height(offsetbottom - 60);
+            $("#GridViewAgentScript").height(offsetbottom - 25);
+        }
+        if (parseInt($('#listViewAgentProduct').offset().top) > 0) {
+            //tab product đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#listViewAgentProduct').offset().top);
+            $("#GridViewAgentAnnoucement").height(offsetbottom - 25);
+            $("#GridViewAgentScript").height(offsetbottom - 25);
+            $("#listViewAgentProduct").height(offsetbottom - 60);
+        }
+        if (parseInt($('#GridViewAgentScript').offset().top) > 0) {
+            //tab product đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#GridViewAgentScript').offset().top);
+            $("#GridViewAgentAnnoucement").height(offsetbottom - 25);
+            $("#GridViewAgentScript").height(offsetbottom - 25);
+            $("#listViewAgentProduct").height(offsetbottom - 60);
+        }
+    }
+    function LoadGridViewAgentInfo() {
+        var isToday = $('input[name=AgentInfoFilter]:checked').val()
+        var grid = $("#GridViewAgentAnnoucement").data("kendoListView");
+        if (isToday == "News") {
+            grid.dataSource.pageSize(5);
+            grid.dataSource.read();
+
+        } else {
+            grid.dataSource.pageSize(1000);
+            grid.dataSource.read();
+        }
+        var grid = $("#GridViewAgentScript").data("kendoListView");
+        if (isToday == "News") {
+            grid.dataSource.pageSize(5);
+            grid.dataSource.read();
+
+        } else {
+            grid.dataSource.pageSize(1000);
+            grid.dataSource.read();
+        }
+    }
+</script>

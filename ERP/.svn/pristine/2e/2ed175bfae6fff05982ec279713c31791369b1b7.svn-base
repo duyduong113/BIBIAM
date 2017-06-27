@@ -1,0 +1,47 @@
+﻿
+IF EXISTS (SELECT name FROM [dbo].sysobjects 
+         WHERE name = 'p_Merchant_Product_SyncToMySQL_All' AND type = 'P')
+   DROP PROCEDURE [dbo].p_Merchant_Product_SyncToMySQL_All
+GO
+ 
+CREATE PROCEDURE [dbo].p_Merchant_Product_SyncToMySQL_All
+AS
+begin
+	update p2 set 
+	p2.ma_san_pham =p.ma_san_pham,
+	p2.ma_loai_san_pham= p.ma_loai_san_pham,
+	p2.ma_gian_hang = p.ma_gian_hang,
+	p2.ten_san_pham = p.ten_san_pham,
+	p2.part_no = p.part_no,
+	p2.mo_ta = p.mo_ta,
+	p2.noi_dung = CAST(p.noi_dung as ntext),
+	p2.trong_so = p.trong_so,
+	p2.don_gia = p.don_gia,
+	p2.gia_si =p.gia_si,
+	p2.tu_khoa = p.tu_khoa,
+	p2.tag = p.tag,
+	p2.slug = p.slug,
+	p2.url = p.url,
+	p2.xuat_xu = p.xuat_xu,
+	p2.thuong_hieu = p.thuong_hieu,
+	p2.model =p.model,
+	p2.minimum_order = p.minimum_order,
+	p2.nguoi_xuat_ban = p.nguoi_xuat_ban,
+	p2.ngay_xuat_ban = p.ngay_xuat_ban,
+	p2.trang_thai_xuat_ban = p.trang_thai_xuat_ban,
+	p2.nguoi_duyet =p.nguoi_duyet,
+	p2.ngay_duyet = p.ngay_duyet,
+	p2.trang_thai_duyet = p.trang_thai_duyet,
+	p2.trang_thai = p.trang_thai
+	FROM merchant_product AS p WITH (NOLOCK)
+	JOIN OPENQUERY(MYSQL_BIBIAM_DEV, 'select * from merchant_product' ) AS p2
+    ON p2.ma_san_pham = p.ma_san_pham and p2.ma_gian_hang = p.ma_gian_hang
+	
+	INSERT INTO openquery(MYSQL_BIBIAM_DEV,'select ma_san_pham,ma_loai_san_pham,ma_gian_hang,ten_san_pham,part_no,mo_ta,noi_dung,trong_so,don_gia,gia_si,tu_khoa,tag,slug,url,xuat_xu,thuong_hieu,model,minimum_order,nguoi_xuat_ban,ngay_xuat_ban,trang_thai_xuat_ban,nguoi_duyet,ngay_duyet,trang_thai_duyet,trang_thai,ngay_tao,nguoi_tao,ngay_cap_nhat,nguoi_cap_nhat 
+										from merchant_product')
+	select p.ma_san_pham, p.ma_loai_san_pham, p.ma_gian_hang, p.ten_san_pham, p.part_no, p.mo_ta, p.noi_dung, p.trong_so, p.don_gia, p.gia_si, p.tu_khoa, p.tag, p.slug, p.url, p.xuat_xu, p.thuong_hieu, p.model, p.minimum_order, p.nguoi_xuat_ban, p.ngay_xuat_ban, p.trang_thai_xuat_ban, p.nguoi_duyet, p.ngay_duyet, p.trang_thai_duyet, p.trang_thai, p.ngay_tao, p.nguoi_tao, p.ngay_cap_nhat, p.nguoi_cap_nhat			
+	FROM merchant_product AS p WITH (NOLOCK)
+	LEFT JOIN OPENQUERY(MYSQL_BIBIAM_DEV, 'select * from merchant_product' ) AS p2
+    ON p2.ma_san_pham = p.ma_san_pham and p2.ma_gian_hang = p.ma_gian_hang
+	where p2.ma_gian_hang is null
+end

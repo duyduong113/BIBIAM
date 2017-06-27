@@ -1,0 +1,506 @@
+﻿@{
+    Layout = null;
+}
+<style type="text/css">
+    .body-print {
+        margin: 0 auto;
+        font-family: "Times New Roman";
+        font-size: 12pt;
+        color: #000;
+        text-align: justify;
+        margin: 0px auto;
+        max-width: 750px;
+        background-color: #fff;
+        padding-bottom: 50px;
+    }
+
+   
+    .left10 {
+        margin-left: 10px !important;
+    }
+
+    .dotted{
+        border-bottom: dotted 1px #000;
+    }
+    .table-in .dotted{
+        text-align:right;
+    }
+</style>
+<div style="padding:0 40px; text-align:justify;padding-bottom: 100px;" class="body-print">
+    <div class="text_head" id="print_header" style="height:60px;"></div>
+    <h2 align="center" class="text_head" style="font-weight:bold;">BẢNG KÊ BỔ SUNG THÔNG TIN HỢP ĐỒNG</h2>
+    <p><i><b><u>Lưu ý: </u></b> Nvkd có thể/hoặc không cần phải kê các nội dung có dấu (*)  </i></p>
+    <table border="0" cellpadding="0" cellspacing="2" width="650" class="textdaudong">
+        <tbody>
+            <tr class="fixed">
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2">
+                        <tr>
+                            <td>1.Tên KH <i>(đầy đủ):</i></td>
+                            <td class="dotted">@ViewBag.itemAdditional.CustomerName</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr class="fixed">
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>2.Mã KH: </td>
+                            <td class="dotted" style="width:100px">@ViewBag.itemAdditional.CustomerCode</td>
+                            <td>3.Mã book chỗ: </td>
+                            <td class="dotted" style="width:100px">@ViewBag.itemAdditional.BookCode</td>
+                            <td>4.Số hợp đồng: </td>
+                            <td class="dotted" style="width:100px">@ViewBag.itemAdditional.Code</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2">
+                        <tr>
+                            <td>5.Loại KH: </td>
+                            <td>Trực tiếp </td>
+                            <td style="padding-right:20px">
+                                @if (ViewBag.itemAdditional.CustomerType == 1)
+                                {
+                                    <input value="1" type="checkbox" checked/>
+                                }
+                                else
+                                {
+                                    <input value="0" type="checkbox" />
+                                }
+                            </td>
+                            <td>Đại lý: </td>
+                            @{ 
+                                string gold = "", rubi = "", tital = "", basic = "";
+                                string agency = ViewBag.itemAdditional.AgencyType;
+                                switch (agency)
+                                {
+                                    case "GOLD":
+                                        gold = "checked";
+                                        break;
+                                    case "RUBI":
+                                        rubi = "checked";
+                                        break;
+                                    case "TITAL":
+                                        tital = "checked";
+                                        break;
+                                    case "BASIC":
+                                        basic = "checked";
+                                        break;
+                                }
+                                }
+                            <td>Vàng</td>
+                            <td style="padding-right:20px"><input name="AgencyType" value="GOLD" class="left10" type="radio" @Html.Raw(gold)/></td>
+                            <td>Rubi </td>
+                            <td style="padding-right:20px"><input name="AgencyType" value="RUBI" class="left10" type="radio" @Html.Raw(rubi)/></td>
+                            <td>Tital </td>
+                            <td style="padding-right:20px"><input name="AgencyType" value="TITAL" class="left10" type="radio" @Html.Raw(tital)/></td>
+                            <td>Basic </td>
+                            <td><input name="AgencyType" value="BASIC" class="left10" type="radio" @Html.Raw(basic)/></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2">
+                        <tr>
+                            <td>6.Ngày giao HĐ 2 chiều cho kế toán: </td>
+                            <td class="dotted" style="width:100px">@ViewBag.itemAdditional.DateRevenus</td>
+                            <td>Nợ HĐ: </td>
+                            <td>
+                                @if (ViewBag.itemAdditional.HasOwe == 1)
+                                {
+                                    <input value="1" type="checkbox" checked />
+                                }
+                                else
+                                {
+                                    <input value="0" type="checkbox" />
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2">
+                        <tr>
+                            <td>7.Người giao: </td>
+                            <td class="dotted" style="width:250px">@ViewBag.itemAdditional.Deliver</td>
+                            <td>Nhóm: </td>
+                            <td class="dotted" style="width:250px">@ViewBag.itemAdditional.Team</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2">
+                        <tr>
+                            <td>8.Ngành hàng: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Category</td>
+                            <td>9.Nhãn hàng: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Labels</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    10.Phân loại doanh số:
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table id="ListStaffDraff" cellpadding="2" cellspacing="0" style="text-align:right;vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+                        <tr align="center">
+                            <th style="width:20%">NVKD</th>
+                            <th style="width:10%">Tỷ lệ</th>
+                            <th style="width:15%">Doanh số ký</th>
+                            <th style="width:20%">Doanh số thực hiện <span style="font-weight:normal">(*)</span></th>
+                            <th style="width:20%">DS chuyển năm sau <span style="font-weight:normal">(*)</span></th>
+                            <th style="width:15%">DS khác<br /><i style="font-weight:normal">(ko tính cho nvkd)(*)</i></th>
+                        </tr>
+                        @if (ViewBag.listStaff != null)
+                        {
+                            int count = 0;
+                            foreach (var item in ViewBag.listStaff)
+                            {
+                                <tr class="group-staff">
+                                    <td align="left">@item.FullName</td>
+                                    <td align="center">@item.Percent</td>
+                                    <td>@item.Money</td>
+                                    <td>@item.MoneyInYear</td>
+                                    <td>@item.MoneyNextYear</td>
+                                    <td>@item.MoneyWebOther</td>
+                                </tr>
+                                count++;
+                            }
+                            if (count < 4)
+                            {
+                                for (var i = 0; i < count; i++)
+                                {
+                                    <tr class="group-staff">
+                                        <td align="left"></td>
+                                        <td align="center"></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        
+                        <tr align="right" id="group-sum-money">
+                            <td align="center"><b style="margin-left:10px">Tổng số</b></td>
+                            <td align="center"><span class="item-percent">100</span></td>
+                            <td>
+                                <span class="item-sign">@ViewBag.itemAdditional.DSSign.ToString("#,##0")</span>
+                            </td>
+                            <td>
+                                <span class="item-real">@ViewBag.itemAdditional.DSReal.ToString("#,##0")</span>
+                            </td>
+                            <td>
+                                <span class="item-ny">@ViewBag.itemAdditional.DSNextYear.ToString("#,##0")</span>
+                            </td>
+                            <td>
+                                <span class="item-other">@ViewBag.itemAdditional.DSOther.ToString("#,##0")</span>
+                            </td>
+                        </tr>
+                    </table>
+                    @*<table class="table-in" cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+                        <tr align="center">
+                            <th style="width:25%">Nội dung</th>
+                            <th style="width:15%">Tổng số</th>
+                            <th style="width:20%">
+                                <table border="0" cellpadding="0" cellspacing="2">
+                                    <tr>
+                                        <td>NVKD: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff01</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tỷ lệ: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff01 %</td>
+                                    </tr>
+                                </table>
+                            </th>
+                            <th style="width:20%">
+                                <table border="0" cellpadding="0" cellspacing="2">
+                                    <tr>
+                                        <td>NVKD: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff02</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tỷ lệ: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff02 %</td>
+                                    </tr>
+                                </table>
+                            </th>
+                            <th style="width:20%">
+                                <table border="0" cellpadding="0" cellspacing="2">
+                                    <tr>
+                                        <td>NVKD: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff03</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tỷ lệ: </td>
+                                        <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Staff03 %</td>
+                                    </tr>
+                                </table>
+                            </th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>Doanh số ký</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSSign.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSSign01.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSSign02.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSSign03.ToString("#,##0")</td>
+
+                            </tr>
+                            <tr>
+                                <td>Doanh số thực hiện <i>(*)</i></td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSReal.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSReal01.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSReal02.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSReal03.ToString("#,##0")</td>
+                            </tr>
+                            <tr>
+                                <td>DS chuyển năm sau <i>(*)</i></td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSNextYear.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSNextYear01.ToString("#,##0")</td>
+                                <td class="dotted">@ViewBag.itemAdditional.DSNextYear02.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSNextYear03.ToString("#,##0")</td>
+                            </tr>
+                            <tr>
+                                <td>DS khác <i>(ko tính cho nvkd)(*)</i></td>
+                                <td>@ViewBag.itemAdditional.DSOther.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSOther01.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSOther02.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.DSOther03.ToString("#,##0")</td>
+                            </tr>
+
+                        </tbody>
+                    </table>*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>11.Áp dụng gói bán hàng: </td>
+                                @if (ViewBag.itemAdditional.PacketSale == "NORMAL")
+                                {
+                                    <td>Gói thông thường</td>
+                                    <td><input name="PacketSale" value="NORMAL" class="left10" type="radio" checked /></td>
+                                    <td>Gói khuyến mãi</td>
+                                    <td><input name="PacketSale" value="SALE" class="left10" type="radio" /></td>
+                                }
+                                else if (ViewBag.itemAdditional.PacketSale == "SALE")
+                                {
+                                    <td>Gói thông thường</td>
+                                    <td><input name="PacketSale" value="NORMAL" class="left10" type="radio"  /></td>
+                                    <td>Gói khuyến mãi</td>
+                                    <td><input name="PacketSale" value="SALE" class="left10" type="radio" checked/></td>
+                                }
+                                else
+                                {
+                                    <td>Gói thông thường</td>
+                                    <td><input name="PacketSale" value="NORMAL" class="left10" type="radio" /></td>
+                                    <td>Gói khuyến mãi</td>
+                                    <td><input name="PacketSale" value="SALE" class="left10" type="radio" /></td>
+                                }
+
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>12.Chiết khấu trong chính sách: </td>
+                            <td style="">
+                                @if (ViewBag.itemAdditional.DiscountOn == 1)
+                                {
+                                    <input value="1" type="checkbox" checked />
+                                }
+                                else
+                                {
+                                    <input value="0" type="checkbox" />
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Chiết khấu ngoài chính sách: </td>
+                            <td style="">
+                                @if (ViewBag.itemAdditional.DiscountOut == 1)
+                                {
+                                    <input value="1" type="checkbox" checked />
+                                }
+                                else
+                                {
+                                    <input value="0" type="checkbox" />
+                                }
+                            </td>
+                            <td>Mức CK thêm: </td>
+                            <td class="dotted">@ViewBag.itemAdditional.MoneyDiscountOut.ToString("#,##0")</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>Tổng giá trị xin thêm (chưa vat):</td>
+                        </tr>
+                        <tr>
+                            <td class="dotted">@ViewBag.itemAdditional.ToTalValueAdd</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    13.Chi phí MKT
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table class="table-in" cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+                        <tr align="center">
+                            <th style="width:10%" rowspan="2">Nội dung</th>
+                            <th colspan="2">Tổng số phải trả</th>
+                            <th colspan="3">Phân bổ cho</th>
+                        </tr>
+                        <tr align="center">
+                            <th style="width:15%">Tổng số</th>
+                            <th style="color:red;width:15%">Trị giá vật phẩm</th>
+                            <th style="width:15%">DS thực hiện(*)</th>
+                            <th style="width:15%">DS chuyển năm sau<i>(*)</i></th>
+                            <th style="width:15%">DS khác (**)</th>
+
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>-MKT</td>
+                                <td>@ViewBag.itemAdditional.MKT.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTValueItem.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTReal.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTNextYear.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTOther.ToString("#,##0")</td>
+
+                            </tr>
+                            <tr>
+                                <td>-Khác</td>
+                                <td>@ViewBag.itemAdditional.MKTO.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTOValueItem.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTOReal.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTONextYear.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTOOther.ToString("#,##0")</td>
+                            </tr>
+                            <tr>
+                                <td><b>Cộng</b></td>
+                                <td>@ViewBag.itemAdditional.MKTSum.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTSumValueItem.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTSumReal.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTSumNextYear.ToString("#,##0")</td>
+                                <td>@ViewBag.itemAdditional.MKTSumOther.ToString("#,##0")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div style="font-size:11px"><i>(**)Khác: ngoài quy định</i></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>Người nhận: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.Receiver</td>
+                            <td>Bộ phận: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.AgentRe</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>ĐTCQ: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.CoPhoneRe</td>
+                            <td>ĐTDĐ: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.PhoneRe</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>Số tài khoản (nếu có): </td>
+                            <td class="dotted" style="width:190px">@ViewBag.itemAdditional.BankNumber</td>
+                            <td>Tại ngân hàng: </td>
+                            <td class="dotted" style="width:220px">@ViewBag.itemAdditional.BankName</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>14.Thông tin NGƯỜI liên hệ thanh toán (bên khách hàng): </td>
+                            <td class="dotted" style="width:50px">@ViewBag.itemAdditional.CustomerContact</td>
+                            <td>Bộ phận: </td>
+                            <td class="dotted" style="width:50px">@ViewBag.itemAdditional.AgentCus</td>
+                            <td>ĐT: </td>
+                            <td class="dotted" style="width:50px">@ViewBag.itemAdditional.PhoneCus</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="2" width="650">
+                        <tr>
+                            <td>14.Các thông tin khác</td>
+                            <td class="dotted" style="width:500px">@ViewBag.itemAdditional.InforOther</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; border-collapse:collapse;width:100%;">
+                        <tr align="center">
+                            <th style="width:32%">NVKD</th>
+                            <th style="width:32%">Trưởng nhóm KD</th>
+                            <th style="width:32%">Trưởng/phó KD</th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td style="padding:0 10px;text-align:center"><div style="width:196px;margin-top:50px" class="dotted">@ViewBag.itemAdditional.StaffSign</div></td>
+                                <td style="padding:0 10px;text-align:center"><div style="width:196px;margin-top:50px" class="dotted">@ViewBag.itemAdditional.StaffTeamSign</div></td>
+                                <td style="padding:0 10px;text-align:center"><div style="width:196px;margin-top:50px" class="dotted">@ViewBag.itemAdditional.StaffLeadSign</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+

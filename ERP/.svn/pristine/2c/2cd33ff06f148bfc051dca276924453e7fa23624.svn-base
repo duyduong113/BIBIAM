@@ -1,0 +1,878 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._mapcontract);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new tw_VINManagement();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        text-align: center;
+    }
+
+    .pdf-page {
+        margin: 0 auto;
+        box-sizing: border-box;
+        box-shadow: 0 5px 10px 0 rgba(0,0,0,.3);
+        background-color: #fff;
+        color: #333;
+        position: relative;
+        padding: 20px;
+    }
+
+    .size-a5 {
+        height: 5.8in;
+        width: 8.3in;
+    }
+
+    .size-a4 {
+        width: 8.3in;
+        height: 11.7in;
+    }
+
+    .boldtext {
+        font-weight: bold;
+    }
+
+    .textspace {
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+
+    .modal-dialog {
+        width: 870px;
+    }
+</style>
+
+<div>
+    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._mapcontract_list)</span>
+    <form method="post" id="FilterForm" novalidate="novalidate">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._mapcontract_contractno)</label>
+                    <div class="input-icon right clearfix">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="contractnumber" id="contractnumber" placeholder="@Html.Raw(Resources.Global._mapcontract_contractno_f)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._mapcontract_contractinfo)</label>
+                    <div class="input-icon right clearfix">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="contractinfo" id="contractinfo" placeholder="@Html.Raw(Resources.Global._mapcontract_contractinfo_f)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label>@Html.Raw(Resources.Global._vin_status)</label>
+                @(Html.Kendo().MultiSelect()
+                .Name("statusF")
+                .DataTextField("Name")
+                .DataValueField("Value")
+                .HtmlAttributes(new { @style = "width:100%;" })
+                .Placeholder(Html.Raw(Resources.Global._vin_status).ToString())
+                .AutoBind(false)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeMasterName", "CustomData", new { type = "FordCRMVINStatus" });
+                    })
+                    .ServerFiltering(true);
+                })
+                )
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._mapcontract_sale)</label>
+                    @(Html.Kendo().DropDownList()
+                                      .Name("saleF")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._mapcontract_sale) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                            //.Events(e => e.Change("changeLeader"))
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetUser", "CustomData");
+                                          }).ServerFiltering(true);
+                                      })
+                    )
+                </div>
+
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._mapcontract_contractdate)</label>
+                    <div class="input-group" id="rangeContractDate">
+                        <input type="text" class="form-control input-sm" id="contractdateRangeF">
+                        <span class="input-group-btn input-group-sm">
+                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>@Html.Raw(Resources.Global._mapcontract_contractdeposit)</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100 left" placeholder="@Html.Raw(Resources.Global._cardefinition_pricefrom)" name="depositFrom" id="depositFrom">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._cardefinition_priceto)" name="depositTo" id="depositTo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-actions" style="margin-top:22px;">
+                    <a onclick="filter()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+@*<div class="row" style="margin-top: 20px;">
+        <div class="col-md-12">
+            <div class="form-actions">
+                <a onclick="UpdateStatusVIN()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._mapcontract_carconfirm)</a>
+            </div>
+        </div>
+    </div>*@
+<div class="row">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<MCC.Models.tw_Contract_Product_Meta_Get>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                //columns.Bound(p => p.id).Hidden();
+                columns.Template(@<text></text>).Locked(true).ClientTemplate("#if(vinstatus != 'FordCRMVINStatus0004'){if(code == '' || code == null){#" + "<a class='btn green btn-xs' data-contractid='#=contractid#' data-carid='#=carid#' onclick='sendmailConfirm(this)'>" + @Html.Raw(Resources.Global._mapcontract_confirm) + "</a>" + "&nbsp; <a class='btn blue btn-xs' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='showAssginVINForm(this)'>" + @Html.Raw(Resources.Global._mapcontract_assignVIN) + "</a>" + "#}else{#" + "<a class='btn red btn-xs' data-vin='#=code#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='RemoveVIN(this)'>" + @Html.Raw(Resources.Global._mapcontract_removeVIN) + "</a>" + "&nbsp; <a class='btn yellow btn-xs' data-vin='#=code#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='StockOut(this)'>" + @Html.Raw(Resources.Global._mapcontract_stockout) + "</a> &nbsp;<a data-vin='#=code#' data-contractid='#=contractid#' data-carid='#=carid#' data-engineno='#=engineNo#' onclick='showprintBooking(this)' style='font-size:18px;'><i class='fa fa-print'></i></a> #}}#").Width(160).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.contractnumber).Locked(true).ClientTemplate("#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#").Width(100).HtmlAttributes(new { style = "text-align:left; " }).Title(@Html.Raw(Resources.Global._mapcontract_contractno).ToString());
+                columns.Bound(p => p.contractday).Locked(true).Width(100).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._mapcontract_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.paymentName).Locked(true).Width(120).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_paymenttype).ToString());
+                columns.Bound(p => p.contractstatus).Locked(true).Width(100).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._mapcontract_status).ToString());
+                columns.Bound(p => p.salename).Locked(true).Width(150).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._mapcontract_sale).ToString());
+                columns.Bound(p => p.deposit).ClientTemplate("#=kendo.format('{0:N0}',deposit)#").Width(150).HtmlAttributes(new { style = "text-align:right; " }).Title(@Html.Raw(Resources.Global._mapcontract_deposit).ToString());
+                columns.Bound(p => p.fullname).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_customername).ToString());
+                columns.Bound(p => p.phone).Width(120).HtmlAttributes(new { style = "text-align:left; " }).Title(@Html.Raw(Resources.Global._mapcontract_phone).ToString());
+                columns.Bound(p => p.note).Width(200).HtmlAttributes(new { style = "text-align:left; " }).Title(@Html.Raw(Resources.Global._mapcontract_note).ToString());
+                columns.Bound(p => p.name).Width(200).HtmlAttributes(new { style = "text-align:left; " }).Title(@Html.Raw(Resources.Global._mapcontract_carname).ToString());
+                //columns.ForeignKey(p => p.carid, (System.Collections.IEnumerable)ViewBag.listVIN, "carId", "VIN").Title("Category").Width(200).EditorTemplateName("GridForeignKey");
+                columns.Bound(p => p.code).Width(150).HtmlAttributes(new { style = "text-align:center; " }).Title(@Html.Raw(Resources.Global._mapcontract_VIN).ToString());
+                columns.Bound(p => p.warehouseName).Width(200).HtmlAttributes(new { style = "text-align:center; " }).Title(@Html.Raw(Resources.Global._mapcontract_warehouse).ToString());
+                columns.Bound(p => p.engineNo).Width(120).HtmlAttributes(new { style = "text-align:center; " }).Title(@Html.Raw(Resources.Global._mapcontract_engineno).ToString());
+                columns.Bound(p => p.shippingDate).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._mapcontract_shippingdate).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                //columns.Bound(p => p.inventoryDate).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._mapcontract_stockindate).ToString());
+                columns.Bound(p => p.createdAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.createdBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+                columns.Bound(p => p.updatedAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+            })
+                //.Events(events => { events.Edit("onEdit"); })
+                //.Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                                                                        .Pageable()
+                                                                        .Navigatable()
+                                                                        .Scrollable()
+                                                                        .HtmlAttributes(new { @style = "min-height:300px;" })
+                                                                        .Resizable(resizable => resizable.Columns(true))
+                                                                        .Events(events => { events.DataBound("onDatabound"); })
+                                                                        .DataSource(dataSource => dataSource
+                                                                        .Ajax()
+                                                                        .Batch(true)
+                                                                        .PageSize(20)
+                                                                        .Model(model =>
+                                                                        {
+                                                                            //model.Id(p => p.id);
+                                                                            model.Field(p => p.createdAt).Editable(false);
+                                                                            model.Field(p => p.createdBy).Editable(false);
+                                                                            model.Field(p => p.updatedAt).Editable(false);
+                                                                            model.Field(p => p.updatedBy).Editable(false);
+                                                                            //model.Field(p => p.status).Editable(false);
+                                                                            //model.Field(p => p.id).Editable(false);
+                                                                        })
+                                                                            //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                                                .Read("Read", "MappingContract")
+                //.Update("Update", "VINManagement")
+                                                                        )
+        )
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="PrintBookingTemplate">
+    <div style="font-family: arial; font-size: 12px; " class="pdf-page size-a5">
+        <h2 style="text-align:center; font-size: 18px; font-weight: bold;">PHIẾU ĐỀ XUẤT</h2>
+        Hợp đồng số: <span id="contractnumberPDF" class="boldtext textspace"></span><span class="textspace"> - ngày </span> <span id="contractdayPDF" class="boldtext textspace"></span>
+        <br /><br />
+        &nbsp;Thông tin khách hàng <br /><br />
+        &nbsp;&nbsp;<span>+ Họ tên:</span> <span id="fullnamePDF" class="boldtext textspace"></span><br />
+        &nbsp;&nbsp;+ SĐT: <span id="phonePDF" class="boldtext textspace"></span>
+        <br />
+        <br />
+        Xe đặt: <span id="carnamePDF" class="textspace"></span>
+        <br />
+        <br />
+        Đã được booking xe số VIN: <span id="VINPDF" class="boldtext textspace"></span> - <span id="EngineNoPDF" class="boldtext textspace"></span>
+        <br />
+        <br />
+        Tại kho: <span id="warehousenamePDF" class="textspace"></span>
+        <br />
+        <br />
+        Ngày xuất hóa đơn VAT: <span id="contractinvoicedatePDF" class="textspace"></span>
+        <br />
+        <br />
+        <br />
+        <br />
+        <span style="float:right; margin-right:100px;"><b>Sales Admin</b></span>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 20px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._mapcontract_lower) @Html.Raw(Resources.Global._yet)</div>
+
+    </div>
+</script>
+
+@*Popup stock in template*@
+<script type="text/x-kendo-template" id="AssignVINTemplate">
+    <form class="form-horizontal" action="@Url.Content("~/MappingContract/AssignVIN")" id="assignVINForm" method="post">
+        <input type="hidden" name="goalsOrderNo" class="goalsOrderNo" />
+        <input type="hidden" name="carId" value="#=carid#" />
+        <input type="hidden" name="engineNo" class="engineNo" />
+        <input type="hidden" name="contractId" value="#=contractid#" />
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="checkbox" style="margin-top: 5px; margin-left:20px;">
+                    <input type="checkbox" id="bookTempp" value="true" onchange="checkTextbox()">@Html.Raw(Resources.Global._mapcontract_temp)
+                    <input type="hidden" class="bookTemp" name="bookTemp" />
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._mapcontract_VIN)</label>
+                @(Html.Kendo().DropDownList()
+                    .Name("VIN")
+                    .HtmlAttributes(new { style = "width:100%" })
+                    .OptionLabel(Html.Raw(Resources.Global._mapcontract_VIN) + "...")
+                    .DataTextField("Name")
+                    .DataValueField("Value")
+                        //.Events(e => e.Change("changeVIN('#=carId#')"))
+                    .Events(e => e.Change("changeVIN"))
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetVINList", "CustomData", new { carId = "#=carid#" });
+                        });
+                    }).ToClientTemplate()
+                )
+            </div>
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._mapcontract_reportdate)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="reportDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_invoiceno)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm" name="invoice" style="height:35px;">
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_invoiced)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="invoicedate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_warehouse)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="hidden" name="warehouseId" class="warehouseId" />
+                    <input type="text" class="form-control input-sm warehouseName" name="warehouseName" style="height:35px;" disabled>
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_engineno)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm engineNo" style="height:35px;" disabled>
+                </div>
+                @*<label>@Html.Raw(Resources.Global._vin_warehouse)</label>
+                    @(Html.Kendo().DropDownList()
+                        .Name("warehouseId")
+                        .HtmlAttributes(new { style = "width:100%" })
+                        .OptionLabel(Html.Raw(Resources.Global._vin_warehouse) + "...")
+                        .DataTextField("Name")
+                        .DataValueField("Value")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCodeMaster", "CustomData", new { type = "FordCRMWareHouse" });
+                            });
+                        }).ToClientTemplate()
+                    )*@
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_shippingdate)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm shippingDate" name="shippingDate" style="height:35px;" disabled>
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_stockindate)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm Stockindate" name="Stockindate" style="height:35px;" disabled>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script>
+    //function onRequestEnd(e) {
+    //    if (e.type == "update" && !e.response.Errors) {
+    //        toastr.success('Cập nhật thành công')
+    //        $("#grid").data("kendoGrid").dataSource.read();
+    //    }
+    //}
+
+    //function error_handler(e) {
+    //    if (e.errors) {
+    //        var message = "\n";
+    //        $.each(e.errors, function (key, value) {
+    //            if ('errors' in value) {
+    //                $.each(value.errors, function () {
+    //                    message += this + "\n";
+    //                });
+    //            }
+    //        });
+    //        toastr.error(message)
+    //    }
+    //}
+
+    function filter() {
+        //reinitPlugins();
+        grid = $("#grid").data("kendoGrid");
+        var contractnumber = $("#contractnumber").val();
+        var contractinfo = $("#contractinfo").val();
+        var statusF = $("#statusF").data("kendoMultiSelect").value();
+        var saleF = $("#saleF").val();
+        var contractdateRangeF = $("#contractdateRangeF").val();
+        var depositFrom = $("#depositFrom").val();
+        var depositTo = $("#depositTo").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterContractnumber = { logic: "or", filters: [] };
+        var filterContractinfo = { logic: "or", filters: [] };
+        var filterSaleF = { logic: "or", filters: [] };
+        var filterStatusF = { logic: "or", filters: [] };
+        var filterDeposit = { logic: "and", filters: [] };
+
+        if (contractnumber) {
+            filterContractnumber.filters.push({ field: "contractnumber", operator: "contains", value: contractnumber });
+            filter.filters.push(filterContractnumber);
+        }
+
+        //if (contractinfo) {
+        //    filterContractinfo.filters.push({ field: "contractnumber", operator: "contains", value: contractnumber });
+        //    filter.filters.push(filterContractinfo);
+        //}
+
+        //if (statusF && statusF.length > 0) {
+        //    for (var i = 0; i < statusF.length; i++) {
+        //        var option = statusF[i];
+        //        filterStatusF.filters.push({ field: "status", operator: "eq", value: option });
+        //    }
+        //    filter.filters.push(filterStatusF);
+        //}
+
+        if (saleF) {
+            filterSaleF.filters.push({ field: "sale", operator: "eq", value: saleF });
+            filter.filters.push(filterSaleF);
+        }
+
+        if (contractdateRangeF) {
+            var startdate = contractdateRangeF.split('-')[0].trim();
+            var enddate = contractdateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "contractday", operator: "gte", value: startdate });
+            filter.filters.push({ field: "contractday", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (depositFrom && depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "gte", value: depositFrom });
+            filterDeposit.filters.push({ field: "deposit", operator: "lt", value: depositTo });
+            filter.filters.push(filterDeposit);
+        }
+        else if (depositFrom && !depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "gte", value: depositFrom });
+            filter.filters.push(filterDeposit);
+        }
+        else if (!depositFrom && depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "lt", value: depositTo });
+            filter.filters.push(filterDeposit);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    $("#rangeContractDate").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeContractDate input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    //function onEdit(e) {
+    //    //$("#grid").find("tr[data-uid='" + e.model.uid + "'] td:eq(12)").text("cccc");
+    //    //$("#grid").find("tr[data-uid='" + e.model.uid + "'] td:eq(12)").text(data.VIN);
+    //    var a = $("[aria-activedescendant=carid_option_selected]");
+    //    if (a.length > 0) {
+    //        var dataItem = $('#grid').data('kendoGrid').dataItem($(e.container).closest("tr"));
+    //        if (dataItem.carid != null && dataItem.carid != "") {
+    //            $.post(r + "/MappingContract/getInforByVIN", { VIN: "MNCLMFF20GW610365" }, function (data) {
+    //                $("#grid").find("tr[data-uid='" + e.model.uid + "'] td:eq(12)").text(data.warehouseId);
+    //                //$("#grid").find("tr[data-uid='" + e.model.uid + "'] td:eq(11)").text(data.VIN);
+    //            });
+    //        }
+    //    }
+    //}
+
+    //var columnset;
+    //columnset = $('#grid [data-field=carid]')[0].cellIndex;
+    function getListVIN(carid) {
+        var html1 = '<input id="carid" name="carid" type="text" /><script>jQuery(function(){jQuery("#carid").kendoDropDownList({"dataSource":';
+        var values = '[';
+        $.post(r + "/MappingContract/getListVIN", { carId: carid }, function (data) {
+            for (var i = 0; i < data.data.length; i++) {
+                values += ' {"Text":"' + data.data[i].VIN + '","Value":"' + data.data[i].carId + '"},';
+            }
+            if (values.length > 0) {
+                values = values.substring(0, values.length - 1) + ']';
+            }
+            else {
+                values += ']';
+            }
+            html1 += values + ',"dataTextField":"Text","dataValueField":"Value","optionLabel":"- Select -", "filter":"contains"});});';
+            html1 += '<\/script><span class="field-validation-valid" data-valmsg-for="carid" data-valmsg-replace="true"></span>';
+            var grid = $('#grid').data("kendoGrid");
+            grid.columns[columnset].editor = html1;
+            grid.columns[columnset].values = eval(values);
+            grid.refresh();
+        });
+    }
+
+    function showAssginVINForm(e) {
+        var contractId = $(e).attr("data-contractid");
+        var carId = $(e).attr("data-carid");
+        var contractNo = $(e).attr("data-contractno");
+        $.post(r + "/CustomData/GetProductCar", { carId: carId, contractId: contractId }, function (data) {
+            var AssignVINTemplate = kendo.template($("#AssignVINTemplate").html());
+            bootbox.dialog({
+                closeButton: true,
+                message: AssignVINTemplate(data[0]),
+                title: "@Html.Raw(Resources.Global._mapcontract_assignVIN_title)" + " : " + "<b>" + contractNo + "</b>",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._mapcontract_assignVIN)", className: "btn green btn-circle btn-sm", callback: function () { $("#assignVINForm").submit(); return false; } }
+                }
+            });
+            checkTextbox();
+            $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+            loadValidateAssignVINForm();
+        });
+    }
+
+    function loadValidateAssignVINForm() {
+        var e = $("#assignVINForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                //$("#grid").data("kendoGrid").dataSource.read();
+                                bootbox.hideAll();
+                                toastr.success('', '@Resources.Global._mapcontract_successfully');
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function RemoveVIN(e) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Gỡ mã VIN",
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            var VIN = $(e).attr("data-vin");
+                            var contractid = $(e).attr("data-contractid");
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/MappingContract/RemoveVIN", { VIN: VIN, contractid: contractid }, function (data) {
+                                if (data.success) {
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Gỡ mã VIN thành công');
+                                    //clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function StockOut(e) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xuất kho",
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            var VIN = $(e).attr("data-vin");
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/MappingContract/StockOut", { VIN: VIN }, function (data) {
+                                if (data.success) {
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Xuất kho thành công');
+                                    //clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function changeVIN() {
+        //var carId = $(e).attr("data-carid");
+        $('.warehouseName, .engineNo, .shippingDate, .Stockindate, .goalsOrderNo, .warehouseId').val('');
+        var VIN = $("#VIN").data("kendoDropDownList").value();
+        $.post(r + "/CustomData/GetByVIN", { VIN: VIN }, function (data) {
+            $('.warehouseName').val(data.warehouseName);
+            $('.engineNo').val(data.engineNo);
+            $('.shippingDate').val(kendo.toString(kendo.parseDate(data.shippingDate), 'dd/MM/yyyy'));
+            if (kendo.toString(kendo.parseDate(data.inventoryDate), 'dd/MM/yyyy') == '01/01/1990') {
+                $('.Stockindate').val('');
+            }
+            else {
+                $('.Stockindate').val(kendo.toString(kendo.parseDate(data.inventoryDate), 'dd/MM/yyyy'));
+            }
+            $('.goalsOrderNo').val(data.goalsOrderNo);
+            $('.warehouseId').val(data.warehouseId);
+        });
+    };
+
+    function onDatabound(e) {
+        //initPlugins();
+        resizeGrid();
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(".k-grid-pager").css("display", "none");
+            $(this.element).find("tbody").html(NoItemsTemplate({}));
+            $(this.element).css("border", "none");
+        } else {
+            $(".k-grid-pager").css("display", "block");
+            $(this.element).css("border", "1px solid #ccc");
+        }
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content, .k-grid-content-locked"),
+        otherElements = gridElement.children().not(".k-grid-content, .k-grid-content-locked"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+
+    function initPlugins() {
+        $("#depositFrom, #depositTo").autoNumeric("init", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+
+    function reinitPlugins() {
+        $("#depositFrom, #depositTo").autoNumeric("update", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+
+    $(document).keypress(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function sendmailConfirm(e) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Gửi email xác nhận",
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            var contractid = $(e).attr("data-contractid");
+                            var carid = $(e).attr("data-carid");
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/MappingContract/SendEmailConfirm", { contractid: contractid, carid: carid }, function (data) {
+                                if (data.success) {
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Gửi email xác nhận thành công');
+                                    //clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function checkTextbox() {
+        if ($("#bookTempp").prop("checked") == true) {
+            $("#bookTempp").attr("checked", true);
+            $("#bookTempp").val("true");
+            $('.bookTemp').val("true");
+        }
+        else {
+            $("#bookTempp").attr("checked", false);
+            $("#bookTempp").val("false");
+            $('.bookTemp').val("false");
+        }
+    }
+
+    function showprintBooking(e) {
+        var contractid = $(e).attr("data-contractid");
+        var VIN = $(e).attr("data-vin");
+        var carid = $(e).attr("data-carid");
+
+        var PrintBookingTemplate = kendo.template($("#PrintBookingTemplate").html());
+
+        bootbox.dialog({
+            closeButton: true,
+            message: PrintBookingTemplate(0),
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._mapcontract_print)", className: "btn green btn-circle btn-sm", callback: function () { printBooking(); return false; } }
+            }
+        });
+        App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+        $.post(r + "/MappingContract/PrintPDFBooking", { contractid: contractid, VIN: VIN }, function (data) {
+            if (data.success) {
+                $('span#contractnumberPDF').text(data.sendcontract.contractnumber);
+                $('span#contractdayPDF').text(kendo.toString(kendo.parseDate(data.sendcontract.contractday), 'dd/MM/yyyy'));
+                //$('span#contractdayPDF').val();
+                $('span#fullnamePDF').text(data.sendcontract.fullname);
+                $('span#phonePDF').text(data.sendcontract.phone);
+                $('span#carnamePDF').text(data.sendproduct.name);
+                $('span#VINPDF').text(data.sendproduct.code);
+                $('span#EngineNoPDF').text(data.sendpo.engineNo);
+                $('span#warehousenamePDF').text(data.sendvin.warehouseName);
+                $('span#contractinvoicedatePDF').text(kendo.toString(kendo.parseDate(data.sendproduct.invoicedate), 'dd/MM/yyyy'));
+
+                App.unblockUI();
+                //kendo.drawing.drawDOM($('.pdf-page')).then(function (group) {
+                //    kendo.drawing.pdf.saveAs(group, "Phieudexuat.pdf");
+                //});
+                //toastr.clear();
+                //toastr.success('', 'Thành công');
+            } else {
+            }
+        });
+    }
+
+    function printBooking() {
+        kendo.drawing.drawDOM($('.pdf-page')).then(function (group) {
+            kendo.drawing.pdf.saveAs(group, "Phieudexuat.pdf");
+        });
+        toastr.clear();
+        toastr.success('', 'Thành công');
+    }
+</script>

@@ -1,0 +1,236 @@
+﻿<style>
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+        /*float: right;*/
+    }
+</style>
+<div id="popup-create" class="modal hide" tabindex="-1" style="width:500px">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title" id="txttitle"></span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+
+    <form data-action="" action="@Url.Content("~/Currencies/Create")" method="post" id="formPopup" class="form-horizontal" style="margin:0px">
+        <div class="row-fluid">
+            <div class="modal-body overflow-visible">
+                <div class="row-fluid">
+                    @Html.Hidden("ID")
+                    @Html.Hidden("ngay_tao")
+                    @Html.Hidden("nguoi_tao")
+
+                    <div class="control-group" id="divListAll">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Status</label>
+                        <div class="controls">
+                            <select name="Status" id="trang_thai" class="chosen-select">
+                                @foreach (var iteam in ViewBag.listStatus)
+                                {
+                                    <option value="@iteam.ID">@iteam.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div id="divDefaultCurrency" class="control-group">
+                        <label class="control-label">Default currency</label>
+                        <div class="controls">
+                            <input type="checkbox" id="setDefaultCurrency" name="setDefaultCurrency">
+                            <input type="text" id="DefaultCurrency" name="DefaultCurrency" style="display:none">
+                        </div>
+                    </div>
+                    <div id="divDefaultCurrencyNew" class="control-group"></div>
+                    <div class="control-group">
+                        <label class="control-label">Currency Code  (*)</label>
+                        <div class="controls">
+                            <input type="text" id="CurrencyCode1" name="CurrencyCode1" disabled="disabled">
+                            <input type="hidden" name="ma_tien_te" id="ma_tien_te">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Conversion Rate  (*)</label>
+                        <div class="controls">
+                            <input type="text" id="ti_le_chuyen_doi" name="ConversionRate" style="display:none">
+                            <input type="text" id="ConversionRate1" name="ConversionRate1" value="1" onkeyup="formatMoney(this, 1);">
+                        </div>
+                    </div>
+                    <div id="divNote" class="control-group">
+                        <div class="controls">
+                            <label style="color:red; ">Conversion to: <span id="Note">@ViewData["CurrencyNameDF"].ToString()</span> </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small " onclick="btnSubmit()">
+            Lưu
+        </a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    $("#CurrencyNameNew").chosen();
+    $(".chosen-select").chosen();
+    $("#trang_thai_chosen").css('width','220px');
+    
+    $("#formPopup").validate({
+        // Rules for form validation
+        rules: {
+            ten_tien_te: { required: true, },
+            ti_le_chuyen_doi: { required: true, },
+            DefaultCurrency: { required: true, },
+            CurrencyNameNew: { required: true, }
+        },
+        // Messages for form validation
+        messages: {
+            ten_tien_te: { required: "Thông tin bắt buộc", },
+            ti_le_chuyen_doi: { required: "Thông tin bắt buộc", },
+            DefaultCurrency: { required: "Thông tin bắt buộc", },
+            CurrencyNameNew: { required: "Thông tin bắt buộc", }
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            error.insertAfter(element);
+        },
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                //clearForm: true,//To clear form after ajax submitting
+                //beforeSend: function () {
+                success: function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '@Resources.Multi.Success',
+                            text: "Lưu thành công!",
+                            class_name: 'gritter-success'
+                        });
+                        if ($("#CurrencyNameNew").val() != 'undefine' && $("#CurrencyNameNew").val() != true) {
+                            $.post(r + "/Currencies/SetDefault", { Id: $("#CurrencyNameNew").val() }, function (data) {
+                            });
+                        }
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    onCloseForm();
+                }
+            });
+            return false;
+        }
+    });
+    $('#setDefaultCurrency').change(function () {
+        checkHide(0);
+    });
+
+    function btnSubmit() {
+
+        if ($("#setDefaultCurrency").is(':checked')) {
+            $("#DefaultCurrency").val(true);
+            $("#Note").text($("#ten_tien_te").val());
+        }
+        else {
+            $("#DefaultCurrency").val(false);
+        }
+        $("#formPopup").submit();
+    }
+    function formatMoney(it, check) {
+        it.value = it.value.split(",").join('');
+        if (check == 1) {
+            $("#ConversionRate").val(it.value);
+        }
+        it.value = it.value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+    }
+
+    function checkHide(key) {
+        if (key == 1) {
+            $('#divDefaultCurrencyNew').hide();
+        }
+        else {
+            if ($("#setDefaultCurrency").is(':checked')) {
+                $('#divDefaultCurrencyNew').hide();
+            }
+            else {
+                $('#divDefaultCurrencyNew').show();
+                $.post(r + "/Ajax/GetListCurrencyNotDefault", function (data) {
+                    $('#divDefaultCurrencyNew').html(data);
+                });
+            }
+        }
+    }
+    function showForm(key, obj) {
+        checkHide(1);
+
+        $("#formPopup")[0].reset();
+        if (key == 0) {     // Create
+            $.post(r + "/Ajax/GetListCurrency", { typeid: '0' }, function (data) {
+                $("#divListAll").html(data);
+            });
+            $.post(r + "/Currencies/GetCurrencyDefault", {}, function (data) {
+                if (data.success) {
+                    if (data.data != '') {
+                        $("#divDefaultCurrency").hide();
+                        $("#divNote").show();
+                        $("#Note").text($("#ten_tien_te option :selected").text() + data.data);
+                    }
+                    else {
+                        $("#divNote").hide();
+                        $("#divDefaultCurrency").show();
+                    }
+                }
+            });
+            $('#txttitle').text("Thêm mới");
+            $('#popup-create').modal('show');
+        }
+        else {// Update
+            var id = $(obj).data('id');
+            var currentRow = $(obj).closest("tr");
+            var dataItem = $("#Grid").data("kendoGrid").dataItem(currentRow);
+            $.post(r + "/Ajax/GetListCurrency", { typeid: id }, function (data) {
+                $("#divListAll").html(data);
+            });
+            $.post(r + "/Currencies/GetDetailCurrencyCode", { CurrencyCode: id }, function (data) {
+                if (data.success) {
+                    if (data.data[0].tien_te_mac_dinh == 1) {
+                        $("#divDefaultCurrency").show();
+                        $("#setDefaultCurrency").prop("checked", true);
+                    }
+                    else {
+                        $("#divDefaultCurrency").hide();
+                        $("#setDefaultCurrency").prop("checked", false);
+                    }
+                    var value = data.data[0];
+                    var active = data.data[0].trang_thai == true ? "true" : "false";
+                    $("#ID").val(value.ID);
+                    $("#ten_tien_te").val(value.ma_tien_te).trigger("chosen:updated");
+                    $("#trang_thai").val(active).trigger("chosen:updated");
+                    $("#ma_tien_te").val(value.ma_tien_te);
+                    $("#CurrencyCode1").val(value.ma_tien_te);
+                    $("#ti_le_chuyen_doi").val(value.ti_le_chuyen_doi);
+                    $("#ConversionRate1").val(value.ti_le_chuyen_doi);
+                    setTimeout(function () {
+                    }, 500);
+                }
+                else {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Error',
+                        text: "Báo lỗi" + data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+            $('#txttitle').text("Chỉnh sửa");
+            $('#popup-create').modal('show');
+        }
+    }
+    function onCloseForm() {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        $('#txttitle').text('');
+        $('.modal').modal('hide');
+    }
+</script>

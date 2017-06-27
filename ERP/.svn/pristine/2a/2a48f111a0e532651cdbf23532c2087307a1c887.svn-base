@@ -1,0 +1,475 @@
+﻿<style>
+    #gridAgentAppointment .k-grid-header {
+        display: none;
+    }
+
+    #gridAgentAppointment .k-grid-content {
+        height: 178px !important;
+    }
+
+    #gridAgentOrderRequest .k-grid-header {
+        display: none;
+    }
+
+    #gridAgentOrderRequest .k-grid-content {
+        height: 178px !important;
+    }
+
+    #GridAgentCallHistory .k-grid-header {
+        display: none;
+    }
+
+    #GridAgentCallHistory .k-grid-content {
+        height: 178px !important;
+    }
+
+    #GridAgentRequestTicketHistory .k-grid-content {
+        height: 150px !important;
+    }
+</style>
+<div class="row-fluid">
+    <ul class="nav nav-tabs padding-12 tab-color-blue background-blue">
+        <li class="active">
+            <a data-toggle="tab" href="#AgentAppointmentTab" onclick="$('#divFilterAgentAppointment').show()">
+                Lịch hẹn khách hàng
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#AgentOrderRequestTab" onclick="$('#divFilterAgentAppointment').hide()">
+                Nhu cầu mua hàng
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#AgentCallHistoryTab" onclick="$('#divFilterAgentAppointment').hide()">
+                Lịch sử cuộc gọi
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#AgentRequestTicketTab" onclick="$('#divFilterAgentAppointment').show()">
+                Request ticket
+            </a>
+        </li>
+        <li class="pull-right" style="margin: -6px 10px 0px 0px;" id="divFilterAgentAppointment">
+            <div class="row-fluid">
+                <div class="span12" style="padding: 10px 5px 2px 10px; display: inline-flex;">
+                    <label style="margin-right:15px">
+                        <input type="radio" class="ace" value="Today" onclick="LoadGridAppointment()" checked name="AppointmentFilter">
+                        <span class="lbl"> Hôm nay</span>
+                    </label>
+                    <label>
+                        <input type="radio" class="ace " value="All" onclick="LoadGridAppointment()" name="AppointmentFilter">
+                        <span class="lbl"> Tất cả</span>
+                    </label>
+                </div>
+            </div>
+        </li>
+    </ul>
+    <div class="tab-content" style="padding: 0 0px 0px 0px;height:180px;">
+
+        @* nội dung tab appointment *@
+        <div id="AgentAppointmentTab" class="tab-pane in active">
+            <div class="row-fluid">
+                @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Telesales_CallHistory>()
+                    .Name("gridAgentAppointment")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.CustomerID).Width(300).ClientTemplate("<button type='button' data-callid='#=ID#', data-id ='#=CustomerID#', data-physicalid = '#=PhysicalID#', class='btn-success btn btn-minier' style='float:left;display:inline-block;color:white;' onclick ='GetAppointmentForPopup(this)' >Bắt đầu</button> <button type='button' data-id = '#=ID#',  class='btn-grey btn btn-minier' style='display:inline-block;margin-left:3px;' onclick ='OpenSkipCustomerWindow(this)' >@Resources.Multi.Skip</button> &nbsp #if(RecallTime<new Date()){# <span style='color:red;'>#=kendo.toString(RecallTime,'HH:mm dd/MM/yyyy')#</span> #}else{# #=kendo.toString(RecallTime,'HH:mm dd/MM/yyyy')# #}#- #:CustomerName# - #:Phone# - #:Content#").Title("Thông tin");
+                    })
+                    .Pageable(a => a.Enabled(false))
+                    .Scrollable(scrollable => scrollable.Enabled(true))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Sort(s => s.Add(m => m.RecallTime))
+                        //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.CustomerID);
+                        }).Read("AppointmentRead", "Telesale"))
+                )
+            </div>
+
+        </div>
+        <div id="AgentOrderRequestTab" class="tab-pane in">
+            <div class="row-fluid">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_SMSMO>()
+                        .Name("gridAgentOrderRequest")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.CustomerID).Width(110).ClientTemplate(@"
+                          <button type='button' data-id ='#=CustomerID#' data-physicalid = '#=PhysicalID#' data-smsid='#=Id#' class='btn-success btn btn-minier' style='float:left;display:inline-block;color:white;' onclick ='GetOrderRequestForPopup(this)' >Bắt đầu</button>
+                            <button type='button' data-id = '#=Id#',  class='btn-danger btn btn-minier' style='display:inline-block;margin-left:3px;' onclick ='CancelSMS(this)' >@Resources.Multi.Cancel</button>   
+                            ");
+                            columns.Bound(p => p.Fullname).Width(600).ClientTemplate(@"
+                            #:Fullname# - #:MobilePhone# - #:CompanyName#  <span style='color:\\#888'>muốn mua </span> #=ProductName# (#=ProductID#)
+                            <span style='color:\\#888'> lúc </span> #:kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#
+                            <span style='font-size:10px;color:red;'>@Resources.Multi.New</span>"
+                                ).Title("Thông tin");
+                        })
+                        .Pageable(a => a.Enabled(false))
+                        .Scrollable(scrollable => scrollable.Enabled(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(sort => sort.Add(a => a.CreatedAt).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                       .Read(read => read
+                        .Action("AgentOrderRequestRead", "Telesale")
+                        ))
+                )
+            </div>
+        </div>
+        <div id="AgentCallHistoryTab" class="tab-pane in">
+            <div class="row-fluid">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.DC_Telesales_CallHistory>()
+                        .Name("GridAgentCallHistory")
+                        .Columns(columns =>
+                        {
+                            columns.ForeignKey(p => p.SubResultID, (System.Collections.IEnumerable)ViewData["ResultList"], "Id", "Description").ClientTemplate("#=kendo.toString(CreatedAt,'dd/MM/yyyy HH:mm')# - #=CustomerName#  #if(CustRule){# - #=CustRule# #}# | <span style='color:\\#999'>Nội dung:</span> #=Content# - #=getTextByValue(data)#").Title("Thông tin");
+                        })
+                        .Pageable(a => a.Enabled(false))
+                        .Scrollable(scrollable => scrollable.Enabled(true))
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(sort => sort.Add(a => a.CreatedAt).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.CustomerID);
+                        }).Read(read => read
+                                .Action("AgentCallHistoryRead", "Telesale")
+                        ))
+                )
+            </div>
+        </div>
+        <div id="AgentRequestTicketTab" class="tab-pane in">
+            <div class="row-fluid">
+                @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_RT_Ticket>()
+                        .Name("GridAgentRequestTicketHistory")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.TicketID).Width(128).Title("").ClientTemplate("<button type='button' data-physicalid='#=CustomerID#' data-id='#=TicketID#' class='btn-success btn btn-minier' style='float:left;display:inline-block;' onclick ='GetTicketForPopup(this)' >Bắt đầu</button> <button type='button' data-id = '#=TicketID#',  class='btn-grey btn btn-minier' style='display:inline-block;margin-left:3px;' onclick ='OpenDoneRequestTicketWindow(this)' >Hoàn thành</button>");
+                            columns.Bound(p => p.CustomerName).Width(110).Title("Khách hàng");
+                            columns.Bound(p => p.Title).Width(300).Title("Nội dung yêu cầu").ClientTemplate("<b>#=Title#</b> - #=Detail#");
+                            columns.Bound(p => p.LastActivities).Width(300).Title("Cập nhật cuối");
+                        })
+                        //.HtmlAttributes(new { @style = "height:200px" })
+                                .Pageable(a => a.Enabled(false))
+                                .Scrollable(scrollable => scrollable.Enabled(true))
+                                .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(sort => sort.Add(a => a.RowLastUpdatedTime).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                       .Read(read => read
+                        .Action("TicketAgentRead", "Telesale")
+                        ))
+                )
+            </div>
+        </div>
+    </div>
+</div>
+@( Html.Kendo().Window().Name("SkipCustomerWindow")
+      .Title("Bỏ qua")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+@( Html.Kendo().Window().Name("DoneRequestTicketWindow")
+      .Title("Hoàn thành")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+<script id="DoneRequestTicketTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("DoneRequestTicket", "Telesale", FormMethod.Post, new { @class = "form-horizontal", id = "DoneRequestTicketForm", style = "margin:0;" }))
+    {
+        <div>
+
+            <input type="hidden" name="TicketID" value="#:TicketID#" />
+            <div class="control-group">
+                <textarea cols="3" name="Content" class="span4" placeholder="Hoạt động: bắt buộc nhập"></textarea>
+            </div>
+            <br />
+            <div class="form-actions">
+                <a class="btn btn-grey btn-mini" onclick="$('\\#DoneRequestTicketWindow').data('kendoWindow').close()">@Resources.Multi.btnBack</a>
+                <button type="submit" id="btnDoneRequestTicket" class="btn btn-danger btn-mini">Hoàn thành</button>
+
+            </div>
+        </div>
+    }
+</script>
+<script id="SkipCustomerTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("SkipCustomer", "Telesale", FormMethod.Post, new { @class = "form-horizontal", id = "SkipCustomerForm", style = "margin:0;" }))
+    {
+        <div>
+
+            <input type="hidden" name="RefID" value="#:RefID#" />
+            <input type="hidden" name="RefType" value="#:RefType#" />
+            #if(typeof PhysicalID != "undefined" && PhysicalID !=null){#
+            <input type="hidden" name="Phone" value="#:Phone#" />
+            <input type="hidden" name="PhysicalID" value="#:PhysicalID#" />
+            <input type="hidden" name="Source" value="#:Source#" />
+            <input type="hidden" name="CustRule" value="#:RuleID#" />
+            <input type="hidden" name="CustomerID" value="#:CustomerID#" />
+            #}#
+
+            <div class="control-group">
+                <textarea cols="3" name="Reason" class="span4" placeholder="Lý do bỏ qua: bắt buộc nhập"></textarea>
+            </div>
+            #if(RefType =='SMSID'){#
+            <label>
+                <input type="checkbox" id="isDoneSMSCheckbox" onchange="changeDoneSMS()" checked class="ace">
+                <span class="lbl"> Hủy yêu cầu của khách hàng</span>
+            </label>
+            <input type="hidden" name="IsDone" value="true" />
+            #}#
+            <div class="form-actions">
+                <a class="btn btn-grey btn-mini" onclick="$('\\#SkipCustomerWindow').data('kendoWindow').close()">@Resources.Multi.btnBack</a>
+                <button type="submit" id="btnSkipCustomer" class="btn btn-danger btn-mini">@Resources.Multi.Skip</button>
+
+            </div>
+        </div>
+    }
+</script>
+<script id="SkipSMSTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("CancelAgentOrderRequest", "Telesale", FormMethod.Post, new { @class = "form-horizontal", id = "SkipSMSForm", style = "margin:0;" }))
+    {
+        <div>
+            <input type="hidden" name="Id" value="#:Id#" />
+            <div class="control-group">
+                <textarea cols="3" name="Reason" class="span4" placeholder="Lý do hủy bỏ: bắt buộc nhập"></textarea>
+            </div>
+            <br />
+            <div class="form-actions">
+                <a class="btn btn-grey btn-mini" onclick="$('\\#SkipCustomerWindow').data('kendoWindow').close()">@Resources.Multi.btnBack</a>
+                <button type="submit" id="btnSkipSMS" class="btn btn-danger btn-mini">@Resources.Multi.Cancel</button>
+            </div>
+        </div>
+    }
+</script>
+<script type="text/javascript">
+    var collection;
+    function changeDoneSMS() {
+        $("#SkipCustomerForm input[name='IsDone']").val($('#isDoneSMSCheckbox').prop('checked'));
+    }
+    //get's the text by value
+    function getTextByValue(data) {
+        var grid = $("#GridAgentCallHistory").data("kendoGrid");
+        //change the index of the column with your index
+        valuesCollection = grid.options.columns[0].values;
+
+        //if the collection is empty - get it from the grid
+        if (!collection) {
+            collection = {};
+            //Set the correct FKColumn index
+            for (var value in valuesCollection) {
+                collection[valuesCollection[value].value] = valuesCollection[value].text;
+            }
+        }
+        return collection[data.SubResultID];
+    }
+    $(document).ready(function () {
+        LoadGridAppointment();
+    });
+    var SkipCustomerTemplate = kendo.template($("#SkipCustomerTemplate").html());
+    var SkipSMSTemplate = kendo.template($("#SkipSMSTemplate").html());
+    var DoneRequestTicketTemplate = kendo.template($("#DoneRequestTicketTemplate").html());
+    function LoadGridAppointment() {
+        var isToday = $('input[name=AppointmentFilter]:checked').val()
+        var filter = { logic: "and", filters: [] };
+        var grid = $("#gridAgentAppointment").data("kendoGrid");
+
+        var filterTicket = { logic: "and", filters: [] };
+        var gridTicket = $("#GridAgentRequestTicketHistory").data("kendoGrid");
+
+        if (isToday == "Today") {
+            var todate = new Date();
+            todate.setDate(todate.getDate() + 1);
+            var threedate = new Date();
+            threedate.setDate(threedate.getDate() + 3);
+            filter.filters.push({ field: "RecallTime", operator: "lte", value: kendo.toString(todate, 'yyyy-MM-dd') });
+            filterTicket.filters.push({ field: "RowCreatedTime", operator: "lte", value: kendo.toString(threedate, 'yyyy-MM-dd') });
+            gridTicket.dataSource.filter(filterTicket);
+            grid.dataSource.filter(filter);
+        } else {
+            grid.dataSource.filter(filter);
+            gridTicket.dataSource.filter(filterTicket);
+
+        }
+    }
+    function OpenSkipCustomerWindow(obj) {
+        var id = $(obj).data("id");
+        var wnd = $("#SkipCustomerWindow").data("kendoWindow");
+        var data = {
+            RefID: id,
+            RefType: 'CallID',
+        };
+        wnd.content(SkipCustomerTemplate(data));
+        wnd.center().open();
+        $("#SkipCustomerForm").validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnSkipCustomer").attr("disabled", "disabled")
+                    },
+                    success: function (data) {
+                        if (!data.error) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Bỏ qua khách hàng thành công!",
+                                class_name: 'gritter-success',
+                            });
+                            LoadGridAppointment();
+                            $("#btnSkipCustomer").removeAttr("disabled");
+                            $('#SkipCustomerWindow').data('kendoWindow').close();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnSkipCustomer").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+    }
+    function OpenDoneRequestTicketWindow(obj) {
+        var id = $(obj).data("id");
+        var wnd = $("#DoneRequestTicketWindow").data("kendoWindow");
+        var data = {
+            TicketID: id,
+        };
+        wnd.content(DoneRequestTicketTemplate(data));
+        wnd.center().open();
+        $("#DoneRequestTicketForm").validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnDoneRequestTicket").attr("disabled", "disabled")
+                    },
+                    success: function (data) {
+                        if (!data.error) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Hoàn thành request ticket thành công!",
+                                class_name: 'gritter-success',
+                            });
+                            LoadGridAppointment();
+                            $("#btnDoneRequestTicket").removeAttr("disabled");
+                            $('#DoneRequestTicketWindow').data('kendoWindow').close();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnDoneRequestTicket").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+    }
+    function GetAppointmentForPopup(obj) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var id = $(obj).data("id");
+        var physical = $(obj).data("physicalid");
+        var callid = $(obj).data("callid");
+        $.post(r + "/Telesale/getPopupData/", { PhysicalID: physical, CustomerID: id }, function (data) {
+            if (data.success) {
+                LoadDataToPopup(data, "Re-Call", callid, 'CallID', true);
+            }
+        });
+    }
+    function GetOrderRequestForPopup(obj) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var id = $(obj).data("id");
+        var physical = $(obj).data("physicalid");
+        var smsid = $(obj).data("smsid");
+        $.post(r + "/Telesale/getPopupData/", { PhysicalID: physical, CustomerID: id }, function (data) {
+            if (data.success) {
+                LoadDataToPopup(data, "SMSMO", smsid, 'SMSID', true);
+            }
+        });
+    }
+    function GetTicketForPopup(obj) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var id = $(obj).data("id");
+        var physical = $(obj).data("physicalid");
+        $.post(r + "/Telesale/getPopupData/", { PhysicalID: physical, CustomerID: '' }, function (data) {
+            if (data.success) {
+                LoadDataToPopup(data, "Ticket", id, 'TicketID', true);
+            } else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: data.message,
+                    class_name: 'gritter-error',
+                });
+            }
+        });
+    }
+    function CancelSMS(obj) {
+        var id = $(obj).data("id");
+        var wnd = $("#SkipCustomerWindow").data("kendoWindow");
+        var data = {
+            Id: id
+        };
+        wnd.content(SkipSMSTemplate(data));
+        wnd.center().open();
+        $("#SkipSMSForm").validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnSkipSMS").attr("disabled", "disabled")
+                    },
+                    success: function (data) {
+                        if (!data.error) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Hủy bỏ thành công.",
+                                class_name: 'gritter-success',
+                            });
+                            LoadGridAppointment();
+                            $("#btnSkipSMS").removeAttr("disabled");
+                            $("#gridAgentOrderRequest").data("kendoGrid").dataSource.read();
+                            $('#SkipCustomerWindow').data('kendoWindow').close();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnSkipSMS").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+    }
+</script>

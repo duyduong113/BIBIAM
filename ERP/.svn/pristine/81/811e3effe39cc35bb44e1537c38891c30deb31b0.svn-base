@@ -1,0 +1,2548 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Ticket_Category>
+@{
+    /// tạo
+    ViewBag.Title = "Ticket Master Data";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    var listStatus = new List<Object>();
+
+    listStatus.Add(new { Value = "True", Name = "Active" });
+    listStatus.Add(new { Value = "False", Name = "Inactive" });
+    ViewBag.listStatus = listStatus;
+
+    var listRequireCustomerID = new List<Object>();
+    listRequireCustomerID.Add(new { Value = true, Name = "Active" });
+    listRequireCustomerID.Add(new { Value = false, Name = "Inactive" });
+    ViewBag.listRequireCustomerID = listRequireCustomerID;
+
+    var listRequireOrderID = new List<Object>();
+    listRequireOrderID.Add(new { Value = true, Name = "Active" });
+    listRequireOrderID.Add(new { Value = false, Name = "Inactive" });
+    ViewBag.listRequireOrderID = listRequireOrderID;
+
+
+
+
+}
+<style>
+    .nav-tabs.background-blue {
+        padding-top: 0px !important;
+        background-color: none !important;
+        border: none !important;
+    }
+
+    .nav-tabs.padding-12 {
+        padding-left: 0px;
+        padding-bottom: 3px;
+    }
+
+    #newlistgroup .chosen-container {
+        width: 900px !important;
+    }
+
+    #newlistuser .chosen-container {
+        width: 900px !important;
+    }
+
+    .k-grid-header [data-field=TypeID] .k-header-column-menu {
+        display: none;
+    }
+</style>
+
+<div id="windowEdit" style="display:none">
+    <select name="select" id="Categoryfilterdata">
+        <option value='' selected>Select Category</option>
+        @foreach (var item in ViewBag.listCategory)
+        {
+            <option value="@item.CategoryID">@item.Name</option>
+        }
+    </select>
+    <button class="btn-small btn-purple" onclick="CloneType()">Clone</button>
+</div>
+<div id="departmentdata" style="display:none">
+    <select id='Depart_#=QueueID#' class='chosen-select span10' data-placeholder='Choose department...' multiple style="width:900px;">
+        @foreach (var item in ViewBag.listCategory)
+        {
+            <option value="@item.CategoryID">@item.Name</option>
+        }
+    </select>
+</div>
+<div id="teamdata" style="display:none">
+    <select id='Team_#=QueueID#' class='chosen-select span10' data-placeholder='Choose team...' multiple style="width:900px;">
+        @foreach (var item in ViewBag.listTeam)
+        {
+            <option value="@item.TeamID">@item.TeamName</option>
+        }
+    </select>
+</div>
+<div id="userdata" style="display:none">
+    <select id='User_#=QueueID#' class='chosen-select span10' data-placeholder='Choose user...' multiple style="width:900px;">
+        @foreach (var item in ViewBag.listUser)
+        {
+            <option value="@item.UserName">@item.UserName</option>
+
+        }
+    </select>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="tabbable">
+            <ul class="nav nav-tabs padding-12 tab-color-blue" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="#CategoryTab" id="btnCategory">
+                        Category
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#Queue" id="btnQueue">
+                        Queue
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#Type" id="btnType">
+                        Type
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#WorkingTime" id="btnWorkingTime">
+                        Working time
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#Holiday" id="btnHoliday">
+                        Holiday
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#KPI" id="btnKPI">
+                        KPI
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#ViewAllTicket" id="btnViewAllTicket">
+                        View all ticket
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#UpdateAllTicketInQueue" id="btnUpdateAllTicketInQueue">
+                        Update all ticket in queue
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content" style="overflow: hidden !important;">
+                <div id="CategoryTab" class="tab-pane in active">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+          .Grid<ERPAPD.Models.CRM_Ticket_Category>()
+          .Name("Grid")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.CategoryID)
+                    .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                    .HeaderTemplate("<input type='checkbox' id= 'checkAll'  onclick='checkAllCategory(this);' />")
+                    .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=CategoryID#' id='#=CategoryID#' />")
+                    .HtmlAttributes(new { style = "text-align: center" })
+                    .HeaderHtmlAttributes(new { style = "text-align: center" });
+              columns.Bound(p => p.CategoryID).Width(70);
+              columns.Bound(p => p.Name).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Description).Width(300).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(90).Title("LastUpdatedBy");
+          })
+
+          .ToolBar(toolBar =>
+          {
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" id="grid-category-delete" data-grid="grid" onclick="showConfirmPopup(1)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+        </text>);
+
+          })
+          .Events(events => { events.DataBound("dataBound"); })
+          //.Sortable()
+          //.ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          .Scrollable()
+          //.Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.CategoryID);
+                                                  model.Field(p => p.Status).DefaultValue("True");
+                                                  model.Field(p => p.CategoryID).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                              })
+                                              .Read("Category_Read", "TicketMasterData")
+                                              .Update("Category_Update", "TicketMasterData")
+                                              .Create("Category_Create", "TicketMasterData")
+                                                )
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="Queue" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_Queue>()
+          .Name("Grid2")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.QueueID)
+                   .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                   .HeaderTemplate("<input type='checkbox' id= 'checkAllQueue'  onclick='checkAllQueue(this);' />")
+                   .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=QueueID#' id='#=QueueID#' />")
+                   .HtmlAttributes(new { style = "text-align: center" })
+                   .HeaderHtmlAttributes(new { style = "text-align: center" });
+              columns.Bound(p => p.QueueID).Width(85).Title("QueueID");
+              columns.Bound(p => p.QueueName).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Description).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Department).Width(200).ClientTemplate("#=loadTextById(Department)#");
+              columns.Bound(p => p.Team).Width(200).ClientTemplate("#=loadTextById2(Team)#");
+              columns.Bound(p => p.User).Width(200);
+              columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(110).Title("LastUpdatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+          //toolBar.Create().HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+          //toolBar.Save().HtmlAttributes(new { @style = "display:" + (AllowCreate || AllowUpdate ? "inline-block" : "none") });
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid2" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid2" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid2" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" onclick="showConfirmPopup(2)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+        </text>);
+
+          })
+                  .Events(events => { events.DataBound("dataBound2"); events.DetailExpand("detailExpand2"); })
+          .Sortable()
+          //.ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          //.Filterable()
+          //.Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Events(events => { events.Error("error_handler2"); events.RequestEnd("onRequestEnd2"); })
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.QueueID);
+                                                  model.Field(p => p.Status).DefaultValue("True");
+                                                  model.Field(p => p.QueueID).Editable(false);
+                                                  model.Field(p => p.Department).Editable(false);
+                                                  model.Field(p => p.Team).Editable(false);
+                                                  model.Field(p => p.User).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                              })
+                                              .Read("Queue_Read", "TicketMasterData")
+                                              .Update("Queue_Update", "TicketMasterData")
+                                              .Create("Queue_Create", "TicketMasterData")
+                                                )
+
+              .ClientDetailTemplateId("QueueDetails")
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="Type" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @*<select name="select" id="Categoryfilter"></select>
+                                <button type="button" id="btnSearch" class="btn btn-purple btn-small" onclick="filterCategory()">Search</button>*@
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_Type>()
+          .Name("Grid3")
+          .Columns(columns =>
+          {
+              // sửa các hàm draw color và changecategory nếu thêm cột
+              columns.Bound(p => p.TypeID)
+                  .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                  .HeaderTemplate("<input type='checkbox' id= 'checkAllType'  onclick='checkAllType(this);' />")
+                  .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=TypeID#' id='#=TypeID#' />")
+                  .HtmlAttributes(new { style = "text-align: center" })
+                  .HeaderHtmlAttributes(new { style = "text-align: center" });
+              //columns.Bound(p => p.TypeID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' rid= '#=TypeID#' />").Width(25).Filterable(false).Sortable(false);
+              columns.Bound(p => p.TypeID).Width(75).Title("TypeID");
+              columns.Bound(p => p.Name).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Description).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "CategoryID", "Name").EditorTemplateName("GridNullableForeignKey").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(p => p.Owner, (System.Collections.IEnumerable)ViewBag.listUser, "UserName", "UserName").Width(100).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ResponeTime).Title("ResponeTime").Width(95).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ResolveTime).Title("ResolveTime").Width(95).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ClosedTime).Title("ClosedTime").Width(95).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(o => o.RequireCustomerID, (System.Collections.IEnumerable)ViewBag.listRequireCustomerID, "Value", "Name").Width(110).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title("RequireCustomerID");
+              columns.ForeignKey(o => o.RequireOrderID, (System.Collections.IEnumerable)ViewBag.listRequireOrderID, "Value", "Name").Width(110).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title("RequireOrderID");
+              columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").Width(65).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Priority).Title("Priority").Width(60).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(90).Title("LastUpdatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid3" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid3" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid3" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" onclick="showConfirmPopup(3)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+            </text>);
+              //toolBar.Create();
+              //toolBar.Save();
+              //toolBar.Custom()
+              //.Text("Clone ")
+              //.HtmlAttributes(new { @class = "btn-info btntoolbar", @style = "color:white", @Href = "javascript:ShowClone()" });
+              //toolBar.Custom()
+              //  .Text("Delete ")
+              //  .HtmlAttributes(new { @class = "btn-danger btntoolbar", @style = "color:white", @Href = "javascript:DeleteType()" });
+
+
+          })
+          .Events(events => { events.DataBound("dataBound3"); events.Edit("onEdit3"); events.DetailExpand("detailExpand3"); })
+           .Sortable()
+          .ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(100)
+                .Batch(true)
+                .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd3"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.TypeID);
+                    model.Field(p => p.TypeID).Editable(false);
+                    model.Field(p => p.RequireCustomerID).DefaultValue("False");
+                    model.Field(p => p.RequireOrderID).DefaultValue("False");
+                    model.Field(p => p.Status).DefaultValue("True");
+                    model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                    model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                })
+                .Read("Type_Read", "TicketMasterData")
+                .Update("Type_Update", "TicketMasterData")
+                .Create("Type_Create", "TicketMasterData")
+                )
+
+              .ClientDetailTemplateId("TypeDetails")
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="WorkingTime" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_WorkTime>()
+          .Name("Grid4")
+          .Columns(columns =>
+          {
+              // sửa các hàm draw color và changecategory nếu thêm cột
+              columns.Bound(p => p.DepartmentID).Hidden(true);
+              columns.Bound(p => p.WorkingTimeID)
+                     .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                     .HeaderTemplate("<input type='checkbox' id= 'checkAllWorkTime'  onclick='checkAllWorkTime(this);' />")
+                     .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=WorkingTimeID#' id='#=WorkingTimeID#' />")
+                     .HtmlAttributes(new { style = "text-align: center" })
+                     .HeaderHtmlAttributes(new { style = "text-align: center" });
+              columns.Bound(p => p.WorkingTimeID).Title("ID").Width(70);
+              columns.Bound(p => p.StartWorkingTime).Format("{0:hh:mm tt}").Title("StartWorkingTime").Width(100).EditorTemplateName("Time").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.EndWorkingTime).Format("{0:hh:mm tt}").Title("EndWorkingTime").Width(100).EditorTemplateName("Time").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.StartBreakingTime).Format("{0:hh:mm tt}").Title("StartBreakingTime").Width(100).EditorTemplateName("Time").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.EndBreakingTime).Format("{0:hh:mm tt}").Title("EndBreakingTime").Width(100).EditorTemplateName("Time").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Mon).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Mon ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Tue).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Tue ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Wed).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Wed ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Thu).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Thu ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Fri).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Fri ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Sat).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Sat ? '&#x2713;' :  '' # </span>");
+              columns.Bound(p => p.Sun).Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate("<span>&nbsp;   #=Sun ? '&#x2713;' :  '' # </span>");
+              // columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").EditorTemplateName("GridNullableForeignKey").Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(90).Title("LastUpdatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+          //toolBar.Create().HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+          //toolBar.Save().HtmlAttributes(new { @style = "display:" + (AllowCreate || AllowUpdate ? "inline-block" : "none") });
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid4" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid4" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid4" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" onclick="showConfirmPopup(4)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+        </text>);
+
+          })
+          .Events(events => { events.DataBound("dataBound4"); events.DetailExpand("detailExpand4"); })
+          .Sortable()
+          .ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd4"); })
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.WorkingTimeID);
+                                                  model.Field(p => p.WorkingTimeID).Editable(false);
+                                                  model.Field(p => p.StartWorkingTime).DefaultValue(DateTime.Parse("1900-01-01"));
+                                                  model.Field(p => p.EndWorkingTime).DefaultValue(DateTime.Parse("1900-01-01"));
+                                                  model.Field(p => p.StartBreakingTime).DefaultValue(DateTime.Parse("1900-01-01"));
+                                                  model.Field(p => p.EndBreakingTime).DefaultValue(DateTime.Parse("1900-01-01"));
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                              })
+                                              .Read("WorkingTime_Read", "TicketMasterData")
+                                              .Update("WorkingTime_Update", "TicketMasterData")
+                                              .Create("WorkingTime_Create", "TicketMasterData")
+                                                )
+              .ClientDetailTemplateId("WorkingTimeDetails")
+
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="Holiday" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_Holiday>()
+          .Name("Grid5")
+          .Columns(columns =>
+          {
+              // sửa các hàm draw color và changecategory nếu thêm cột
+              columns.Bound(p => p.HolidayID)
+                    .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                    .HeaderTemplate("<input type='checkbox' id= 'checkAllHoliday'  onclick='checkAllHoliday(this);' />")
+                    .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=HolidayID#' id='#=HolidayID#' />")
+                    .HtmlAttributes(new { style = "text-align: center" })
+                    .HeaderHtmlAttributes(new { style = "text-align: center" });
+              columns.Bound(p => p.HolidayID).Width(60).Title("TypeID");
+              columns.Bound(p => p.Name).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Description).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Note).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.StartDate).Format("{0:" + Resources.Multi.DateFormat + "}").Width(75).Title("StartDate").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.EndDate).Format("{0:" + Resources.Multi.DateFormat + "}").Width(75).Title("EndDate").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").Width(70).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(110).Title("LastUpdatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+          //toolBar.Create().HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+          //toolBar.Save().HtmlAttributes(new { @style = "display:" + (AllowCreate || AllowUpdate ? "inline-block" : "none") });
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid5" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid5" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid5" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" onclick="showConfirmPopup(5)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+        </text>);
+
+          })
+            .Events(events => { events.DataBound("dataBound5"); events.DetailExpand("detailExpand5"); })
+          .Sortable()
+          //.ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          //.Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd5"); })
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.HolidayID);
+                                                  model.Field(p => p.Status).DefaultValue("True");
+                                                  model.Field(p => p.HolidayID).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                              })
+                                              .Read("Holiday_Read", "TicketMasterData")
+                                              .Update("Holiday_Update", "TicketMasterData")
+                                              .Create("Holiday_Create", "TicketMasterData")
+                                                )
+              .ClientDetailTemplateId("HolidayDetails")
+
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="KPI" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_KPI>()
+          .Name("Grid6")
+          .Columns(columns =>
+          {
+              // sửa các hàm draw color  nếu thêm cột
+              columns.Bound(p => p.KPIID)
+                    .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                    .HeaderTemplate("<input type='checkbox' id= 'checkAllKPI'  onclick='checkAllKPI(this);' />")
+                    .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=KPIID#' id='#=KPIID#' />")
+                    .HtmlAttributes(new { style = "text-align: center" })
+                    .HeaderHtmlAttributes(new { style = "text-align: center" });
+              columns.Bound(p => p.KPIID).Width(60).Title("KPIID");
+              columns.ForeignKey(p => p.TypeID, (System.Collections.IEnumerable)ViewBag.listType, "TypeID", "Name").Width(150).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.Description).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(p => p.Priority, (System.Collections.IEnumerable)ViewBag.listPriority, "ParamID", "Value").Width(90).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(p => p.Impact, (System.Collections.IEnumerable)ViewBag.listImpact, "ParamID", "Value").Width(70).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ResponeTime).Title("ResponeTime").Width(85).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ResolveTime).Title("ResolveTime").Width(85).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(p => p.ClosedTime).Title("ClosedTime").Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.ForeignKey(o => o.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "Value", "Name").Width(80).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+              columns.Bound(o => o.RowLastUpdatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("LastUpdatedAt");
+              columns.Bound(o => o.RowLastUpdatedUser).Width(90).Title("LastUpdatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+          //toolBar.Create();//.HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+          //toolBar.Save();//.HtmlAttributes(new { @style = "display:" + (AllowCreate || AllowUpdate ? "inline-block" : "none") });
+          toolBar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (AllowCreate)
+                                    {
+                                        <a class="btn btn-success btn-small" id="grid-category-create" data-grid="grid6" onclick="Create(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                        </a>
+                                        <a class="btn btn-primary btn-small" id="grid-category-update" data-grid="grid6" onclick="Update(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                                        </a>
+                                        <a class="btn btn-default btn-small" id="grid-category-cancel" data-grid="grid6" onclick="Cancel(this)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                                        </a>
+                                        <a class="btn btn-danger btn-small" onclick="showConfirmPopup(6)">
+                                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                        </a>
+                                    }
+                                </div>
+        </text>);
+
+          })
+        .Events(events => { events.DataBound("dataBound6"); events.Edit("onEdit6"); })
+          .Sortable()
+          //.ColumnMenu()
+          .Editable(editable => editable.Mode(GridEditMode.InCell))
+          //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          //.Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd6"); })
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.KPIID);
+                                                  model.Field(p => p.Status).DefaultValue("True");
+                                                  model.Field(p => p.KPIID).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                              })
+                                              .Read("KPI_Read", "TicketMasterData")
+                                              .Update("KPI_Update", "TicketMasterData")
+                                              .Create("KPI_Create", "TicketMasterData")
+                                                )
+
+
+                            )
+                        </div>
+                    </div>
+
+                </div>
+                <div id="ViewAllTicket" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div id="newlistgroup" style="display:inline-block;width:900px;">
+                                <select name="select" id="listgroup" class='chosen-select span2' style="width:900px;" multiple></select>
+                            </div>
+                            <div class='controls newsavebutton' style="display:inline-block">
+                                <a onclick='savegroup()' class='btn btn-success btn-small' style="width:70px; ">@Resources.Multi.Add</a>
+                            </div>
+                            <div class='controls newdeletebutton' style="display:inline-block">
+                                <a onclick='deletegroup()' class='btn btn-delete btn-small' style="width:70px; background-color:#d15b47!important; border-color:#d15b47!important;">@Resources.Multi.Remove</a>
+                            </div>
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_Role>()
+          .Name("Grid7")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.RowID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll7'  onClick='checkAll7(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#'  />").Width(20).Filterable(false).Sortable(false);
+              // columns.Bound(p => p.ID).Width(60).Title("GroupID");
+              columns.Bound(p => p.Name).Width(150).Title(Resources.Multi.Name);
+              columns.Bound(p => p.Description).Width(400);
+              columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("CreatedAt");
+              columns.Bound(o => o.RowCreatedUser).Width(90).Title("CreatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+
+          })
+                                  .Events(events => { events.DataBound("dataBound7"); })
+          .Sortable()
+          .ColumnMenu()
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.ID);
+                                                  model.Field(p => p.Description).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                                              })
+                                              .Read("Role_Read", "TicketMasterData")
+                                                )
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="UpdateAllTicketInQueue" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div id="newlistuser" style="display:inline-block;width:900px;">
+                                <select name="select" id="listuser" class='chosen-select span2' style="width:900px;" multiple></select>
+                            </div>
+                            <div class='controls newsavebutton' style="display:inline-block">
+                                <a onclick='saveuser()' class='btn btn-success btn-small' style="width:70px; ">@Resources.Multi.Add</a>
+                            </div>
+                            <div class='controls newdeletebutton' style="display:inline-block">
+                                <a onclick='deleteuser()' class='btn btn-delete btn-small' style="width:70px; background-color:#d15b47!important; border-color:#d15b47!important;">@Resources.Multi.Remove</a>
+                            </div>
+                            @(Html.Kendo()
+           .Grid<ERPAPD.Models.CRM_Ticket_RoleUpdate>()
+          .Name("Grid8")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.RowID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll8'  onClick='checkAll8(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=UserID#'  />").Width(20).Filterable(false).Sortable(false);
+              // columns.Bound(p => p.ID).Width(60).Title("GroupID");
+              columns.Bound(p => p.UserID).Width(150).Title("UserID");
+              columns.Bound(p => p.UserName).Width(350).Title("UserName");
+              columns.Bound(o => o.RowCreatedTime).Format("{0:HH:mm dd/MM/yyyy}").Width(110).Title("CreatedAt");
+              columns.Bound(o => o.RowCreatedUser).Width(90).Title("CreatedBy");
+          })
+          .ToolBar(toolBar =>
+          {
+
+          })
+                                  .Events(events => { events.DataBound("dataBound8"); })
+          .Sortable()
+          .ColumnMenu()
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .Batch(true)
+                                              .Model(model =>
+                                              {
+                                                  model.Id(p => p.UserID);
+                                                  model.Field(p => p.UserName).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                  model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                                              })
+                                              .Read("RoleUpdate_Read", "TicketMasterData")
+                                                )
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="QueueDetails" type="text/kendo-tmpl">
+    @(Html.Kendo()
+                  .TabStrip()
+                  .HtmlAttributes(new { @style = "width:auto;" })
+                  .Name("tabQueueDetails")
+                  .SelectedIndex(0)
+                  .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                  .Items(items =>
+                  {
+                      items.Add().Text("QueueDetails").Content(@<text>
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;"> Department : </div>
+            <div style="display:inline-block" id='divDepart_#=QueueID#'>
+                <select id='Depart_#=QueueID#' class='chosen-select span10' data-placeholder='Choose department...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;">  Team : </div>
+            <div style="display:inline-block" id='divTeam_#=QueueID#'>
+                <select id='Team_#=QueueID#' class='chosen-select span10' data-placeholder='Choose team...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;">  User : </div>
+            <div style="display:inline-block" id='divUser_#=QueueID#'>
+                <select id='User_#=QueueID#' class='chosen-select span10' data-placeholder='Choose user...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div style="margin-top:5px">
+            <a onclick='savequeue()' class='btn btn-success btn-small'> Lưu</a>
+            <a onclick='cancelqueue()' class='btn btn-small'> Hủy bỏ</a>
+        </div>
+
+                    </text>);
+
+                  })
+         .ToClientTemplate()
+    )
+</script>
+
+
+<script id="TypeDetails" type="text/kendo-tmpl">
+    @(Html.Kendo()
+                  .TabStrip()
+                  .HtmlAttributes(new { @style = "width:auto;" })
+                  .Name("tabTypeDetails")
+                  .SelectedIndex(0)
+                  .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                  .Items(items =>
+                  {
+                      items.Add().Text("TypeDetails").Content(@<text>
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;"> Queue : </div>
+            <div style="display:inline-block" id='divQueue_#=TypeID#'>
+                <select id='Queue_#=TypeID#' class='chosen-select span10' data-placeholder='Choose queue...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div style="margin-top:5px">
+            <a onclick='savetype()' class='btn btn-success btn-small'> Lưu</a>
+            <a onclick='canceltype()' class='btn btn-small'> Hủy bỏ</a>
+        </div>
+                    </text>);
+                  })
+    .ToClientTemplate()
+    )
+
+</script>
+
+<script id="WorkingTimeDetails" type="text/kendo-tmpl">
+    @(Html.Kendo()
+                  .TabStrip()
+                  .HtmlAttributes(new { @style = "width:auto;" })
+                  .Name("tabWorkingTimeDetails")
+                  .SelectedIndex(0)
+                  .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                  .Items(items =>
+                  {
+                      items.Add().Text("WorkingTimeDetails").Content(@<text>
+
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;"> Department : </div>
+            <div style="display:inline-block" id='divDepartment_#=WorkingTimeID#'>
+                <select id='Department_#=WorkingTimeID#' class='chosen-select span10' data-placeholder='Choose Department...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div style="margin-top:5px">
+            <a onclick='saveworkingtime()' class='btn btn-success btn-small'> Lưu</a>
+            <a onclick='cancelworkingtime()' class='btn btn-small'> Hủy bỏ</a>
+        </div>
+                    </text>);
+
+                  })
+                                                  .ToClientTemplate()
+    )
+</script>
+<script id="HolidayDetails" type="text/kendo-tmpl">
+    @(Html.Kendo()
+                  .TabStrip()
+                  .HtmlAttributes(new { @style = "width:auto;" })
+                  .Name("tabHolidayDetails")
+                  .SelectedIndex(0)
+                  .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                  .Items(items =>
+                  {
+                      items.Add().Text("HolidayDetails").Content(@<text>
+        <div>
+            <div style="display:inline-block; width:100px;margin-top:10px;"> Department : </div>
+            <div style="display:inline-block" id='divDepart_#=HolidayID#'>
+                <select id='Depart_#=HolidayID#' class='chosen-select span10' data-placeholder='Choose Department...' multiple style="width:900px;"></select>
+            </div>
+        </div>
+        <div style="margin-top:5px">
+            <a onclick='saveholiday()' class='btn btn-success btn-small'> Lưu</a>
+            <a onclick='cancelholiday()' class='btn btn-small'> Hủy bỏ</a>
+        </div>
+                    </text>);
+
+                  })
+                                                  .ToClientTemplate()
+    )
+</script>
+<div id="popup-confirm" class="row" style="margin:0 auto;display:none">
+    <div class="widget-box">
+        <span id="txtcontent"></span>
+        <br>
+    </div>
+    <div class="form-footer-custom">
+        <div class="pull-right" style="padding-right:15px">
+            <button type="button" class="btn btn-info btn-small " onclick="onChangeStatus(1)">
+                @*<i class="icon-ok"></i>*@ Đồng ý
+            </button>
+            <button type="button" class="btn btn-default btn-small" onclick="onCloseForm()">
+                @*<i class="icon-undo"></i>*@ Đóng lại
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-delete-category" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteCategory()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-delete-queue" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteQueue()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-delete-type" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteType()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-delete-worktime" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteWorkTime()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-delete-holiday" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteHoliday()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div id="confirm-delete-kpi" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn xóa các dữ liệu đã được chọn ?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="DeleteKPI()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    var htmldepartmentdata;
+    var htmlteamdata;
+    var htmluserdata;
+
+    $(document).ready(function () {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        htmldepartmentdata = $("#departmentdata").html();
+        htmlteamdata = $("#teamdata").html();
+        htmluserdata = $("#userdata").html();
+        getlistgroup();
+        getlistuser();
+        $('#Categoryfilter').html($('#Categoryfilterdata').html());
+    });
+    function dataBound(e) {
+        resizeGrid();
+        drawcolor();
+        //   changecategory();
+    }
+    function dataBound2(e) {
+        resizeGrid();
+        drawcolor2();
+    }
+    function dataBound3(e) {
+        resizeGrid();
+        drawcolor3();
+        // changetype();
+    }
+    function dataBound4(e) {
+        resizeGrid();
+    }
+    function dataBound5(e) {
+        resizeGrid();
+        drawcolor5();
+    }
+    function dataBound6(e) {
+        resizeGrid();
+        drawcolor6();
+    }
+    function dataBound7(e) {
+        resizeGrid();
+        var g = $("#Grid7").data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+        $('#checkboxcheckAll7').prop('checked', false);
+    }
+
+    function dataBound8(e) {
+        resizeGrid();
+        var g = $("#Grid8").data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+        $('#checkboxcheckAll8').prop('checked', false);
+    }
+    function checkAll7(e) {
+        var x = $(e).prop('checked');
+        $('#Grid7').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+
+        });
+    }
+    function checkAll8(e) {
+        var x = $(e).prop('checked');
+        $('#Grid8').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+
+        });
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid2').offset().top);
+        gridElement = $("#Grid2"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid3').offset().top);
+        gridElement = $("#Grid3"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid4').offset().top);
+        gridElement = $("#Grid4"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid5').offset().top);
+        gridElement = $("#Grid5"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid6').offset().top);
+        gridElement = $("#Grid6"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid7').offset().top);
+        gridElement = $("#Grid7"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+        offsetbottom = parseInt($(window).height()) - parseInt($('#Grid8').offset().top);
+        gridElement = $("#Grid8"),
+       dataArea = gridElement.find(".k-grid-content"),
+       otherElements = gridElement.children().not(".k-grid-content"),
+       otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+    }
+
+
+
+    function drawcolor() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Status == "True") {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(5)').text("Đang hoạt động");
+            }
+            else {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(5)').text("Ngưng hoạt động");
+            }
+        });
+    }
+    function drawcolor2() {
+        var data = $("#Grid2").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Status == "True") {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(9)').css("font-weight", "bold");
+            }
+            else {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(9)').css("font-weight", "bold");
+            }
+        });
+    }
+
+    function drawcolor3() {
+        var data = $("#Grid3").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Status == "True") {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(14)').css("font-weight", "bold");
+            }
+            else {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(14)').css("font-weight", "bold");
+            }
+        });
+    }
+
+    function drawcolor5() {
+        var data = $("#Grid5").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Status == "True") {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(9)').css("font-weight", "bold");
+            }
+            else {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(9)').css("font-weight", "bold");
+            }
+        });
+
+    }
+    function drawcolor6() {
+        var data = $("#Grid6").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Status == "True") {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(10)').css("font-weight", "bold");
+            }
+            else {
+                $('tr[data-uid="' + row.uid + '"] td:nth-child(10)').css("font-weight", "bold");
+            }
+        });
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+
+    function error_handler2(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+    function error_handler3(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+
+        }
+    }
+
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    //function changecategory() {
+    //    var html1 = '<input id="Category" name="Category" type="text" /><script>jQuery(function(){jQuery("#Category").kendoDropDownList({"dataSource":';
+    //    var values = '[';
+    //    var values2 = '[';
+    //    var data = $("#Grid").data("kendoGrid").dataSource.data();
+    //    $.each(data, function (i, row) {
+    //        if (row.Status == "True") {
+    //            values += ' {"Text":"' + row.Name + '","Value":"' + row.CategoryID + '"},';
+    //        }
+    //        values2 += ' { text :"' + row.Name + '", value :"' + row.CategoryID + '"},';
+
+    //    });
+    //    if (values.length > 1) {
+    //        values = values.substring(0, values.length - 1) + ']';
+    //    }
+    //    else {
+    //        values += ']';
+    //    }
+    //    if (values2.length > 1) {
+    //        values2 = values2.substring(0, values2.length - 1) + ']';
+    //    }
+    //    else {
+    //        values2 += ']';
+    //    }
+    //    html1 += values + ',"dataTextField":"Text","dataValueField":"Value","optionLabel":"- Please select -"});});';
+    //    html1 += '<\/script><span class="field-validation-valid" data-valmsg-for="Category" data-valmsg-replace="true"></span>';
+    //    //var grid = $('#Grid3').data("kendoGrid");
+    //    //grid.columns[4].editor = html1;
+    //    //grid.columns[4].values = eval(values2);
+    //    //grid.setOptions({ columns: grid.columns });
+    //    //grid.refresh();
+
+    //}
+    //function changetype() {
+
+    //    var values2 = '[';
+    //    var data = $("#Grid3").data("kendoGrid").dataSource.data();
+    //    //$.each(data, function (i, row) {
+    //    //    values2 += ' { text :"' + row.Name + '", value :"' + row.TypeID + '"},';
+    //    //});
+    //    //if (values2.length > 1) {
+    //    //    values2 = values2.substring(0, values2.length - 1) + ']';
+    //    //}
+    //    //else {
+    //    //    values2 += ']';
+    //    //}
+
+    //    //var grid = $('#Grid6').data("kendoGrid");
+    //    //grid.columns[1].values = eval(values2);
+    //    //grid.setOptions({ columns: grid.columns });
+    //    //grid.refresh();
+
+    //}
+    function onRequestEnd2(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid2").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "destroy" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid2").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid2").data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEnd3(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid3").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid3").data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEnd4(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid4").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "destroy" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid4").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid4").data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEnd5(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid5").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "destroy" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid5").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid5").data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEnd6(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#Grid6").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "destroy" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid6").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Create successfully, Please refresh to see change in Type Menu',
+                class_name: 'gritter-success'
+            });
+            $("#Grid6").data("kendoGrid").dataSource.read();
+        }
+    }
+    function onEdit3(e) {
+
+        //var a = $("[aria-activedescendant=Category_option_selected]");
+        //if (a.length > 0) {
+
+        //    $.post(r + "/TicketMasterData/Type_GetCategory?Type=Active", function (data) {
+        //        if (!data.Errors) {
+
+        //            var ds1 = new kendo.data.DataSource();
+        //            ds1.data(data.data);
+        //            $("#Category").data("kendoDropDownList").setDataSource(ds1);
+        //        }
+        //    });
+        //}
+
+    }
+    function onEdit6(e) {
+        var a = $("[aria-activedescendant=TypeID_option_selected]");
+        if (a.length > 0) {
+
+            $.post(r + "/TicketMasterData/KPI_GetType", function (data) {
+                if (!data.Errors) {
+
+                    var ds1 = new kendo.data.DataSource();
+                    ds1.data(data.data);
+                    $("#TypeID").data("kendoDropDownList").setDataSource(ds1);
+                }
+            });
+        }
+    }
+    var expandedRow2;
+    var curunitid2;
+    var curuid2;
+    function detailExpand2(e) {
+        // Only one open at a time
+        if (expandedRow2 != null && expandedRow2[0] != e.masterRow[0]) {
+            var grid = $('#Grid2').data('kendoGrid');
+            grid.collapseRow(expandedRow2);
+        }
+        expandedRow2 = e.masterRow;
+        var masterDataItem = $('#Grid2').data('kendoGrid').dataItem(expandedRow2);
+        curunitid2 = masterDataItem.QueueID;
+        curuid2 = masterDataItem.uid;
+
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        loaddataqueue();
+    }
+    var expandedRow3;
+    var curunitid3;
+    var curuid3;
+    function detailExpand3(e) {
+        // Only one open at a time
+        if (expandedRow3 != null && expandedRow3[0] != e.masterRow[0]) {
+            var grid = $('#Grid3').data('kendoGrid');
+            grid.collapseRow(expandedRow3);
+        }
+        expandedRow3 = e.masterRow;
+        var masterDataItem = $('#Grid3').data('kendoGrid').dataItem(expandedRow3);
+        curunitid3 = masterDataItem.TypeID;
+        curuid3 = masterDataItem.uid;
+
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        loaddatatype();
+    }
+
+
+    var expandedRow4;
+    var curunitid4;
+    var curuid4;
+    function detailExpand4(e) {
+        // Only one open at a time
+        if (expandedRow4 != null && expandedRow4[0] != e.masterRow[0]) {
+            var grid = $('#Grid4').data('kendoGrid');
+            grid.collapseRow(expandedRow4);
+        }
+        expandedRow4 = e.masterRow;
+        var masterDataItem = $('#Grid4').data('kendoGrid').dataItem(expandedRow4);
+        curunitid4 = masterDataItem.WorkingTimeID;
+        curuid4 = masterDataItem.uid;
+
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        loaddataworkingtime();
+    }
+
+
+    var expandedRow5;
+    var curunitid5;
+    var curuid5;
+    function detailExpand5(e) {
+        // Only one open at a time
+        if (expandedRow5 != null && expandedRow5[0] != e.masterRow[0]) {
+            var grid = $('#Grid5').data('kendoGrid');
+            grid.collapseRow(expandedRow5);
+        }
+        expandedRow5 = e.masterRow;
+        var masterDataItem = $('#Grid5').data('kendoGrid').dataItem(expandedRow5);
+        curunitid5 = masterDataItem.HolidayID;
+        curuid5 = masterDataItem.uid;
+
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        loaddataholiday();
+    }
+    function loaddataqueue() {
+        $.post(r + "/TicketMasterData/Queue_Detail_Read", { queueid: curunitid2 }, function (data) {
+            if (data.success) {
+
+                var html1 = htmldepartmentdata.replace('#=QueueID#', curunitid2);
+                var listdepartment = data.dataDepartment.split(';');
+                for (j = 0; j < listdepartment.length - 1; j++) {
+                    html1 = html1.replace('value="' + listdepartment[j] + '"', 'value="' + listdepartment[j] + '" selected ');
+                }
+                $('#divDepart_' + curunitid2).html(html1);
+                $('#Depart_' + curunitid2).chosen();
+
+                var html2 = htmlteamdata.replace('#=QueueID#', curunitid2);
+                var listteam = data.dataTeam.split(';');
+                for (j = 0; j < listteam.length - 1; j++) {
+                    html2 = html2.replace('value="' + listteam[j] + '"', 'value="' + listteam[j] + '" selected ');
+                }
+                $('#divTeam_' + curunitid2).html(html2);
+                $('#Team_' + curunitid2).chosen();
+
+
+
+                var html3 = htmluserdata.replace('#=QueueID#', curunitid2);
+                var listuser = data.dataUser.split(';');
+                for (j = 0; j < listuser.length - 1; j++) {
+                    html3 = html3.replace('value="' + listuser[j] + '"', 'value="' + listuser[j] + '" selected ');
+                }
+                $('#divUser_' + curunitid2).html(html3);
+                $('#User_' + curunitid2).chosen();
+
+            }
+        });
+    }
+
+    function loaddatatype() {
+        $.post(r + "/TicketMasterData/Type_Detail_Read", { typeid: curunitid3 }, function (data) {
+            if (data.success) {
+
+                var html1 = '';
+                html1 += ' <select id="Queue_' + curunitid3 + '" class="chosen-select span10" data-placeholder="Choose queue..." multiple style="width:900px;">';
+
+                var data2 = $("#Grid2").data("kendoGrid").dataSource.data();
+
+                $.each(data2, function (i, row) {
+                    if (row.Status == 'True') {
+                        html1 += '<option value="' + row.QueueID + '">' + row.QueueName + '</option>';
+                    }
+                    else {
+                        if (data.dataQueue.indexOf(row.QueueID) >= 0) {
+                            html1 += '<option value="' + row.QueueID + '">' + row.QueueName + '</option>';
+                        }
+                    }
+                });
+
+                html1 += '</select>';
+                var listqueue = data.dataQueue.split(';');
+                for (j = 0; j < listqueue.length - 1; j++) {
+                    html1 = html1.replace('value="' + listqueue[j] + '"', 'value="' + listqueue[j] + '" selected ');
+                }
+                $('#divQueue_' + curunitid3).html(html1);
+                $('#Queue_' + curunitid3).chosen();
+
+            }
+        });
+    }
+
+    function loaddataworkingtime() {
+        $.post(r + "/TicketMasterData/WorkingTime_Detail_Read", { workingtimeid: curunitid4 }, function (data) {
+            if (data.success) {
+
+                var html1 = '';
+                html1 += ' <select id="Department_' + curunitid4 + '" class="chosen-select span10" data-placeholder="Choose Department..." multiple style="width:900px;">';
+
+                $.each(data.datalistDepartment, function (i, row) {
+
+                    html1 += '<option value="' + row.DepartmentID + '">' + row.Department + '</option>';
+                });
+
+                html1 += '</select>';
+                var listdepartment = data.dataDepartment.split(';');
+                for (j = 0; j < listdepartment.length - 1; j++) {
+                    html1 = html1.replace('value="' + listdepartment[j] + '"', 'value="' + listdepartment[j] + '" selected ');
+                }
+                $('#divDepartment_' + curunitid4).html(html1);
+                $('#Department_' + curunitid4).chosen();
+
+            }
+        });
+    }
+    function loaddataholiday() {
+        $.post(r + "/TicketMasterData/Holiday_Detail_Read", { holidayid: curunitid5 }, function (data) {
+            if (data.success) {
+
+                var html1 = htmldepartmentdata.replace('#=QueueID#', curunitid5);
+                var listdepartment = data.dataDepartment.split(';');
+                for (j = 0; j < listdepartment.length - 1; j++) {
+                    html1 = html1.replace('value="' + listdepartment[j] + '"', 'value="' + listdepartment[j] + '" selected ');
+                }
+                $('#divDepart_' + curunitid5).html(html1);
+                $('#Depart_' + curunitid5).chosen();
+
+            }
+        });
+    }
+    function savequeue() {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+
+        var list1 = $("#Depart_" + curunitid2 + " option:selected");
+        var listdepartment = "";
+        list1.each(function () {
+            listdepartment += $(this).attr('value') + ";";
+        });
+
+        var list2 = $("#Team_" + curunitid2 + " option:selected");
+        var listteam = "";
+        list2.each(function () {
+            listteam += $(this).attr('value') + ";";
+        });
+
+        var list3 = $("#User_" + curunitid2 + " option:selected");
+        var listuser = "";
+        list3.each(function () {
+            listuser += $(this).attr('value') + ";";
+        });
+        $.post(r + "/TicketMasterData/Queue_Update_Detail", { queueid: curunitid2, listdepartment: listdepartment, listteam: listteam, listuser: listuser }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+
+                var griddata = $("#Grid2").data("kendoGrid").dataSource.data();
+
+                $('tr[data-uid="' + curuid2 + '"] td:nth-child(5)').html(listdepartment);
+                $('tr[data-uid="' + curuid2 + '"] td:nth-child(6)').html(listteam);
+                $('tr[data-uid="' + curuid2 + '"] td:nth-child(7)').html(listuser);
+            }
+            else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: data.data,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function savetype() {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+
+        var list1 = $("#Queue_" + curunitid3 + " option:selected");
+        var listqueue = "";
+        list1.each(function () {
+            listqueue += $(this).attr('value') + ";";
+        });
+        $.post(r + "/TicketMasterData/Type_Update_Detail", { typeid: curunitid3, listqueue: listqueue }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.data,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function saveworkingtime() {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+
+        var list1 = $("#Department_" + curunitid4 + " option:selected");
+        var listdepartment = "";
+        list1.each(function () {
+            listdepartment += $(this).attr('value') + ";";
+        });
+
+
+        $.post(r + "/TicketMasterData/WorkingTime_Update_Detail", { workingtimeid: curunitid4, listdepartment: listdepartment }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.data,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function saveholiday() {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+
+        var list1 = $("#Depart_" + curunitid5 + " option:selected");
+        var listdepartment = "";
+        list1.each(function () {
+            listdepartment += $(this).attr('value') + ";";
+        });
+
+
+        $.post(r + "/TicketMasterData/Holiday_Update_Detail", { holidayid: curunitid5, listdepartment: listdepartment }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.data,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function cancelqueue() {
+        loaddataqueue();
+    }
+    function canceltype() {
+        loaddatatype();
+    }
+    function cancelworkingtime() {
+        loaddataworkingtime();
+    }
+    function cancelholiday() {
+        loaddataholiday();
+    }
+
+    function getlistgroup() {
+
+        $.post(r + "/TicketMasterData/Role_GetlistGroup", function (data) {
+            if (!data.Errors) {
+                $('#newlistgroup').html('');
+                var html = " <select name='select' id='listgroup' class='chosen-select span2' style='width:900px;'  data-placeholder='Select Group'  multiple>";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.ID + "'>" + row.Name + "</option>";
+                });
+                html += "</select>";
+                $('#newlistgroup').html(html);
+                $('#listgroup').chosen();
+            }
+        });
+
+    }
+    function savegroup() {
+
+        var listGroup = $("#listgroup option:selected");
+        var data = "";
+        if (listGroup.length > 0) {
+            for (var i = 0; i < listGroup.length; i++) {
+                data += listGroup[i].value + "@@@@";
+
+            }
+        }
+        $.post(r + "/TicketMasterData/Role_SavelistGroup", { data: data }, function (data) {
+            if (!data.Errors) {
+                $.gritter.add({
+                    title: '',
+                    text: "Save Changes success",
+                    class_name: 'gritter-success'
+                });
+
+                $("#Grid7").data("kendoGrid").dataSource.read();
+                getlistgroup();
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: "Save Changes Fail",
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function deletegroup() {
+        var listrowid = "";
+        $('#Grid7').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Are you sure you want to REMOVE this record");
+            if (c == true) {
+                $.post(r + "/TicketMasterData/DeleteGroup", { data: listrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: 'Remove @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $('#Grid7').data("kendoGrid").dataSource.read();
+                        getlistgroup();
+                        $('#checkboxcheckAll7').prop('checked', false);
+                    }
+                    else {
+                        $('#Grid7').data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        getlistgroup();
+                        $('#Grid7').data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    ////// grid 8: UpdateAllTicketInQueue
+
+    function getlistuser() {
+
+        $.post(r + "/TicketMasterData/RoleUpdate_GetlistUser", function (data) {
+            if (!data.Errors) {
+                $('#newlistuser').html('');
+                var html = " <select name='select' id='listuser' class='chosen-select span2' style='width:900px;'  data-placeholder='Select user'  multiple>";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.UserID + "'>" + row.UserID + "</option>";
+                });
+                html += "</select>";
+                $('#newlistuser').html(html);
+                $('#listuser').chosen();
+            }
+        });
+
+    }
+    function saveuser() {
+
+        var listuser = $("#listuser option:selected");
+        var data = "";
+        if (listuser.length > 0) {
+            for (var i = 0; i < listuser.length; i++) {
+                data += listuser[i].value + "@@@@";
+
+            }
+        }
+        $.post(r + "/TicketMasterData/RoleUpdate_SavelistUser", { data: data }, function (data) {
+            if (!data.Errors) {
+                $.gritter.add({
+                    title: '',
+                    text: "Save Changes success",
+                    class_name: 'gritter-success'
+                });
+
+                $("#Grid8").data("kendoGrid").dataSource.read();
+                getlistuser();
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: "Save Changes Fail",
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function loadTextById(listOrgRule) {
+        var result = listOrgRule;
+        var data = $('#departmentdata option');
+        for (var i = 0, length = data.length; i < length; i++) {
+            result = result.replace(data[i].value, data[i].label);
+        }
+        return result;
+    }
+    function loadTextById2(listOrgRule) {
+        var result = listOrgRule;
+        var data = $('#teamdata option');
+        for (var i = 0, length = data.length; i < length; i++) {
+            result = result.replace(data[i].value, data[i].label);
+        }
+        return result;
+    }
+    function deleteuser() {
+        var listrowid = "";
+        $('#Grid8').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Are you sure you want to REMOVE this record");
+            if (c == true) {
+                $.post(r + "/TicketMasterData/DeleteUser", { data: listrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: 'Remove @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $('#Grid8').data("kendoGrid").dataSource.read();
+                        getlistuser();
+                        $('#checkboxcheckAll8').prop('checked', false);
+                    }
+                    else {
+                        $('#Grid8').data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        getlistuser();
+                        $('#Grid8').data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    function filterCategory() {
+        grid = $("#Grid3").data("kendoGrid");
+        var Categoryfilter = $('#Categoryfilter').val();
+
+        var filter = { logic: "and", filters: [] };
+        // var filterOrderID = { logic: "or", filters: [] };
+
+        if (Categoryfilter) {
+            filter.filters.push({ field: "Category", operator: "eq", value: Categoryfilter });
+        }
+        grid.dataSource.filter(filter);
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid3').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function ShowClone(e) {
+
+
+        $("#windowEdit").kendoWindow({
+            title: "Clone",
+            actions: ["Close"], /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            height: '50px',
+            width: '350px',
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    }
+    function CloneType() {
+        var listrowid = '';
+        $('#Grid3').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("rid") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: '',
+                text: 'Please select Type',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            var c = confirm('Are you sure to remove this Clone');
+            if (c == true) {
+                $.post(r + "/TicketMasterData/CloneType", { data: listrowid, CategoryID: $('#Categoryfilterdata').val() }, function (data) {
+                    if (data.error > 0) {
+                        $.gritter.add({
+                            title: '',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: 'Clone sucesssfully ',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid3").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+        }
+    }
+    function DeleteType() {
+        var listrowid = '';
+        $('#Grid3').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("rid") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: '',
+                text: 'Please select Type',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            var c = confirm('Are you sure to Delete this Type');
+            if (c == true) {
+                $.post(r + "/TicketMasterData/DeleteType", { data: listrowid }, function (data) {
+                    if (!data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: 'Xóa thành công ',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid3").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+        }
+    }
+</script>
+<script>
+    function Update(e) {
+        var grid = $(e).attr('data-grid');
+        if (grid == "grid") {
+            if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid').data('kendoGrid').saveChanges();
+            }
+        }
+        if (grid == "grid2") {
+            if ($('#Grid2').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid2').data('kendoGrid').saveChanges();
+            }
+        }
+        if (grid == "grid3") {
+            if ($('#Grid3').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid3').data('kendoGrid').saveChanges();
+            }
+        }
+        if (grid == "grid4") {
+            if ($('#Grid4').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid4').data('kendoGrid').saveChanges();
+            }
+        }
+        if (grid == "grid5") {
+            if ($('#Grid5').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid5').data('kendoGrid').saveChanges();
+            }
+        }
+        if (grid == "grid6") {
+            if ($('#Grid6').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid6').data('kendoGrid').saveChanges();
+            }
+        }
+    }
+    function Create(e) {
+        var grid = $(e).attr('data-grid');
+        if (grid == "grid") {
+            $("#Grid").data("kendoGrid").dataSource.insert();
+        }
+        if (grid == "grid2") {
+            $("#Grid2").data("kendoGrid").dataSource.insert();
+        }
+        if (grid == "grid3") {
+            $("#Grid3").data("kendoGrid").dataSource.insert();
+        }
+        if (grid == "grid4") {
+            $("#Grid4").data("kendoGrid").dataSource.insert();
+        }
+        if (grid == "grid5") {
+            $("#Grid5").data("kendoGrid").dataSource.insert();
+        }
+        if (grid == "grid6") {
+            $("#Grid6").data("kendoGrid").dataSource.insert();
+        }
+    }
+    function Cancel(e) {
+        var grid = $(e).attr('data-grid');
+        if (grid == "grid") {
+            $('#Grid').data('kendoGrid').cancelChanges();
+        }
+        if (grid == "grid2") {
+            $('#Grid2').data('kendoGrid').cancelChanges();
+        }
+        if (grid == "grid3") {
+            $('#Grid3').data('kendoGrid').cancelChanges();
+        }
+        if (grid == "grid4") {
+            $('#Grid4').data('kendoGrid').cancelChanges();
+        }
+        if (grid == "grid5") {
+            $('#Grid5').data('kendoGrid').cancelChanges();
+        }
+        if (grid == "grid6") {
+            $('#Grid6').data('kendoGrid').cancelChanges();
+        }
+    }
+
+    function checkAllCategory(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllQueue(e) {
+        var x = $(e).prop('checked');
+        $('#Grid2').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllType(e) {
+        var x = $(e).prop('checked');
+        $('#Grid3').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function checkAllWorkTime(e) {
+        var x = $(e).prop('checked');
+        $('#Grid4').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function checkAllHoliday(e) {
+        var x = $(e).prop('checked');
+        $('#Grid5').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllKPI(e) {
+        var x = $(e).prop('checked');
+        $('#Grid6').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function showConfirmPopup(e) {
+        if (e == 1) {
+            var listrowid = "";
+            $('#Grid').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid != "" && listrowid != null) {
+                $('#confirm-delete-category').modal('show');
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else if (e == 2) {
+            var listrowid2 = "";
+            $('#Grid2').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid2 += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid2 != "" && listrowid2 != null) {
+                $('#confirm-delete-queue').modal('show');
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else if (e == 3) {
+            var listrowid3 = "";
+            $('#Grid3').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid3 += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid3 != "" && listrowid3 != null) {
+                $('#confirm-delete-type').modal('show');
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else if (e == 4) {
+            var listrowid4 = "";
+            $('#Grid4').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid4 += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid4 != "" && listrowid4 != null) {
+                $('#confirm-delete-worktime').modal('show');
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else if (e == 5) {
+            var listrowid5 = "";
+            $('#Grid5').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid5 += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid5 != "" && listrowid5 != null) {
+                $('#confirm-delete-holiday').modal('show');
+
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else if (e == 6) {
+            var listrowid6 = "";
+            $('#Grid6').find(".checkvalue").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid6 += $(this).attr("id") + '@@@@';
+                }
+            });
+            if (listrowid6 != "" && listrowid6 != null) {
+                $('#confirm-delete-kpi').modal('show');
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+    }
+
+    function DeleteCategory() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-category').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteCategory", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-category').modal('hide');
+            });
+        }
+    }
+
+    function DeleteQueue() {
+        var listrowid = '';
+        $('#Grid2').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-queue').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteQueue", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                $("#Grid2").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-queue').modal('hide');
+            });
+        }
+    }
+
+    function DeleteType() {
+        var listrowid = '';
+        $('#Grid3').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-type').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteType", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                $("#Grid3").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-type').modal('hide');
+            });
+        }
+    }
+
+    function DeleteWorkTime() {
+        var listrowid = '';
+        $('#Grid4').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-worktime').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteWorkTime", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                $("#Grid4").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-worktime').modal('hide');
+            });
+        }
+    }
+    function DeleteHoliday() {
+        var listrowid = '';
+        $('#Grid5').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-holiday').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteHoliday", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                $("#Grid5").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-holiday').modal('hide');
+            });
+        }
+    }
+
+    function DeleteKPI() {
+        var listrowid = '';
+        $('#Grid6').find(".k-grid-content .checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn ticket',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-kpi').modal('hide');
+        }
+        else {
+            $.post(r + "/TicketMasterData/DeleteKPI", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa dữ liệu thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                $("#Grid6").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-kpi').modal('hide');
+            });
+        }
+    }
+</script>

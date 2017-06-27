@@ -1,0 +1,19 @@
+﻿@{
+    Layout = null;
+}
+
+<label class="control-label" for="form-field-1">Ngày tháng </label>
+<div class="controls">
+    <select id="ListDatetime" name="ListDatetime" class="chosen-select" data-placeholder="Chọn mã ngôn ngữ">
+        @foreach (var item in ViewBag.ListDatetime)
+        {
+            <option value="@item">@item</option>
+        }
+    </select>
+</div>
+
+<script type="text/javascript">
+    $(".chosen-select").chosen();
+   
+
+</script>

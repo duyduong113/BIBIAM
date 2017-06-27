@@ -1,0 +1,290 @@
+﻿@model MCC.Models.tw_User
+@{
+    ViewBag.Title = "User profile";
+}
+
+<div class="row">
+    <div class="col-md-12 ProfileForm">
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/UserProfile/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._my_profile)</span>
+                </div>
+                <div class="actions">
+                    <a onclick="window.history.back()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._username) (@Html.Raw(Resources.Global._readonly))<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm" placeholder="vuongnguyen" name="name" value="#=name!=null ? name : ''#" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._phone)<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm mask_phone" placeholder="0909xxxxxx" name="phone" value="#=phone!=null ? phone : ''#" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._email) (@Html.Raw(Resources.Global._readonly))<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" name="email" class="form-control input-sm" placeholder="youremail@domain.com" value="#=email!=null ? email : ''#" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._fullname)<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" name="fullName" class="form-control input-sm" placeholder="Nguyen Van A" value="#=fullName!=null ? fullName : ''#">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._birthday)</label>
+                                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd">
+                                    <input type="text" class="form-control" placeholder="1990/01/01" name="birthday" value="#=birthday!=null ? kendo.toString(kendo.parseDate(birthday),'yyyy/MM/dd') : ''#" readonly>
+                                    <span class="input-group-btn">
+                                        <button class="btn default" type="button">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._gender)</label>
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn green btn-sm btn-outline #=gender=='male'? 'active' : ''#">
+                                            #if(gender=='male'){#
+                                            <input type="radio" name="gender" value="male" class="toggle" checked> @Html.Raw(Resources.Global._male)
+                                            #}else{#
+                                            <input type="radio" name="gender" value="male" class="toggle"> @Html.Raw(Resources.Global._male)
+                                            #}#
+
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=gender=='female'? 'active' : ''#">
+                                            #if(gender=='female'){#
+                                            <input type="radio" name="gender" value="female" class="toggle" checked> @Html.Raw(Resources.Global._female)
+                                            #}else{#
+                                            <input type="radio" name="gender" value="female" class="toggle"> @Html.Raw(Resources.Global._female)
+                                            #}#
+
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=gender=='unknown'? 'active' : ''#">
+                                            #if(gender=='unknown'){#
+                                            <input type="radio" name="gender" value="unknown" class="toggle" checked> @Html.Raw(Resources.Global._unknown)
+                                            #}else{#
+                                            <input type="radio" name="gender" value="unknown" class="toggle"> @Html.Raw(Resources.Global._unknown)
+                                            #}#
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._address)</label>
+                                <input type="text" name="address" class="form-control input-sm" placeholder="" value="#=address!=null ? address : ''#">
+
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._country)</label>
+                                @(Html.Kendo().DropDownList()
+                                    .Name("country")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._country) + "...")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=country!= 0 ? country:'242'#")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetCountry", "CustomData");
+                                        }).ServerFiltering(true);
+                                    }).ToClientTemplate()
+                                )
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._city_province)</label>
+                                @(Html.Kendo().DropDownList()
+                                    .Name("city")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._city_province) + "...")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=city!=null ? city:''#")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetCity", "CustomData")
+                                                .Data("filterCity");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Enable(false)
+                                    .AutoBind(false)
+                                    .CascadeFrom("country").ToClientTemplate()
+                                )
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._district)</label>
+                                @(Html.Kendo().DropDownList()
+                                    .Name("district")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._district) + "...")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=district!=null ? district:''#")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetDistrict", "CustomData")
+                                                .Data("filterDistrict");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Enable(false)
+                                    .AutoBind(false)
+                                    .CascadeFrom("city").ToClientTemplate()
+                                )
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._profile_picture)</label>
+                                <div class="clearfix">
+                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 200px; ">
+                                                    <img src="#=imagesPublicId ? imagesPublicId : 'http://www.placehold.it/200x150/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 200px; "> </div>
+                                                <div>
+                                                    <span class="btn default btn-circle btn-file btn-sm">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions right">
+                    <a onclick="window.history.back()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</script>
+
+<script>
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(Model))'));
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".ProfileForm").html(EditTemplate(data));
+        loadValidate();
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 })
+    }
+
+    function filterCity() {
+        return {
+            Id: $("#country").val()
+        };
+    }
+
+    function filterDistrict() {
+        return {
+            Id: $("#city").val()
+        };
+    }
+
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        name: { minlength: 5, required: !0 },
+                        fullName: { minlength: 5, required: !0 },
+                        email: { required: !0, email: !0 },
+                        phone: { required: !0 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    debugger
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', 'Your profile update successfully');
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+
+    }
+</script>
+

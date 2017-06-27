@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A28202A7-C392-4272-B981-06107143EA14}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BIBIAM.Core.Data</RootNamespace>
+    <AssemblyName>BIBIAM.Core.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Antlr3.Runtime">
+      <HintPath>..\ERP_API\bin\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\ERP_API\bin\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\ERP_API\bin\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Facebook">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Facebook.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Google">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Google.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.MicrosoftAccount.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.OAuth">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Twitter">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Twitter.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=6.9.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ERP_API\bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\ERP_API\bin\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack">
+      <HintPath>..\ERP_API\bin\ServiceStack.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\ERP_API\bin\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\ERP_API\bin\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite">
+      <HintPath>..\ERP_API\bin\ServiceStack.OrmLite.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite.SqlServer">
+      <HintPath>..\ERP_API\bin\ServiceStack.OrmLite.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Redis">
+      <HintPath>..\ERP_API\bin\ServiceStack.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.ServiceInterface">
+      <HintPath>..\ERP_API\bin\ServiceStack.ServiceInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\ERP_API\bin\ServiceStack.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataObject\Banner_DAO.cs" />
+    <Compile Include="DataObject\BrandManagement_DAO.cs" />
+    <Compile Include="DataObject\Customer_DAO.cs" />
+    <Compile Include="DataObject\Footer_DAO.cs" />
+    <Compile Include="DataObject\Hierarchy_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Catalog_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Folder_Info_DAO.cs" />
+    <Compile Include="DataObject\Merchant_History_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Image_Info_DAO.cs" />
+    <Compile Include="DataObject\Image_Info_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Contact_DAO.cs" />
+    <Compile Include="DataObject\Merchant_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Image_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Info_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Order_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Hierarchy_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Image_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Price_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Promotion_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Promotion_Detail_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Related_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Product_Warehouse_DAO.cs" />
+    <Compile Include="DataObject\Merchant_StockInHeader_DAO.cs" />
+    <Compile Include="DataObject\Merchant_StockOutHeader_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Voucher_DAO.cs" />
+    <Compile Include="DataObject\Merchant_Warehouse_DAO.cs" />
+    <Compile Include="DataObject\Product_Evaluation_DAO.cs" />
+    <Compile Include="DataObject\Product_Hierarchy_DAO.cs" />
+    <Compile Include="DataObject\Product_Hierarchy_Property_DAO.cs" />
+    <Compile Include="DataObject\Product_Image_DAO.cs" />
+    <Compile Include="DataObject\Product_Info_DAO.cs" />
+    <Compile Include="DataObject\Product_Merchant_DAO.cs" />
+    <Compile Include="DataObject\Product_Price_DAO.cs" />
+    <Compile Include="DataObject\Product_Promotion_DAO.cs" />
+    <Compile Include="DataObject\Product_Property_DAO.cs" />
+    <Compile Include="DataObject\Product_Suggestion_DAO.cs" />
+    <Compile Include="DataObject\Property_DAO.cs" />
+    <Compile Include="DataObject\Property_Detail_DAO.cs" />
+    <Compile Include="DataObject\SEO_MerchantProduct_DAO.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\MySqlHelper.cs" />
+    <Compile Include="Providers\OrmliteConnection.cs" />
+    <Compile Include="Providers\SqlHelper.cs" />
+    <Compile Include="Providers\Utility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BIBIAM.Core.Entities\BIBIAM.Core.Entities.csproj">
+      <Project>{b3854ad8-39b5-42b8-8fd9-6a7c4d562ffc}</Project>
+      <Name>BIBIAM.Core.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BIBIAM.Core\BIBIAM.Core.csproj">
+      <Project>{a27e8c5c-7401-4b2c-bca5-77f0cb64ef1a}</Project>
+      <Name>BIBIAM.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

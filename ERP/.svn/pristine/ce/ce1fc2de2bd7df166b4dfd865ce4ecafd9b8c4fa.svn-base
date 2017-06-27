@@ -1,0 +1,151 @@
+﻿<div class="span12">
+    <div class="span12">
+        <div class="box-search">
+            <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;margin-bottom: 15px!important;">Thông tin giá sản phẩm</h4>
+        </div>
+    </div>
+    <div class="span12">
+        <form id="frm" action="@Url.Action("Upsert", "Product_Price")" enctype="multipart/form-data" method="POST">
+            <div>
+                <div class="span4">
+                    <input id="id" name="id" type="hidden" />
+                    <label>Mã giá sản phẩm</label>
+                    <input id="ma_gia_san_pham" name="ma_gia_san_pham" class="span12" type="text" style="font-weight:bold; color:red;" readonly />
+                </div>
+                <div class="span4">
+                    <label>Sản phẩm</label>
+                    <select id="ma_san_pham" name="ma_san_pham" class="select-chosen span12">
+                        @foreach (var item in ViewBag.listProduct)
+                        {
+                            <option value="@item.ma_san_pham">@item.ten_san_pham</option>
+                        }
+                    </select>
+                </div>
+                <div class="span4">
+                    <label>Giá mua</label>
+                    <input class="span12 format-right currency" id="gia_mua" name="gia_mua"/>
+                </div>
+            </div>
+            <div>
+                <div class="span4">
+                    <label>Giá bán lẻ</label>
+                    <input class="span12 format-right currency" id="gia_ban_le" name="gia_ban_le"/>
+                </div>
+                <div class="span4">
+                    <label>Giá bán sỉ</label>
+                    <input class="span12 format-right currency" id="gia_ban_si" name="gia_ban_si" />
+                </div>
+                <div class="span4">
+                    <label>Giá khuyến mãi</label>
+                    <input class="span12 format-right currency" id="gia_khuyen_mai" name="gia_khuyen_mai" />
+                </div>
+            </div>
+
+            <div>
+                <div class="span4">
+                    <label>Giá lưu kho</label>
+                    <input class="span12 format-right currency" id="gia_luu_kho" name="gia_luu_kho"/>
+                </div>
+                <div class="span4">
+                    <label>Ngày bắt đầu</label>
+                    <input id="ngay_bat_dau" name="ngay_bat_dau" class="format-right span12 date-picker" />
+                </div>
+                <div class="span4">
+                    <label>Ngày kết thúc</label>
+                    <input id="ngay_ket_thuc" name="ngay_ket_thuc" class="format-right span12 date-picker" />
+                </div>
+            </div>
+            <div>
+                <div class="span4">
+                    <label>Trạng thái</label>
+                    <select id="trang_thai" name="trang_thai" class="select-chosen span12">
+                        @foreach (var item in ViewBag.listStatus)
+                        {
+                            <option value="@item.ParamID">@item.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="span4">
+                    <label>Ngày cập nhật</label>
+                    <input id="ngay_cap_nhat" name="ngay_cap_nhat" type="text" class="format-right span12 date-picker" disabled />
+                </div>
+                <div class="span4">
+                    <label>Người cập nhật</label>
+                    <input id="nguoi_cap_nhat" name="nguoi_cap_nhat" type="text" class="span12" placeholder="" readonly />
+                </div>
+            </div>
+            <div>
+                <div class="span4">
+                    <label>Trạng thái duyệt</label>
+                    <select id="trang_thai_duyet" name="trang_thai_duyet" class="select-chosen span12" >
+                        @foreach (var item in ViewBag.listStatusDuyet)
+                        {
+                            <option value="@item.ParamID">@item.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="span4">
+                    <label>Ngày duyệt:</label>
+                    <input id="ngay_duyet" name="ngay_duyet" type="text" class="format-right span12 date-picker" disabled />
+                </div>
+                <div class="span4">
+                    <label>Người duyệt</label>
+                    <input id="nguoi_duyet" name="nguoi_duyet" type="text" class="span12" placeholder="" readonly/>
+                </div>
+            </div>
+            <div>
+                <div class="span4">
+                    <label>Trạng thái xuất bản</label>
+                    <select id="trang_thai_xuat_ban" name="trang_thai_xuat_ban" class="select-chosen span12">
+                        @foreach (var item in ViewBag.listStatusXuatBan)
+                        {
+                            <option value="@item.ParamID">@item.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="span4">
+                    <label>Ngày xuất bản</label>
+                    <input id="ngay_xuat_ban" name="ngay_xuat_ban" type="text" class="format-right span12 date-picker" disabled />
+                </div>
+                <div class="span4">
+                    <label>Người xuất bản</label>
+                    <input id="nguoi_xuat_ban" name="nguoi_xuat_ban" type="text" class="span12" placeholder="" readonly />
+                </div>
+            </div>
+            <div>
+                <div class="span4">
+
+                </div>
+                <div class="span4">
+                    <label>Ngày tạo:</label>
+                    <input id="ngay_tao" name="ngay_tao" type="text" class="format-right span12 date-picker" disabled />
+                </div>
+                <div class="span4">
+                    <label>Người tạo</label>
+                    <input id="nguoi_tao" name="nguoi_tao" type="text" class="span12" placeholder="Default Text" readonly />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="span12">
+        <div class="span4 pull-right" style="z-index:99999;margin-bottom: 10px!important;margin-top: 10px!important;">
+            <a class="btn btn-primary btn-small btn-circle" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                @Resources.Multi.btnSave
+            </a>
+            <a class="btn btn-success btn-small btn-circle" onclick="Create()" href="javascript:void(0)" id="">
+                @Resources.Multi.Add
+            </a>
+            @*<a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                    Hủy thay đổi
+                </a>
+            *@
+            @if (ViewBag.Delete)
+            {
+                <a class="btn btn-danger btn-small btn-circle" href="javascript:void(0)" onclick="showConfirmPopup(1)" id="btnGridDelete">
+                    @Resources.Multi.Delete
+                </a>
+            }
+        </div>
+    </div>
+</div>

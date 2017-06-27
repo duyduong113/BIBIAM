@@ -1,0 +1,105 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using MCC.Controllers;
+using MCC.Filters;
+using MCC.Helpers;
+using Kendo.Mvc.Extensions;
+using System.Text.RegularExpressions;
+using System.Text;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.DataObject;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class MerchantManagementController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+
+                ViewBag.isAdmin = isAdmin;
+                return View();
+
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (isAdmin)
+                        return Json(dbConn.Select<Merchant_Info>().ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ChangeStatus(string ma_gian_hang, string type)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"] || accessDetail.access["edit"]))
+            {
+                if(type=="duyet"||type=="xacthuc")
+                {
+                    string rs = new MerchantManagement_DAO().ChangeStatus(ma_gian_hang, type, currentUser.name, AppConfigs.MCCConnectionString);
+                    if (rs=="true")
+                    {
+                        using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                        {
+                            var data = dbConn.FirstOrDefault<Merchant_Info>("ma_gian_hang={0}".Params(ma_gian_hang));
+                            return Json(new { success = true, data = data });
+                        }
+                    }
+                    else
+                    {
+                        return Json(new { success = false,error=rs});
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false, error = "Lỗi" });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Không có quyền" });
+            }
+        }
+        public ActionResult Update(Merchant_Info item, HttpPostedFileBase file)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                string rs = new MerchantManagement_DAO().Update(item, currentUser.name, AppConfigs.MCCConnectionString);
+                if (rs == "true")
+                {
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        var data = dbConn.FirstOrDefault<Merchant_Info>("ma_gian_hang={0}".Params(item.ma_gian_hang));
+                        return Json(new { success = true, data = data });
+                    }
+                }
+                return Json(new { success = false, message = rs, JsonRequestBehavior.AllowGet });
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+       
+    }
+}

@@ -1,0 +1,2 @@
+alter table Merchant_Product_Warehouse
+add book_available int

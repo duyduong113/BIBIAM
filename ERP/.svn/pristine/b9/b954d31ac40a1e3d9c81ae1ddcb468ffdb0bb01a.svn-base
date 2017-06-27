@@ -1,0 +1,304 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = @Html.Raw(Resources.Global._merchant_mgnstockout);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var newData = new Merchant_StockOutHeader();
+}
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+</style>
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách phiếu xuất kho</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            @(Html.Kendo().DropDownList()
+                                        .Name("trang_thai")
+                                        .DataTextField("Text")
+                                        .DataValueField("Value")
+                                        .Events(e => e.Change("filterStockOut"))
+                                        .OptionLabel("TRẠNG THÁI")
+                                        .BindTo(new List<SelectListItem>() {
+                                          new SelectListItem() {
+                                              Text = "ĐÃ DUYỆT",
+                                              Value = AllConstant.trang_thai_duyet.DA_DUYET
+                                          },
+                                          new SelectListItem() {
+                                              Text = "CHƯA DUYỆT",
+                                              Value = AllConstant.trang_thai_duyet.CHUA_DUYET
+                                          },
+                                          new SelectListItem() {
+                                              Text = "TỪ CHỐI DUYỆT",
+                                              Value = AllConstant.trang_thai_duyet.TU_CHOI
+                                          }
+                                          
+                                    })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                            )
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-md-12">
+                        @(Html.Kendo().Grid<Merchant_StockOutHeader>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.id).Hidden();
+                        columns.Template(@<text></text>).ClientTemplate(
+                        "<a class='btn btn-xs btn-success' onClick='editstockout(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>"
+                        ).Width(35).HtmlAttributes(new { @class = "text-center" });
+                        columns.Bound(p => p.ma_phieu_xuat_kho).Width(150).Title("Mã phiếu xuất kho");
+                        columns.Template(@<text></text>).Title("Thông tin phiếu xuất kho").Width(200).ClientTemplate(
+                        "<span class='info-title'>Người nhận :</span><span> #=nguoi_nhan ? nguoi_nhan : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Người xuất kho :</span><span> #=nguoi_xuat_kho ? nguoi_xuat_kho : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Ngày xuất kho:</span><span> #=kendo.toString(kendo.parseDate(ngay_xuat_kho),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_xuat_kho),'dd/MM/yyyy') : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Mã chứng từ :</span><span> #=ma_chung_tu ? ma_chung_tu : ''#</span>"
+                        );
+
+                        columns.Bound(p => p.ghi_chu).Title("Ghi chú").Width(200);
+                        columns.Bound(p => p.danh_sach_don_hang).Title("Danh sách đơn hàng").Width(100);
+                        columns.Template(@<text></text>).Width(100).Title("Trạng thái duyệt")
+                        .ClientTemplate(
+
+                        "#if(trang_thai=='" + AllConstant.trang_thai_duyet.DA_DUYET + "'){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đã duyệt</label>"
+                        + "<br>"
+                        + "<span class='info-title'>Người duyệt :</span><span> #=nguoi_duyet ? nguoi_duyet : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Ngày duyệt:</span><span> #=kendo.toString(kendo.parseDate(ngay_duyet),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_duyet),'dd/MM/yyyy') : ''#</span>"
+                        + "#}else{#"
+                        + "#if(trang_thai=='" + AllConstant.trang_thai_duyet.TU_CHOI + "'){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Từ chối duyệt</label>"
+                        + "<br>"
+                        + "<span class='info-title'>Người duyệt :</span><span> #=nguoi_duyet ? nguoi_duyet : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Ngày duyệt:</span><span> #=kendo.toString(kendo.parseDate(ngay_duyet),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_duyet),'dd/MM/yyyy') : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Lí do từ chối :</span><span> #=li_do_tu_choi_duyet ? li_do_tu_choi_duyet : ''#</span>"
+                        + "#}else{#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Chưa duyệt</label></br>"
+                        + "#}#"
+                        + "#}#"
+                        );
+                        columns.Template(@<text></text>).Width(200).Title("Thông tin tạo/cập nhật")
+                        .ClientTemplate(
+                        "<span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span>"
+                        + "<br>"
+                        + "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') : ''#</span>"
+                        );
+                    })
+                                .Pageable()
+                                .HtmlAttributes(new { @style = "height:500px" })
+                                .Navigatable()
+                                .Scrollable()
+                                .Sortable()
+                                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                .Pageable(x => x.PageSizes(new int[] { 20, 50, 100, 200 }))
+                                .Reorderable(reorderable => reorderable.Columns(true))
+                                .Resizable(resizable => resizable.Columns(true))
+                                                .DataSource(dataSource => dataSource
+                                                    .Ajax()
+                                                    .Batch(true)
+                                                    .PageSize(20)
+                                                    .Sort(s => s.Add(a => a.id).Descending())
+                                                    .Model(model =>
+                                                    {
+                                                        model.Id(p => p.id);
+                                                        model.Field(p => p.ma_phieu_xuat_kho).Editable(false);
+                                                        model.Field(p => p.nguoi_nhan).Editable(false);
+                                                    })
+                                                    .Read(c => c.Action("ReadHeader", "Merchant_StockOut"))
+                                                    )
+                        )
+                    </div>
+                </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12">
+                    <div class="col-md-12 formStockout">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_StockOut_Partial")
+@Html.Partial("_Grid_Partial")
+@Html.Partial("_popup_add_stockout")
+
+<script>
+    $(document).ready(function () {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+        
+        });
+    function dataBound()
+    {
+
+    }
+    function error_handler() {
+
+    }
+    function onRequestEnd() {
+
+    }
+    function filterStockOut()
+    {
+        debugger
+        var listView = $("#Grid").data("kendoGrid");
+        var trang_thai = $("#trang_thai").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+        if (trang_thai!='') {
+                filterDesc.filters.push({ field: "trang_thai", operator: "contains", value: trang_thai });
+                filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function AddOrder() {
+        $("#EditForm").submit();
+        showModal();
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#StockOutHeader").html());
+        $(".formStockout").html(EditTemplate(data));
+        var GridTemplate = kendo.template($("#StockOutDetail").html());
+        $(".gridDetail").html(GridTemplate(data));
+        loadValidate();
+    }
+    function editstockout(e) {
+        var stockout = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadForm(stockout);
+        $("#tab_2_click").trigger("click");
+    }
+    function clearForm()
+    {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ma_chung_tu: {required: !0 },
+                        ma_kho: { required: !0},
+                        nguoi_nhan: { required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    debugger
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.clear();
+                                $("#Grid").data("kendoGrid").dataSource.read();
+                                loadForm(data.data);
+                                toastr.success('', 'Lưu thành công thông tin phiếu xuất kho!')
+                                App.unblockUI();
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+</script>

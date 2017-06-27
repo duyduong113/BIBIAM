@@ -1,0 +1,237 @@
+﻿using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using BIBIAM.Core.Entities;
+using System.Data;
+using BIBIAM.Core.Data.DataObject;
+using System.Text.RegularExpressions;
+using System.Text;
+using MCC.Filters;
+using MCC.Models;
+using BIBIAM.Core;
+using MCC.Helpers;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    //[CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class Merchant_StockInController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Create()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        //public ActionResult Detail(string id)
+        //{
+        //    if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+        //    {
+        //        using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+        //        {
+        //            if (!String.IsNullOrEmpty(id))
+        //            {
+        //                var data = db.FirstOrDefault<Merchant_StockInHeader>("ma_gian_hang = {0} and ma_phieu_nhap_kho = {1}", currentUser.ma_gian_hang, id);
+        //                if (data == null)
+        //                    return RedirectToAction("NotFound", "Error");
+        //                else
+        //                    ViewBag.GRN = data;
+        //            }
+        //            else
+        //                return RedirectToAction("NotFound", "Error");
+        //            if (isAdmin)
+        //                ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+        //            else
+        //                ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+        //            string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+        //            ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+        //        }
+        //        return View();
+        //    }
+        //    return RedirectToAction("NoAccess", "Error");
+        //}
+
+
+        public ActionResult Detail(string ma_phieu_nhap_kho)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (!String.IsNullOrEmpty(ma_phieu_nhap_kho))
+                    {
+                        var data = db.FirstOrDefault<Merchant_StockInHeader>(s => s.ma_phieu_nhap_kho == ma_phieu_nhap_kho);
+                        if (data == null)
+                            return RedirectToAction("NotFound", "Error");
+                        else
+                            ViewBag.GRN = data;
+                    }
+                    else
+                        return RedirectToAction("NotFound", "Error");
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            else
+                return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult ReadHeader([DataSourceRequest]DataSourceRequest request)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    //var data = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho = {0} and ma_gian_hang = {1}", ma_phieu, currentUser.ma_gian_hang).OrderBy(s => s.ma_san_pham);
+                    var data = new DataSourceResult();
+
+                    if (isAdmin)
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInHeader>(request);
+                    }
+                    else
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInHeader>(request, "ma_gian_hang = {0}".Params(currentUser.ma_gian_hang));
+                    }
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request, string ma_phieu)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    //var data = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho = {0} and ma_gian_hang = {1}", ma_phieu, currentUser.ma_gian_hang).OrderBy(s => s.ma_san_pham);
+                    var data = new DataSourceResult();
+                    if (isAdmin)
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInDetail>(request, "ma_phieu_nhap_kho={0}".Params(ma_phieu));
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>();
+                    }
+                    else
+                    {
+                        data = KendoApplyFilter.KendoData<Merchant_StockInDetail>(request, "ma_phieu_nhap_kho={0} and ma_gian_hang = {1}".Params(ma_phieu, currentUser.ma_gian_hang));
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    }
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult CreateGoodReceivedNote(Merchant_StockInHeader GRN, List<Merchant_StockInDetail> details, bool trang_thai = false)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                if (GRN.id == 0)
+                    GRN.ma_gian_hang = currentUser.ma_gian_hang;
+                string rs = new Merchant_StockInHeader_DAO().Upsert(GRN, details, trang_thai, currentUser.name, AppConfigs.MCCConnectionString);
+                string[] separators = { "@@" };
+                var str = rs.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (str[0] == "true")
+                {
+                    Merchant_Stock_ViewModel data;
+                    var item = new Merchant_StockInHeader();
+                    using (var db = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        data = db.FirstOrDefault<Merchant_Stock_ViewModel>(@"select 
+	                                                                            a.ma_phieu_nhap_kho as ma_phieu, 
+	                                                                            b.ten_kho, 
+                                                                                b.ma_kho,
+	                                                                            a.ma_don_hang, 
+	                                                                            a.ngay_nhap_kho as ngay_nhap_xuat,
+	                                                                            a.thu_kho, 
+	                                                                            a.nguoi_giao as nguoi_giao_nhan,
+	                                                                            a.nguoi_kiem_tra,
+	                                                                            a.ngay_tao,
+	                                                                            a.nguoi_tao, 
+	                                                                            a.dia_diem,
+	                                                                            a.trang_thai, 
+                                                                                a.ghi_chu,  	 	
+	                                                                            'GRN' as loai_phieu from Merchant_StockInHeader a left join Merchant_WareHouse b
+                                                                                on a.ma_kho = b.ma_kho
+                                                                                where ma_phieu_nhap_kho = {0}", str[1]);
+
+                        if (trang_thai)
+                        {
+                            List<Merchant_StockInDetail> stockDetail = db.Select<Merchant_StockInDetail>("ma_phieu_nhap_kho={0} and ma_gian_hang={1}", data.ma_phieu, currentUser.ma_gian_hang);
+                            foreach (var row in stockDetail)
+                            {
+                                var exist = db.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_DetailLocation WHERE ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}", data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham);
+                                if (exist)
+                                {
+                                    db.Update<Merchant_DetailLocation>("so_luong=so_luong+{0}".Params(row.so_luong_thuc_te), "ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}".Params(data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham));
+                                }
+                                else
+                                {
+                                    Merchant_DetailLocation detailLocation = new Merchant_DetailLocation();
+                                    detailLocation.ma_kho = data.ma_kho;
+                                    detailLocation.ten_kho = data.ten_kho;
+                                    detailLocation.ma_gian_hang = currentUser.ma_gian_hang;
+                                    detailLocation.ten_vi_tri = row.vi_tri == null ? "" : row.vi_tri;
+                                    detailLocation.so_luong = row.so_luong_thuc_te;
+                                    detailLocation.ma_san_pham = row.ma_san_pham;
+                                    detailLocation.don_vi_tinh = row.don_vi_tinh;
+                                    detailLocation.ngay_tao = DateTime.Now;
+                                    detailLocation.nguoi_tao = currentUser.name;
+                                    detailLocation.ngay_cap_nhat = DateTime.Now;
+                                    detailLocation.nguoi_cap_nhat = currentUser.name;
+                                    db.Insert<Merchant_DetailLocation>(detailLocation);
+                                }
+                            }
+                            //Cập nhật tồn kho
+                            string result = new Merchant_StockInHeader_DAO().UpdateInventory_StockIN(data.ma_phieu);
+                            //db.ExecuteNonQuery("exec p_Merchant_Product_Warehouse_SyncToMySQL {0}".Params(data.ma_phieu));
+
+                        }
+                        item = db.FirstOrDefault<Merchant_StockInHeader>(s => s.ma_phieu_nhap_kho == str[1]);
+                    }
+
+                    //new Merchant_StockInHeader_DAO().UpdateInventoryMySQL(data.ma_phieu, currentUser.ma_gian_hang, currentUser.name, AppConfigs.MCCConnectionString);
+                    return Json(new { success = true, data = item, JsonRequestBehavior.AllowGet });
+                }
+                else
+                {
+                    return Json(new { success = false, error = str[0] });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền tạo mới" });
+            }
+        }
+    }
+}

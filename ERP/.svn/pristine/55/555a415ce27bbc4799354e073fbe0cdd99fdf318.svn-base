@@ -1,0 +1,591 @@
+﻿@using CloudinaryDotNet;
+@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+    ViewBag.Title = @Resources.Global._ctm_list;
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new Customer();
+}
+
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .title-news {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .label {
+        border-radius: 3px;
+        text-shadow: none;
+        font-size: 11px !important;
+        font-weight: bold;
+        padding: 2px 2px 2px 2px !important;
+    }
+
+    .label-success {
+        background-color: #468847 !important;
+    }
+
+    .label-warning {
+        background-color: #f89406 !important;
+    }
+
+    .label-important {
+        background-color: #b94a48 !important;
+    }
+
+    .label-default {
+        background-color: #999 !important;
+    }
+
+    .label-info {
+        background-color: #3a87ad !important;
+    }
+
+    .btn2 {
+        width: 70% !important;
+    }
+
+    .btn-danger {
+    }
+
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+</style>
+
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách Khách hàng</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <div class="row">
+                    <div class="col-md-10"></div>
+                    <div class="col-md-2">
+                        <div class="form-group"  >
+                            <div class="input-group input-icon right">
+                                <div class="input-group-btn input-icon right">
+                                    <i class="icon-magnifier" onclick="filter()"></i>
+                                    <input type="text" class="form-control form-control-solid input-circle" id="txtSearch" name="txtSearch" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    @(Html.Kendo().Grid<BIBIAM.Core.Entities.Customer>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                    columns.Bound(p => p.id).Visible(false);
+                    columns.Bound(p => p.ma_khach_hang).Visible(false);
+                    columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-success' onClick='editcustomer(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(25).HtmlAttributes(new { @class = "text-center" });
+                    columns.Bound(p => p.hoten).Title("Tên khách hàng").Width(95);
+                    columns.Template(@<text></text>).Width(400).Title("Thông tin Khách hàng")
+                        .ClientTemplate("<div class='col-md-8' style='padding-left:0;'" 
+                        + "</br><span class='info-title'>Email :</span><span> #=email ? email : ''#</span></br>"
+                        + "<span class='info-title'>Số điện thoại:</span><span>  #=sdt ? sdt : ''#</span></br>"
+                        + "</div>");
+                    columns.Template(@<text></text>).Width(210).Title("Trạng thái sử dụng")
+                        .ClientTemplate("<span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span></br>"
+                        + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') : ''#</span></br>"
+                        + "</br><span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span></br>"
+                        + "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') : ''#</span></br>"
+                        );
+
+                    })
+
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300, 500 }))
+                    .Scrollable()
+                    .ToolBar(toolbar =>
+                    {
+                    toolbar.Template(@<text>
+                        <div class="pull-left">
+                            @if (create || all)
+                            {
+                                <a onclick='create()' class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>
+                            }
+
+                        </div>
+                    </text>);
+                    })
+                     .Events(events =>
+                    {
+                        events.DataBound("dataBound");
+                    })
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .HtmlAttributes(new { @style = "height:590px" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(false)
+                    .PageSize(20)
+                    .Sort(s => s.Add(a => a.id).Descending())
+                    .Model(model =>
+                    {
+                        model.Id(p => p.id);
+                    })
+
+                    .Read(c => c.Action("Read", "Customer"))
+                    ))
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                    <div class="col-md-12 formCustomer">
+
+                    </div>
+
+                    <div class="col-md-12">
+                        <button type="button"class="savesend btn btn-primary" onclick="AddCustomerAddress()" href="javascript:void(0)">
+                            <i class="fa  fa-plus-circle"></i>
+                            @Html.Raw(Resources.Global._ctm_more_detail)
+                        </button>
+                        <button type="button" class="savesend btn btn-warning" onclick="Refresh()">
+                            <i class="fa fa-refresh"></i>
+                            @Html.Raw(Resources.Global._refresh)
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        @(Html.Kendo().Grid<Customer_Address>()
+                        .Name("AddressGrid")
+                        .Columns(columns =>
+                        {
+                            columns.Template(@<text></text>)
+                            .ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteCustomerAddress(this)'><i class='fa fa-trash-o'><i></a>")
+                            .Width(35).HtmlAttributes(new { @class = "text-center" });
+
+                            columns.Bound(p => p.ma_khach_hang).Hidden();
+                            columns.Bound(p => p.ten).Title(@Resources.Global._ctm_name_receiver).Width(120).HtmlAttributes(new { @class = "editable" });
+                            columns.Bound(p => p.email).Title(@Resources.Global._email).Width(120).HtmlAttributes(new { @class = "editable" });
+                            columns.Bound(p => p.sdt).Title(@Resources.Global._phone_number).Width(120).HtmlAttributes(new { @class = "editable" });
+                            columns.Bound(p => p.dia_chi).Title(@Resources.Global._address).Width(120).HtmlAttributes(new { @class = "editable" });
+                            columns.ForeignKey(p => p.tinh, (System.Collections.IEnumerable)ViewBag.listCity, "ma_thanh_pho", "ten_thanh_pho").Title(@Resources.Global._city_province).Width(200).HtmlAttributes(new { @class = "editable" });
+                            columns.ForeignKey(p => p.quan_huyen, (System.Collections.IEnumerable)ViewBag.listDistrict, "ma_quan_huyen", "ten_quan_huyen").Title(@Resources.Global._ward).Width(200).HtmlAttributes(new { @class = "editable" });
+                        })
+
+                        .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }))
+                        .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                        .Navigatable()
+                        .Pageable(x => x.PageSizes(new int[] { 10, 20, 50, 100 }))
+                        .Events(events => { events.DataBound("onDataBound"); events.DataBinding("onDataBinding"); })
+                        .Reorderable(reorderable => reorderable.Columns(true))
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Batch(true)
+                            .PageSize(10)
+                            .ServerOperation(false)
+                            .Events(events => { events.Error("error_handler"); })
+                            .Model(model =>
+                            {
+                                model.Id(p => p.id);
+                            })
+                            .Read(read => read.Action("getAddresses", "Customer", new { ma_khach_hang = '0' }))
+                            ))
+                    </div>
+            
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/x-kendo-template" id="EditTemplate">
+
+    <form action="@Url.Content("~/Customer/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="actions" style="float: right;">
+                    @if (all || update || create)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle"><i class="fa fa-ban" aria-hidden="true"></i> @Html.Raw(Resources.Global._cancel)</a>
+                        <button type="submit" class="btn blue btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save)</button>
+                        <button onclick="saveAndClear()" class="btn green btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save_new)</button>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4">
+                            <div class="col-md-12">
+                                #if(id>0){#
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._ctm_id)<span class="text-danger"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" id="ma_khach_hang" name="ma_khach_hang" value="#=ma_khach_hang?ma_khach_hang:''#" readonly>
+                                    </div>
+                                </div>
+                                #}#
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._ctm_name)<span class="required"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="hoten" value="#=hoten?hoten:''#" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._email)<span class="text-danger"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="email" value="#=email?email:''#" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._phone_number)<span class="text-danger"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="sdt" value="#=sdt?sdt:''#" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+</script>
+
+
+<script>
+    function dataBound(e) {
+
+    }
+    $("#txtSearch").keydown(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+            filterOr.filters.push({ field: "ma_khach_hang", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "hoten", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "email", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "sdt", operator: "contains", value: noi_dung });
+            filter.filters.push(filterOr);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+   
+</script>
+
+<script>
+      $(document).ready(function () {
+        loadformdetailcustomer(@Html.Raw(Json.Encode(newData)));
+    });
+
+    (function ($, kendo) {
+        $.extend(true, kendo.ui.validator, {
+            rules: { // custom rules
+                namevalidation: function (input, params) {
+                    if (input.is("[name='ten']") && input.val() != "") {
+                        input.attr("data-namevalidation-msg", "In hoa chữ cái đầu");
+                        return /^[A-Z]/.test(input.val());
+                    }
+
+                    return true;
+                },
+                phonevalidation: function (input, params) {
+                    if (input.is("[name='sdt']") && input.val().length < 10) {
+                        input.attr("data-phonevalidation-msg", "Nhập đúng sdt");
+                        return /^\d{10}$/.test(input.val());;
+                    }
+                    return true;
+                },
+                validateEmailFormat: function (input) {
+                    if (input.is("[name='email']") && input.val() != "") {
+                        input.attr("data-validateEmailFormat-msg", "Email không đúng");
+                        return checkEmail(input.val());
+                    }
+                    return true;
+                }
+
+            },
+            messages: { //custom rules messages
+                namevalidation: function (input) {
+                    // return the message text
+                    return input.attr("data-val-namevalidation");
+                },
+                phonevalidation: function (input) {
+                    // return the message text
+                    return input.attr("data-val-phonevalidation");
+                },
+                validateEmailFormat: function (input) {
+                    // return the message text
+                    return input.attr("data-val-validateEmailFormat");
+                }
+            }
+
+        });
+    })(jQuery, kendo);
+
+    function checkEmail(val) {
+        var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        if (val == "") {
+            return false;
+        } else if (val.search(re) == -1) {
+            return false;
+        }
+        return true;
+    }
+    function deleteCustomerAddress(e) {
+        var data = $("#AddressGrid").data("kendoGrid").dataItem($(e).parents('tr'));
+        if (data)
+            $("#AddressGrid").data("kendoGrid").dataSource.remove(data);
+    }
+
+    function AddCustomerAddress() {
+        $("#AddressGrid").data("kendoGrid").dataSource.insert();
+    }
+
+    function Refresh() {
+        $("#AddressGrid").data("kendoGrid").dataSource.read({ ma_khach_hang: $("#ma_khach_hang").val() });
+    }
+
+    function getDataAddressGrid() {
+        var obj = [];
+        $.each($("#AddressGrid").data("kendoGrid").dataSource.data(), function () {
+            var detail = new Object();
+            detail.ma_khach_hang = this.ma_khach_hang;
+            detail.ten = this.ten;
+            detail.email = this.email;
+            detail.sdt = this.sdt;
+            detail.dia_chi = this.dia_chi;
+            detail.quan_huyen = this.quan_huyen;
+            detail.tinh = this.tinh;
+            obj.push(detail);
+        });
+        return obj;
+    }
+
+    function onDataBinding(e) {
+    }
+    function onDataBound(e) {
+    }
+    function error_handler(e) {
+        if (e.status == "error") {
+            toastr.error('@Resources.Global._500_error_title', '@Resources.Global._error_message');
+        }
+   }
+
+    function showCity(data) {
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].diachi_macdinh == 1) {
+                $("#tp_mac_dinh option[value='" + data[i].tinh + "']").prop("selected", true);
+            } else {
+                console.log(data[i].id);
+                console.log(data[i].tinh);
+                $("#tinhtp" + data[i].id + " option[value='" + data[i].tinh + "']").prop("selected", true);
+            }
+        }
+    }
+
+
+     var reset = false;
+     function toggleFullScreen() {
+        if (!document.fullscreenElement &&
+            !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            return true;
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            return false;
+        }
+     }
+
+     function saveAndClear() {
+         reset = true;
+        $('#EditForm').submit();
+
+    }
+    function SaveChange() {
+        $('#EditForm').submit();
+        $("#Grid").data("kendoGrid").dataSource.read();
+    }
+    function clearForm() {
+        loadformdetailcustomer(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+        $("#AddressGrid").data("kendoGrid").dataSource.data([]);
+    }
+    function editcustomer(e) {
+        var customer = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadformdetailcustomer(customer);
+        $("#AddressGrid").data("kendoGrid").dataSource.read({ ma_khach_hang: customer.ma_khach_hang });
+        $("#tab_2_click").trigger("click");
+    }
+    function create() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+
+    function loadformdetailcustomer(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formCustomer").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    function loadValidate(currentData) {
+            var e = $("#EditForm"),
+            r = $(".alert-danger", e),
+            i = $(".alert-success", e);
+            e.validate(
+                {
+                    errorElement: "span",
+                    errorClass: "help-block help-block-error",
+                    focusInvalid: !1,
+                    ignore: "",
+                    rules:
+                        {
+                            hoten: { required: !0 },
+                            email: { required: !0, email: !0 },
+                            sdt: {number:true, minlength: 10, maxlength: 11, required: !0  },
+                        },
+                    messages:
+                   {
+                       sdt: {
+                           required: "Vui lòng nhập đúng cú pháp"
+                       },
+                   },
+                    invalidHandler: function (e, t) {
+                        i.hide(), r.show(), App.scrollTo(r, -200)
+                    },
+                    errorPlacement: function (e, r) {
+                        var i = $(r).parent(".input-icon").children("i");
+                        i.removeClass("fa-check").addClass("fa-warning"),
+                        i.attr("data-original-title",
+                            e.text()).tooltip({ container: "body" })
+                    },
+                    highlight: function (e) {
+                        $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                    },
+                    unhighlight: function (e) {
+                    },
+                    success: function (e, r) {
+                        var i = $(r).parent(".input-icon").children("i");
+                        $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                        i.removeClass("fa-warning").addClass("fa-check")
+                    },
+                    submitHandler: function (e) {
+                        i.show(); r.hide();
+                        var obj = getDataAddressGrid();
+                        $(e).ajaxSubmit({
+                            type: 'POST',
+                            data: { details: obj },
+                            dataType: 'json',
+                            mimeType: "multipart/form-data",
+                            beforeSend: function () {
+                                App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            },
+                            success: function (data) {
+                                if (data.success) {
+                                    toastr.success('', '@Resources.Global._save_successfully')
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    if (reset) {
+                                        reset = false;
+                                        clearForm();
+                                    } else {
+                                        if (currentData.id == 0) {
+                                            loadformdetailcustomer(data.data);
+                                        }
+                                    }
+                                }
+                                else {
+                                    toastr.error('', data.error)
+                                }
+                            },
+                            complete: function (xhr) {
+                                App.unblockUI();
+                            }
+                        });
+                    }
+                });
+        }
+
+
+
+
+</script>

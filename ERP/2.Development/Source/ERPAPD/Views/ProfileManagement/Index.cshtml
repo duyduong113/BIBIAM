@@ -1,0 +1,1147 @@
+﻿@{
+    ViewBag.Title = "Quản lý hồ sơ";
+    bool AllowCreate = (ViewBag.Assets.Create != null && ViewBag.Assets.Create);
+    bool AllowUpdate = (ViewBag.Assets.Update != null && (bool)ViewBag.Assets.Update);
+    bool AllowExport = (ViewBag.Assets.Export != null && (bool)ViewBag.Assets.Export);
+    bool AllowImport = (ViewBag.Assets.Import != null && (bool)ViewBag.Assets.Import);
+    bool AllowDelete = (ViewBag.Assets.Delete != null && (bool)ViewBag.Assets.Delete);
+}
+<style>
+    .k-block, .k-widget, .k-popup, .k-content, .k-dropdown .k-input {
+        color: #808080;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm khách hàng theo MNV, CMND, Số điện thoại, tên, email…" style="width:250px" />
+
+                            <select name="select" id="listCompany" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn công ty…" multiple>
+                                @foreach (var a in ViewBag.listCompany)
+                                {
+                                    <option value="@a.Id">@a.ShortName</option>
+                                }
+                            </select>
+
+                            <select name="select" id="listBank" class='chosen-select span2' data-placeholder="Chọn nhận lương qua ngân hàng…" multiple>
+                                @foreach (var a in ViewBag.Bank)
+                                {
+                                    <option value="@a.BankID">@a.BankName</option>
+                                }
+                            </select>
+
+
+                            <select name="select" id="listSourceType" class='chosen-select span2' data-placeholder="Chọn nguồn…" multiple>
+                                @foreach (var a in ViewBag.SourceType)
+                                {
+                                    <option value="@a.CodeID">@a.Description</option>
+                                }
+                            </select>
+
+                            <select name="select" id="listCreditCardStatus" class='chosen-select span2' data-placeholder="Chọn trạng thái mở thẻ…" multiple>
+                                @foreach (var a in ViewBag.CreditCardStatus)
+                                {
+                                    <option value="@a.CodeID">@a.Description</option>
+                                }
+                            </select>
+
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_Potential_Customer>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).Locked(true).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("#if(CustomerID==null){# <input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#'  data-physical='#=PhysicalID#'/>#}#").Width(35).Filterable(false).Sortable(false);
+        columns.Bound(p => p.Id).Width(80).Visible(false);
+        columns.ForeignKey(p => p.CompanyID, (System.Collections.IEnumerable)ViewBag.listCompany, "Id", "ShortName").EditorTemplateName("GridNullableForeignKey").Title("Công ty").Width(120).Locked();
+        columns.ForeignKey(p => p.BranchID, (System.Collections.IEnumerable)ViewBag.Branch, "BranchID", "BranchName").Width(120).Title("Chi nhánh").Locked();
+        columns.Bound(p => p.EmployeeID).Width(100).Title("MNV").Locked();
+        columns.Bound(p => p.Fullname).Width(150).Title("Họ tên").Locked(true);
+        columns.ForeignKey(p => p.CreditCardStatus, (System.Collections.IEnumerable)ViewBag.CreditCardStatus, "CodeID", "Description").Width(140).Title("Trạng thái mở thẻ").EditorTemplateName("GridNullableForeignKey");
+        columns.Bound(p => p.IsForm).Width(70).Title("Hồ sơ").ClientTemplate("<span>&nbsp;   #=IsForm ? '&#x2713;' :  '' # </span>");
+        columns.Bound(p => p.PhysicalID).Width(110).Title(Resources.Multi.ID);
+        columns.Bound(p => p.PhysicalIDBank).Width(110).Title("CMND(NH)");
+        columns.ForeignKey(p => p.Sex, (System.Collections.IEnumerable)ViewBag.Gender, "CodeID", "Description").EditorTemplateName("GridNullableForeignKey").Width(80).Title("Giới tính");
+        columns.Bound(p => p.Birthday).Width(90).Format("{0:" + Resources.Multi.DateFormat + "}").EditorTemplateName("Date").Title("Ngày sinh");
+        columns.Bound(p => p.Phone).Width(100).Title("Điện thoại");
+        columns.Bound(p => p.PhoneTransaction).Width(110).Title("Điện thoại GD");
+        columns.Bound(p => p.Email).Width(150).Title("Email");
+        columns.Bound(p => p.Duration).Width(90).Title("Thời lượng").Format("{0:N2}");
+        columns.Bound(p => p.CustomerID).Width(100).Title("Mã KH");
+        columns.Bound(p => p.Address).Width(250).Title("Địa chỉ").EditorTemplateName("Texarea");
+        columns.ForeignKey(p => p.HomeTown, (System.Collections.IEnumerable)ViewBag.City, "TerritoryID", "TerritoryName").EditorTemplateName("GridNullableForeignKey").Width(100).Title("Tỉnh");
+        columns.Bound(p => p.Department).Width(180).Title("Phòng ban");
+        columns.Bound(p => p.Position).Width(120).Title("Chức vụ");
+        columns.ForeignKey(p => p.CustomerGroup, (System.Collections.IEnumerable)ViewBag.CustomerGroup, "CodeID", "Description").EditorTemplateName("GridNullableForeignKey").Width(150).Title("Nhóm khách hàng");
+        columns.Bound(p => p.StartWorkingDate).EditorTemplateName("Date").Format("{0:" + Resources.Multi.DateFormat + "}").Width(120).Title("Ngày vào làm");
+        columns.ForeignKey(p => p.Education, (System.Collections.IEnumerable)ViewBag.Education, "CodeID", "Description").EditorTemplateName("GridNullableForeignKey").Width(150).Title("Trình độ");
+        columns.Bound(p => p.Income).Width(100).Format("{0:N0}").Title("Thu nhập");
+        columns.ForeignKey(p => p.PayrollBank, (System.Collections.IEnumerable)ViewBag.Bank, "BankID", "BankName").Width(110).Title("Nhận lương qua").EditorTemplateName("GridNullableForeignKey");
+        columns.Bound(p => p.CreditLimit).Width(100).Format("{0:N0}").Title("Tín dụng");
+        columns.ForeignKey(p => p.RequestCreditBank, (System.Collections.IEnumerable)ViewBag.Bank, "BankID", "BankName").Width(110).Title("Y/c Ngân hàng").EditorTemplateName("GridNullableForeignKey");
+        columns.ForeignKey(p => p.SourceType, (System.Collections.IEnumerable)ViewBag.SourceType, "CodeID", "Description").Width(110).Title("Nguồn").EditorTemplateName("GridNullableForeignKey");
+        columns.Bound(p => p.DecaNote).Width(200).Title("ghi chú");
+        columns.Bound(p => p.BankNote).Width(200).Title("Ngân hàng ghi chú");
+        columns.Bound(p => p.DecaRequested).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày gửi");
+        columns.Bound(p => p.Cancelled).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày từ chối");
+        columns.Bound(p => p.WaitingProfile).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày hẹn bổ sung hs");
+        columns.Bound(p => p.SubmitedAt).Width(130).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày gửi NH");
+        columns.Bound(p => p.BankDenied).Width(175).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày ngân hàng từ chối");
+        columns.Bound(p => p.IssuedCard).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày phát thẻ");
+        columns.Bound(p => p.Done).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title("Ngày hoàn tất");
+        columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.CreatedAt);
+        columns.Bound(p => p.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+        columns.Bound(p => p.UpdatedBy).Width(100);
+    })
+    .ToolBar(tools =>
+    {
+        //tools.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel);
+        tools.Custom()
+          .Text(Resources.Multi.Import)
+          .HtmlAttributes(new { @class = "btn btn-purple", id = "import", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+        tools.Custom()
+             .Text(Resources.Multi.Export)
+             .HtmlAttributes(new { @class = "export btn btn-info" })
+             .Url(Url.Action("ExportData", "ProfileManagement", new { filter = "~", sort = "~" }));
+
+
+        tools.Custom()
+            .Text("Từ chối yêu cầu")
+            .HtmlAttributes(new { @class = "btn btn-danger", @Href = "javascript:DeniedRequest()", @style = "margin-left:10px" });
+        tools.Custom()
+            .Text("Hẹn bổ sung hồ sơ")
+            .HtmlAttributes(new { @class = "btn btn-yellow", @Href = "javascript:WaitingProfile()" });
+        tools.Custom()
+            .Text("Bổ sung hồ sơ")
+            .HtmlAttributes(new { @class = "btn btn-info", @Href = "javascript:AddProfile()" });
+
+        tools.Custom()
+            .Text("Yêu cầu NH mở thẻ")
+            .HtmlAttributes(new { @class = "btn btn-success", @Href = "javascript:RequestBank()" });
+
+        //tools.Custom()
+        //    .Text("Đổi trạng thái")
+        //    .HtmlAttributes(new { @class = "btn btn-success", @Href = "javascript:ChangeStatusRequest()", @style = "margin-left:10px" });
+    })
+    .AutoBind(false)
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 })).Sortable()
+    .Events(events => { events.DataBound("dataBound"); })
+    .Scrollable()
+    .Navigatable()
+    .Filterable()
+                //.Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                //.Excel(excel => excel
+                //.FileName("PotentialCustomerList.xlsx")
+                //.Filterable(true)
+                //.ProxyURL(Url.Action("Excel_Export", "PotentialCustomer")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .Batch(true)
+                                        .Sort(a => a.Add(m => m.CreditCardStatus).Ascending())
+
+                                        .PageSize(50)
+                                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        //.Filter(f => { f.Add(a => a.CreditCardStatus).IsNotEqualTo("CCS001"); })
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.Id);
+                                            model.Field(p => p.Id).Editable(false);
+                                            model.Field(p => p.Active).DefaultValue(true);
+                                            model.Field(p => p.EmployeeID).Editable(false);
+                                            model.Field(p => p.Fullname).Editable(false);
+                                            model.Field(p => p.CustomerID).Editable(false);
+                                            model.Field(p => p.CompanyID).Editable(false);
+                                            model.Field(p => p.IsForm).Editable(false);
+                                            model.Field(p => p.Duration).Editable(false);
+                                            model.Field(p => p.Sex).Editable(false);
+                                            model.Field(p => p.CreditCardStatus).Editable(false);
+                                            model.Field(p => p.Gender).Editable(false);
+                                            model.Field(p => p.Birthday).Editable(false);
+                                            model.Field(p => p.PhysicalID).Editable(false);
+                                            model.Field(p => p.Phone).Editable(false);
+                                            model.Field(p => p.Email).Editable(false);
+                                            model.Field(p => p.Address).Editable(false);
+                                            model.Field(p => p.Department).Editable(false);
+                                            model.Field(p => p.Position).Editable(false);
+                                            model.Field(p => p.CustomerGroup).Editable(false);
+                                            model.Field(p => p.StartWorkingDate).Editable(false);
+                                            model.Field(p => p.Education).Editable(false);
+                                            model.Field(p => p.Income).Editable(false);
+                                            model.Field(p => p.PayrollBank).Editable(false);
+                                            model.Field(p => p.CreditLimit).Editable(false);
+                                            model.Field(p => p.RequestCreditBank).Editable(false);
+                                            model.Field(p => p.SourceType).Editable(false);
+                                            model.Field(p => p.DecaNote).Editable(false);
+                                            model.Field(p => p.BankNote).Editable(false);
+                                            model.Field(p => p.SubmitedAt).Editable(false);
+                                            model.Field(p => p.DecaRequested).Editable(false);
+                                            model.Field(p => p.WaitingProfile).Editable(false);
+                                            model.Field(p => p.BankDenied).Editable(false);
+                                            model.Field(p => p.IssuedCard).Editable(false);
+                                            model.Field(p => p.Done).Editable(false);
+                                            model.Field(p => p.Cancelled).Editable(false);
+                                            model.Field(p => p.Active).Editable(false);
+                                            model.Field(p => p.CreatedAt).Editable(false);
+                                            model.Field(p => p.CreatedBy).Editable(false);
+                                            model.Field(p => p.UpdatedAt).Editable(false);
+                                            model.Field(p => p.UpdatedBy).Editable(false);
+                                            model.Field(p => p.PhysicalIDBank).Editable(false);
+                                            model.Field(p => p.PhoneTransaction).Editable(false);
+                                            model.Field(p => p.BranchID).Editable(false);
+                                        })
+    .Create(create => create.Action("Create", "ProfileManagement"))
+    .Read(read => read.Action("Read", "ProfileManagement"))
+    .Update(update => update.Action("Update", "ProfileManagement"))
+    .Destroy("Destroy", "ProfileManagement"))
+
+        )
+    </div>
+
+</div>
+
+@*Import*@
+@(Html.Kendo()
+      .Window()
+      .Name("window")
+      .Title("Chọn file - Yêu cầu mở thẻ")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importform" action="@Url.Content("~/ProfileManagement/ImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Width(1000)
+    .Actions(actions => actions.Close())
+
+)
+
+
+@*bankrequest*@
+@( Html.Kendo().Window().Name("RequestBankWindow")
+      .Title("Yêu cầu ngân hàng mở thẻ")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script id="RequestBankTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("RequestBank", "ProfileManagement", FormMethod.Post, new { id = "RequestBankForm", @style = "margin:0;" }))
+    {
+    <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+    <div class="control-group">
+        <label class="control-label">Chọn ngân hàng</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList().Name("BankID")
+                    .AutoBind(false)
+                    .OptionLabel("Chọn ngân hàng...")
+                    .HtmlAttributes(new { style = "width: 100%;" })
+                    .DataTextField("BankName")
+                    .DataValueField("BankID")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetListBank", "OrderHeader"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+)
+</div>
+</div>
+    <div class="control-group">
+        <label class="control-label">@Resources.Multi.Content</label>
+        <div class="controls">
+            <textarea cols="3" rows="3" name="Description" placeholder="Nhập ghi chú cho ngân hàng"></textarea>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a class="btn btn-grey btn-mini" onclick="$('\\#RequestBankWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+        <button type="submit" id="btnRequestBank" class="btn btn-primary btn-mini">Yêu cầu mở thẻ</button>
+    </div>
+    }
+
+</script>
+
+@*status request*@
+@( Html.Kendo().Window().Name("RequestStatusWindow")
+      .Title("Thay đổi trạng thái")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script id="RequestStatusTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("RequestStatus", "ProfileManagement", FormMethod.Post, new { id = "RequestStatusForm", @style = "margin:0;" }))
+    {
+    <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+    <div class="control-group">
+        <label class="control-label">Chọn trạng thái</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList().Name("StatusID")
+                    .AutoBind(false)
+                    .OptionLabel("@Resources.Multi.Select @Resources.Multi.Status.ToLower()...")
+                    .HtmlAttributes(new { style = "width: 100%;" })
+                    .DataTextField("Description")
+                    .DataValueField("CodeID")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetListCreditStatusForChangeStatusRequest", "ProfileManagement"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+)
+</div>
+</div>
+    <div class="control-group">
+        <label class="control-label">@Resources.Multi.Content</label>
+        <div class="controls">
+            <textarea cols="3" rows="3" name="Description" placeholder="Nhập ghi chú cho ngân hàng"></textarea>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a class="btn btn-grey btn-mini" onclick="$('\\#RequestStatusWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+        <button type="submit" id="btnRequestStatus" class="btn btn-primary btn-mini">Thay đổi trạng thái</button>
+    </div>
+    }
+
+</script>
+
+@*denied request*@
+@( Html.Kendo().Window().Name("DeniedRequestWindow")
+      .Title("Từ chối mở thẻ")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+<script id="DeniedRequestTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("DeniedRequest", "ProfileManagement", FormMethod.Post, new { id = "DeniedRequestForm", @style = "margin:0;" }))
+    {
+    <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+    <div class="control-group">
+        <label class="control-label">Ghi chú</label>
+        <div class="controls">
+            <textarea cols="3" rows="3" name="Description" placeholder="Nhập ghi chú "></textarea>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a class="btn btn-grey btn-mini" onclick="$('\\#DeniedRequestWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+        <button type="submit" id="btnDeniedRequest" class="btn btn-primary btn-mini">Từ chối yêu cầu</button>
+    </div>
+    }
+
+</script>
+
+@*waiting-profile*@
+@( Html.Kendo().Window().Name("WaitingProfileWindow")
+      .Title("Hẹn bổ sung hồ sơ")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+<script id="WaitingProfileTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("WaitingProfile", "ProfileManagement", FormMethod.Post, new { id = "WaitingProfileForm", @style = "margin:0;" }))
+    {
+    <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+    <div class="control-group">
+        <label class="control-label">Ghi chú</label>
+        <div class="controls">
+            <textarea cols="5" rows="3" name="Description" placeholder="Nhập ghi chú " style="width:95%"></textarea>
+        </div>
+
+    </div>
+
+    <div class="form-actions">
+        <a class="btn btn-grey btn-mini" onclick="$('\\#WaitingProfileWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+        <button type="submit" id="btnWaitingProfile" class="btn btn-primary btn-mini">Hẹn bổ sung hồ sơ</button>
+    </div>
+    }
+
+</script>
+@*add-profile*@
+@( Html.Kendo().Window().Name("AddProfileWindow")
+      .Title("Bổ sung hồ sơ")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script id="AddProfileTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("AddProfile", "ProfileManagement", FormMethod.Post, new { id = "AddProfileForm", @style = "margin:0;" }))
+    {
+        <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+        <div class="control-group">
+            <label class="control-label">Chọn ngân hàng</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownList().Name("BankID")
+                    .AutoBind(false)
+                    .OptionLabel("Chọn ngân hàng...")
+                    .HtmlAttributes(new { style = "width: 100%;" })
+                    .DataTextField("BankName")
+                    .DataValueField("BankID")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetListBank", "OrderHeader"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Ghi chú</label>
+            <div class="controls">
+                <textarea cols="5" rows="3" id="Description" name="Description" placeholder="Nhập ghi chú " style="width:320px"> </textarea>
+            </div>
+
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-grey btn-mini" onclick="$('\\#AddProfileWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+            <button type="submit" id="btnAddProfile" class="btn btn-primary btn-mini">Bổ sung hồ sơ</button>
+            <button type="button" id="btnAddSend" onclick="AddSendBank()" class="btn btn-info btn-mini">Bổ sung & Gửi ngân hàng</button>
+        </div>
+    }
+
+</script>
+
+
+
+<script>
+    var RequestBankTemplate = kendo.template($("#RequestBankTemplate").html());
+    var RequestStatusTemplate = kendo.template($("#RequestStatusTemplate").html());
+    var DeniedRequestTemplate = kendo.template($("#DeniedRequestTemplate").html());
+    var AddProfileTemplate = kendo.template($("#AddProfileTemplate").html());
+    var WaitingProfileTemplate = kendo.template($("#WaitingProfileTemplate").html());
+    $(document).ready(function () {
+        $("#listCompany").css('witdh', "20%");
+        $("#listCompany").chosen();
+        $("#listCompany").val(['']);
+
+        $("#listBank").css('witdh', "20%");
+        $("#listBank").chosen();
+        $("#listBank").val(['']);
+
+        $("#listSourceType").css('witdh', "20%");
+        $("#listSourceType").chosen();
+        $("#listSourceType").val(['']);
+
+        $("#listCreditCardStatus").css('witdh', "20%");
+        $("#listCreditCardStatus").chosen();
+        $("#listCreditCardStatus").val(['']);
+        resizeGrid();
+    })
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        dataFreezeArea = gridElement.find(".k-grid-content-locked"),
+        otherElements = gridElement.children().not(".k-grid-content").not(".k-grid-content-locked"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+        dataFreezeArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        resizeGrid();
+        drawcolor();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function drawcolor() {
+        $('.k-icon.k-edit').remove();
+        var data = $("#grid").data("kendoGrid").dataSource.data();
+        $("td").filter(function () {
+            return $(this).text() === "00:00 01/01/1900";
+        }).html('');
+        $('td:contains("01/01/1900")').html('');
+        var col = 1;
+        $.each(data, function (i, row) {
+            try {
+                if (row.CreditCardStatus == "CCS001") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#e7e7e7");
+                }
+                else if (row.CreditCardStatus == "CCS002") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#acbac3").css("color", "#fff");
+                }
+                else if (row.CreditCardStatus == "CCS003") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#fee088").css("color", "#af8241");
+                }
+                else if (row.CreditCardStatus == "CCS004") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#fee188").css("color", "#963");
+                }
+                else if (row.CreditCardStatus == "CCS005") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#d25b47").css("color", "#fff");
+                }
+                else if (row.CreditCardStatus == "CCS006") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#2283c5").css("color", "#fff");
+                }
+                else if (row.CreditCardStatus == "CCS007") {
+                    $('.k-grid-content tr[data-uid="' + row.uid + '"] td:nth-child(' + col + ')').css("background-color", "#87b880").css("color", "#fff");
+                }
+
+            }
+            catch (err) {
+            }
+
+        });
+    }
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var listCompany = $("#listCompany option:selected");
+        var listBank = $('#listBank option:selected');
+
+        var listCreditCardStatus = $("#listCreditCardStatus option:selected");
+        var listSourceType = $('#listSourceType option:selected');
+
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var fillterCompany = { logic: "or", filters: [] };
+        var fillterBank = { logic: "or", filters: [] }
+        var fillterCreditCardStatus = { logic: "or", filters: [] }
+        var fillterSourceFile = { logic: "or", filters: [] }
+
+        var filtertext = { logic: "or", filters: [] };
+
+
+        if (listCompany.length > 0) {
+            for (var i = 0; i < listCompany.length; i++) {
+                var option = listCompany[i].value;
+                if (option == '') {
+                    fillterCompany.filters.push({ field: "CompanyID", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCompany.filters.push({ field: "CompanyID", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCompany);
+        }
+
+        if (listCreditCardStatus.length > 0) {
+            for (var i = 0; i < listCreditCardStatus.length; i++) {
+                var option = listCreditCardStatus[i].value;
+                if (option == '') {
+                    fillterCreditCardStatus.filters.push({ field: "CreditCardStatus", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCreditCardStatus.filters.push({ field: "CreditCardStatus", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCreditCardStatus);
+        }
+
+        if (listSourceType.length > 0) {
+            for (var i = 0; i < listSourceType.length; i++) {
+                var option = listSourceType[i].value;
+                if (option == '') {
+                    fillterSourceFile.filters.push({ field: "SourceType", operator: "contains", value: '' });
+                }
+                else {
+                    fillterSourceFile.filters.push({ field: "SourceType", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterSourceFile);
+        }
+
+        if (listBank.length > 0) {
+            for (var i = 0; i < listBank.length; i++) {
+                var option = listBank[i].value;
+                if (option == '') {
+                    fillterBank.filters.push({ field: "PayrollBank", operator: "contains", value: '' });
+                }
+                else {
+                    fillterBank.filters.push({ field: "PayrollBank", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterBank);
+        }
+        if (text) {
+            filtertext.filters.push({ field: "EmployeeID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "PhysicalID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "FullName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Email", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#grid').find(".k-grid-content-locked .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    $(document).ready(function () {
+        $('#import').bind('click', function () {
+            $("#window").kendoWindow({
+                actions: {}, /*from Vlad's answer*/
+                draggable: true,
+                height: "300px",
+                modal: true,
+                resizable: false,
+                width: "500px",
+                visible: false /*don't show it yet*/
+            }).data("kendoWindow").center().open();
+            $('#FileUpload').ace_file_input({
+                no_file: 'No File ...',
+                btn_choose: 'Choose',
+                btn_change: 'Change',
+                droppable: false,
+                onchange: null,
+                thumbnail: false //| true | large
+                //whitelist:'gif|png|jpg|jpeg'
+                //blacklist:'exe|php'
+                //onchange:''
+                //
+            });
+        });
+
+        //$('#import').attr('data-toggle', 'modal');
+        $('#btnImport').bind('click', function () {
+            $('#importform').submit();
+        });
+
+        (function () {
+            $("#importform").ajaxForm({
+                beforeSend: function () {
+                    $("#window").data("kendoWindow").close();
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                },
+                uploadProgress: function (event, position, total, percentComplete) {
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Import successfully ' + data.total + ' record(s)',
+                            class_name: 'gritter-success'
+                        });
+                        if (data.totalError > 0) {
+                            $("#window").data("kendoWindow").open();
+                            $('#btndownload').css('display', 'inline-block');
+                            $('#btndownload').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                        }
+                        else {
+                            $('#btndownload').css('display', 'none');
+                            $('#btndownload').attr('href', "");
+                        }
+                    }
+                    else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                complete: function (xhr) {
+
+                }
+            });
+        })();
+    });
+    function RequestBank() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#RequestBankWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(RequestBankTemplate(data));
+            wnd.center().open();
+            $("#RequestBankForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnRequestBank").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Gửi thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Gửi thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnRequestBank").removeAttr("disabled");
+                                $('#RequestBankWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnRequestBank").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function DeniedRequest() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#DeniedRequestWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(DeniedRequestTemplate(data));
+            wnd.center().open();
+            $("#DeniedRequestForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnDeniedRequest").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Từ chối thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Từ chối thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnDeniedRequest").removeAttr("disabled");
+                                $('#DeniedRequestWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnDeniedRequest").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function WaitingProfile() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#WaitingProfileWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(WaitingProfileTemplate(data));
+            wnd.center().open();
+            $("#WaitingProfileForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnWaitingProfile").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Từ chối thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Từ chối thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnWaitingProfile").removeAttr("disabled");
+                                $('#WaitingProfileWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnWaitingProfile").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function AddProfile() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#AddProfileWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(AddProfileTemplate(data));
+            wnd.center().open();
+            $("#AddProfileForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnAddProfile").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Cập nhật thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Từ chối thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnAddProfile").removeAttr("disabled");
+                                $('#AddProfileWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnAddProfile").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function ChangeStatusRequest() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#RequestStatusWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(RequestStatusTemplate(data));
+            wnd.center().open();
+            $("#RequestStatusForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnRequestStatus").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Cập nhật thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Cập nhật thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnRequestStatus").removeAttr("disabled");
+                                $('#RequestStatusWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnRequestStatus").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function AddSendBank() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            $.post(r + "/ProfileManagement/AddSendBank", { listOrderID: checkrowid, Description: $('#Description').val(), BankID: $('#BankID').val() }, function (data) {
+                if (!data.success) {
+                    $.gritter.add({
+                        title: "Thất bại",
+                        text: data.message,
+                        class_name: 'gritter-error',
+                    });
+
+                }
+                else {
+                    if (data.success >= 0) {
+                        $.gritter.add({
+                            title: "@Resources.Multi.Success",
+                            text: "Cập nhật thành công " + data.success + " khách hàng!",
+                            class_name: 'gritter-success',
+                        });
+                        $("#grid").data("kendoGrid").dataSource.read();
+                        $('#AddProfileWindow').data('kendoWindow').close()
+                    }
+                    if (data.fail > 0) {
+                        $.gritter.add({
+                            title: "Thất bại",
+                            text: data.message,
+                            class_name: 'gritter-error',
+                        });
+                    }
+                }
+            })
+        }
+    }
+
+</script>

@@ -1,0 +1,306 @@
+﻿@using MCC.Models;
+@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@using CloudinaryDotNet;
+@{
+	ViewBag.Title = Html.Raw(Resources.Global._promotional_campaign);
+}
+@{
+	var newData = new Merchant_Product_Promotion();
+	//newData.active = true;
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+	.fileinput i {
+		visibility: hidden;
+	}
+
+	.fileinput .thumbnail:hover i {
+		visibility: visible;
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		color: #ff7d5e;
+	}
+
+	.fileinput-preview.fileinput-exists.thumbnail img {
+		width: 300px;
+		height: 300px;
+	}
+
+	.flex {
+		display: flex;
+	}
+
+	.image-product {
+		float: left;
+		position: relative;
+		margin: 0 5px 5px 0;
+		padding: 0;
+		border: 1px;
+		width: 50px;
+		height: 50px;
+	}
+
+		.image-product img {
+			border: 1px solid #938888;
+			width: 50px;
+			height: 50px;
+		}
+
+		.image-product .fa.fa-times {
+			visibility: hidden;
+		}
+
+		.image-product:hover .fa.fa-times {
+			visibility: visible;
+			position: absolute;
+			right: 0;
+			color: #ff7d5e;
+		}
+
+	.wrapper:after {
+		content: ".";
+		display: block;
+		height: 0;
+		clear: both;
+		visibility: hidden;
+	}
+
+	.k-pager-wrap {
+		background: none;
+		border: none;
+		box-shadow: none;
+		padding-top: 10px;
+	}
+
+	.todo-tasklist-item.selected {
+		background-color: #D2EDF3;
+	}
+
+	.bootstrap-tagsinput {
+		width: 100%;
+	}
+
+	.AccessRightsMobileBootbox .modal-dialog {
+		width: 90%;
+	}
+
+	.max100 {
+		max-width: 100%;
+	}
+</style>
+<div class="col-md-12">
+	<div class="tabbable-line">
+		<ul class="nav nav-tabs">
+			<li class="active">
+				<a href="\\#tab_1" data-toggle="tab">Danh Sách Khuyến Mãi</a>
+			</li>
+			<li>
+				<a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Chỉnh Sửa</a>
+			</li>
+		</ul>
+
+		<div class="tab-content">
+
+			<div class="tab-pane in active" id="tab_1">
+				<div class="col-md-12">
+					<div class="text-center text-uppercase bold text-primary">
+						<h2>Danh Sách Khuyến Mãi</h2>
+					</div>
+				</div>
+				<div class="inputs">
+					<div class="portlet-input input-inline input-small">
+						<div class="input-icon right">
+							<i class="icon-magnifier"></i>
+							<input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+						</div>
+					</div>
+				</div>
+				<div class="todo-tasklist">
+					@(Html.Kendo().Grid<Merchant_Product_Promotion>()
+					.Name("GridView")
+					.Columns(columns =>
+					{
+					columns.Bound(p => p.id)
+						.HeaderTemplate("")
+						.Title("Sửa/Xóa")
+						.ClientTemplate("<a class='btn btn-xs btn-success' onClick='editproduct(this)'><i class='icon-pencil green'></i></a>" +
+						"<a><button class='btn btn-sm red' style='margin-left:4px;' name='DelPromotion' onclick=DelPromotion('#=id#')> X </button></a>")
+						.Width(60).Filterable(false).Sortable(false);
+					columns.Bound(p => p.ten_chuong_trinh_km).Title(@Html.Raw(Resources.Global._promotion).ToString().ToUpper()).Width(250).HtmlAttributes(new { @class = "editable" });
+					columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._time).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" })
+							.ClientTemplate("#=kendo.toString(kendo.parseDate(ngay_bat_dau), 'dd/MM/yyyy')# - #=kendo.toString(kendo.parseDate(ngay_ket_thuc), 'dd/MM/yyyy')#");
+					columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._content).ToString().ToUpper()).Width(80).HtmlAttributes(new { @class = "editable" })
+							.ClientTemplate("# if (loai == 'tien') { #" +
+									@Html.Raw(Resources.Global._sales).ToString() + " #=kendo.format('{0:N0}',gia_tri)# Đ " +
+									"# } else { #" +
+									@Html.Raw(Resources.Global._sales).ToString() + " #:gia_tri# %" +
+									"# } #");
+						columns.Bound(p => p.trang_thai).Title(@Html.Raw(Resources.Global._status).ToString().ToUpper()).Width(60).HtmlAttributes(new { @class = "editable" })
+							.ClientTemplate("# if (trang_thai == '@AllConstant.trang_thai.DANG_SU_DUNG') { #" +
+									"<span class='col-md-10 col-xs-10 label label-warning'>" + @Html.Raw(Resources.Global._active).ToString() + "</span>" +
+									"# } else { #" +
+									"<span class='col-md-10 col-xs-10 label label-warning'>" + @Html.Raw(Resources.Global._inactive).ToString() + "</span>" +
+									"# } #");
+					})
+					.Pageable(pager => pager.PageSizes(new[] { 20, 40, 60, 80 }))
+					.Scrollable()
+					.Navigatable()
+					.Pageable(x => x.PageSizes(new int[] { 20, 40, 60, 80 }))
+					.Events(events => { events.DataBound("dataBound"); })
+					.Reorderable(reorderable => reorderable.Columns(true))
+					.HtmlAttributes(new { @style = "height:480px" })
+					.Resizable(resizable => resizable.Columns(true))
+					.DataSource(dataSource => dataSource
+						.Ajax()
+						.Batch(true)
+						.PageSize(20)
+						.Events(events => { events.Error("error_handler"); })
+						.Model(model =>
+						{
+							model.Id(p => p.id);
+							model.Field(p => p.ten_chuong_trinh_km).Editable(false);
+							model.Field(p => p.loai).Editable(false);
+							model.Field(p => p.ngay_bat_dau).Editable(false);
+							model.Field(p => p.ngay_ket_thuc).Editable(false);
+
+						})
+						.Read(c => c.Action("Read", "Merchant_Product_Promotion"))
+						)
+					)
+				</div>
+
+			</div>
+
+			<div class="tab-pane" id="tab_2">
+				<div class="col-md-12">
+					<div class="text-center text-uppercase bold text-primary">
+
+					</div>
+
+				</div>
+				<div class="col-md-12 formEdit">
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div>
+@Html.Partial("Create")
+<script>
+	$(document).ready(function () {
+		loadForm(@Html.Raw(Json.Encode(newData)));
+        Search();
+	});
+
+	function editproduct(e) {
+
+		var product = $('#GridView').data('kendoGrid').dataItem($(e).closest('tr'))
+		loadForm(product);
+		$("#tab_2_click").trigger("click");
+
+	}
+</script>
+<script>
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    function Search(e) {
+		GridView = $("#GridView").data("kendoGrid");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "ten_chuong_trinh_km", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "loai", operator: "contains", value: seachText });
+
+            filter.filters.push(filterDesc);
+        }
+
+		GridView.dataSource.filter(filter);
+    }
+
+    function onDatabound(e) {
+		var GridView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+			page: GridView.dataSource.page(),
+			sort: GridView.dataSource.sort(),
+			filter: GridView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#grid_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#grid_pager").css('display', 'block');
+        }
+    }
+    function error_handler(e) {
+        if (e.status == "error") {
+            toastr.error('@Resources.Global._500_error_title', '@Resources.Global._error_message');
+        }
+    }
+    function dataBound(e) {
+    }
+	function DelPromotion(id) {
+		bootbox.dialog({
+			message: "@Resources.Global._are_your_sure", title: "Xóa Khuyến mãi",
+			buttons:
+			{
+
+				danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+				main: {
+					label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+						App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+						$.post(r + "/Merchant_Product_Promotion/DeletePromotion", { id: id }, function (data) {
+							if (data.success) {
+								$('#GridView').data('kendoGrid').dataSource.read();
+								toastr.clear();
+								toastr.success('', 'Xóa thành công');
+							} else {
+								toastr.clear();
+								toastr.error('', data.error);
+							}
+							App.unblockUI();
+						});
+					}
+				}
+			}
+		})
+	}
+
+</script>

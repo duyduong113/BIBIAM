@@ -1,0 +1,238 @@
+﻿
+<style>
+    #popup_Grid, li {
+        list-style: none;
+    }
+
+    .max30 {
+        display: inline-block;
+        width: 32%;
+        margin: 2px;
+    }
+
+    #popup_Grid, .list-img {
+        display: inline-block;
+    }
+</style>
+<script type="text/x-kendo-template" id="popup_template_content">
+    <div class="max30">
+        <input type="checkbox" class="checkrowid_content" value="#=duong_dan_day_du#" style="z-index: 999999;position: absolute;margin-top: 0px;opacity: 0.9;" />
+        <img src="#:duong_dan_day_du#" alt="#: ten_anh # image" />
+   </div>
+</script>
+
+<script type="text/x-kendo-template" id="popup_template_content_lib">
+    <div class="max30">
+        <input type="checkbox" class="checkrowid_lib" value="#=duong_dan_day_du#" style="z-index: 999999;position: absolute;margin-top: 0px;opacity: 0.9;" />
+        <img src="#:duong_dan_day_du#" alt="#:alt#" />
+   </div>
+</script>
+
+
+<div id="popup-select-image-content" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:700px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">@Resources.Global._select_img_library</h4>
+            </div>
+            <div class="modal-body">
+                <div class="tabbable-line">
+                    <ul class="nav nav-tabs">
+                        <li class="active" >
+                            <a href="\\#tab_1_1" data-toggle="tab"> Hình của tui </a>
+                        </li>
+                        <li>
+                            <a href="\\#tab_1_3" data-toggle="tab"> Thư viện </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        @(Html.Kendo().ListView<CMS.Models.cms_New_Images>()
+                                        .Name("popup_Grid_content_lib")
+                                        .TagName("div")
+                                        .HtmlAttributes(new { style = "width:100%" })
+                                        .ClientTemplateId("popup_template_content_lib")
+                                        .Navigatable()
+                                        .DataSource(dataSource =>
+                                        {
+                                            dataSource.Read(read => read.Action("getNewImages", "NewsManage").Data("popup_onAdditionalData_content__lib"));
+                                            dataSource.PageSize(9);
+                                        })
+
+                                        .Pageable()
+                                        )
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn btn-default btn-small" onclick="SelectImage_content_lib()">@Resources.Global._select_image</a>
+                                    <a class="btn btn-default btn-small" data-dismiss="modal">@Resources.Global._cancel</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="tab_1_3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        @(Html.Kendo().MultiSelect()
+                                            .Name("popup_Website_content")
+                                            .MaxSelectedItems(1)
+                                            .Placeholder("Website...")
+                                            .DataTextField("name")
+                                            .DataValueField("id")
+                                            .Events(e => e.Change("popup_changeWebsite_content"))
+                                            .Filter("contains")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetWebsite", "Image_InfoManage");
+                                                }).ServerFiltering(true);
+                                            })
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        @(Html.Kendo().MultiSelect()
+                                            .Name("popup_ListFolder_content")
+                                            .MaxSelectedItems(1)
+                                            .HtmlAttributes(new { style = "width:100%" })
+                                            .Placeholder("Thư mục...")
+                                            .DataTextField("name")
+                                            .DataValueField("name")
+                                            .Events(e => e.Change("popup_changeLeader_content"))
+                                            .Filter("contains")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetFolder", "CustomData").Data("popup_dataWebsite_content");
+                                                }).ServerFiltering(true);
+                                            })
+                                        )
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        @(Html.Kendo().ListView<CMS.Models.Image_Info>()
+                                        .Name("popup_Grid_content")
+                                        .TagName("div")
+                                        .ClientTemplateId("popup_template_content")
+                                        .Navigatable()
+                                        .DataSource(dataSource =>
+                                        {
+                                            dataSource.Read(read => read.Action("Read", "Image_InfoManage").Data("popup_onAdditionalData_content"));
+                                            dataSource.PageSize(9);
+                                        })
+                                        .Pageable()
+                                        )
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn btn-default btn-small" onclick="SelectImage_content()">@Resources.Global._select_image</a>
+                                    <a class="btn btn-default btn-small" data-dismiss="modal">@Resources.Global._cancel</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function show_popup_select_image_content(e) {
+        debugger
+        $("#popup_Grid_content").find("input:checkbox").each(function () {
+            $(this).prop('checked', false);
+        });
+        $("#popup_Grid_content_lib").find("input:checkbox").each(function () {
+            $(this).prop('checked', false);
+        });
+        $('#popup-select-image-content').modal('show');
+    }
+
+    function onCloseForm_popup_selectimage_content() {
+        $('.modal').modal('hide');
+    }
+
+    function popup_onAdditionalData_content() {
+        var s = $("#popup_ListFolder_content").data("kendoMultiSelect").value();
+
+        var text = $("#popup_ListFolder_content").data("kendoMultiSelect").value()[0];
+        if (text == 'Thư mục...')
+            text = ""
+        return {
+            loai: 1,
+            FolderName: text
+        }
+    }
+
+    function popup_onAdditionalData_content__lib() {
+        debugger
+        var ma_tin_tuc = '';
+        return {
+            ma_tin_tuc: $('input[name=ma_bai_viet]').val()
+        }
+    }
+    function popup_dataWebsite_content(e) {
+        return {
+            ma_website: $("#popup_Website_content").data("kendoMultiSelect").value()[0]
+        }
+    }
+
+    function popup_dataBound_content(e) {
+
+    }
+
+    function popup_changeLeader_content(e) {
+        $("#popup_Grid_content").data("kendoListView").dataSource.read();
+    }
+
+    function popup_changeWebsite_content(e) {
+        $("#popup_ListFolder_content").data("kendoMultiSelect").dataSource.read();
+        $("#popup_Grid_content").data("kendoListView").dataSource.read();
+    }
+
+    function SelectImage_content_lib() {
+        $("#popup_Grid_content").data("kendoListView").dataSource.read();
+        var listrowid = "";
+        $("#popup_Grid_content_lib").find("input:checkbox:checked").each(function () {
+            listrowid += "<div><img src=" + $(this).val() + " alt="+$(this).data+" /></div>"
+        });
+
+        if (listrowid != "") {
+            var editor = $("#noi_dung").data("kendoEditor");
+            editor.exec("inserthtml", { value: listrowid });
+        }
+        onCloseForm_popup_selectimage_content();
+    }
+
+    function SelectImage_content() {
+        debugger
+        $("#popup_Grid_content_lib").data("kendoListView").dataSource.read();
+        var listrowid = "";
+        $("#popup_Grid_content").find("input:checkbox:checked").each(function () {
+            listrowid += "<div><img src=" + $(this).val() + " alt=''  /></div>"
+        });
+
+        if (listrowid != "") {
+            var editor = $("#noi_dung").data("kendoEditor");
+            editor.exec("inserthtml", { value: listrowid });
+            $("#image-content").append(listrowid);
+        }
+        onCloseForm_popup_selectimage_content();
+    }
+
+</script>

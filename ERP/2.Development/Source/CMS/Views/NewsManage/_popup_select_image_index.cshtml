@@ -1,0 +1,191 @@
+﻿<style>
+    #popup_Grid, li {
+        list-style: none;
+    }
+
+    .max30 {
+        display: inline-block;
+        width: 32%;
+        margin: 2px;
+    }
+
+    #popup_Grid, .list-img {
+        display: inline-block;
+    }
+</style>
+<script type="text/x-kendo-template" id="popup_template">
+    <div class="max30">
+        <input type="checkbox" class="checkrowid" value="#=ma_anh_goc#" style="z-index: 999999;position: absolute;margin-top: 0px;opacity: 0.9;" />
+        <img src="#:duong_dan_day_du#" alt="#: ten_anh # image" />
+    </div>
+
+</script>
+
+<div id="popup-select-image-index" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:700px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">@Html.Raw(Resources.Global._select_img_library)</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+        
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @(Html.Kendo().MultiSelect()
+                                .Name("popup_ListFolderindex")
+                                .MaxSelectedItems(1)
+                                .HtmlAttributes(new { style = "width:100%" })
+                                //.AutoBind(false)
+                                .Placeholder(Html.Raw(Resources.Global._folder)+"...")
+                                .DataTextField("name")
+                                .DataValueField("name")
+                                .Events(e => e.Change("popup_changeLeader"))
+                                .Filter("contains")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        //read.Action("GetFolderbyName", "NewsManage");
+                                        read.Action("GetFolder", "CustomData");
+                                    }).ServerFiltering(true);
+                                })
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @(Html.Kendo().ListView<CMS.Models.Image_Info>()
+                            .Name("popup_Grid")
+                            .TagName("div")
+                            .ClientTemplateId("popup_template")
+                            .Navigatable()
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Image_InfoManage").Data("popup_onAdditionalData"));
+                                dataSource.PageSize(9);
+                            })
+                            .Pageable()
+                            )
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-default btn-small" onclick="SelectImage()">@Html.Raw(Resources.Global._select_image)</a>
+                        <a class="btn btn-default btn-small" data-dismiss="modal">@Html.Raw(Resources.Global._cancel)</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    function show_popup_select_image_index() {
+        $("#popup_Grid").find("input:checkbox").each(function () {
+            $(this).prop('checked', false);
+        });
+        $('#popup-select-image-index').modal('show');
+
+    }
+
+    function onCloseForm_popup_selectimage() {
+        $('#txtcontent').val('');
+        var myNode = document.getElementById("products");
+        myNode.innerHTML = '';
+        $('.modal').modal('hide');
+    }
+
+    function popup_onAdditionalData() {
+        var s = $("#popup_ListFolderindex").data("kendoMultiSelect").value();
+
+        var text = $("#popup_ListFolderindex").data("kendoMultiSelect").value()[0];
+        if (text == 'Thư mục...')
+            text = ""
+        return {
+            loai: 1,
+            ma_gian_hang: 'All',
+            FolderName: text
+        }
+    }
+
+    function popup_dataBound(e) {
+
+    }
+
+    function popup_changeLeader(e) {
+        $("#popup_Grid").data("kendoListView").dataSource.read();
+    }
+
+    function SelectImage() {
+        debugger
+        $("#image-News").html('');
+        $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        $("#popup_Grid").find("input:checkbox:checked").each(function () {
+            var dataItem = $("#popup_Grid").data("kendoListView").dataSource.getByUid($(this).parent().attr('data-uid'));
+            if (dataItem) {
+                !$(".fileinput-preview.fileinput-exists.thumbnail img").length && $(".fileinput-new.thumbnail img").attr("src").indexOf("http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image") == 0 ? $(".fileinput-new.thumbnail img").attr("src", dataItem.duong_dan_day_du) : '';
+                if ($("#image-News").find('div.image-News').length < 1)
+                    $("#image-News").append("<div class='image-News' id='" + dataItem.uid + "'><img src='" + dataItem.duong_dan_day_du + "' onclick='AnhDaiDien(this)' for = '" + dataItem.uid + "'/><i class='fa fa-times' onclick='dropImage(1,this)'></i></div>")
+            }
+        });
+        $('#popup-select-image-index').modal('hide');
+        $("#image-News .image-News").length ? $("#image-News").addClass("flex") : $("#image-News").removeClass("flex");
+
+
+    }
+    function AnhDaiDien(e) {
+        debugger
+        resetDefaultFileInput();
+        $(".fileinput-new.thumbnail img").attr("src",$(e).attr('src'))
+    }
+    function dropImage(type,e) {
+        switch (type) {
+            case 0:
+                if ($(".fileinput-preview.fileinput-exists.thumbnail img").length)
+                    resetDefaultFileInput();
+                else $("#image-News .image-News img").each(function () {
+                    if ($(".fileinput-new.thumbnail img").attr("src") == $(this).attr('src')) {
+                        $(this).parent('div').remove();
+                        var product = $("#listView").data("kendoListView");
+                        if (product) {
+                            product = $("#listView").data("kendoListView").dataItem($("#listView").data("kendoListView").element.find('.selected'));
+                            $(".fileinput-new.thumbnail img").attr("src", product.url);
+                        }
+                        else {
+                            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+                        }
+                    }
+                });
+                $("#image-News .image-News img").attr('src') ? $(".fileinput-new.thumbnail img").attr("src", $("#image-News .image-News img").attr('src')) : null;
+                break;
+            case 1:
+                $(e).parent('div').remove();
+                var listProduct = $("#listView").data("kendoListView")
+                if (listProduct) {
+                    var product = $("#listView").data("kendoListView").dataItem($("#listView").data("kendoListView").element.find('.selected'));
+                    $(".fileinput-new.thumbnail img").attr("src", $("#image-News .image-News img").attr('src') ? $("#image-News .image-News img").attr('src') : (product ? product.url : "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image"));
+                    $(".fileinput-new.thumbnail img").attr("src", product.url);
+                }
+                else {
+                    $(".fileinput-new.thumbnail img").attr("src", $("#image-News .image-News img").attr('src') ? $("#image-News .image-News img").attr('src') : "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+                }
+                break;
+        }
+        if (!$("#image-News .image-News img").length)
+            $("#image-News").removeClass("flex");
+    }
+    function resetDefaultFileInput() {
+        $('.fileinput').fileinput('clear');
+        var listImage = $("#listView").data("kendoListView");
+        var product;
+        if (listImage)
+            product = listImage.dataItem($("#listView").data("kendoListView").element.find('.selected'));
+        if (product)
+            $(".fileinput-new.thumbnail img").attr("src", product.url);
+        else
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+    }
+</script>

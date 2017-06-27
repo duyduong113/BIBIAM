@@ -1,0 +1,220 @@
+﻿
+<div id="popup" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title" id="txttitle"></span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow">
+        <form action="~/CRMCustomerSupportDetail/Create_Appointment" id="form-submit-app" method="post" enctype="multipart/form-data">
+            @Html.Hidden("RowID")
+            <div class="widget-box">
+                <div class="modal-body overflow-visible">
+                    <div class="row-fluid form-horizontal">
+                        <div class="span12">
+                            <div class="control-group">
+                                <label class="control-label">Tiêu đề</label>
+                                <div class="controls">
+                                    <input name="Title" class="span12" type="text" id="Title" placeholder="Tiêu đề" value="" />
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Ngày giờ</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input name="Date" class="span6 date-picker-app" id="Date" placeholder="dd/mm/yyyy hh:mm" type="text" data-format="MM/dd/yyyy HH:mm PP">
+                                        <span class="add-on">
+                                            <i class="icon-calendar"></i>
+                                        </span>
+                                        <input type="number" name="Hours" id="Hours" class="span3 offset2" placeholder="Số tiếng" value="" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Loại</label>
+                            <div class="controls">
+                                <select name="Type" id="Type" class="chosen-select" data-placeholder="Chọn người liên hệ" style="display: none;">
+                                    @foreach (var item in ViewBag.listAppointmentType)
+                                    {
+                                        <option value="@item.ParamID">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Địa điểm</label>
+                            <div class="controls">
+                                <input name="Address" id="Address" class="span12" type="text" placeholder="Địa điểm" value="" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Mô tả</label>
+                            <div class="controls">
+                                <textarea name="Description" id="Description" class="span12" placeholder="Mô tả" style="overflow: hidden; word-wrap: break-word; resize: vertical; height: 60px; margin-left: 0px; margin-right: 0px; "></textarea>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Khách hàng</label>
+                            <div class="controls">
+                                <select name="CustomerID" class="span9 chosen-select" id="CustomerID" data-placeholder="Chọn người liên hệ" style="display: none;" onchange="changeCustomer()">
+                                    <option value="0"> --Chọn người khách hàng--</option>
+                                    @foreach (var item in ViewBag.listCustomer)
+                                    {
+                                        <option value="@item.CustomerID">@item.CustomerName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div id="bindataAjax">
+                            <div class="control-group">
+                                <label class="control-label">Người liên hệ</label>
+                                <div class="controls">
+                                    <select name="Person_contact" class="span9 chosen-select" id="Person_contact" data-placeholder="Chọn người liên hệ" style="display: none;"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Khách mời</label>
+                            <div class="controls">
+                                <input class="span12" name="Guests" type="text" id="Guests" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Bcc</label>
+                            <div class="controls">
+                                <input class="span12" name="Bcc" type="text" id="Bcc" placeholder="Bcc" value="" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Đính kèm tập tin</label>
+                            <div class="controls">
+                                <input name="Files" type="file" id="Files" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div><br></div>
+        <div class="form-footer-custom">
+            <div class="pull-right" style="padding-right:15px">
+                <a class="btn btn-info btn-small" onclick="btnSubmit()"> Lưu</a>
+                <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#popup').on('shown', function () {
+            $(this).find('.chosen-select').chosen();
+        })
+        $('.date-picker-app').datetimepicker();
+    })
+    function changeCustomer() {
+        $.post(r + "/Ajax/ViewContactByCus", { CustomerID: $('#CustomerID').val() }, function (data) {
+            $("#bindataAjax").html(data); $("#Person_contact").chosen();
+        });
+    }
+    $("#form-submit-app").validate({
+        // Rules for form validation
+        rules: {
+            Title: { required: true },
+            Date: { required: true },
+            Address: { required: true },
+            CustomerID: { required: true, },
+        },
+        // Messages for form validation
+        messages: {
+            Title: { required: "Thông tin bắt buộc" },
+            Date: { required: "Thông tin bắt buộc" },
+            Address: { required: "Thông tin bắt buộc" },
+            CustomerID: { required: "Thông tin bắt buộc" },
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            //error.insertAfter(element);
+        },
+        submitHandler: function (form) {
+            $("#form-submit-app").ajaxSubmit({
+                //clearForm: true, //To clear form after ajax submitting
+                beforeSend: function () { // Xử lý trước khi submit
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: "Lưu thành công!",
+                            class_name: 'gritter-success'
+                        });
+                        onCloseForm();
+                    } else {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                   
+                }
+            });
+            return false;
+        }
+    });
+    function btnSubmit() {
+        $('#form-submit-app').submit();
+    }
+    $('#Files').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem) {
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+    }
+    function showForm(key, obj) {
+        $("#form-submit-app")[0].reset();
+        $('#CustomerID, #Person_contact, #Type').val('').trigger('chosen:updated');
+        if (key == 0) {     // Create
+            $('#txttitle').text("Thêm lịch hẹn");
+            $('#popup').modal('show');
+        }
+        else {// Update
+            var currentRow = $(obj).closest("tr");
+            var dataItem = $("#GridAppointment").data("kendoGrid").dataItem(currentRow);
+            onBindDataToForm(dataItem);
+            $("#Type").val(dataItem.Type).trigger('chosen:updated');
+            $('#CustomerID').val(dataItem.CustomerID).trigger('chosen:updated');
+            changeCustomer();
+            $('#Person_contact').val(dataItem.Person_contact).trigger('chosen:updated');
+            setTimeout(function () { }, 500);
+
+            $('#txttitle').text("Chỉnh sửa lịch hẹn");
+            $('#popup').modal('show');
+        }
+    }
+    function onCloseForm() {
+        $('#txttitle').text('');
+        $('.modal').modal('hide');
+    }
+</script>

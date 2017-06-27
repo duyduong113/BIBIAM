@@ -1,0 +1,585 @@
+﻿
+@{
+    ViewBag.Title = "Book banner";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<script src="@Url.Content("~/Scripts/jquery.maskMoney.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/utilitycommon.js")" type="text/javascript"></script>
+@Html.Partial("popup")
+<form data-book="0" id="form-other" class="form" action="@Url.Action("SaveOtherInfo","CRM_BookBanner")">
+    <input type="hidden" id="pkBookReq" value="0" />
+    <div class="row-fluid">
+        <h6><b>Thông tin khách hàng</b></h6>
+        <hr />
+        <fieldset>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Khách hàng</label>
+                    <div class="controls">
+                        @(Html.Kendo().AutoComplete()
+                              .Name("txt-CustomerID")
+                              .DataTextField("CustomerName")
+                              .Animation(true)
+                              .Placeholder("Nhập tên khách hàng")
+                              .Filter("contains")
+                              .MinLength(1)
+                              .HtmlAttributes(new { style = "width:100%", @class = "input-medium" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("CustomerRead", "CRM_CustomerSupport")
+                                          .Data("onAdditionalData");
+                                  })
+                                  .ServerFiltering(true);
+                              })
+                             .Events(e =>
+                             {
+                                 e.Select("onSelectCustomer");
+
+                             })
+                             .Template("<span>#=CustomerID# - #=CustomerName#</span>")
+                        )
+                    </div>
+                </div>
+                <input type="hidden" class="span12" id="customer-id" name="c_customer_code" placeholder="..." />
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Nhãn hàng</label>
+                    <div class="controls">
+                        <input type="text" class="span12" id="c_labels" name="c_labels" placeholder="..." />
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Nhân viên</label>
+                    <div class="controls">
+                        <select id="staff" class="select" name="c_staff_id" data-placeholder="--Nhân viên--" style="width:100%">
+                            <option value="">-- Chọn nhân viên--</option>
+                            @foreach (var item in ViewBag.listStaff)
+                            {
+                                <option value="@item.Code">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Mã book</label>
+                    <div class="controls">
+                        <input type="text" class="input-medium" id="bookcode" name="c_code" value="@ViewBag.BookCode" readonly />
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+    </div>
+    <div class="row-fluid">
+        <label class="span2">
+            <input id="chckb-display-other" name="form-field-checkbox" type="checkbox" class="ace">
+            <span class="lbl"> Hiển thị thông tin khác</span>
+        </label>
+    </div>
+    <div id="guarantee" class="row-fluid" style="display:none">
+
+        <fieldset>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Email người bảo lãnh</label>
+                    <div class="controls">
+                        <input type="text" id="emai-guarantee" name="c_guarantee_email" value="" />
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Người bảo lãnh</label>
+                    <div class="controls">
+                        <input type="text" id="name-guarantee" name="c_guarantee_name" value="" />
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Chức vụ</label>
+                    <div class="controls">
+                        <select id="position-guarantee" class="select" name="c_position" style="width:100%">
+                            <option value="">-- Chọn Chức vụ--</option>
+                            @foreach (var item in ViewBag.listPosition)
+                            {
+                                <option value="@item.Code">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Ghi chú</label>
+                    <div class="controls">
+                        <textarea id="note-guarantee" name="c_note" cols="3" rows="1"></textarea>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Tiền bảo lãnh</label>
+                    <div class="controls">
+                        <input type="text" id="money-guarantee" class="currency" name="c_guarantee_money" value="0" data-thousands="," data-decimal="." data-precision="0" placeholder="0" />
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>Nội dung bảo lãnh</label>
+                    <div class="controls">
+                        <input type="text" id="content-guarantee" name="c_guarantee_note" value="" />
+                    </div>
+                </div>
+            </div>
+            <div class="span2">
+                <label>Từ ngày - Đến ngày</label>
+                <div class="controls">
+                    <input type="text" class="input-xs" id="range-date-guarantee" name="c_guarantee_date" placeholder="Từ ngày - Đến ngày" />
+                </div>
+            </div>
+            <div class="span2">
+                <div class="control-group">
+                    <label>File đính kèm</label>
+                    <div class="controls">
+                        <input type="file" id="file" name="file" />
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</form>
+<div class="row-fluid">
+    <h6><b>Vị trí book</b></h6>
+    <fieldset>
+        @(Html.Kendo()
+              .Grid<ERPAPD.Models.CRM_BookLocation>()
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID)
+                         .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+                         .ClientTemplate("#=rendercheckbox(ID)#")
+                         .Width(30).Filterable(false).Sortable(false);
+
+                  columns.ForeignKey(p => p.Website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name")
+                         .Title("Website")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name")
+                         .Title("Chuyên mục")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Location, (System.Collections.IEnumerable)ViewBag.listLocation, "Code", "Name")
+                         .Title("Vị trí")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Nature, (System.Collections.IEnumerable)ViewBag.listNature, "Code", "Name")
+                         .Title("Chia sẻ")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.Bound(p => p.NgayLen)
+                         .Title("Ngày lên")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayLen,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayLen,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("Date");
+
+                  columns.Bound(p => p.NgayXuong)
+                         .Title("Ngày xuống")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayXuong,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayXuong,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("Date");
+
+                  columns.Bound(p => p.SoNgay)
+                         .Title("Số ngày")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847", columnname = "SoNgay" })
+                         .EditorTemplateName("Integer");
+
+                  columns.Bound(p => p.SoTuan)
+                         .Title("Số tuần")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847", columnname = "SoTuan" })
+                         .EditorTemplateName("Integer");
+
+                  columns.Bound(p => p.Label)
+                         .Title("Nhãn hàng")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+
+                  columns.Bound(p => p.Km2)
+                         .Title("Hỗ trợ")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  //.EditorViewData(new { ViewBag.listWebsite })
+                  //.EditorTemplateName("AutoCompleteTemplate");
+                  // columns.Command(command => { command.Custom("ViewDetail").Click("ViewDetail").Text("Kiểm tra trùng"); }).Width(100);
+
+              })
+              .ToolBar(toolbar =>
+              {
+              toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-small btn-success" href="javascript:void(0)" id="btnGridAdd">
+                        @Resources.Multi.Add
+                    </a>
+                    <a class="btn btn-small btn-success" href="javascript:void(0)" id="btnCancel">
+                        Hủy bỏ
+                    </a>
+                    <button type="button" id="btnSaveBook" class="btn btn-primary btn-small">Lưu thông tin</button>
+                    @*<a class="btn btn-small btn-danger" href="javascript:void(0)" onclick="showConfirmPopup('XOA')">
+                        Xóa
+                    </a>*@
+                    <a class="btn btn-default btn-small" href="@Url.Action("Index", "CRM_BookBanner") ">Trở về</a>
+                }
+            </div>
+            </text>);
+              })
+              .Navigatable()
+              .AutoBind(false)
+              .Editable(editable => editable.Mode(GridEditMode.InCell))
+              .Events(events => { events.Edit("onEdit"); events.Change("onChange"); events.Save("onSave"); })
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource.Ajax()
+                                        .Batch(true)
+                                        .PageSize(50)
+                                        .Events(events =>
+                                        {
+                                            events.Error("error_handler");
+                                            events.RequestEnd("onRequestEnd");
+                                        })
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.ID);
+                                            model.Field(p => p.ID).Editable(false);
+                                        })
+                                        .Create(create => create.Action("Save", "CRM_BookBanner").Data("getHeaderInfo"))
+                                        .Update(create => create.Action("Save", "CRM_BookBanner").Data("getHeaderInfo")))
+        )
+    </fieldset>
+    @* </ Hiện thị thông tin> *@
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.select').chosen();
+        $('#range-date-guarantee').daterangepicker({
+            ranges: {
+                'Hôm nay': [moment(), moment()],
+                'Hôm qua': [moment().subtract('days', 1), moment().subtract('days', 1)],
+                '7 ngày trước': [moment().subtract('days', 6), moment()],
+                '30 ngày trước': [moment().subtract('days', 29), moment()],
+                'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+                'Tháng trươc': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+            },
+            format: 'DD/MM/YYYY',
+            locale: {
+                applyLabel: 'Xác nhận',
+                cancelLabel: 'Đóng lại',
+                fromLabel: 'Từ',
+                toLabel: 'Đến',
+                customRangeLabel: 'Tuỳ chọn',
+                daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                firstDay: 1,
+            }
+        });
+        $('#file').ace_file_input({
+            no_file: 'No File ...',
+            btn_choose: 'Choose',
+            btn_change: 'Change',
+            droppable: false,
+            onchange: null,
+            thumbnail: false //| true | large
+            //whitelist:'gif|png|jpg|jpeg'
+            //blacklist:'exe|php'
+            //onchange:''
+            //
+        });
+        $('.currency').maskMoney();
+    })
+    function rendercheckbox(id) {
+        if (id == 0) {
+            return "<span></span>";
+        }
+        else {
+            return "<input style='text-align:center' class='checkrowid' type='checkbox' id='" + id + "'  />";
+        }
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function onAdditionalData() {
+        return {
+            text: $("#txt-CustomerID").val()
+        };
+    }
+    function onSelectCustomer(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#customer-id").val(dataItem.CustomerCode);
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            //$("#Grid").data("kendoGrid").dataSource.read();
+            window.location = r + '/CRM_BookBanner/Index/';
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            // $("#Grid").data("kendoGrid").dataSource.read();
+            window.location = r + '/CRM_BookBanner/Index/';
+        }
+
+       
+    }
+
+    function onEdit(e) {
+        console.log(e.sender._data)
+    }
+    function onChange(e) {
+        var selectedRows = this.select();
+        console.log(selectedRows);
+    }
+
+    function onSave(e) {
+        //debugger
+        if (e.container.attr('columnname') == 'SoNgay') {
+            var numWeek = e.values.SoNgay / 7;
+            if (numWeek % 2 == 0) {
+                e.model.SoTuan = numWeek;
+            }
+            else {
+                e.model.SoTuan = 0;
+            }
+            date = new Date();
+            var dateUp = new Date(date.getFullYear(), date.getMonth(), date.getDate() + e.values.SoNgay-1);
+            e.model.NgayXuong = dateUp;
+            $(e.container).next().html(e.model.SoTuan);
+            $(e.container).prev().html(kendo.toString(kendo.parseDate(e.model.NgayXuong), 'dd/MM/yyyy'));
+        }
+
+        if (e.container.attr('columnname') == 'SoTuan') {
+            var numDay = e.values.SoTuan * 7;
+            e.model.SoNgay = numDay;
+            $(e.container).prev().html(e.model.SoNgay);
+
+            date = new Date();
+            dateUp = new Date(date.getFullYear(), date.getMonth(), date.getDate() + numDay);
+            e.model.NgayXuong = dateUp;
+            var dateUp = new Date(date.getFullYear(), date.getMonth(), date.getDate() + e.values.SoNgay);
+            $(e.container).prev().prev().html(kendo.toString(kendo.parseDate(e.model.NgayXuong), 'dd/MM/yyyy'));
+        }
+    }
+
+    $('#chckb-display-other').bind('click', function () {
+        if ($(this).is(':checked')) {
+            $('#guarantee').css('display', 'inline');
+            $('.select').chosen();
+            $('#position_guarantee_chosen').css('width', '100%');
+        }
+        else {
+            $('#guarantee').css('display', 'none');
+        }
+    })
+
+    function getHeaderInfo() {
+        return {
+            pkBookReq: $('#pkBookReq').val(),
+        }
+    }
+
+    $('#btnGridAdd').click(function () {
+        if ($('#customer-id').val() == "" || $('#staff').val() == "" || $('#bookcode').val() == "") {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: 'Lỗi',
+                // (string | mandatory) the text inside the notification
+                text: 'Vui lòng chọn Khách hàng & Nhân viên',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $("#Grid").data("kendoGrid").addRow();
+        }
+
+    })
+
+    $('#btnSaveBook').bind('click', function () {
+        if ($('#customer-id').val() == "" || $('#staff').val() == "" || $('#bookcode').val() == "") {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: 'Lỗi',
+                // (string | mandatory) the text inside the notification
+                text: 'Vui lòng chọn Khách hàng & Nhân viên',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $("form#form-other").submit();
+            if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+                $('#Grid').data('kendoGrid').saveChanges();
+            }
+        }
+
+
+    })
+
+    $('#btnCancel').click(function () {
+        $('#Grid').data("kendoGrid").cancelChanges();
+    })
+
+    $("form#form-other").validate({
+        errorPlacement: function (error, element) {
+            //if (element.is(":hidden")) {
+            //    element.next().parent().append(error);
+            //}
+            //else {
+            //    error.insertAfter(element);
+            //}
+        },
+        beforeSend: function () {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+        },
+        submitHandler: function (form) {
+            var _url = $('form#form-other')[0].action;
+            var fd = new FormData();
+            if ($('input[type="file"]')) {
+                var file_data = $('#file')[0].files[0]; // for multiple files
+                fd.append("file", file_data);
+            }
+            var other_data = $('form#form-other').serializeArray();
+            $.each(other_data, function (key, input) {
+              
+                if (input.name == "c_guarantee_money") {
+                    fd.append(input.name, currencyToNumber(input.value));
+                }
+                else {
+                    fd.append(input.name, input.value);
+                }
+
+            });
+            $.ajax({
+                url: _url,
+                type: 'POST',
+                data: fd,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    var parsed_data = JSON.parse(data);
+                    $('#pkBookReq').val(parsed_data.data);
+                    //$.gritter.add({
+                    //    title: 'Thành công',
+                    //    text: 'Cập nhật t thành công',
+                    //    class_name: 'gritter-success'
+                    //});
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+            });
+
+
+        }
+    });
+
+
+    function ViewDetail(e) {
+        debugger
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var ob = {};
+        ob.ID = dataItem.ID;
+        ob.Website = dataItem.Website;
+        ob.Category =  dataItem.Category;
+        ob.Location = dataItem.Location;
+        ob.Nature = dataItem.Nature;
+        ob.NgayLen = kendo.toString(dataItem.NgayLen, "yyyy/MM/dd"); 
+        ob.NgayXuong = kendo.toString(dataItem.NgayXuong, "yyyy/MM/dd");
+        console.log(ob);
+        $.post(r + "/CRM_BookBanner/getDuplicateData", { data: ob }, function (data) {
+            if (data.success) {
+
+            }
+            else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: 'Không có vị trí trùng',
+                    class_name: 'gritter-warning'
+                });
+            }
+        })
+        console.log(dataItem.ID);
+    }
+</script>

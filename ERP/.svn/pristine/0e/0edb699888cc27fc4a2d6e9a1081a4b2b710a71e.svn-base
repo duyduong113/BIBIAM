@@ -1,0 +1,107 @@
+.mt-step-col {
+  padding: 30px 0;
+  text-align: center;
+}
+
+.mt-step-number {
+  font-size: 15px;
+  border-radius: 50% !important;
+  display: inline-block;
+  margin: auto;
+  padding: 9px;
+  margin-bottom: 5px;
+  border: 3px solid;
+  border-color: #e5e5e5;
+  position: relative;
+  z-index: 5;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+}
+.mt-step-number > i {
+  position: relative;
+  top: 50%;
+  transform: translateY(-120%);
+}
+.mt-step-title {
+  font-size: 20px;
+  font-weight: 400;
+  position: relative;
+}
+.mt-step-title:after {
+  content: '';
+  height: 3px;
+  width: 50%;
+  position: absolute;
+  background-color: #e5e5e5;
+  top: -22px;
+  left: 50%;
+  z-index: 4;
+  transform: translateY(-100%);
+}
+.mt-step-title:before {
+  content: '';
+  height: 3px;
+  width: 50%;
+  position: absolute;
+  background-color: #e5e5e5;
+  top: -22px;
+  right: 50%;
+  z-index: 4;
+  transform: translateY(-100%);
+}
+.first .mt-step-title:before {
+  content: none;
+}
+
+.last .mt-step-title:after {
+  content: none;
+}
+.active .mt-step-number {
+  color: #32c5d2 !important;
+  border-color: #32c5d2 !important;
+}
+.active .mt-step-title,
+.active .mt-step-content {
+  color: #32c5d2 !important;
+}
+.active .mt-step-title:after, .active .mt-step-title:before {
+  background-color: #32c5d2;
+}
+.done .mt-step-number {
+  color: #26C281 !important;
+  border-color: #26C281 !important;
+}
+.done .mt-step-title,
+.done .mt-step-content {
+  color: #26C281 !important;
+}
+.done .mt-step-title:after, .done .mt-step-title:before {
+  background-color: #26C281;
+}
+.error .mt-step-number {
+  color: #E7505A !important;
+  border-color: #E7505A !important;
+}
+.error .mt-step-title,
+.error .mt-step-content {
+  color: #E7505A !important;
+}
+.error .mt-step-title:after, .error .mt-step-title:before {
+  background-color: #E7505A;
+}
+
+.inactive .mt-step-number {
+  border-color: #e5e5e5 !important;
+}
+.inactive .mt-step-title,
+.inactive .mt-step-content {
+  color: #95a5a6 !important;
+}
+.inactive .mt-step-title:after, .inactive .mt-step-title:before {
+  background-color: #e5e5e5;
+}
+
+.mt-step-number i{
+    margin-top: 10px;
+}

@@ -1,0 +1,1017 @@
+﻿@model IEnumerable<ERPAPD.Models.Deca_SMS_Template>
+
+@{
+    ViewBag.Title = "SMS Template Definition";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<style>
+    .k-window {
+        height: 390px;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/underscore.js")"></script>
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header">
+                <h4>Filter</h4>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+
+                        <input class="span2" type="text" id="Title" placeholder="Teamplate" />
+                        <select name="select" id="_Userchosen" class='chosen-select span2 ' data-placeholder="Select Roles..." multiple>
+                            <option value="0">All</option>
+                            @foreach (var item in ViewBag.listGroup)
+                            {
+                                <option value="@item.Name">@item.Name</option>
+                            }
+                        </select>
+
+                        <button type="button" id="btnSearch" class="btn btn-purple btn-small">View Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+              .Grid(Model)
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID).Title("#").Width(20);
+                  columns.Bound(p => p.Title).Title("Teamplate").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Width(120);
+                  columns.Bound(p => p.MaxNumber).Width(50).Title("MaxPhone#").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  columns.Bound(p => p.Roles).Width(200).Title("Roles").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  columns.Bound(p => p.Message).Width(200).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).EditorTemplateName("TextArea").Visible(false);
+                  columns.Bound(p => p.CreatedAt).Format("{0:dd/MM/yyyy HH:mm}").Width(60);
+                  columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(60);
+                  columns.Bound(p => p.UpdatedAt).Title("Update at").Format("{0:dd/MM/yyyy HH:mm}").Width(60);
+                  columns.Bound(p => p.UpdatedBy).Title("Update by").Width(60);
+                  columns.Bound(p => p.ID).HeaderTemplate("Action").ClientTemplate("<button type='button' class='btn-success k-button k-button-icontext ' style='display:inline-block;color:white;' onclick = 'showPopup(this)' >Edit</button>").Title("").Width(60);
+                  columns.Command(command =>
+                  {
+                      command.Destroy().HtmlAttributes(new { @style = "display:" + (AllowDelete ? "inline-block" : "none") });
+                  }).Width(60).Title("Action");
+              })
+              .Events(events => { events.DataBound("dataBound"); })
+              .Scrollable(scrollable => scrollable.Virtual(false))
+              .Pageable(pager => pager
+                                      .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .ColumnMenu()
+              .Scrollable()
+              .Filterable()
+              .Navigatable()
+              .Resizable(resize => resize.Columns(true))
+              .ToolBar(toolBar =>
+              {
+                  toolBar.Custom()
+                         .Text("Add new template")
+                         .HtmlAttributes(new { id = "import", @class = "btn btn-primary", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+              })
+              .DataSource(dataSource => dataSource
+                                                  .Ajax()
+                                                  .Batch(true)
+                                                  .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                  .Model(model =>
+                                                  {
+                                                      model.Id(p => p.ID);
+                                                      model.Field(p => p.ID).Editable(true);
+                                                      model.Field(p => p.MaxNumber).Editable(true);
+                                                      model.Field(p => p.Message).Editable(true);
+
+                                                      model.Field(p => p.Message).Editable(true);
+                                                      model.Field(p => p.CreatedAt).Editable(false);
+                                                      model.Field(p => p.CreatedBy).Editable(false);
+                                                      model.Field(p => p.UpdatedAt).Editable(false);
+                                                      model.Field(p => p.UpdatedBy).Editable(false);
+                                                  })
+                                                  .PageSize(100)
+                                                  .Read(read => read.Action("SMS_Template_Read", "SMSTemplate"))
+                                                  .Update(read => read.Action("SMS_Template_Update", "SMSTemplate"))
+                                                  .Destroy(delete => delete.Action("SMS_Template_Delete", "SMSTemplate"))
+                                                  )
+        )
+    </div>
+</div>
+<!-- Boostrap modal dialog -->
+@(Html.Kendo()
+      .Window()
+      .Name("window")
+      .Title("SMS Template Definition")
+      .Content(@<text>
+        <div class="row-fluid" style="min-height:410px !important">
+            <div>
+                <div class="control-group">
+                    <label class="control-label" for="MessageContent">Title Template </label>
+                    <div class="controls">
+                        <input id="Title" class="titletext" placeholder="Title Template" type="text" /><span style="color:red; margin-left:5px;">*</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="MessageContent">MaxNum</label>
+                    <div class="controls">
+                        <input id="MaxNum" class="numbersOnly" placeholder="Quantity max in one send.If = 0 -> unlimited" type="text" /><span style="color:red; margin-left:5px;">*</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="Roles">Roles</label>
+                    <div class="controls">
+                        <div id="newuserchosen">
+                            <select name="select" id="userchosen" class='chosen-select span2' style="width: 450px" data-placeholder="Roles..." multiple>
+                                <option value="All">All</option>
+                                @foreach (var item111 in ViewBag.listGroup)
+                                {
+                                    <option value="@item111.Name">@item111.Name</option>
+                                }
+                            </select><span style="color:red; margin-left:5px;">*</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="MessageContent">Message</label>
+                    <p><b><u>Tag:</u></b> <b> <span style="margin-left:5px;">[CustomerName] </span>    <span style="margin-left:5px;">[TelesalesName]</span>     <span style="margin-left:5px;">[TelesalesPhone]</span>      <span style="margin-left:5px;">[Other]</span> </b><span style="color:red; margin-left:5px;">*</span></p>
+                    <div class="controls">
+                        <textarea class="span12" id="MessageContent" name="MessageContent" onkeyup="countChar(this)" rows="3" placeholder="Lưu ý: tin nhắn không dấu! Vui lòng điền đúng chính xác cụm từ đặc biệt(Copy -> Paste để khỏi phải kiểm tra): [CustomerName] [TelesalesName] [TelesalesPhone] [Other]" maxlength="459"></textarea>
+                        <div id="charNum" style="color: red;"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="MessageContent">IsActive</label>
+                    <div class="controls">
+                        <input name="IsActive" checked class="numbersOnly" type="checkbox" />
+                    </div>
+                </div>
+
+                <div style="display:none;"><span id="SmsTemplateIDTemp"></span></div>
+
+
+                <div class="control-group" id="gridResult" style="display: none;">
+                    <label class="control-label">Send result</label>
+                    <div class="controls">
+                        <input id="resendData" type="text" style="display: none" />
+                        @(Html.Kendo()
+                          .Grid(Model)
+                          .Name("gridTeamplate")
+                          .Columns(columns =>
+                          {
+                              columns.Bound(p => p.Title).Width(100).Title("Title");
+                              columns.Bound(p => p.MaxNumber).Width(100).Title("MaxNumber");
+                              columns.Bound(p => p.Message).Width(100).Title("Mess");
+                          })
+                          .Sortable()
+                          .ColumnMenu()
+                          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                          .Scrollable()
+                          .Filterable()
+                          .Navigatable()
+                          .Resizable(resize => resize.Columns(true))
+                          .DataSource(dataSource => dataSource
+                                                              .Ajax()
+                                                              .ServerOperation(false))
+                        )
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button id="btnSendBack" class="btn btn-small btn-info">
+                    Save
+                </button>
+                @*<button id="btnImportSendSMS" class="btn btn-small btn-success">
+                        Save SMS
+                    </button>
+                    <button id="btnResend" class="btn btn-small btn-danger" style="display: none;">
+                        Resend
+                    </button>*@
+            </div>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(550)
+      .Height(390)
+      .HtmlAttributes(new { @style = "z-index: 10000;min-height:440px" })
+      .Actions(actions => actions.Close())
+)
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".numbersOnly").keydown(function (e) {
+            // Allow: backspace, delete, tab, escape, enter and .
+            if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+                // Allow: Ctrl+A
+       (e.keyCode == 65 && e.ctrlKey === true) ||
+                // Allow: home, end, left, right
+       (e.keyCode >= 35 && e.keyCode <= 39)) {
+                // let it happen, don't do anything
+                return;
+            }
+            // Ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+
+<style>
+    .chosen {
+        width: 150px;
+    }
+</style>
+<script>
+
+    function showPopup(obj) {
+        var row = $(obj).closest('tr');
+        var id = $(row).find("td:eq(0)").text();
+
+
+        $.post(r + "/SMSTemplate/SmsTemplateID?id=" + id, function (data) {
+            if (data.success) {
+                var data1 = JSON.parse(data.data);
+                var data2 = data.data2;
+                for (var i = 0; i < data1.length; i++) {
+                    $('#MessageContent').val(data1[i].Message);
+                    $('.titletext').val(data1[i].Title);
+                    $('#MaxNum').val(data1[i].MaxNumber);
+                    $('#SmsTemplateIDTemp').val(id);
+                    var test = data1[i].Roles;
+
+                    var SArray = test.split(",");
+
+                    Chosen_Dung();
+                    var html = " <select name='select' id='userchosen' class='chosen-select span2' style='width: 450px' data-placeholder='Roles...' multiple> ";
+                    var sex = "";
+                    for (var z = 0; z < SArray.length; z++) {
+                        if (SArray[z] == "All") {
+                            sex = "<option value='All' selected>All</option>";
+                        }
+                        else {
+                            sex = "<option value='All' >All</option>";
+                        }
+                    }
+                    html += sex;
+                    for (var jj = 0; jj < data2.length; jj++) {
+                        var selected = "";
+                        var all = "";
+                        //so sanh: id cua group va mang roles trong smstemplateid. Neu giong nhau thi them selected
+                        for (var j = 0; j < SArray.length; j++) {
+                            if (SArray[j] != "") {
+                                if (SArray[j] == data2[jj].Name) {
+                                    selected = "selected";
+                                }
+                            }
+                        }
+                        html += "<option value='" + data2[jj].Name + "' " + selected + ">" + data2[jj].Name + "</option>";
+
+                    }
+
+                    html += " </select>";
+                    $("#newuserchosen").html(html);
+                    $("#userchosen").chosen();
+                }
+            }
+            else {
+
+            }
+        });
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "600px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/,
+            open: function (e) {
+                this.wrapper.css({ top: 10 });
+            }
+        }).data("kendoWindow")
+            .center()
+            .open();
+    }
+
+
+    $('#_Userchosen').chosen();
+    function Chosen_Dung() {
+        $("#userchosen").chosen();
+        $("#userchosen").css('width', '600px');
+    }
+
+
+    $('#btnImportSendSMS').bind('click', function () {
+        var phoneNumber = $('#PhoneNumber').val();
+        var message = $('#MessageContent').val();
+        if (phoneNumber != "" && phoneNumber != null && message != "" && message != null) {
+            $(document).ajaxStart(function () {
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+                $("#window").data("kendoWindow").close();
+            }).ajaxStop(function () {
+                $.unblockUI;
+            }); $.post(r + "/SMSMT/SendMessage", { phoneNumber: phoneNumber, message: message, issend: 'false' }, function (data) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                resetPhoneTag();
+                if (data.data.length > 0) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'save has some error!',
+                        class_name: 'gritter-error'
+                    });
+                    $("#window").data("kendoWindow").center().open();
+                    $("#gridResult").show();
+                    var ds = new kendo.data.DataSource();
+                    ds.data(data.data);
+                    $("#gridImportOrganization").data("kendoGrid").setDataSource(ds);
+                }
+                else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'save success!',
+                        class_name: 'gritter-success'
+                    });
+                    $("#window").data("kendoWindow").close();
+                }
+            })
+        }
+        else {
+
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Please insert Phone number & insert message',
+                class_name: 'gritter-error'
+            });
+        }
+    });
+
+    $('#resend').bind('click', function () {
+        var data = $('#Grid').attr('data-kendoGrid-selected');
+        if (data != "" && data != null) {
+            bootbox.confirm("Are you sure?", function (result) {
+                if (result) {
+                    $(document).ajaxStart(function () {
+                        $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+                    }).ajaxStop(function () {
+                        $.unblockUI;
+                    });
+                    $.post(r + "/SMSMT/ResendMessage", { id: data }, function (data) {
+                        $("#Grid").data("kendoGrid").dataSource.read();
+                        if (data.error.length > 0) {
+                            if (data.count > 0) {
+                                $.gritter.add({
+                                    // (string | mandatory) the heading of the notification
+                                    title: '',
+                                    // (string | mandatory) the text inside the notification
+                                    text: 'Resend has ' + data.error.length + ' fail and ' + data.count + ' success!',
+                                    class_name: 'gritter-warning'
+                                });
+                            } else {
+                                $.gritter.add({
+                                    // (string | mandatory) the heading of the notification
+                                    title: '',
+                                    // (string | mandatory) the text inside the notification
+                                    text: 'Resend fail!',
+                                    class_name: 'gritter-error'
+                                });
+                            }
+                        }
+                        else {
+                            if (data.count > 0) {
+                                $.gritter.add({
+                                    // (string | mandatory) the heading of the notification
+                                    title: '',
+                                    // (string | mandatory) the text inside the notification
+                                    text: 'Resend sucessfully!',
+                                    class_name: 'gritter-success'
+                                });
+                            } else {
+                                $.gritter.add({
+                                    // (string | mandatory) the heading of the notification
+                                    title: '',
+                                    // (string | mandatory) the text inside the notification
+                                    text: 'Can not resend these messages!',
+                                    class_name: 'gritter-error'
+                                });
+                            }
+                        }
+                    })
+
+                } else {
+
+                }
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Please select Fail message to resend!',
+                class_name: 'gritter-error'
+            });
+        }
+    });
+
+
+
+    function countChar(val) {
+        var len = val.value.length;
+        if (len > 0) {
+            if (len <= 160) {
+                $('#charNum').text(len + "/1 message");
+            } else if (len <= 306) {
+                $('#charNum').text(len + "/2 messages");
+            } else if (len <= 459) {
+                $('#charNum').text(len + "/3 messages");
+            }
+        }
+    };
+
+
+    function resetPhoneTag() {
+        document.getElementById('ReloadIT').innerHTML = " <label class='control-label' for='PhoneNumber'>Phone Number</label>"
+       + "<div class='controls'>"
+          + "<input id='PhoneNumber' name='PhoneNumber' placeholder='Phone' style='width: 100%' />"
+          + " </div>";
+        var tag_input = $('#PhoneNumber');
+        // $('.tags').attr('style', 'width: 97%;');
+
+        if (!(/msie\s*(8|7|6)/.test(navigator.userAgent.toLowerCase()))) {
+            tag_input.tag(
+              {
+                  placeholder: tag_input.attr('placeholder'),
+                  //enable typeahead by specifying the source array
+              }
+            );
+        }
+        else {
+            //display a textarea for old IE, because it doesn't support this plugin or another one I tried!
+            tag_input.after('<textarea id="' + tag_input.attr('id') + '" name="' + tag_input.attr('name') + '" rows="8">' + tag_input.val() + '</textarea>').remove();
+            //$('#form-field-tags').autosize({append: "\n"});
+        }
+        var myElements = document.querySelectorAll(".tags");
+        for (var i = 0; i < myElements.length; i++) {
+            myElements[i].style.width = "97%";
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('ReloadIT').innerHTML = " <label class='control-label' for='PhoneNumber'>Phone Number</label>"
+         + "<div class='controls'>"
+            + "<input id='PhoneNumber' name='PhoneNumber' placeholder='Phone' style='width: 500px' />"
+            + " </div>";
+        var tag_input = $('#PhoneNumber');
+        // $('.tags').attr('style', 'width: 97%;');
+        if (!(/msie\s*(8|7|6)/.test(navigator.userAgent.toLowerCase()))) {
+            tag_input.tag(
+              {
+                  placeholder: tag_input.attr('placeholder'),
+                  //enable typeahead by specifying the source array
+              }
+            );
+        }
+        else {
+            //display a textarea for old IE, because it doesn't support this plugin or another one I tried!
+            tag_input.after('<textarea id="' + tag_input.attr('id') + '" name="' + tag_input.attr('name') + '" rows="8">' + tag_input.val() + '</textarea>').remove();
+            //$('#form-field-tags').autosize({append: "\n"});
+        }
+
+        var myElements = document.querySelectorAll(".tags");
+        for (var i = 0; i < myElements.length; i++) {
+            myElements[i].style.width = "97%";
+        }
+
+        $('#PhoneNumber').val("");
+        $(".tags> span").remove();
+        $('#MessageContent').val("");
+        $('#btnResend').hide();
+        $('#resendData').val("");
+        $('#gridResult').hide();
+        $('#charNum').text("");
+        $('#PhoneNumber').text("");
+    }
+
+    $('#importmessage').bind('click', function () {
+        $("#importwindow").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow")
+            .center()
+            .open();
+    });
+
+    $('#btnImport').bind('click', function () {
+        if ($('#FileUpload').val() != '') {
+            $("#importwindow").data("kendoWindow").close();
+            bootbox.confirm("Are you sure?", function (result) {
+                if (result) {
+                    $('#isSend').val("True");
+                    $('#importform').submit();
+                } else {
+                    $("#importwindow").data("kendoWindow").center().open();
+                }
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'No file selected!',
+                class_name: 'gritter-error'
+            });
+        }
+    });
+
+
+    $('#btnImportOnly').bind('click', function () {
+        if ($('#FileUpload').val() != '') {
+            $('#isSend').val("False");
+            $('#importform').submit();
+        }
+        else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'No file selected!',
+                class_name: 'gritter-error'
+            });
+        }
+    });
+
+
+    (function () {
+        $("#importform").ajaxForm({
+            beforeSend: function () {
+                $("#importwindow").data("kendoWindow").close();
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    if (data.total > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Send successfully ' + data.total + ' message(s)',
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (data.totalfail > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: data.totalfail + ' messages sending fail! Please retry later',
+                            class_name: 'gritter-warning'
+                        });
+                    }
+                    if (data.totalimport > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Import successfully ' + data.totalimport + ' message(s)',
+                            class_name: 'gritter-info'
+                        });
+                    }
+                    if (data.data.length > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Has ' + data.data.length + ' error record(s) ',
+                            class_name: 'gritter-error'
+                        });
+                        var ds = new kendo.data.DataSource();
+                        ds.data(data.data);
+                        $("#gridImportSMS").data("kendoGrid").setDataSource(ds);
+                        $("#importwindow").data("kendoWindow").open();
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').click(function () {
+                            window.location = r + "/SMSMT/Download?file=" + data.link;
+                        })
+                    }
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Error when try reading file import!',
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+
+
+    $('#import').bind('click', function () {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "600px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/,
+            open: function (e) {
+                this.wrapper.css({ top: 10, height: 390 });
+            }
+        }).data("kendoWindow")
+            .center()
+            .open();
+        $('#MaxNum').val('');
+        $('#MessageContent').val('');
+        $('.titletext').val('');
+
+        $('#newuserchosen').html(htmlsex);
+        $('#userchosen').chosen();
+        // Chosen_Dung();
+        // $("#userchosen").val('');
+    });
+
+    $('#btnSendBack').bind('click', function () {
+        var maxNum = $('#MaxNum').val();
+        var message = $('#MessageContent').val();
+        var title = $('.titletext').val();
+        var roles = $("#userchosen option:selected");
+        var templateidtemp = $('#SmsTemplateIDTemp').val();
+
+        if (templateidtemp == null || templateidtemp == "") {
+            templateidtemp = 0;
+
+        }
+
+        var value = $("#userchosen").val();
+        var option = "";
+        for (var i = 0; i < roles.length; i++) {
+            option += roles[i].value + ",";
+        }
+        var roles = option;
+
+        if (maxNum != "" && maxNum != null && message != "" && message != null && title != "" && title != null && roles != "" && roles != null) {
+            $(document).ajaxStart(function () {
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+                $("#window").data("kendoWindow").close();
+            }).ajaxStop(function () {
+                $.unblockUI;
+            }); $.post(r + "/SMSTemplate/SendMessage", { maxNum: maxNum, message: message, title: title, roles: roles, id: templateidtemp }, function (data) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                if (data.data.success > 0) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Send success ' + data.success + ' message!',
+                        class_name: 'gritter-success'
+                    });
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                    $("#window").data("kendoWindow").close();
+
+                }
+                else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Save success!',
+                        class_name: 'gritter-success'
+                    });
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                    $("#window").data("kendoWindow").close();
+
+                }
+            })
+        }
+        else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Please insert Phone number & insert message & roles',
+                class_name: 'gritter-error'
+            });
+        }
+        $('#SmsTemplateIDTemp').val('');
+    });
+
+    $('#btnResend').bind('click', function () {
+        var id = $('#resendData').val();
+        if (id != "" && id != null) {
+            $(document).ajaxStart(function () {
+                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            }).ajaxStop(function () {
+                $.unblockUI;
+            });
+            $.post(r + "/SMSMT/ResendMessage", { id: id }, function (data) {
+                $("#Grid").data("kendoGrid").dataSource.read();
+                if (data.count > 0) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Resend success ' + data.count + ' message!',
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (data.error.length > 0) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Resend has some error!',
+                        class_name: 'gritter-error'
+                    });
+                    $("#gridResult").show();
+                    var ds = new kendo.data.DataSource();
+                    ds.data(data.error);
+                    $("#gridImportOrganization").data("kendoGrid").setDataSource(ds);
+                    if (data.resend != "") {
+                        $('#btnResend').css('display', 'inline-block');
+                        $('#resendData').val(data.resend);
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Message send successfully!',
+                        class_name: 'gritter-success'
+                    });
+                    //resetForm();
+                }
+            })
+
+        }
+    });
+
+    $("#listOrg").chosen();
+
+
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var title = $("#Title").val();
+        var listRoles = $("#_Userchosen option:selected");
+        var filter = { logic: "and", filters: [] };
+
+        var filterRoles = { logic: "or", filters: [] };
+
+
+        if (title) {
+            filter.filters.push({ field: "Title", operator: "contains", value: title });
+        }
+
+        if (listRoles.length > 0) {
+            for (var i = 0; i < listRoles.length; i++) {
+                var option = listRoles[i].value;
+                filter.filters.push({ field: "Roles", operator: "contains", value: option });
+            }
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    $('#Title').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    $('#btnSearch').bind('click', function () {
+        filter();
+    });
+    var htmlsex;
+    $(document).ready(function () {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        htmlsex = $("#newuserchosen").html();
+    });
+
+    function dataBound(e) {
+        resizeGrid();
+
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+
+
+        //load selected
+        var gridDataSource = $("#Grid").data("kendoGrid").dataSource;
+        var $Grid = $("#Grid");
+
+        $('#Grid').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-kendoGrid-rowid', data_entry.RowID);
+        });
+
+        //Mark any selected rows as selected (persists selections from page to page)
+        var selectedRowIds = $Grid.attr('data-kendoGrid-selected');
+        if (selectedRowIds != null) {
+            var selectedRowIdArray = selectedRowIds.split(',');
+            var visibleRows = $Grid.find('.kendo-data-row');
+            $(visibleRows).each(function () {
+                $row = $(this);
+                var rowID = $row.attr('data-kendoGrid-rowid');
+                if (_.contains(selectedRowIdArray, rowID)) {
+                    //$row.addClass('k-state-selected');
+                    $row.find('.checkvalue').attr('checked', 'checked');
+                }
+            });
+            var totalview = $("#Grid").data("kendoGrid").dataSource.view().length;
+            var totalchecked = $('.checkvalue:checked').length;
+            if (totalview != totalchecked) {
+                $('#checkAll').removeAttr("checked");
+            } else {
+                $('#checkAll').attr("checked", "checked");
+            }
+        }
+    }
+
+    function readData(e) {
+        var $Grid = $("#Grid");
+        var $cb = $(e);
+
+        //Get Current Selected Values
+        var selectedVals = [];
+        var selectedRowIds = $Grid.attr('data-kendoGrid-selected');
+        if (selectedRowIds != null && selectedRowIds != "") {
+            selectedVals = selectedRowIds.split(',');
+        }
+
+        var $row = $cb.parents('.kendo-data-row').first();
+        var rowId = $row.attr('data-kendoGrid-rowid');
+        if ($cb.is(':checked')) {
+            //$row.addClass('k-state-selected');
+            selectedVals.push(rowId);
+        }
+        else {
+            $('#checkAll').removeAttr("checked");
+            //$row.removeClass('k-state-selected');
+            selectedVals = _.without(selectedVals, rowId);
+        }
+
+        //Set selected values to a custom data attribute on the grid
+        $Grid.attr('data-kendoGrid-selected', selectedVals);
+    }
+
+    function getValue(e) {
+        readData(e);
+    }
+
+    $('#longname').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    $('#searchType').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    $('#txtMessage').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    $(document).ready(function () {
+        $('#checkAll').bind('click', function () {
+            if ($(this).is(':checked')) {
+                $('.checkvalue').each(function () {
+                    if (!$(this).is(':checked')) {
+                        $(this).trigger('click');
+                    }
+                })
+            }
+            else {
+                $('.checkvalue').each(function () {
+                    if ($(this).is(':checked')) {
+                        $(this).trigger('click');
+                    }
+                })
+            }
+        });
+    });
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+        //if (e.response.Errors) {
+        //    $.jGrowl("<i class='icon16 i-cancel-circle'></i> Something terrible is happen here.", {
+        //        group: 'error',
+        //        closeTemplate: '<i class="icon16 i-close-2"></i>',
+        //        animateOpen: {
+        //            width: 'show',
+        //            height: 'show'
+        //        }
+        //    });
+        //}
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+
+</script>

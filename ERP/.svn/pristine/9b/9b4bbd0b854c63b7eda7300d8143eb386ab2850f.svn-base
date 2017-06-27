@@ -1,0 +1,641 @@
+﻿
+@using CMS.Models;
+@{
+    ViewBag.Title = Resources.Global._news_list;
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+
+}
+
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .title-news {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .label {
+        border-radius: 3px;
+        text-shadow: none;
+        font-size: 11px !important;
+        font-weight: bold;
+        padding: 2px 2px 2px 2px !important;
+    }
+
+    .label-success {
+        background-color: #468847 !important;
+    }
+
+    .label-warning {
+        background-color: #f89406 !important;
+    }
+
+    .label-important {
+        background-color: #b94a48 !important;
+    }
+
+    .label-default {
+        background-color: #999 !important;
+    }
+
+    .label-info {
+        background-color: #3a87ad !important;
+    }
+
+    .btn2 {
+        width: 70% !important;
+    }
+
+    .btn-danger {
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet light bordered">
+
+            <div class="portlet-title">
+                @*<div class="caption">
+                        <span class="caption-subject bold uppercase">@Resources.Global._news</span>
+                    </div>*@
+
+
+                <div>
+                    <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("Website")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._website) + "...")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Events(e => e.Change("fil"))
+                                    .Filter("contains")
+                                    .MinLength(2)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetWebsite", "NewsManage");
+                                        }).ServerFiltering(true);
+                                    })
+
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("Category")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel("Category...")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Events(e => e.Change("fil"))
+                                    .Filter("contains")
+                                    .MinLength(2)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetCategory", "NewsManage");
+                                        }).ServerFiltering(true);
+                                    })
+
+                                    )
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("Position")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel("Positon...")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Events(e => e.Change("fil"))
+                                    .Filter("contains")
+                                    .MinLength(2)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetPosition", "NewsManage");
+                                        }).ServerFiltering(true);
+                                    })
+
+                                    )
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </form>
+                </div>
+
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" id="txtSearch" class="form-control form-control-solid input-circle tooltips" data-container="body" data-placement="top"
+                                   data-original-title="Tìm kiếm" onkeyup="filter(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <a class="btn btn-circle blue btn-sm" onclick="showMoreFilter(this)">
+                            <span class="moreFilterText">@Html.Raw(Resources.Global._more)</span>
+                            <i class="fa fa-filter"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+                @if (all || create)
+                {
+                    <div class="inputs" style="margin-right:10px;">
+                        <a href="@Url.Content("~/NewsManage/Create")" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(@Resources.Global._add) <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                }
+
+            </div>
+
+            <div class="portlet-body">
+
+                <div class="row filterMore" style="display: none; padding-bottom: 20px;margin-bottom:10px">
+                    <div class="col-md-12">
+                        <form role="form" class="filterForm">
+                            <div class="row" style="margin-bottom:5px;">
+                                <div class="col-md-12">
+                                    <label>@Html.Raw(Resources.Global._status)</label>
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("statusF")
+                                    .DataTextField("Text")
+                                    .DataValueField("Value")
+                                    .HtmlAttributes(new { @style = "width:100%;" })
+                                    .OptionLabel(Html.Raw(Resources.Global._status).ToString())
+                                    .BindTo(new List<SelectListItem>() {
+                                         new SelectListItem() {
+                                              Text = Html.Raw(Resources.Global._active).ToString(),
+                                              Value = "1"
+                                          },
+                                          new SelectListItem() {
+                                              Text = Html.Raw(Resources.Global._inactive).ToString(),
+                                              Value = "0"
+                                          }
+                                    }).Value("1")
+                                    )
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom:5px;">
+                                <div class="col-md-12 text-right">
+                                    <div class="btn-group">
+                                        <a class="btn btn-circle red btn-sm clearFilter" onclick="clearFilter()">
+                                            <span class="moreFilterText">@Html.Raw(Resources.Global._clear)</span>
+                                            <i class="fa fa-close"></i>
+                                        </a>
+                                        <a class="btn btn-circle btn-sm green" onclick="filter()" style="margin-left:5px;"><i class="fa fa-search"></i> @Html.Raw(Resources.Global._search)</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+                @(Html.Kendo().Grid<CMS.Models.cms_News>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        //columns.Bound(p => p.id)
+        //     .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+        //     .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#'/> ")
+        //     .Width(20).Filterable(false).Sortable(false);
+        columns.Bound(p => p.ma_bai_viet).Title(@Resources.Global._news).Width(30);
+
+        columns.Bound(p => p.hinh_dai_dien).Title(@Resources.Global._image).Width(60).
+        ClientTemplate("<div> <img src='#=hinh_dai_dien ? hinh_dai_dien : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#' class='img-responsive' style='display:inline; '> </div>");
+
+        columns.Bound(p => p.tieu_de).Title(@Resources.Global._title_view_des).Width(250)
+        .ClientTemplate("<span class='title-news'><a href='#=link_xem_bai_viet#'> #=tieu_de# </a> <br>   (#=luot_xem# " + @Resources.Global._count_views + ")</span>" +
+             "<br> <span> " + @Resources.Global._website + ": #=ten_website#</span>" + "<span>" + " - #=ten_chuyen_muc#</span>" + "<span>" + " - #=ten_vi_tri#</span>" + "<br> <span> #=getTheSubstring(noi_dung,0)#</span>");
+
+        columns.Bound(p => p.nguoi_xuat_ban).Title("Lịch xuất bản").Width(75)
+       .ClientTemplate("<span> Ngày xuất bản: #=kendo.toString(kendo.parseDate(ngay_gio_xuat_ban),'dd/MM/yyyy HH:mm')# <br>  Ghi chú: #=ghi_chu#</span>");
+
+        columns.Bound(p => p.tieu_de).Title(@Resources.Global._post_date_peo).Width(75)
+        .ClientTemplate("<span class='title-news'>#=nguoi_viet_bai#</span>" +
+             "<br> <span> #=kendo.toString(ngay_viet_bai,'dd-MM-yyyy')# </ span >");
+        columns.Bound(p => p.id).Title("").Width(45)
+        .ClientTemplate("<button class='btn btn-small btn-success btn-circle btn-block block tip fancybox-iframe btn2' onclick='showDetails(this)'>" + @Html.Raw(Resources.Global._preview) + "</button>" +
+        "#if ('"+all+"'=='True' || '"+update+"' == 'True'){#" +
+            "<a class='btn btn-small btn-primary btn-circle btn-block block tip fancybox-iframe btn2' /*target='_blank'*/ name = 'ViewNews' href='/NewsManage/Detail/#=id#'>" + @Html.Raw(Resources.Global._edit) + "</a>" +
+        "#}#" +
+        "#if ('" + all + "'=='True' || '" + delete + "' == 'True'){#" +
+            "<button class='btn btn-small btn-danger btn-circle btn-block block tip fancybox-iframe btn2' name='DelNews' onclick=DelNews('#=id#')>" + "#=trang_thai_tao==0?'Đã xóa':'Xóa'#" + "</button>" +
+        "#}#" +
+        "#if ('" + all + "'=='True' || '" + create + "' == 'True' || '"+update+"'=='True'){#" +
+            "<button class='btn btn-small btn-danger btn-circle btn-block block tip fancybox-iframe btn2' name='StatusNews' onclick=StatusNews('#=id#')>" + "#=trang_thai_tao==0?'Đóng':'Mở'#" + "</button>" +
+            "<button class='btn btn-small btn-warning btn-circle btn-block block tip fancybox-iframe btn2' name='Publish'  onclick=PublishNews('#=id#')>" + "#=trang_thai_xuat_ban==0?'Xuất bản':'Đã xuất bản'#" + "</button>" +
+            "<button class='btn btn-small btn-warning btn-circle btn-block block tip fancybox-iframe btn2' name='ScheduleNews'  onclick='ScheduleNews(this)'>" + @Html.Raw(Resources.Global._schedule) + "</button>" +
+        "#}#"
+        );
+    })
+    .Scrollable()
+    .Pageable(x => x.PageSizes(new int[] { 10, 20, 50, 100, 200 }))
+    .Events(events =>
+    {
+        events.DataBound("dataBound");
+    })
+    .Sortable()
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+    .Model(model =>
+    {
+        model.Id(p => p.id);
+    })
+        .Read(c => c.Action("Read", "NewsManage").Data("onAdditionalData"))
+    //.Create(c => c.Action("Create", "NewsManage"))
+    //.Update(c => c.Action("Update", "NewsManage"))
+    ))
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit">
+    </div>
+</div>
+
+
+@(Html.Kendo()
+    .Window()
+    .Name("Details")
+    .Title("PostContent")
+    .Visible(false)
+    .Modal(true)
+    .Draggable(true)
+    .Width(1200)
+    .Height(600)
+)
+
+@(Html.Kendo()
+    .Window()
+    .Name("Schedule")
+    .Title(Resources.Global._set_Schedule)
+    .Visible(false)
+    .Modal(true)
+    .Scrollable(false)
+    .Draggable(true)
+    .Width(750)
+    .Height(250)
+    .Content(@<text>
+    <form action="@Url.Content("~/NewsManage/CreateUpdateSchedule")" method="post" id="EditForm" novalidate="novalidate">
+    <div class="row">
+        <div class="input-group">
+            <input readonly value="" name="ma_bai_viet" type="hidden" class="form-control">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="col-sm-12">
+                <label class="control-label">@Html.Raw(@Resources.Global._website)</label>
+                <div class="input-group">
+                    <input readonly value="" name="website" type="text" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="col-sm-12">
+                <label class="control-label">@Html.Raw(@Resources.Global._position)</label>
+                <div class="input-group">
+                    <input readonly value="" name="vitri" type="text" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="col-sm-12">
+                <label class="control-label">@Html.Raw(Resources.Global._category)</label>
+                <div class="input-group">
+                    <input readonly value="" name="chuyenmuc" type="text" class="form-control">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="col-sm-12">
+                <label class="control-label">@Html.Raw(Resources.Global._date_publish)</label>
+                <div class="input-group">
+                    @(Html.Kendo().DateTimePicker()
+                    .Name("ngay_gio_xuat_ban")
+                    //.ParseFormats(new string[] { "MM/dd/yyyy HH:mm" })
+                    .Format("dd-MM-yyyy HH:mm")
+                    .TimeFormat("HH:mm")
+                    .HtmlAttributes(new { style = "width:100%;" })
+                    .Events(events => events.Change("changeDate"))
+                     )
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="col-sm-12">
+                    <label class="control-label">@Html.Raw(Resources.Global._note)</label>
+                    <div>
+                        <input value="" name="ghi_chu" type="text" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-1">
+            <div class="col-sm-12">
+                <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._update)</button>
+            </div>
+        </div>
+        <div class="col-md-1">
+            <div class="col-sm-12">
+                <a onclick="closewindow()" class="btn red btn-circle">@Html.Raw(Resources.Global._close)</a>
+            </div>
+        </div>
+    </div>
+    </form>
+    </text>)
+);
+
+<script type="text/x-kendo-template" id="template">
+    <div><h3>#=tieu_de#</h3></div>
+    <div>#=noi_dung#</div>
+</script>
+
+<script type="text/javascript">
+    var detailsTemplate = kendo.template($("#template").html());
+    function showDetails(e) {
+        var rowDataItem = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        var wnd = $("#Details").data("kendoWindow");
+        wnd.content(detailsTemplate(rowDataItem));
+        wnd.center().open();
+    }
+</script>
+
+<script type="text/javascript">
+    function getTheSubstring(value, length) {
+        if (value.length > length)
+            return kendo.toString(value.substring(0, length)) + "...";
+        else return kendo.toString(value);
+    }
+</script>
+
+<script>
+    function closewindow()
+    {
+        $("#Schedule").data("kendoWindow").close();
+    }
+    function changeDate()
+    {
+        var date = $("#ngay_gio_xuat_ban").data("kendoDateTimePicker").value();
+        var currrentdate = new Date();
+        if (currrentdate > date)
+        {
+            alert("Ngày xuất bản >= ngày hiện tại!");
+            $("#ngay_gio_xuat_ban").data("kendoDateTimePicker").value('');
+        }
+    }
+
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+    }
+    function onDatabound(e) {
+        resizeGrid('Grid');
+
+    }
+
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    $(document).ready(function () {
+
+        var e = $("#EditForm");
+        e.validate({
+           
+            rules:
+            {
+                ngay_gio_xuat_ban: { required: true },
+                //ghi_chu:{required:true}
+            },
+            message: {
+                ngay_gio_xuat_ban: {
+                    required: "Lỗi",    
+                },
+                //ghi_chu: {
+                //    required:"Lỗi",
+                //}
+            },
+           
+
+            submitHandler: function (e) {
+            $(e).ajaxSubmit({
+                beforeSend: function () {
+                    App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                },
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                        $('#Grid').data('kendoGrid').dataSource.read();
+                    }
+                    else {
+                        toastr.error('', data.error)
+                    }
+                },
+                complete: function (xhr) {
+                    App.unblockUI();
+                }
+            });
+        }
+        });
+
+    });
+
+
+
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+    }
+    function dataBound(e) {
+        resizeGrid('Grid');
+    }
+    function clearFilter() {
+        $(".filterForm")[0].reset();
+        filter();
+    }
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var noi_dung = $("#txtSearch").val();
+        var statusF = $("#statusF").val();
+
+        if (noi_dung) {
+            filter.filters.push({ field: "noi_dung", operator: "contains", value: noi_dung });
+            filter.filters.push(filterDesc);
+        }
+        if (statusF) {
+            filter.filters.push({ field: "trang_thai_tao", operator: "eq", value: statusF });
+        }
+    }
+
+    function fil() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        //
+        var Website = $("#Website").val();
+        if (Website != null && Website != "") {
+            filter.filters.push({ field: "ma_website", operator: "eq", value: Website });
+        }
+        var Position = $("#Position").val();
+        if (Position != null && Position != "") {
+            filter.filters.push({ field: "ma_vi_tri", operator: "eq", value: Position });
+        }
+        var Category = $("#Category").val();
+        if (Category != null && Category != "") {
+            filter.filters.push({ field: "ma_chuyen_muc", operator: "eq", value: Category });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+
+    function StatusNews(id)
+    {
+        $.post(r + "/NewsManage/StatusNews", { id: id }, function (data)
+        {
+            if (data.success) {
+                toastr.clear();
+                toastr.success('', 'Thành công');
+                $("#Grid").data("kendoGrid").dataSource.read();
+            } else {
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+            App.unblockUI();
+        });
+    }
+
+    function DelNews(id) {
+        var dataItems = $("#Grid").data("kendoGrid").dataSource.data();
+        for (var i = 0; i < dataItems.length; i++) {
+            if (dataItems[i].id == id) {
+                if (dataItems[i].trang_thai_tao == 1)
+                {
+                    bootbox.dialog({
+                        message: "@Resources.Global._are_your_sure", title: "Xóa Thông tin",
+                        buttons:
+                            {
+                                danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                                main: {
+                                    label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                                        App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                                        $.post(r + "/NewsManage/DeleteNews", { id: id }, function (data) {
+                                            if (data.success) {
+                                                toastr.clear();
+                                                toastr.success('', 'Xóa thành công');
+                                                $("#Grid").data("kendoGrid").dataSource.read();
+                                            } else {
+                                                toastr.clear();
+                                                toastr.error('', data.error);
+                                            }
+                                            App.unblockUI();
+                                        });
+                                    }
+                                }
+                            }
+                    })
+                }
+                break;
+            }
+        }
+    }
+
+    function PublishNews(id) {
+            $.post(r + "/NewsManage/PublishNews", { id: id }, function (data) {
+            if (data.success) {
+                toastr.clear();
+                toastr.success('', 'Xuất bản thành công');
+                $("#Grid").data("kendoGrid").dataSource.read();
+            } else {
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+            App.unblockUI();
+        });
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+
+    function ScheduleNews(e) {
+        var rowDataItem = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        $("input[name='website']").val(rowDataItem.ten_website);
+        $("input[name='vitri']").val(rowDataItem.ten_vi_tri);
+        $("input[name='chuyenmuc']").val(rowDataItem.ten_chuyen_muc);
+        $("input[name='ma_bai_viet']").val(rowDataItem.ma_bai_viet);
+        $("[name=ngay_gio_xuat_ban]").val(kendo.toString(kendo.parseDate(rowDataItem.ngay_gio_xuat_ban),"dd-MM-yyyy HH:mm") );
+        $("input[name='ghi_chu']").val(rowDataItem.ghi_chu);
+        var wnd = $("#Schedule").data("kendoWindow");
+        wnd.center().open();
+    }
+
+
+    function onAdditionalData() {
+    return {
+        ten_website: $("#Website").val(),
+    ten_chuyen_muc: $("#Category").val(),
+    ten_vi_tri: $("#Position").val()
+    }
+}
+
+       
+
+</script>
+    

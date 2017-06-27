@@ -1,0 +1,169 @@
+﻿@{
+    Layout = null;
+    double total = 0;
+    bool isPromotion = false;
+}
+        <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+            <tbody>
+                <tr>
+                    <td colspan="6" class="headertxt">
+                       QUẢNG CÁO CHO @Html.Raw(@ViewBag.itemDraff.BenA) - @Html.Raw(@ViewBag.itemDraff.Labels)
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50" class="tab_head"><b>Vị trí quảng cáo</b></td>
+                    <td width="50" class="tab_head"><b>S.lượng </b><br><span style="font-size:9pt; font-width:normal;">(Banner,CPM)</span></td>
+                    <td width="80" class="tab_head"><b>Kích thước </b><span style="font-size:9pt; font-width:normal;">(Pixel)</span></td>
+                    <td width="100" class="tab_head"><b>Thời gian</b><br> <span style="font-size:9pt; font-width:normal;">(tuần)</span></td>
+                    <td width="100" class="tab_head"><b>Đơn giá</b><br><span style="font-size:9pt; font-width:normal;"> (Banner: đ/ tuần)</span></td>
+                    <td width="100" class="tab_head"><b>Thành tiền</b> <br><span style="font-size:9pt; font-width:normal;">(đ)</span></td>
+                </tr>
+                @if (ViewBag.Product.Count > 0)
+                {
+
+                    foreach (var item in ViewBag.Product)
+                    {
+                        if (item.Price != 0)
+                        {
+                            int week = item.NumberDay / 7;
+                            int days = item.NumberDay % 7;
+                            double unitPrice = item.Price - item.CKTienMat;
+                            foreach (var dc in item.ListPromotion)
+                            {
+                                unitPrice = unitPrice - (dc.Discount * unitPrice / 100);
+                            }
+                            double lastMoneyOfItem = 0;
+                            if (item.ProductType == "BANNER")
+                            {
+                                lastMoneyOfItem = unitPrice * item.NumberDay / 7;
+                            }
+                            else
+                            {
+                                lastMoneyOfItem = unitPrice * item.Number;
+                            }
+                            total += lastMoneyOfItem;
+                        <tr>
+                            <td>
+                                <u>@item.ProductType</u>: @item.WebsiteName, @item.CategoryName, @item.LocationName, @item.NatureName
+                            </td>
+                            <td class="tdtxt">@item.Number</td>
+                            <td class="tdtxt">@item.Size</td>
+                            <td class="tdtxt">
+                               @if (week != 0)
+                               {
+                                   <span>@week tuần</span>
+                               }
+                                @if (days != 0)
+                                {
+                                    <span>@days ngày</span>
+                                }
+                                <br>
+                                <font size="2pt">
+                                    @foreach (var tm in item.ListTime)
+                                    {
+                                        <span>(@tm.DateUp.ToString("dd/MM/yyyy") - @tm.DateDown.ToString("dd/MM/yyyy"))</span><br />
+                                    }
+                                </font>
+                            </td>
+                            <td align="right">@unitPrice.ToString("#,##0")</td>
+                            <td align="right">@lastMoneyOfItem.ToString("#,##0")</td>
+                        </tr>
+                        }
+                        if (item.Price == 0)
+                        {
+                            isPromotion = true;
+                        }
+                    }
+
+                }
+
+                <tr>
+                    <td colspan="5" align="right">Cộng</td>
+                    <td align="right">@total.ToString("#,##0")</td>
+                </tr>
+                @if (ViewBag.discount.Count > 0)
+                {
+                    foreach (var itd in ViewBag.discount)
+                    {
+                        total = total - (total * itd.ChietKhauChung / 100);
+                        <tr>
+                            <td colspan="5" align="right">@itd.GhiChu (@itd.ChietKhauChung %)</td>
+                            <td align="right">@total.ToString("#,##0")</td>
+                        </tr>
+                    }
+                }
+                @if (ViewBag.itemdraff.GiamTrucTiep > 0)
+                {
+                    <tr>
+                        <td align="right" colspan="5">Giảm giá trực tiếp</td>
+                        <td align="right">@ViewBag.itemdraff.GiamTrucTiep.ToString("#,##0")</td>
+                    </tr>
+                    total = total - ViewBag.itemdraff.GiamTrucTiep;
+                }
+               @if (ViewBag.itemdraff.CheckVat == 1)
+               {
+                <tr>
+                    <td align="right" colspan="5">Thuế GTGT 10%</td>
+                    <td align="right">@((total * 10 / 100).ToString("#,##0"))</td>
+                </tr>
+                   total = total + total * 10 / 100;
+               }
+                <tr>
+                    <td colspan="5" align="right"><b>Tổng cộng</b></td>
+                    <td align="right"><b>@total.ToString("#,##0")</b></td>
+                </tr>
+            </tbody>
+        </table>
+        <div align="left">
+            Bằng chữ:
+            <i>@ERPAPD.Helpers.SqlHelper.ToStringConvert((total + total * 10 / 100)) ./.</i><br>
+            @if (ViewBag.itemdraff.CheckVat == 0)
+            {
+                <i>(Đơn giá trên chưa bao gồm VAT 10%)</i>
+            }
+            
+        </div>
+        <br>
+        @if (isPromotion)
+        {
+        <table cellpadding="2" cellspacing="0" width="100%" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt;" border="1">
+            <tbody>
+                <tr>
+                    <td align="center" colspan="6" class="headertxt">PHẦN ƯU ĐÃI</td>
+                </tr>
+                @foreach (var item in ViewBag.Product)
+                {
+                    if (item.Price == 0) {
+                        int week = item.NumberDay / 7;
+                        int days = item.NumberDay % 7;
+                    <tr>
+                        <td width="200"><u>@item.ProductType</u>: @item.WebsiteName, @item.CategoryName, @item.LocationName, @item.NatureName</td>
+                        <td width="100" class="tdtxt">@item.Number</td>
+                        <td width="100" class="tdtxt">@item.Size</td>
+                        <td width="100" class="tdtxt">
+                            @if (week != 0)
+                            {
+                                <span>@week tuần</span>
+                            }
+                            @if (days != 0)
+                            {
+                                <span>@days ngày</span>
+                            }
+                            <br>
+                            <font size="2pt">
+                                @foreach (var tm in item.ListTime)
+                                {
+                                    <span>(@tm.DateUp.ToString("dd/MM/yyyy") - @tm.DateDown.ToString("dd/MM/yyyy"))</span><br />
+                                }
+                            </font>
+
+                        </td>
+                        <td width="100" colspan="2" class="tdtxt"><b>Miễn phí</b></td>
+                    </tr>
+                    }
+                }
+
+            </tbody>
+        </table>
+        }
+

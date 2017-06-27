@@ -1,0 +1,91 @@
+﻿<script type="text/x-kendo-template" id="StockOutHeader">
+    <form action="@Url.Content("~/Merchant_StockOut/CreateGoodDespatchNote")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="row">
+            <div class="form-group col-md-12">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label>Mã phiếu xuất kho</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" placeholder="GDN--------" name="ma_phieu_xuat_kho" value="#=ma_phieu_xuat_kho?ma_phieu_xuat_kho:''#" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Mã đơn hàng</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" placeholder="" name="ma_don_hang" value="#=ma_don_hang?ma_don_hang:'PO'#">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Họ tên người nhận</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" placeholder="" name="nguoi_nhan" value="#=nguoi_nhan?nguoi_nhan:''#">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Ngày xuất kho</label>
+                        <div class="input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+                            <input type="text" class="form-control input-sm" placeholder="dd/MM/yyyy" name="ngay_xuat_kho" value="#=kendo.toString(kendo.parseDate(ngay_xuat_kho),'yyyy/MM/dd') !='0001/01/01' && ngay_xuat_kho !=null ? kendo.toString(kendo.parseDate(ngay_xuat_kho),'dd/MM/yyyy'): '' #">
+                            <span class=" input-group-btn">
+                                <button class="btn default input-sm" type="button">
+                                    <i class="fa fa-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-12">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label>@Html.Raw(Resources.Global._access_warehouse)</label>
+                        @(Html.Kendo().DropDownList().Name("ma_kho").HtmlAttributes(new { style = "width:100%" }).OptionLabel("Chọn kho...").DataTextField("ten_kho").DataValueField("ma_kho").Value("#=ma_kho#").Filter("contains").Events(e => e.Change("DLonChange")).DataSource(source => { source.Read(read => { read.Action("MerchantStock", "Merchant_Warehouse"); }).ServerFiltering(false); }).ToClientTemplate())
+                    </div>
+                    <div class="col-md-3">
+                        <label>Địa điểm</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" placeholder="" name="dia_diem" value="#=dia_diem?dia_diem:''#">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Thủ kho</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" placeholder="" name="thu_kho" value="#=thu_kho?thu_kho:''#">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Trạng thái</label>
+                        <div class="clearfix">
+                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                <label class="btn green btn-sm btn-outline #=trang_thai=='Draft'?'active':''#">
+                                    Nháp
+                                </label>
+                                <label class="btn green btn-sm btn-outline #=trang_thai=='Aprove'?'active':''#">
+                                    Duyệt
+                                </label>
+                                <label class="btn green btn-sm btn-outline #=trang_thai=='Aproved'?'active':''#">
+                                    Đã duyệt
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>Ghi chú</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <textarea rows="2" class="form-control input-sm max100" name="ghi_chu"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>

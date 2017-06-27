@@ -1,0 +1,35 @@
+﻿@model List<ERPAPD.Models.DC_Telesale_ReportKPI>
+
+@if (Model.Count > 0)
+{
+    <div>
+        Lịch sử 7 ngày làm việc
+    </div>
+    <div style="border-bottom: dotted 1px #ccc; padding: 0 0 10px 0">
+        <table id="sample-table-1" class="table table-striped table-bordered table-hover">
+            <tbody>
+                <tr>
+                    @foreach (var item in Model)
+	                {
+                        <td style="line-height:15px">
+                            <span class="duration">@item.Date.ToString("dd-MM")</span>
+                            <label class="amount">@String.Format("{0:0,0}", item.ActualRevenue)</label>
+                            <label class="calc">Đạt: @String.Format("{0:0,0}", item.PercentRevenue) %</label>
+                            <div class="o" style="text-align:center;">
+                                @*<span class="history label label-grey">100</span>
+                                <span class="history label label-important">100</span>
+                                <span class="history label label-inverse">100</span>
+                                <span class="history label label-warning">100</span>*@
+                                <span class="history label label-grey">@String.Format("{0:0.0}", item.PercentCall)</span>
+                                <span class="history label label-important">@String.Format("{0:0.0}", item.PercentCustomer)</span>
+                                <span class="history label label-inverse">@String.Format("{0:0.0}", item.PercentTalkTime)</span>
+                                <span class="history label label-warning">@String.Format("{0:0.0}", item.ActualOrder) </span>
+                            </div>
+                            </td>
+	                }
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,684 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._warehouse_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+    var data = new Merchant_Warehouse();
+    data.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG;
+}
+@{
+    var newData = new Merchant_Warehouse();
+}
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách Nhà Kho</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption">
+                            <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._warehouse_list)</span>
+                        </div>
+                        <div class="inputs">
+                            <div class="portlet-input input-inline input-small ">
+                                <div class="input-icon right">
+                                    <i class="icon-magnifier"></i>
+                                    <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="todo-tasklist">
+                            @(Html.Kendo().Grid<BIBIAM.Core.Entities.Merchant_Warehouse>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                    columns.Bound(p => p.id)
+                     .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+                     .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ma_kho#+@@+#=trang_thai#+@@+#=ten_kho#'/>")
+                     .Width(30).Filterable(false).Sortable(false).HtmlAttributes(new { @class = "text-center" });
+                    columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-success' onClick='edit(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(45).Title("sửa").HtmlAttributes(new { @class = "text-center" });
+                    columns.Template(@<text></text>).Width(120).Title("Mã Kho")
+                        .ClientTemplate("<div class='todo-tasklist-item-text'>#=ma_kho#</div>");
+                    columns.Template(@<text></text>).Width(120).Title("Tên Kho")
+                        .ClientTemplate("<div class='todo-tasklist-item-text'>#=ten_kho#</div>");
+                    columns.Template(@<text></text>).Width(120).Title("Mã gian hàng")
+                        .ClientTemplate("<div class='todo-tasklist-item-text'>#=ma_gian_hang#</div>");
+                    columns.Template(@<text></text>).Width(300).Title("Địa chỉ ")
+                        .ClientTemplate("<div class='todo-tasklist-item-text'>#=dia_chi#</div>");
+                    columns.Template(@<text></text>).Width(150).Title("Phone number")
+                       .ClientTemplate("<div class='todo-tasklist-item-text'>#=phone#</div>");
+                    columns.Template(@<text></text>).Width(150).Title("fax")
+                       .ClientTemplate("<div class='todo-tasklist-item-text'>#=fax#</div>");
+                    columns.Template(@<text></text>).Width(210).Title("Trạng thái sử dụng")
+                        .ClientTemplate(
+                        "#if(trang_thai=='" + AllConstant.trang_thai.DANG_SU_DUNG + "'){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đang sử dụng</label>"
+                        + "#}else{#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Không sử dụng</label>"
+                        + "#}#");
+
+                    })
+                    .Pageable(pager => pager.PageSizes(new[] { 10, 100, 200, 300, 500 }))
+                    .Scrollable()
+                    .ToolBar(toolbar =>
+                    {
+                    toolbar.Template(@<text>
+                                <div class="pull-left">
+                                    @if (create || all)
+                                    { <a onclick='create()' class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>}
+
+                                    @if (delete || all)
+                                    {  
+                                    <button class="btn btn-small btn-danger" onclick=removeWarehouse()><i class="fa fa-trash" aria-hidden="true"></i> @Resources.Global._delete</button>}
+                                     @if (isAdmin)
+                                     {
+                                    <button class="btn btn-small btn-primary" onclick="Active()"><i class="fa fa-check-square-o" aria-hidden="true"></i> Sử dụng</button>
+                                    <button class="btn btn-small btn-warning" onclick="InActive()"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Không sử dụng</button>
+                                     }
+                                    @if (export || all)
+                                    {
+                                        <div class="btn-group">
+                                            <a class="btn green default btn-sm btn-circle dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true">
+                                                Import
+                                                <span class="fa fa-angle-down"> </span>
+                                            </a>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a href="#myModalImport" role="button" class="btn green default btn-sm btn-circle" data-toggle="modal"><i class="fa fa-upload"></i> Import sản phẩm </a>
+                                                </li>
+                                                <li>
+                                                    <a href="@Url.Content("~/Merchant_Product/Export?type=0")" role="button" class="btn btn-primary default btn-sm btn-circle" data-toggle="modal"><i class="fa fa-file-excel-o"></i> Dowload template </a>
+                                                </li>
+                                                <li>
+                                                    <a href="@Url.Content("~/Merchant_Product/Export?type=1")" role="button" class="btn btn-primary default btn-sm btn-circle" data-toggle="modal"><i class="fa fa-file-excel-o"></i> Xuất dữ liệu </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    }
+                           
+                                </div>
+                    </text>);
+                    })
+                    .Events(events =>
+                    {
+                        events.DataBound("onDatabound");
+                    })
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .HtmlAttributes(new { @style = "height:700px" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(false)
+                        .PageSize(10)
+                        .Sort(s => s.Add(a => a.id).Descending())
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                        })
+                        .Read(read => read.Action("Read", "Merchant_Warehouse"))
+                    ))
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12 formEdit"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                           
+<script type="text/x-kendo-template" id="EditTemplate">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._warehouse_add_edit)</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <div class="tabbable-line">
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="\\#tab_1_1" data-toggle="tab"> @Html.Raw(Resources.Global._general_info) </a>
+                    </li>
+
+                    #if(id > 0){#
+                    @if (all)
+                    {
+                        <li>
+                            <a href="\\#tab_1_2" data-toggle="tab"> @Html.Raw(Resources.Global._warehouse_location) </a>
+                        </li>
+                    }
+                    #}#   
+                </ul>
+                <div class="tab-content">
+                    #if(id>0){#
+                    @if (all)
+                    {
+                        <div class="tab-pane" id="tab_1_2">
+                            @Html.Partial("_Location")
+                        </div>
+                    }
+                    #}#
+                    <div class="tab-pane in active" id="tab_1_1">
+                        <form action="@Url.Content("~/Merchant_Warehouse/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+                            <input type="hidden" name="id" value="#=id#" />
+                            <div class="actions" style="float: right; padding-bottom: 106px;">
+                                @if (all || create || update)
+                                {
+                                    <a onclick="clearForm()" class="btn btn-sm default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                                }
+                                #if(id>0){#
+                                @if (all || delete)
+                                {
+                                    <a onclick="removeWarehouse('#=id#','#=ma_kho#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                                }
+                                #}#
+                                @if (all || create || update)
+                                {
+                                    <button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                    <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                                }
+
+                            </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_code)<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+
+                                            <input type="text" class="form-control input-sm max100" name="ma_kho" placeholder="example..." value="#=ma_kho!=null ? ma_kho : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_name)<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="ten_kho" value="#=ten_kho!=null ? ten_kho : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_address)<span class="text-danger"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="dia_chi" value="#=dia_chi!=null ? dia_chi : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_phone)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="phone" value="#=phone!=null ? phone : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_fax)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="fax" value="#=fax!=null ? fax : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_email)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="email" value="#=email!=null ? email : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_keeper)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="example..." name="thu_kho" value="#=thu_kho!=null ? thu_kho : ''#">
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-md-6">
+                     
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._status)</label>
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+
+                                                <label class="btn red btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.KHONG_SU_DUNG'?'active':''#">
+                                                    <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.KHONG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.KHONG_SU_DUNG' ?'checked':''#> KHÔNG SỬ DỤNG
+                                                </label>
+
+                                                <label class="btn green btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.DANG_SU_DUNG'?'active':''#">
+                                                    <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.DANG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.DANG_SU_DUNG' ?'checked':''#> ĐANG SỬ DỤNG
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._warehouse_description) </label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <textarea class="form-control input-sm max100" rows="12" style="width:100%" placeholder="example..." name="ghi_chu" >#=ghi_chu!=null ? ghi_chu : ''#</textarea>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                        </form>
+                    </div>
+                   
+                </div>
+            </div>
+
+        </div>
+    </div>
+</script>
+@*@Html.Partial("_DetailLocation_Grid_Partial")*@
+@Html.Partial("_Location_Extention")
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._ware_house) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+
+<script>
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeWarehouse(id,ma_kho) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa kho",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Warehouse/deleteWarehouse", { id: id, ma_kho: ma_kho }, function (data) {
+                                if (data.success) {
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Xóa thành công');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+    }
+
+    function edit(e) {
+        var data = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'));
+        loadForm(data);
+        $("#tab_2_click").trigger("click");
+        cardSelected(e);
+        //clearFormColor(data.id);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate();
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ma_kho: { minlength: 1, required: !0 },
+                        ten_kho: { minlength: 1, required: !0 },
+                        dia_chi: { minlength: 1, required: !0 },
+                        trang_thai: { minlength: 1, required: !0 }
+
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#Gird").data("kendoGrid").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(@Html.Raw(Json.Encode(newData)));
+                                } else {
+                                    if (currentData.id == 0) {
+                                        loadForm(data.data);
+                                    }
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function Search(e) {
+        Grid = $("#Grid").data("kendoGrid");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "ma_kho", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ten_kho", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        Grid.dataSource.filter(filter);
+    }
+    function GridPartialonDatabound(e) {}
+    function onRequestEnd() { }
+    function error_handler(e) {
+        if (e.errors) {
+            if (e.errors) {
+                var message = "\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                toastr.error(message)
+            }
+        }
+    }
+    function Upsert() {
+        $("#EditForm").submit();
+    }
+    function SaveChange() {
+        $('#EditForm').submit();
+        $("#Grid").data("kendoGrid").dataSource.read();
+    }
+    function clearForm() {
+        loadformdetailfooter(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+
+    function create() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function checkAll(e) {
+        debugger
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function Getlistcheck(type) {
+        var listrowid = [];// mảng này gồm 2 chuỗi, chuỗi listrowidyes gồm các id thỏa mãn, chuỗi listrowidno ngược lại
+        var listrowidyes = '';
+        var listrowidno = '';
+        switch (type) {
+            case 1:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != '@AllConstant.trang_thai.DANG_SU_DUNG') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đang được sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 2:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != '@AllConstant.trang_thai.KHONG_SU_DUNG') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đã không sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 3:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                            $(this).data();
+                        }
+                    })
+                }
+                break;
+        }
+        listrowid.listrowidyes = listrowidyes;
+        listrowid.listrowidno = listrowidno;
+        return listrowid;
+    }
+    function Active() {
+        var data = Getlistcheck(1);
+        if(data.listrowidyes=='')
+        {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Sử dụng các Kho đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Warehouse/Active", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function InActive() {
+        var data = Getlistcheck(2);
+        if (data.listrowidyes == '') {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Không sử dụng các kho đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Warehouse/InActive", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Ngưng sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function onDatabound(e) {
+        var Grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: Grid.dataSource.page(),
+            sort: Grid.dataSource.sort(),
+            filter: Grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the Grid's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the Grid's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the GRid's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + Grid.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#Grid_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#Grid_pager").css('display', 'block');
+        }
+    }
+</script>

@@ -1,0 +1,2 @@
+Alter table Merchant_StockOutDetail 
+Drop column so_luong_thuc_te

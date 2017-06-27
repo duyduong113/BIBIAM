@@ -1,0 +1,655 @@
+﻿@using CMS.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._language_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+}
+@{
+    var newData = new tw_GlobalLanguage();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+</style>
+
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách ngôn ngữ</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Thêm/Sửa Ngôn Ngữ </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                @(Html.Kendo().DropDownList()
+                                .Name("active")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .Events(e => e.Change("filter"))
+                                .OptionLabel("TRẠNG THÁI")
+                                .BindTo(new List<SelectListItem>
+                                    () {
+                                    new SelectListItem() {
+                                    Text = "Tắt",
+                                    Value = false.ToString(),
+                                    },
+                                    new SelectListItem() {
+                                    Text = "Mở",
+                                    Value = true.ToString(),
+                                    }
+                                    })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                )
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <input type="text" class="form-control input-sm max100" id="txtSearch" name="txtSearch">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary btn-sm btn-circle" onclick='filter()'>@Html.Raw(Resources.Global._vin_search)</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row-fluid">
+                    @(Html.Kendo().Grid<CMS.Models.tw_GlobalLanguage>
+                        ()
+                        .Name("Grid")
+                        .Columns(columns =>
+                        {
+                        columns.Bound(p => p.id)
+                        .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onClick='checkAll(this)' />")
+                        .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#+@@+#=active#' />")
+                        .Width(20).Filterable(false).Sortable(false);
+                        columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='removelanguage(#=id#)'><i class='fa fa-trash-o'></i></a>" +
+                        "<a class='btn btn-xs btn-success' onClick='editlanguage(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(30).HtmlAttributes(new { @class = "text-center" });
+                            columns.Bound(p => p.imagesPublicId).Title(@Resources.Global._image).Width(60).
+            ClientTemplate("<div> <img src='#=imagesPublicId ? imagesPublicId : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#' class='img-responsive' style='display:inline; '> </div>");
+                            columns.Bound(p => p.name).Title("Tên").Width(50);
+                            columns.Bound(p => p.code).Title("Mã").Width(95);
+
+
+                            columns.Template(@<text></text>).Width(210).Title("Trạng thái")
+                            .ClientTemplate(
+                            "#if(active == true){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Mở</label>"
+                        + "#}else{#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Tắt</label>"
+                        + "#}#"
+                        );
+                        columns.Template(@<text></text>).Width(210).Title(@Resources.Global._post_date_peo)
+                            .ClientTemplate(
+                        "<span class='info-title'>Người tạo :</span><span> #=createdBy ? createdBy : ''#</span>"
+                        + "</br><span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm') != '01/01/1900 00:00' ? kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm') : ''#</span></br>"
+
+                        + "</br><span class='info-title'>Người cập nhật :</span><span> #=createdBy ? createdBy : ''#</span></br>"
+                        + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(updatedAt),'dd/MM/yyyy HH:mm') != '01/01/1900 00:00' ? kendo.toString(kendo.parseDate(updatedAt),'dd/MM/yyyy HH:mm') : ''#</span></br>"
+
+                                );
+                        })
+
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300, 500 }))
+                        .Scrollable()
+                        .ToolBar(toolbar =>
+                        {
+                        toolbar.Template(@<text>
+                        <div class="pull-left">
+                            @if (create || all)
+                            { <a onclick='create()' class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>}
+                            <button class="btn btn-small btn-primary" onclick="Active()"><i class="fa fa-check-square-o" aria-hidden="true"></i>Mở</button>
+                            <button class="btn btn-small btn-warning" onclick="InActive()"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Tắt</button>
+                        </div>
+                        </text>);
+                        })
+                        .Events(events =>
+                        {
+                            events.DataBound("dataBound");
+                        })
+                        .Sortable()
+                        .Reorderable(reorderable => reorderable.Columns(true))
+                        .HtmlAttributes(new { @style = "height:500px" })
+                        .Resizable(resizable => resizable.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(false)
+                        .PageSize(20)
+                        .Sort(s => s.Add(a => a.id).Descending())
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                        })
+
+                        .Read(c => c.Action("Read", "LanguageManagement").Data("onAdditionalData"))
+                        ))
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12 formEdit">
+
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/LanguageManagement/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._add_edit) @Html.Raw(Resources.Global._language)</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeLanguage('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <input type="hidden" name="id" value="#=id#" />
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._language_name)<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm" placeholder="Tiếng Việt" name="name" value="#=name!=null ? name : ''#">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                #if(isDefault==false){#
+                                <input type="hidden" name="isDefault" value="false">
+                                #}else{#
+                                <input type="hidden" name="isDefault" value="true">
+                                #}#
+                                <label>@Html.Raw(Resources.Global._code_Caps)<span class="required"> * </span></label>
+                                <div class="input-group">
+                                    <input type="text" name="code" class="form-control input-sm" placeholder="vi" value="#=code!=null ? code : ''#">
+                                    <span class="input-group-btn">
+                                        <a class="btn #=isDefault==false ? 'default' : 'green'# btn-sm" onclick="changeDefault(this)">
+                                            <i class="fa fa-check"></i> @Html.Raw(Resources.Global._default)
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                            #if(active==false){#
+                                            <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._inactive)
+                                            #}else{#
+                                            <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._inactive)
+                                            #}#
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                            #if(active==true){#
+                                            <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._active)
+                                            #}else{#
+                                            <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._active)
+                                            #}#
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>@Html.Raw(Resources.Global._flag_photo)</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 200px; ">
+                                                    <img src="#=imagesPublicId ? imagesPublicId: 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#"  class='img-responsive' style='display:inline;'/>
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="width: 200px; height:200px;"> </div>
+                                                <div>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <i class="fa fa-cogs" style="font-size: 72px; color: \\#e1e5ec"></i>
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._language) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    function onDatabound() {
+        var listView = this;
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+    function changeDefault(e) {
+        var checkDefault = $(e).hasClass("green");
+        if (checkDefault) {
+            $(e).removeClass("green").addClass("default");
+            $("input[name='isDefault']").val("false");
+        } else {
+            $(e).removeClass("default").addClass("green");
+            $("input[name='isDefault']").val("true");
+        }
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeLanguage(id) {
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._article)",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/LanguageManagement/deletelanguage", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function getTextById(datas, key, value, requestField) {
+        var response = _.filter(JSON.parse(datas), function (data) {
+            return data[key] == value;
+        });
+        return response[0] ? response[0][requestField] : "";
+    }
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        loadValidate();
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate();
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 })
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        name: { minlength: 5, required: !0 },
+                        code: { minlength: 2, required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                             if (data.success) {
+
+                                debugger
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                                $("#Grid").data("kendoGrid").dataSource.read();
+                                reset = false;
+                                loadForm(data.data);
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+        console.log(seachText);
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "code", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "and", filters: [] };
+            filterOr.filters.push({ field: "ten", operator: "contains", value: noi_dung });
+
+            filter.filters.push(filterOr);
+        }
+        //
+        var active = $('#active').val();
+        if (active != null && active != "") {
+            filter.filters.push({ field: "active", operator: "eq", value: active });
+        }
+
+        grid.dataSource.filter(filter);
+
+    }
+    function dataBound(e) {
+
+    }
+    function onAdditionalData(e) {
+    }
+    function checkAll(e) {
+        debugger
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function create() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function deleteRow(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa các sản phẩm đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/LanguageManagement/deletelanguage", { data: id }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    clearForm();
+                                    toastr.success('', 'Xóa thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    $("#txtSearch").keydown(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function editlanguage(e) {
+        debugger
+        var language = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadForm(language);
+        $("#tab_2_click").trigger("click");
+
+    }
+    function removelanguage(id) {
+        debugger
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._notification)",
+            buttons:
+                {
+                    success:
+                        { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                            $.post(r + "/LanguageManagement/deletelanguage", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', '@Html.Raw(Resources.Global._delete_successfully)');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function Active() {
+        var data = Getlistcheck(1);
+        if (data.listrowidyes == '') {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Sử dụng các Footer đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/LanguageManagement/Active", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function InActive() {
+        var data = Getlistcheck(2);
+        if (data.listrowidyes == '') {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Không sử dụng các Footer đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/LanguageManagement/Active", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Ngưng sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function Getlistcheck(type) {
+        var listrowid = [];// mảng này gồm 2 chuỗi, chuỗi listrowidyes gồm các id thỏa mãn, chuỗi listrowidno ngược lại
+        var listrowidyes = '';
+        var listrowidno = '';
+        switch (type) {
+            case 1:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != 'True') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đang được sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 2:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != 'False') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đã không sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 3:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                            $(this).data();
+                        }
+                    })
+                }
+                break;
+        }
+        listrowid.listrowidyes = listrowidyes;
+        listrowid.listrowidno = listrowidno;
+        return listrowid;
+    }
+</script>
+

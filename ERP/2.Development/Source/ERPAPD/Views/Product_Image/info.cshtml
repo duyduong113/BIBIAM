@@ -1,0 +1,40 @@
+﻿<div class="span12">
+    <div class="span12">
+        <div class="box-search">
+            <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;margin-bottom: 15px!important;">Ảnh</h4>
+        </div>
+
+    </div>
+    <div class="span12">
+        @*<div id ="frm" class="span12"></div>*@
+        @Html.Hidden("ma_san_pham")
+        <script type="text/x-kendo-tmpl" id="templateinfo">
+            <div class="image_info">
+                <input type="checkbox" class="checkrowid" value="#=ma_anh_goc#" style="width:20px; height:20px;z-index: 999999;position: absolute;margin-top: 0px;opacity: 0.9;" />
+                <img src="@Url.Content("~/Images/Image_Info/")#:url#" alt="#: ten_anh # image" />
+            </div>
+        </script>
+        @(Html.Kendo().ListView<BIBIAM.Core.Entities.Image_Info>()
+            .Name("GridImage")
+            .TagName("tag")
+            .ClientTemplateId("templateinfo")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Image_Info"));
+                dataSource.PageSize(17);
+            })
+            .Events(events => { events.DataBound("dataBoundImage"); })
+            .Pageable()
+        )
+    </div>
+
+    <div class="span12">
+        <div class="span2 pull-right" style="z-index:999;margin-bottom: 15px!important;margin-top: 25px!important;">
+            <a class="btn btn-primary btn-small input-circle" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                @Resources.Multi.btnSave
+            </a>
+        </div>
+    </div>
+</div>
+

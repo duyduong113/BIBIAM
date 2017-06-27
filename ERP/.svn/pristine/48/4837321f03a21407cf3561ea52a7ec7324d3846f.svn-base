@@ -1,0 +1,501 @@
+﻿@{
+    ViewBag.Title = "Danh sách câu hỏi";
+
+    bool AllowCreate = (ViewBag.Assets.Create != null && ViewBag.Assets.Create);
+    bool AllowUpdate = (ViewBag.Assets.Update != null && (bool)ViewBag.Assets.Update);
+    bool AllowExport = (ViewBag.Assets.Export != null && (bool)ViewBag.Assets.Export);
+    bool AllowImport = (ViewBag.Assets.Import != null && (bool)ViewBag.Assets.Import);
+    bool AllowDelete = (ViewBag.Assets.Delete != null && (bool)ViewBag.Assets.Delete);
+
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="span2">
+                        <input type="text" id="questionf" style="width:91%" placeholder="Tìm kiếm theo Chủ đề..." />
+                    </div>
+                    <div class="span3" style="margin-left:5px">
+                        <select class="chosen" id="topicf" style="width: 100%" data-placeholder="Chọn chủ đề" multiple>
+                            @foreach (var item in ViewBag.listTopic)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="span3" style="margin-left:5px">
+                        <select class="chosen" id="publish" style="width:99%" data-placeholder="Trạng thái" multiple>
+                            <option value="True"> Xuất bản</option>
+                            <option value="False">Ngưng xuất bản</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-small" onclick="filter()" style="float:none"> Tìm kiếm</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div>
+    @(Html.Kendo()
+    .Grid<ERPAPD.Models.CRM_FAQ>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id)
+            .Width(30).Filterable(false).Sortable(false).Groupable(false)
+            .HeaderTemplate("<input type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+            .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=Id#' id='#=Id#' />")
+            .HtmlAttributes(new { style = "text-align: center" })
+            .HeaderHtmlAttributes(new { style = "text-align: center" });
+        columns.Command(command => { command.Custom(Resources.Multi.Detail).Click("Update").HtmlAttributes(new { @class = "btn btn-minier btn-info", href = "javascript:void(0)", @style = "min-width:40px;" }); }).Width(70).Title("Thao tác").HtmlAttributes(new { style = "text-align: center" }).HeaderHtmlAttributes(new { style = "color: #428BCA" });
+        columns.Bound(p => p.Question).Width(350).Title(Resources.Multi.Question);
+        columns.ForeignKey(p => p.TopicId, (System.Collections.IEnumerable)ViewBag.listTopic, "Id", "Name").EditorTemplateName("GridNullableForeignKey").Title("Chủ đề").Width(150);
+        //columns.Bound(p => p.Answer).Width(150).Title(Resources.Multi.Answer).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Published).Width(90).Title("Trạng thái").ClientTemplate("#if(Published == true){#Xuất bản#}else{#Ngưng xuất bản#}#");
+        columns.Bound(p => p.View).Width(50).Title("#View").Format("{0:N0}").HtmlAttributes(new { style = "text-align: right" });
+        columns.Bound(p => p.Like).Width(50).Title("#Like").Format("{0:N0}").HtmlAttributes(new { style = "text-align: right" });
+        columns.Bound(p => p.Unlike).Width(50).Title("#Unlike").Format("{0:N0}").HtmlAttributes(new { style = "text-align: right" });
+        columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#").HtmlAttributes(new { style = "text-align: right" });
+        columns.Bound(p => p.CreatedBy).Width(90).Title(Resources.Multi.CreatedBy);
+        columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HtmlAttributes(new { style = "text-align: right" });
+        columns.Bound(p => p.UpdatedBy).Width(90).Title(Resources.Multi.UpdatedBy);
+    })
+    .ToolBar(toolBar =>
+    {
+        toolBar.Template(@<text>
+            <div class="pull-left">
+                <a class="btn btn-success btn-small" href="javascript:void(0)" id="btnGridAdd" onclick="CreateNew()">
+                    @*<i class="icon-plus"></i>*@ @Resources.Multi.btnAdd
+                </a>
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" onclick="showConfirmPopup(1,'')">
+                    @*<i class="icon-plus"></i>*@ Xuất bản
+                </a>
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" onclick="showConfirmPopup(2,'')">
+                    @*<i class="icon-plus"></i>*@ Ngưng xuất bản
+                </a>
+                <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="showConfirmPopup(3,'')">
+                    @*<i class="icon-plus"></i>*@ Xóa
+                </a>
+            </div>
+        </text>);
+    })
+        .Events(events => { events.DataBound("dataBound"); })
+        .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+        .Sortable()
+        .Scrollable()
+        .Navigatable()
+        .Reorderable(r => r.Columns(true))
+        .Resizable(r => r.Columns(true))
+        //.Filterable()
+        //.ColumnMenu()
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .Read(read => read.Action("Read", "CRMFAQManagement"))
+                                                    )
+    )
+</div>
+@( Html.Kendo().Window().Name("Window")
+      .Title(Resources.Multi.Detail)
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(800)
+)
+<script type="text/x-kendo-template" id="createanswer">
+    <form action="@Url.Content("~/CRMFAQManagement/CreateAnswer")" class="createform" method="post" enctype="multipart/form-data" style="margin-bottom:0px;">
+        <div class="control-group">
+            <label class="control-label">Chọn nhóm</label>
+            <div class="controls pull-left" style="width:80%">
+                @(Html.Kendo().DropDownList().Name("TopicId")
+                .AutoBind(false)
+                .OptionLabel("Chọn Topic")
+                .HtmlAttributes(new { style = "width: 90%;" })
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(dataSource =>
+                {
+                    dataSource.Read(read => read.Action("GetTopic", "CRMFAQ"))
+                    .ServerFiltering(true);
+                }).ToClientTemplate()
+)
+</div>
+<div class="controls">
+    <label>
+        <input name="Published" type="checkbox" class="ace" value="true">
+        <span class="lbl"> Xuất bản</span>
+    </label>
+</div>
+</div>
+<div class="control-group">
+    <label class="control-label">Câu hỏi</label>
+    <div class="controls">
+        <textarea name="Question" style="width: 98%" placeholder="Câu hỏi"></textarea>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">Trả lời</label>
+    <div class="controls">
+        @(Html.Kendo().Editor()
+                .Name("Content")
+                .Encode(false)
+                .HtmlAttributes(new { style = "height:300px;width:100%;", placeholder = "Content" })
+                .Tools(tools => tools
+                .Clear()
+                .Bold().Italic().Underline().Strikethrough()
+                .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                .InsertUnorderedList().InsertOrderedList()
+                .Outdent().Indent()
+                .CreateLink().Unlink()
+                .InsertImage()
+                .InsertFile()
+                .SubScript()
+                .SuperScript()
+                .TableEditing()
+                .ViewHtml()
+                .Formatting()
+                .CleanFormatting()
+                .FontName()
+                .FontSize()
+                .FontColor().BackColor())
+                .Encode(false)
+                .ImageBrowser(imageBrowser => imageBrowser
+                .Image("~/Content/UserFiles/Images/{0}")
+                .Read("Read", "ImageBrowser")
+                .Create("Create", "ImageBrowser")
+                .Destroy("Destroy", "ImageBrowser")
+                .Upload("Upload", "ImageBrowser")
+                .Thumbnail("Thumbnail", "ImageBrowser")
+                ).ToClientTemplate()
+)
+</div>
+</div>
+
+
+<div class="form-footer-custom">
+    <div class="pull-right" style="padding-right:15px">
+        <button type="submit" class="btn btn-info btn-small ">
+            @*<i class="icon-ok"></i>*@ Lưu
+        </button>
+        <button type="button" id="pp-close" class="btn btn-default btn-small" onclick="$('\\#Window').data('kendoWindow').close()">
+            @*<i class="icon-undo"></i>*@  Đóng lại
+        </button>
+    </div>
+</div>
+</form>
+</script>
+<script type="text/x-kendo-template" id="answer">
+    <form action="@Url.Content("~/CRMFAQManagement/UpdateAnswer")" class="editform" method="post" enctype="multipart/form-data" style="margin-bottom:0px;">
+
+        <fieldset style="width:50%; float:left">
+            <div class="control-group">
+                <label class="control-label">Chọn nhóm</label>
+                <div class="controls">
+                    @(Html.Kendo().DropDownList().Name("TopicId")
+                .OptionLabel("Chọn nhóm")
+                .HtmlAttributes(new { style = "width: 70%;" })
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .Value("#=TopicId#")
+                .DataSource(dataSource =>
+                {
+                    dataSource.Read(read => read.Action("GetTopic", "CRMFAQ"))
+                    .ServerFiltering(true);
+                }).ToClientTemplate()
+)
+</div>
+</div>
+</fieldset>
+<fieldset style="width:49%; float:left">
+    <div class="control-group">
+        <label class="control-label">Trạng thái</label>
+        <div class="controls">
+            #if(Published){#
+            <input name="Published" type="checkbox" class="ace" checked="checked" value="true">
+            <span class="lbl"> Xuất bản</span>
+            #}else{#
+            <input name="Published" type="checkbox" class="ace" value="true">
+            <span class="lbl"> Xuất bản</span>
+            #}#
+        </div>
+    </div>
+</fieldset>
+<fieldset style="width:100%">
+    <div class="control-group">
+        <label class="control-label">Câu hỏi</label>
+        <div class="controls">
+            <textarea name="Question" style="width: 98%" placeholder="Câu hỏi">#: Question#</textarea>
+        </div>
+    </div>
+</fieldset>
+<div class="control-group">
+    <label class="control-label">Trả lời</label>
+    <div class="controls">
+        @(Html.Kendo().Editor()
+                .Name("Content")
+                .Encode(false)
+                .HtmlAttributes(new { style = "height:300px;width:100%;", placeholder = "Content" })
+                .Tools(tools => tools
+                .Clear()
+                .Bold().Italic().Underline().Strikethrough()
+                .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                .InsertUnorderedList().InsertOrderedList()
+                .Outdent().Indent()
+                .CreateLink().Unlink()
+                .InsertImage()
+                .InsertFile()
+                .SubScript()
+                .SuperScript()
+                .TableEditing()
+                .ViewHtml()
+                .Formatting()
+                .CleanFormatting()
+                .FontName()
+                .FontSize()
+                .FontColor().BackColor())
+                .Encode(false)
+                .Value("#=Answer#")
+                .ImageBrowser(imageBrowser => imageBrowser
+                .Image("~/Content/UserFiles/Images/{0}")
+                .Read("Read", "ImageBrowser")
+                .Create("Create", "ImageBrowser")
+                .Destroy("Destroy", "ImageBrowser")
+                .Upload("Upload", "ImageBrowser")
+                .Thumbnail("Thumbnail", "ImageBrowser")
+                ).ToClientTemplate()
+)
+</div>
+</div>
+<input type="hidden" value="#=Id#" name="Id" />
+
+<div class="form-footer-custom">
+    <div class="pull-right" style="padding-right:15px">
+        <button type="submit" class="btn btn-info btn-small ">
+            @*<i class="icon-ok"></i>*@ Lưu
+        </button>
+        <button type="button" id="pp-close" class="btn btn-default btn-small" onclick="$('\\#Window').data('kendoWindow').close()">
+            @*<i class="icon-undo"></i>*@  Đóng lại
+        </button>
+
+    </div>
+</div>
+@*<div class="form-actions" style="text-align:right;">
+    <a class="btn btn-grey btn-small" onclick="$('\\#Window').data('kendoWindow').close()">Bỏ qua</a>
+    <button type="submit" class="btn btn-primary btn-small"> Lưu </button>
+    </div>*@
+</form>
+</script>
+@Html.Partial("_popup")
+<script>
+    $("#topicf,#publish").chosen();
+    $("#questionf").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var topicf = $("#topicf option:selected");
+        var publish = $("#publish option:selected");
+        var questionf = $('#questionf').val();
+        var filter = { logic: "and", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+        var filterPublish = { logic: "or", filters: [] };
+        if (topicf.length > 0) {
+            for (var i = 0; i < topicf.length; i++) {
+                var option = topicf[i].value;
+                if (option == '') {
+                    filterTopic.filters.push({ field: "TopicId", operator: "neq", value: 0 });
+                }
+                else {
+                    filterTopic.filters.push({ field: "TopicId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterTopic);
+        }
+        if (publish.length > 0) {
+            for (var i = 0; i < publish.length; i++) {
+                var option = publish[i].value;
+                if (option == '') {
+                    filterPublish.filters.push({ field: "Published", operator: "neq", value: 0 });
+                }
+                else {
+                    filterPublish.filters.push({ field: "Published", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterPublish);
+        }
+
+        if (questionf) {
+            filter.filters.push({ field: "Question", operator: "contains", value: questionf });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function htmlDecode(value) {
+        if (value) {
+            return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+        } else {
+            return "";
+        }
+    }
+    //$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    //    var target = $(e.target).attr("href");
+    //    if (target == '#home1') {
+    //        $("#grid").data("kendoGrid").dataSource.read();
+    //    } else if (target == '#home2') {
+    //        $("#topicf1").chosen();
+    //        $("#grid1").data("kendoGrid").dataSource.read();
+    //    } else {
+    //        $("#grid2").data("kendoGrid").dataSource.read();
+    //    }
+    //});
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+
+    });
+    function dataBound() {
+        resizeGrid();
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function CreateNew() {
+        var detailsTemplate = kendo.template($("#createanswer").html());
+        var wnd = $("#Window").data("kendoWindow").title("Tạo mới");
+        wnd.content(detailsTemplate({}));
+        wnd.center().open();
+
+        $(".createform").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    bootbox.hideAll()
+                    $('#Window').data('kendoWindow').close()
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    }
+
+    function Update(e) {
+        console.log(e);
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var detailsTemplate = kendo.template($("#answer").html());
+        var wnd = $("#Window").data("kendoWindow").title("Chỉnh sửa");
+        wnd.content(detailsTemplate(dataItem));
+        wnd.center().open();
+
+        $(".editform").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    bootbox.hideAll()
+                    $('#Window').data('kendoWindow').close()
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#grid').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    
+</script>
+

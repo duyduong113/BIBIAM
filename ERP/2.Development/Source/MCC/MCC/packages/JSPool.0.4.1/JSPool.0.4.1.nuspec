@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>JSPool</id>
+    <version>0.4.1</version>
+    <title>JSPool</title>
+    <authors>Daniel Lo Nigro</authors>
+    <owners>Daniel Lo Nigro</owners>
+    <licenseUrl>https://github.com/Daniel15/JSPool/blob/master/LICENSE</licenseUrl>
+    <projectUrl>http://dan.cx/projects/jspool</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>JSPool facilitates easy integration of JavaScript scripting into a .NET application in a scalable and performant manner. It does so by creating a pool of engines that can be reused multiple times, making it easy to use JavaScript libraries that have long initialisation times without having to create a new engine every time.</description>
+    <summary>Pooling of JavaScript engines in .NET</summary>
+    <copyright>Copyright 2014 Daniel15</copyright>
+    <tags>javascript js javascriptengineswitcher msiejavascriptengine v8 clearscript</tags>
+    <dependencies>
+      <dependency id="JavaScriptEngineSwitcher.Core" version="1.5.0" />
+    </dependencies>
+  </metadata>
+</package>

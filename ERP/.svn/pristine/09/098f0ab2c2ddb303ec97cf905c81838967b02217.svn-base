@@ -1,0 +1,4 @@
+ALTER TABLE cms_Schedule_News DROP COLUMN ngay_gio_xuat_ban
+ALTER TABLE cms_Schedule_News ADD ngay_xuat_ban date
+ALTER TABLE cms_Schedule_News ALTER COLUMN gio_xuat_ban time;
+

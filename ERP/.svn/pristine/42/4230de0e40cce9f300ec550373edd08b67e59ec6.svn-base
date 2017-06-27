@@ -1,0 +1,127 @@
+﻿@{
+    Layout = null;
+    int i = 0;
+}
+@if (ViewBag.listPromotionProduct.Count > 0)
+{
+     <ul id="list-promotion-hdt" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+        <li>
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="control-group">
+                        <label>CK</label>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Chương trình khuyến mãi</label>
+                    </div>
+                </div>
+            </div>
+        </li>
+        @foreach (var item in ViewBag.listPromotionProduct)
+        {
+            i = i + 1;
+            <li class="group-promotion-hdt" style="list-style:none">
+                <div class="row-fluid">
+                    <div class="span2">
+                        <div class="control-group">
+                            <div class="controls">
+                                <input name="PKPromotion" class="input-mini span12 hdt-service-discount" value="@item.PKPromotion" type="hidden" />
+                                <input name="Discount" class="input-mini span12 hdt-service-discount" value="@item.Discount" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <div class="controls">
+                                <select name="Promotion" class="chosen-select" data-placeholder="Chọn CTKM">
+                                    @foreach (var it in ViewBag.listPromotion)
+                                    {
+                                        <option value="@it.Code">@it.Name</option>
+                                    }
+                                </select>
+                                @*  <input name="Promotion" class="input-mini span12 hdt-service-promotion" value="@item.Promotion" type="text" />*@
+                            </div>
+                        </div>
+                    </div>
+                    @if (i > 1)
+                    {
+                        <div class="span1">
+                            <div class="control-group">
+                                <div class="controls">
+                                    <button type="button" class="btn btn-minier btn-danger" onclick="minusHdtGroupPromotion(this,'@item.PKPromotion')"><i class="icon-minus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="span1">
+                            <div class="control-group">
+                                <div class="controls">
+                                    <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupPromotion()"><i class="icon-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+}
+else
+{
+      <ul id="list-promotion-hdt" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+        <li>
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="control-group">
+                        <label>CK</label>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Chương trình khuyến mãi</label>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="group-promotion-hdt" style="list-style:none">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="control-group">
+                        <div class="controls">
+                            <input name="PKPromotion" class="input-mini span12 hdt-service-discount" value= 0 type="hidden" />
+                            <input name="Discount" class="input-mini span12 hdt-service-discount" value="0" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <div class="controls">
+                            @*<div class="list-promotion">
+                            </div>*@
+                            <select name="Promotion" class="chosen-select" data-placeholder="Chọn CTKM">
+                                @foreach (var it in ViewBag.listPromotion)
+                                {
+                                    <option value="@it.Code">@it.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="span1">
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupPromotion()"><i class="icon-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+}
+@*<script type="text/javascript">
+        $(".chosen-select").chosen();
+    </script>*@

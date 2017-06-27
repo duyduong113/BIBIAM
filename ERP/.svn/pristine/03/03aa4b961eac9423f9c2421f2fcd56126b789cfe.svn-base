@@ -1,0 +1,73 @@
+﻿@{
+    Layout = null;
+}
+ <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-size: 12pt;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt;" border="1" width="100%">
+            <tbody>
+                <tr>
+                    <td width="20%" class="headertxt">Kênh</td>
+                    <td width="20%" class="headertxt">Chuyên mục</td>
+                    <td width="15%" class="headertxt">Vị trí banner1</td>
+                    <td width="8%" class="headertxt">Thời gian quảng cáo</td>
+                    <td width="8%" class="headertxt">Đơn Giá/CPM</td>
+                    <td width="8%" class="headertxt">Số lượng CPM</td>
+                    <td width="8%" class="headertxt">Chiết khấu (%)</td>
+                    <td width="11%" class="headertxt">Thành tiền <br>(VND)</td>
+                </tr>
+                @{ 
+                    int sumDiscount = ViewBag.discount.SumDiscount;
+                    Int64 total = 0;
+                }
+                @if (ViewBag.Product.Count > 0)
+                {
+                    
+                    foreach (var item in ViewBag.Product)
+                    {
+                        Int64 discount = item.Discount + sumDiscount;
+                        Int64 totalItem = (item.UnitPrice * item.Quantity) - (item.UnitPrice * item.Quantity * discount / 100);
+                        total += totalItem;
+                        <tr>
+                            <td width="20%" align="center">@item.AdvChannel</td>
+                            <td width="20%" align="center">@item.Category</td>
+                            <td width="15%" align="left">@item.Location</td>
+                            <td width="8%" align="center">@item.DateUp.ToString("MM-dd-yyyy") - @item.DateDown.ToString("MM-dd-yyyy")</td>
+                            <td width="8%" align="center">@item.UnitPrice.ToString("#,##0")</td>
+                            <td width="8%" align="center">@item.Quantity.ToString("#,##0")</td>
+                            <td width="8%" align="center">@discount</td>
+                            <td width="11%" align="right">@totalItem.ToString("#,##0")</td>
+                        </tr>
+                    }
+
+                }
+                
+                
+                <tr>
+                    <td class="headertxt" colspan="6">Cộng</td>
+                    <td class="headertxt"></td>
+                    <td align="right">@total.ToString("#,##0")</td>
+                </tr>
+                @if (ViewBag.itemdraff.CheckVat == 1)
+                {
+                    <tr>
+                        <td align="center" colspan="6">Thuế GTGT</td>
+                        <td align="center"> 10%</td>
+                        <td align="right">@((total * 10 / 100).ToString("#,##0"))</td>
+                    </tr>
+                    total = total + total * 10 / 100;
+                }
+                
+                <tr>
+                    <td align="center" colspan="6"><b>Tổng cộng</b></td>
+                    <td align="right"></td>
+                    <td align="right"><b>@(total.ToString("#,##0"))</b></td>
+                </tr>
+            </tbody>
+        </table>
+<div align="center">
+    Bằng chữ: 
+        <i>@ERPAPD.Helpers.SqlHelper.ToStringConvert(total) ./.</i><br>
+        @if (ViewBag.itemdraff.CheckVat == 0)
+        {
+            <i>(Đơn giá trên chưa bao gồm VAT 10%)</i>
+        }
+</div>
+       

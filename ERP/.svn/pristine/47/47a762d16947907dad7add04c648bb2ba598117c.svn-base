@@ -1,0 +1,69 @@
+﻿using System.Web;
+using System.Web.Mvc;
+using MCC.Filters;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.DataObject;
+using MCC.Helpers;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update")]
+    public class Merchant_InfoController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                Merchant_Info data = new Merchant_Info_DAO().ReadByMerchantID(currentUser.ma_gian_hang, AppConfigs.MCCConnectionString);
+                if (data.trang_thai_xac_thuc != AllConstant.trang_thai_xac_thuc.DA_XAC_THUC)
+                {
+                    var checkhis = new Merchant_History_DAO().getValueHistory("Merchant_Info", currentUser.ma_gian_hang, AppConfigs.MCCConnectionString);
+                    if (!string.IsNullOrEmpty(checkhis))
+                    {
+                        data.history = Newtonsoft.Json.JsonConvert.DeserializeObject<Merchant_Info>(checkhis);
+                    }
+                    else
+                    {
+                        var exit = new Merchant_Info();
+                        exit = data;
+                        data.history = exit;
+                    }
+                }                  
+                return Json(new { success = true, data = data, JsonRequestBehavior.AllowGet });
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        [ValidateInput(false)]
+        public ActionResult Update(Merchant_Info item, HttpPostedFileBase file)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                item.ma_gian_hang = currentUser.ma_gian_hang;
+                if (file != null)
+                {
+                    string LocalPath = "";
+                    item.logo_gian_hang = new AzureHelper().UploadImageToAzure(AllConstant.FoldderName_Merchant_Product, file, currentUser.name, ref LocalPath);
+                }
+                else
+                {
+                    //return Json(new { success = false, error = "Vui lòng chọn đúng file ảnh." });
+                }
+                string rs = new Merchant_Info_DAO().Update(item, currentUser.name, AppConfigs.MCCConnectionString);
+                if (rs == "true")
+                    return Json(new { success = true, JsonRequestBehavior.AllowGet });
+                return Json(new { success = false, message = rs, JsonRequestBehavior.AllowGet });
+            }            
+            return RedirectToAction("NoAccess", "Error");
+        }
+    }
+}

@@ -1,0 +1,112 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent"></span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    var type = 100;
+    var GirdName = "";
+    function showConfirmPopup(e, it) {
+        GirdName = it;
+        var listrowid = "";
+        $('#grid').find(".checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (e == 1) { // Active
+                $('#txtcontent').text("Bạn có chắc chắn hoạt động các phản hồi của người dùng đã được chọn?"); 
+            }
+            if (e == 2) { // Inactive
+                $('#txtcontent').text("Bạn có chắc chắn ngưng hoạt động các phản hồi của người dùng đã được chọn?");
+            }
+            if (e == 3) { // Delete
+                $('#txtcontent').text("Bạn chắc chắn xóa các phản hồi của người dùng đã được chọn?");
+            }
+            type = e;
+            $('#popup-confirm').modal('show');
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+
+    }
+    function onChangeStatus() {
+        var listrowid = "";
+        $('#grid').find(".checkvalue").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var url = '';
+        if (type == 1 || type == 2) {
+            if (GirdName == 'FB') {
+                url = "/CRMFAQManagement/ChangeStatusComment";
+            }
+            else
+            {
+                url = "/CRMFAQManagement/ChangeStatusOfQuestion";
+            }
+        }
+        else
+        {
+            if (GirdName == 'FB') {
+                url = "/CRMFAQManagement/DeleteComment";
+            }
+            else {
+                url = "/CRMFAQManagement/DeleteQuestion";
+            }
+        }
+      
+        if (listrowid != "" && listrowid != null) {
+            $.post(r +url , { data: listrowid, type: type }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: 'Thay đổi trạng thái thành công',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+            onCloseForm();
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function onCloseForm() {
+        $('#checkAll').prop('checked', false);
+        $("#grid").data("kendoGrid").dataSource.read();
+        type = 100;
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

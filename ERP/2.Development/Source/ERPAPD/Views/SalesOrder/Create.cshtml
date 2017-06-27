@@ -1,0 +1,504 @@
+﻿@{
+    ViewBag.Title = "Ngày bán hàng: " + DateTime.Now.ToString("dd/MM/yyyy");
+}
+<style>
+    .k-grid-pager {
+        display: none;
+    }
+
+    .k-grid-edit-row > td > .text-box {
+        height: 25px;
+    }
+</style>
+
+@Html.Partial("_SalesOrderCustomerSearch")
+@Html.Partial("_SalesOrderBarcodeSearch")
+@Html.Partial("_SalesOrderCustomerInfo")
+@Html.Partial("_SalesOrderItem")
+@Html.Partial("_SalesOrderCreateCustomer")
+
+<form action="@Url.Content("~/SalesOrder/CreateOrder")" class="form-horizontal ng-pristine ng-valid" id="CreateOrderForm" method="post" style="margin-bottom:0px;" novalidate="novalidate">
+    <div class="row-fluid">
+        <div class="span3">
+            <div class="row-fluid" style="margin-bottom:5px;">
+                <div class="span9">
+                    <span class="input-icon input-icon-right span12">
+                        <input type="text" id="txtCustomerSearch" placeholder="Nhập thông tin khách hàng và enter" class="span12" />
+                        <i class="icon-search"></i>
+                    </span>
+                </div>
+                <div class="span3">
+                    <a class="btn btn-success btn-mini" style="width:100%" onclick="showSaveAnonymousForm()"><i class='icon-user icon-only'></i> Tạo KH</a>
+                </div>
+            </div>
+            <div class="row-fluid" style=" border: 1px solid #ccc; padding: 7px 5px 5px 7px; margin-top:5px; background-color: #FBFBFB; ">
+                <div id="divCustomerInfoCS">
+                    <p style="margin-top: 5px; font-size: 12px; color: #777;padding-right:7px; ">
+                        Nhập thông tin khách hàng vào ô tìm kiếm và bấm Enter. Thông tin khách hàng sẽ hiển thị ở đây.
+                    </p>
+                </div>
+                @*<div id="divCustomerHistory">
+
+                    </div>*@
+            </div>
+            <div class="row-fluid" style=" border: 1px solid #ccc; padding: 7px 5px 5px 7px; margin-top: 5px; background-color: #E4F6FF; ">
+                <div class="span3">
+                    <img src="@Url.Content("~/Images/Lien.jpg")" style="border-radius:3px;" />
+                </div>
+                <div class="span8">
+                    <span style="font-weight: bold; color: #0082C1">NV001-Châu Ngọc Liên </span><span>(Ca 1)</span><br />
+                    <span>Doanh số ngày: </span><span style="font-weight: bold; color: #0082C1">32,500,000 vnđ</span><br />
+                    <span>Doanh số tháng: </span><span style="font-weight: bold; color: #0082C1">450,000,000 vnđ</span><br />
+                </div>
+            </div>
+        </div>
+        <div class="span9">
+            <div class="row-fluid" style="margin-bottom:5px;">
+                <div class="span2">
+                    <span class="input-icon input-icon-right span12">
+                        <input style="background: #FFE28D; color: #AB6B09; font-weight: bold; font-size: 14px; border-color: #FFBF22;" type="text" id="txtSearchBarcode" placeholder="Nhập Barcode" class="span12">
+                        <i class="icon-barcode"></i>
+                    </span>
+                </div>
+                <div class="span2">
+                    <span>Số lượng:</span>
+                    <span>
+                        <input type="number" id="txtQuantity" value="1" min="1" placeholder="Số lượng" style="background: #FFE28D; color: #AB6B09; font-weight: bold; font-size: 14px; border-color: #FFBF22; width: 50px;">
+                    </span>
+                </div>
+                <div class="span8">
+                    <div class="pull-right">
+                        <a class="btn btn-success btn-small" onclick="window.location.reload()"><i class="icon-edit"></i> Đơn hàng mới</a>
+                        <a class="btn btn-inverse btn-small" onclick="print()"><i class="icon-print"></i> In HĐ tạm</a>
+                        <a class="btn btn-info btn-small" id="btnSave"><i class="icon-credit-card"></i> Thanh toán</a>
+                        <a class="btn btn-primary btn-small" id="btnSaveAndPrint"><i class="icon-money"></i> Thanh toán & in HĐ</a>
+                        <a class="btn btn-danger btn-small" id="btnRemove"><i class="icon-remove"></i> Hủy bỏ</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-fluid">
+                <div class="span12">
+                    @(Html.Kendo().Grid<DecaPay.Models.Sales_Order_Detail>()
+                        .Name("Details")
+                        .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Bottom))
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.MSIN).Width(90).ClientTemplate("#= MSIN #" +
+                            "<input type='hidden' name='Details[#= index(data)#].MSIN' value='#= MSIN #' />").Hidden();
+                            columns.Bound(p => p.Barcode).Width(87).ClientTemplate("#= Barcode #" +
+                            "<input type='hidden' name='Details[#= index(data)#].Barcode' value='#= Barcode #' />").Title("Mã vạch");
+                            columns.Bound(p => p.SKU).Width(66).ClientTemplate("#= SKU #" +
+                            "<input type='hidden' name='Details[#= index(data)#].SKU' value='#= SKU #' />").Title("Mã hàng");
+                            columns.Bound(p => p.ItemName).Width(147).ClientTemplate("#= ItemName #" +
+                            "<input type='hidden' name='Details[#= index(data)#].ItemName' value='#= ItemName #' />").Title("Tên hàng");
+                            columns.Bound(p => p.Unit).Width(40).ClientTemplate("#= Unit #" +
+                            "<input type='hidden' name='Details[#= index(data)#].Unit' value='#= Unit #' />").Title("ĐVT");
+                            columns.Bound(p => p.Quantity).Width(40).ClientTemplate("#= kendo.toString(Quantity,'n0') #" +
+                            "<input type='hidden' name='Details[#= index(data)#].Quantity' value='#= Quantity #' />"
+                            ).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" }).Title("SL");
+                            columns.Bound(p => p.Tonkho).Width(40).ClientTemplate("#= kendo.toString(Tonkho - Quantity,'n0') #").Title("Tồn");
+                            columns.Bound(p => p.UnitPrice).Width(70).ClientTemplate("#= kendo.toString(UnitPrice,'n0') #" +
+                            "<input type='hidden' name='Details[#= index(data)#].UnitPrice' value='#=UnitPrice #' />").Title("Giá bán");
+                            columns.Bound(p => p.Amount).Width(70).ClientTemplate("#= kendo.toString(Quantity * UnitPrice,'n0') #" +
+                            "<input type='hidden' name='Details[#= index(data)#].Amount' value='#= Quantity * UnitPrice #' />").Title("Thành tiền");
+                            columns.Bound(p => p.isPromotion).Width(40).ClientTemplate("#if(isPromotion){#" + "<input type='checkbox' disabled checked>" + "#}else{#" + "<input type='checkbox' disabled>" + "#}#" +
+                            "<input type='hidden' name='Details[#= index(data)#].isPromotion' value='#= isPromotion #' />").Title("KM");
+                            columns.Bound(p => p.Note).Width(140).ClientTemplate("#= Note #" +
+                            "<input type='hidden' name='Details[#= index(data)#].Note' value='#= Note #' />")
+                            .HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" }).Title("Note");
+                            columns.Command(command => command.Destroy().HtmlAttributes(new { @class = "btn btn-danger" }).Text("Xóa")).Width(60);
+                        })
+                                .Resizable(r => r.Columns(true))
+                        .Scrollable()
+                        .HtmlAttributes(new { @style = "height:240px;" })
+                        .Pageable()
+                        .Events(e => { e.Edit("onEdit"); })
+                        .DataSource(dataSource => dataSource.Ajax()
+                            .PageSize(1000)
+                            .Model(model =>
+                                {
+                                    model.Id(p => p.MSIN);
+                                    model.Field(p => p.Barcode).Editable(false);
+                                })
+                            .ServerOperation(false)
+                        )
+                    )
+                </div>
+            </div>
+
+            <div style="padding-bottom: 10px; background-color: #FFE391;">
+                <div id="TotalInfo"></div>
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="para-infos">
+                            <span class="info-names">Mã giảm giá: </span>
+                            <input type="text" name="PromotionCode" id="PromotionCode" style=" font-size: 16px; color: #FFFFFF; font-weight: bold; width: 87px; background-color: #F44336; border-color: #E23232; text-transform: uppercase;" value="" placeholder="Mã giảm giá">
+                            <span class="info-names" id="PromotionValue" style="font-weight:bold;"> 0đ</span>
+                        </div>
+                    </div>
+                    <div class="span5">
+                        <div class="para-infos" style="background-color: \\#A8B0B5;">
+                            <span class="info-names">Áp dụng tích lũy: </span>
+                            <span class="info-names" style="font-weight:bold;" id="spanDiscount"></span><a class="btn btn-success btn-mini" id="btnAcceptDiscount" style="margin-left: 10px;margin-top: -10px;"><i class="icon-certificate"></i> Áp dụng</a>
+                            <input type="hidden" name="Discount" data-point="" id="discount" value="0" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="para-infos" style="padding: 3px 10px; background-color: #0082C1; color: white;">
+                <span class="info-names">Phải thanh toán: </span>
+                <span class="info-names" style="font-weight:bold;" id="Payment"></span>
+            </div>
+            <div class="para-infos" style=" padding: 3px 10px; background-color: #096490; color: white;">
+                <span class="info-names">Khách hàng đưa: </span>
+                <input type="text" style=" padding: 3px 10px; background-color: #2E6589; color: #41E647; font-size: 18px;" id="CustomerMoney" name="CustomerMoney" value="" placeholder="Khách hàng đưa">
+            </div>
+            <div class="para-infos" style=" background-color: #0B5579; color: #FFE501;">
+                <span class="info-names">Trả lại: </span>
+                <span class="info-names" style="font-weight:bold;" id="CashBack"> 0đ</span>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row-fluid" id="divPreviewPdf" style="display:none">
+    <embed id="printFileLocation" src="" height="430"></embed>
+    <div class="row-fluid">
+        <div class="span6">
+            <a class="btn btn-purple">In</a>
+            <a class="btn btn-primary" onclick="$('#divPreviewPdf').data('kendoWindow').close();">Đóng lại</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#txtCustomerSearch").focus();
+    })
+
+    var CustomerInfoTemplate = kendo.template($("#CustomerInfoTemplate").html());
+    var ItemTemplate = kendo.template($("#ItemTemplate").html());
+    var HistoryTemplate = kendo.template($("#divTabHistoryTemplate").html());
+
+    $("#btnAcceptDiscount").bind("click", function () {
+        var discount = parseFloat($("#discount").val());
+        if (discount > 0) {
+            $("#discount").val("0");
+            $(this).html("Áp dụng");
+            $(this).addClass("btn-success");
+            $(this).removeClass("btn-danger");
+        } else {
+            $("#discount").val($("#discount").attr("data-point"));
+            $(this).html("Bỏ áp dụng");
+            $(this).removeClass("btn-success");
+            $(this).addClass("btn-danger");
+        }
+        CalTotal();
+        CalCashBack();
+    });
+    $('#CreateOrderForm').on('keyup keypress', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    $("#btnSave").bind('click', function () {
+        var data = $("#Details").data('kendoGrid')._data;
+        var customerMoney = $("#CustomerMoney").val();
+        if (data.length > 0 && customerMoney != null && customerMoney != "") {
+            $("#CreateOrderForm").submit();
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Vui lòng nhập sản phẩm & số tiền khách hàng",
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+    });
+    $("#btnRemove").bind("click", function () {
+        dataSource.data([]);
+        CalCashBack();
+        CalTotal();
+    });
+    //handler submit form
+    $("#CreateOrderForm").validate({
+        // Rules for form validation
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                beforeSend: function () {
+                    $("#btnSave,#btnSaveAndPrint").attr("disabled", "disabled");
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: "Tạo đơn hàng thành công",
+                            class_name: 'gritter-success'
+                        });
+                        if (data.fileLocation) {
+                            window.open(r + "/SalesOrder/Download?file=" + data.fileLocation, '_blank');
+                        }
+                        window.location.reload();
+                    }
+                },
+                complete: function () {
+                    $("#btnSave,#btnSaveAndPrint").removeAttr("disabled");
+                }
+            });
+            return false;
+        }
+    });
+
+    $(document).ready(function () {
+        $('#divPreviewPdf').kendoWindow({
+            width: "312px",
+            height: "500px",
+            actions: ["Close"],
+            title: "Hóa đơn",
+            visible: false,
+            modal: true,
+            open: function (e) {
+                this.wrapper.css({ top: '10%' });
+            }
+        });
+    });
+    function print() {
+        var data = $("#Details").data('kendoGrid')._data;
+        var buyInfo = [];
+        for (var i = 0; i < data.length; i++) {
+            buyInfo.push({ ItemName: data[i].ItemName, Quantity: data[i].Quantity, UnitPrice: data[i].UnitPrice, Amount: data[i].Amount });
+        }
+        var customerId = $("input[name='CustomerId']").val();
+        var discount = parseFloat($("#discount").val());
+        var customerMoney = $("#CustomerMoney").val() ? parseFloat($("#CustomerMoney").val().replace(new RegExp(",", 'g'), "")) : 0;
+        var promotion = $("#PromotionCode").val();
+        if (data.length > 0 && customerMoney > 0) {
+            $.post(r + "/SalesOrder/PrintSalesOrder", { customerId: customerId, PromotionCode: promotion, customerMoney: customerMoney, Discount: discount, listDetails: buyInfo }, function (data) {
+                if (data.success) {
+                    $("#printFileLocation").attr("src", r + "/Content/SalesOrder/" + data.fileLocation);
+                    var popup = $("#divPreviewPdf").data("kendoWindow");
+                    popup.center().open();
+                }
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Vui lòng nhập sản phẩm & số tiền khách hàng",
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+
+    }
+
+    $("#btnSaveAndPrint").bind("click", function () {
+        var data = $("#Details").data('kendoGrid')._data;
+        var customerMoney = $("#CustomerMoney").val();
+        if (data.length > 0 && customerMoney != null && customerMoney != "") {
+            $("#CreateOrderForm").attr("action", r + "/SalesOrder/CreateOrderAndPrint");
+            $("#CreateOrderForm").submit();
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Vui lòng nhập sản phẩm & số tiền khách hàng",
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+    });
+
+    $('#CustomerMoney').ht
+    $('#CustomerMoney').autoNumeric('init', {
+        aPad: false,
+        vMax: 999999999999
+    });
+    function onEdit(e) {
+        $('input[name="Quantity"]').blur(function () {
+            dataSource.sync();
+        });
+    }
+
+    function index(dataItem) {
+        var data = $("#Details").data("kendoGrid").dataSource.data();
+        return data.indexOf(dataItem);
+    }
+
+    $('#txtCustomerSearch').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+
+
+    $('#txtSearchBarcode,#txtQuantity').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            Searchbarcode();
+        }
+    });
+
+    var dataSource = new kendo.data.DataSource({
+        schema: {
+            model: {
+                id: "Id"
+            },
+            fields: {
+                MSIN: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                Barcode: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                SKU: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                ItemName: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                Unit: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                UnitPrice: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                Amount: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+                isPromotion: {
+                    //this field will not be editable (default value is true)
+                    editable: false,
+                },
+            }
+        },
+        data: [
+          //{ MSIN: "MSIN1", ItemName: "Mã sản phẩm 1", Unit: "Cái", Quantity: 1, UnitPrice: 1000000 }
+        ],
+        change: function (e) {
+            console.log("change");
+            CalTotal();
+            CalCashBack();
+        }
+    });
+
+    $(document).ready(function () {
+        var grid = $('#Details').data("kendoGrid");
+        grid.setDataSource(dataSource);
+        dataSource.read();
+    });
+
+    function CalTotal() {
+        var data = $("#Details").data("kendoGrid").dataSource.data();
+        var sum = _.reduce(data, function (memo, num) {
+            return memo + num.UnitPrice * num.Quantity;
+        }, 0);
+
+        var tax = sum > 0 ? sum * 10 / 100 : 0;
+        $("#TotalInfo").html(ItemTemplate({ Amount: sum, Tax: tax, Total: sum - tax }));
+
+        var promotion = $("#PromotionCode").attr("data-value") ? parseFloat($("#PromotionCode").attr("data-value")) : 0;
+        var incomePoint = $("#discount").val() ? parseInt($("#discount").val()) : 0;
+        $("#Payment").html(kendo.toString(sum - tax - promotion - incomePoint * 1000, 'n0'));
+        $("#Payment").attr("data-payment", sum - tax - promotion - incomePoint * 1000);
+    }
+
+    function CalCashBack() {
+        var value = $("#CustomerMoney").val() ? parseFloat($("#CustomerMoney").val().replace(new RegExp(",", 'g'), "")) : 0;
+        var total = parseFloat($("#Payment").attr("data-payment"));
+        $("#CashBack").html($("#CustomerMoney").val() ? kendo.toString(value - total, 'n0') + "đ" : "0đ");
+    }
+
+    $("#PromotionCode").bind('textchange', function () {
+        var value = $(this).val().toUpperCase();
+        switch (value) {
+            case "MGG10":
+                $("#PromotionValue").html(kendo.toString(10000, 'n0') + "đ");
+                $("#PromotionCode").attr("data-value", 10000);
+                break;
+            case "MGG20":
+                $("#PromotionValue").html(kendo.toString(20000, 'n0') + "đ");
+                $("#PromotionCode").attr("data-value", 20000);
+                break;
+            case "MGG30":
+                $("#PromotionValue").html(kendo.toString(30000, 'n0') + "đ");
+                $("#PromotionCode").attr("data-value", 30000);
+                break;
+            default:
+                $("#PromotionValue").html(kendo.toString(0, 'n0') + "đ");
+                $("#PromotionCode").attr("data-value", 0);
+                break;
+        }
+        CalTotal();
+        CalCashBack();
+    });
+
+    $("#CustomerMoney").bind("textchange", function () {
+        CalCashBack();
+    });
+
+    function Searchbarcode() {
+        var keyword = locdau($("#txtSearchBarcode").val());
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Nhập thông tin tìm kiếm",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            grid = $("#GridBarcodeSearch").data("kendoGrid");
+
+            var filter = { logic: "and", filters: [] };
+
+            if (keyword) {
+                filter.filters.push({ field: "Barcode", operator: "contains", value: keyword });
+            }
+            grid.dataSource.filter(filter);
+        }
+    }
+
+
+    function filter() {
+        var keyword = locdau($("#txtCustomerSearch").val());
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Nhập thông tin tìm kiếm",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            grid = $("#GridCustomerSearch").data("kendoGrid");
+
+            var filter = { logic: "and", filters: [] };
+
+            if (keyword) {
+                filter.filters.push({ field: "MetaSearch", operator: "contains", value: keyword });
+            }
+            grid.dataSource.filter(filter);
+        }
+    }
+</script>

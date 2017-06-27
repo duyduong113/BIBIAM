@@ -1,0 +1,410 @@
+﻿@{
+    ViewBag.Title = Html.Raw(Resources.Global._merchant_register);
+}
+@{
+    var newData = new BIBIAM.Core.Entities.Merchant_Info();
+}
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color
+    {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100
+    {
+        max-width: 100%;
+    }
+    .lbl-error {
+        display: inline-block;        
+        color: red;
+        margin-bottom: 0px;
+        margin-right: 3px;
+    }
+    .lbl-success {
+        display: none;        
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 formEdit">
+    </div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">   
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._merchant_register)</span>
+                </div>                
+            </div>
+            <div class="portlet-body form ">
+                <div class="tabbable-line">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1" data-toggle="tab"> @Html.Raw(Resources.Global._general_info) </a>
+                        </li>                     
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <form action="@Url.Content("~/Merchant/Register")" method="post" id="EditForm" enctype="multipart/form-data">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._mer_name)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="Thiet bi dien BIBIAM" name="ten_gian_hang" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._short_name)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ten_viet_tat" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._website)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="bibiam.com" name="website" id="website" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._telephone) / @Html.Raw(Resources.Global._moblephone)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="0123220221" name="dien_thoai" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._email)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="register@bibiam.com" name="email" id="email" />
+                                                <label for="email" class="lbl-success"></label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tài khoản thanh toán</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="1022200122124" name="tai_khoan_thanh_toan" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._address)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="Khu công nghệ phần mền ITP" name="dia_chi_tru_so" />
+                                            </div>
+                                        </div>                                        
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._city_province)<span class="required"> * </span></label>
+                                            @(Html.Kendo().DropDownList()
+                                                    .Name("ma_tinh_tp")
+                                                    .HtmlAttributes(new { style = "width:100%" })
+                                                    .OptionLabel(Resources.Global._city_province + "...")
+                                                    .DataTextField("Name")
+                                                    .DataValueField("Id")
+                                                    .Filter("contains")
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("GetCity", "CustomData").Data("filterCity");
+                                                        }).ServerFiltering(false);
+                                                    }).ToClientTemplate()
+                                            )
+                                        </div>
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._district)</label>
+                                            @(Html.Kendo().DropDownList()
+                                                    .Name("ma_quan_huyen")
+                                                    .HtmlAttributes(new { style = "width:100%" })
+                                                    .OptionLabel(Html.Raw(Resources.Global._district) + "...")
+                                                    .Filter("contains")
+                                                    .DataTextField("Name")
+                                                    .DataValueField("Id")
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("GetDistrict", "CustomData")
+                                                            .Data("filterDistrict");
+                                                        })
+                                                        .ServerFiltering(true);
+                                                    })
+                                                    .Enable(false)
+                                                    .CascadeFrom("ma_tinh_tp").ToClientTemplate()
+                                            )
+                                        </div>
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn red btn-block uppercase">Register</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <label>Nội quy và điều khoản </label>
+                                                <div class="conten">
+                                                    ....
+                                                    ....
+                                                    ....
+                                                </div>
+                                                <input type="checkbox" name="noi_quy" id="noi_quy" class="form-control input-sm max100" value="">  
+                                                <strong>Tôi đã đọc và đồng ý với điều khoản trên </strong> 
+                                                <div>
+                                                    <label for="noi_quy" class="lbl-success"></label>
+                                                </div>                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>                                
+                            </form>
+
+</div>
+                        @*#if(id>0){#
+                        @if (all)
+                        {
+                            <div class="tab-pane" id="tab_1_2">
+                                @Html.Partial("_Color")
+                            </div>
+                        }
+                        #}#*@
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+</script>
+@*@Html.Partial("_Color_Extention")*@
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />      
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._car_lower) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+
+<script>
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeCar(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa xe",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/CarManagement/deleteCar", { id: id }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    toastr.success('', 'Xóa thành công');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+
+    function saveAndHold() {
+        $("input[name=id]").val(0);
+        $('#EditForm').submit();
+    }
+
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+
+    function edit(e) {
+        loadForm(data);
+        cardSelected(e);
+        //clearFormColor(data.id);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_gian_hang: { minlength: 4, required: true },
+                        ten_viet_tat: { minlength: 2, maxlength: 20, required: true},
+                        ma_tinh_tp: { required: true, city: true },                        
+                        website: { minlength: 4, required: true, valURL: true },
+                        dien_thoai: { required: true, isPhone:true, maxlength: 15 },
+                        email: { required: true, email: true },
+                        tai_khoan_thanh_toan: { minlength: 10, maxlength: 20, required: true, number: true },
+                        dia_chi_tru_so: { required : true, minlength : 4 },
+                        noi_quy: { checked: true }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var formData = new $("#EditForm").serializeArray();
+                    var url = $("#EditForm")[0].action;
+                    $(e).ajaxSubmit({
+                        url: url,
+                        type: 'POST',
+                        data: formData,
+                        mimeType: "multipart/form-data",
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            var rs = JSON.parse(data);
+                            if (rs.success) {                                
+                                bootbox.dialog({
+                                    closeButton: false,
+                                    message: "Bạn đã đăng ký thành thành công", title: "@Resources.Global._notification",
+                                    buttons:
+                                        {
+                                            main: { label: "Chuyển sang trang chủ", className: "btn green btn-circle btn-sm", callback: function () { window.location.href = "@Url.Content("~/Home/Index")"; } }
+                                        }
+                                });                                
+                            }
+                            else {
+                                if (rs.email)
+                                    $("label[for='email']").text($("#email").val() + " " + rs.email).removeClass('lbl-success').addClass('lbl-error')
+                                else
+                                    $("label[for='email']").removeClass('lbl-error').addClass('lbl-success')
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    $("input[type='checkbox']").on('change', function () {
+        $(this).val(this.checked ? "true" : "");
+    })
+    function filterCity() {
+        return {
+            Id: 242
+        };
+    }
+
+    function filterDistrict() {
+        return {
+            Id: $("#ma_tinh_tp").val()
+        };
+    }
+
+    function ValidURL(str) {
+        // ....
+        return true;
+    }
+    $.validator.addMethod("valURL", function (value, element) {
+        if (ValidURL(value))
+        {
+            return true;
+        }
+        return false;
+    }, "Định dạng website chưa đúng");
+    $.validator.addMethod("city", function (value, element) {
+        if (value != '') {
+            return true;
+        }
+        return false;
+    }, "Chon tinh tp");
+    $.validator.addMethod("checked", function (value, element) {
+        if ($("#noi_quy").prop('checked') == true) {
+            $("label[for='noi_quy']").removeClass('lbl-error').addClass('lbl-success');
+            return true;
+        }
+        else
+            $("label[for='noi_quy']").text('Phải đồng ý điều khoản này khi đăng ký mở gian hàng').removeClass('lbl-success').addClass('lbl-error');
+        return false;
+    });
+    $.validator.addMethod("isPhone", function (value, element) {
+        var val = value.replace(/[+()-]/g, "");
+        var phone_pattern = /([0-9]{9})/;
+        return phone_pattern.test(val);
+    }, "Please specify a valid phone number");
+</script>

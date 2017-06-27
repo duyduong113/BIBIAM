@@ -1,0 +1,555 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.report_price);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var ReportPrice = new Merchant_ReportPriceHeader();
+}
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .title-news {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .label {
+        border-radius: 3px;
+        text-shadow: none;
+        font-size: 11px !important;
+        font-weight: bold;
+        padding: 2px 2px 2px 2px !important;
+    }
+
+    .label-success {
+        background-color: #468847 !important;
+    }
+
+    .label-warning {
+        background-color: #f89406 !important;
+    }
+
+    .label-important {
+        background-color: #b94a48 !important;
+    }
+
+    .label-default {
+        background-color: #999 !important;
+    }
+
+    .label-info {
+        background-color: #3a87ad !important;
+    }
+
+    .btn2 {
+        width: 70% !important;
+    }
+
+    .btn-danger {
+    }
+
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách báo giá</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <div class="col-md-12">
+                    <div class="text-center text-uppercase bold text-primary">
+                        <h2>Danh Sách Báo Giá Sản Phẩm</h2>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    @if (isAdmin)
+                    {
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                @(Html.Kendo().DropDownList()
+                                      .Name("ListMerchant")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._merchant) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Events(e => e.Change("filter"))
+                                      .Filter("contains")
+                                      .MinLength(2)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetMerchantInfo", "CustomData");
+                                          }).ServerFiltering(false);
+                                      })
+
+                                )
+                            </div>
+                        </div>
+                    }
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input type="text" class="form-control input-sm max100" id="txtSearch" name="txtSearch">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-primary btn-sm btn-circle" onclick='filter()'>@Html.Raw(Resources.Global._vin_search)</button>
+                    </div>
+                </div>
+                <div class="col-md-12">
+
+                    @(Html.Kendo().Grid<Merchant_ReportPriceHeader>()
+                    .Name("ListReportGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Template(@<text></text>).ClientTemplate(
+                        "<a class='btn btn-xs btn-success' onClick='editreportprice(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>"
+                        +"<br>"
+                        + "<a class='btn btn-xs btn-primary' onClick='review(this)'><i class='fa fa-print' aria-hidden='true'></i></a>"
+                        ).Width(35).HtmlAttributes(new { @class = "text-center" });
+                        columns.Bound(p => p.id).Hidden();
+                        columns.Bound(p => p.ma_bao_gia).Width(100).Title("Mã báo giá");
+                        columns.Bound(p => p.ten_khach_hang).Title("Tên khách hàng").Width(100);
+                        columns.Bound(p => p.email).Title("Email").Width(100);
+                        columns.Bound(p => p.so_dien_thoai).Title("Số điện thoại").Width(100);
+                        columns.Bound(p => p.dia_chi).Title("Địa chỉ").Width(100);
+                        columns.Bound(p => p.nguoi_bao_gia).Title("Người báo giá").Width(100);
+                        columns.Bound(p => p.ngay_bao_gia).Title("Ngày báo giá").Format("{0:dd/MM/yyyy HH:mm}").Width(100);
+                        columns.Bound(p => p.ghi_chu).Title("Ghi chú").Width(100);
+                    })
+                    .Pageable()
+                    .HtmlAttributes(new { @style = "height:500px" })
+                    .Navigatable()
+                    .Scrollable()
+                    .Sortable()
+                    .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .Pageable(x => x.PageSizes(new int[] { 100, 200, 300, 500 }))
+                    .Events(events => { events.DataBound("dataBound"); })
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+                    .ToolBar(toolbar=>
+                        toolbar.Template(
+                        @<text>
+                    @if (create || all || update)
+                        {
+                <button type="button" onclick="AddNewReport()" class="btn btn-sm green"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._create)</button>
+                        }
+                        </text>
+                        )
+                        )
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(100)
+                        .Sort(s => s.Add(a => a.id).Descending())
+                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.ma_bao_gia).Editable(false);
+                            model.Field(p => p.ten_khach_hang).Editable(false);
+                            model.Field(p => p.email).Editable(false);
+                            model.Field(p => p.nguoi_bao_gia).Editable(false);
+                            model.Field(p => p.ngay_bao_gia).Editable(false);
+                            model.Field(p => p.so_dien_thoai).Editable(false);
+                        })
+                        .Read(c => c.Action("ReadHeader", "Merchant_ReportPrice"))
+                        )
+                    )
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12">
+                    <div class="text-center text-uppercase bold text-primary">
+                        <h2>Báo Giá Sản Phẩm</h2>
+                    </div>
+                </div>
+                <div class="col-md-12 formReport">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_ReportPrice_Partial")
+@Html.Partial("_Grid_Partial")
+@Html.Partial("popup_AddDetail")
+@*<div id="popup-view-contract_header" class="modal fade" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="javascript:;" class="close" data-dismiss="modal" aria-hidden="true"></a>
+            </div>
+            <div style="max-height: 100%; background-color: #F5F5F5; " class="modal-body">
+                <div class="modal-body-content" style="height: 420px; overflow-y: scroll; padding: 10px; background-color: #c9cac9"></div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-success btn-small" onclick="review(true)"> Print </a>
+                <a class="btn btn-info btn-small" onclick="exportHeader()"> ExportWord </a>
+                <a href="javascript:;" class="btn grey-salsa btn-outline" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>*@
+<script>
+    $(document).ready(function () {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(ReportPrice))'));
+        $.validator.addMethod("isPhone", function (value, element) {
+            var val = value.replace(/[+()-]/g, "");
+            var phone_pattern = /([0-9]{9})/;
+            return phone_pattern.test(val);
+        }, "@Html.Raw(@Resources.Global._error_phone_number)");
+        @*$.validator.addMethod("isEmail", function (value, element) {
+            var email_pattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]@(?:\S{1,63})$/;
+            return email_pattern.test(value);
+        }, "Email không tồn tại!");*@
+        
+    });
+    function clearForm()
+    {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(ReportPrice))'));
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#ReportPriceHeader").html());
+        $(".formReport").html(EditTemplate(data));
+        var GridTemplate = kendo.template($("#ReportPriceDetail").html());
+        $(".gridDetail").html(GridTemplate(data));
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+        loadValidate();
+    }
+    var saveas = 'no';
+    function filter() {
+        grid = $("#ListReportGrid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+            filterOr.filters.push({ field: "ma_bao_gia", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "ten_khach_hang", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "email", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "so_dien_thoai", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "nguoi_bao_gia", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "dia_chi", operator: "contains", value: noi_dung });
+            filter.filters.push(filterOr);
+        }
+        var ListMerchant = $('#ListMerchant').val();
+        if (ListMerchant != null && ListMerchant != "") {
+            filter.filters.push({ field: "ma_gian_hang", operator: "eq", value: ListMerchant });
+        }
+        grid.dataSource.filter(filter);
+    }
+    function Save()
+    {
+        saveas = 'no';
+        $("#EditForm").submit();
+    }
+    function SaveAs() {
+        saveas = 'yes';
+        $("#EditForm").submit();
+    }
+    function Validate() {
+        for (var i = 0; i < $("#Grid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#Grid").data("kendoGrid").dataSource.data()[i];
+            if (dataItem.ten_san_pham == '' || dataItem.ten_san_pham == null) {
+                $("#Grid").data("kendoGrid").dataSource.remove(dataItem);
+                i--;
+            }
+        }
+    }
+    function AddNewReport() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function getDataFromGrid() {
+        Validate();
+        var obj = [];
+        $.each($("#Grid").data("kendoGrid").dataSource.data(), function () {
+            var detail = new Object();
+            detail.ma_san_pham = this.ma_san_pham;
+            detail.ten_san_pham = this.ten_san_pham;
+            detail.don_gia = this.don_gia;
+            detail.don_vi_tinh = this.don_vi_tinh;
+            detail.so_luong = this.so_luong;
+            detail.thanh_tien = this.thanh_tien;
+            detail.ghi_chu = this.ghi_chu;
+            obj.push(detail);
+        });
+        return obj;
+    }
+    function review() {
+        //$("#popup-view-contract_header").modal("show");
+        $.ajax({
+            url: r + '/Merchant_ReportPrice/GetTemplate/',
+            type: 'POST',
+            data: { Id: $("#id").val(), isView: true, ma_bao_gia:$("#ma_bao_gia").val() },
+            success: function (data, textStatus, jqXHR) {
+                printContract(data);
+            },
+        });
+    }
+    function review(e) {
+        var reportprice = $('#ListReportGrid').data('kendoGrid').dataItem($(e).closest('tr'));
+        $.ajax({
+            url: r + '/Merchant_ReportPrice/GetTemplate/',
+            type: 'POST',
+            data: { Id: $("#id").val(), isView: true, ma_bao_gia: reportprice.ma_bao_gia },
+            success: function (data, textStatus, jqXHR) {
+                printContract(data);
+            },
+        });
+    }
+    function printContract(html) {
+        var printWin = window.open("about:blank", "Voucher", "menubar=no;status=no;toolbar=no;");
+        printWin.document.write(html);
+        printWin.document.close();
+        setTimeout(function () {
+            printWin.window.print();
+            window.close();
+        }, 5000);
+    }
+    //function exportHeader() {
+    //    var Id = $("#id").val();
+    //    var ma_bao_gia = $("#ma_bao_gia").val();
+    //    window.location = r + '/Merchant_ReportPrice/GetTemplate/' + Id + '?isView=false&ma_bao_gia=' + ma_bao_gia;
+    //}
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_khach_hang: {maxlength: 512, required: !0 },
+                        so_dien_thoai: { required: !0, isPhone: true },
+                        //email: { isEmail: true },
+                        nguoi_bao_gia: { required: !0 },
+                        dia_chi: { minlength: 5, maxlength: 1000, required: !0 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    kendo.toString(kendo.parseDate($("#EditForm input[name='ngay_bao_gia']").val()), 'yyyy/MM/dd');
+                    var obj = getDataFromGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { details: obj, saveas: saveas},
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.clear();
+                                $("#ListReportGrid").data("kendoGrid").dataSource.read();
+                                toastr.success('', 'Lưu thành công!')
+                                App.unblockUI();
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function dataBound() {
+
+    }
+    function error_handler() {
+
+    }
+    function onRequestEnd() {
+
+    }
+    function editreportprice(e) {
+        var reportprice = $('#ListReportGrid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadForm(reportprice);
+        $("#tab_2_click").trigger("click");
+
+    }
+    function addnewRow() {
+        var ReportDetailTemplate = kendo.template($("#ReportDetailTemplate").html());
+        bootbox.dialog({
+            closeButton: true,
+            message: ReportDetailTemplate(0),
+            title: "@Html.Raw(Resources.Global._add_product) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._po_new_buttonnew)", className: "btn green btn-circle btn-sm", callback: function () { SaveToGrid(); return false; } },
+            }
+        });
+    }
+    var item;
+    function ChangeTenSP(e) {
+        item = this.dataItem(e.item.index());;
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/GetProductInfo",
+            data: { ma_san_pham: item.ma_san_pham },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#ReportDetailForm input[id='don_gia']").val(kendo.toString(data.data.don_gia, 'n0'));
+            }
+            else {
+                $("#ReportDetailForm input[id='don_gia']").val(data.error)
+            }
+        }
+
+        function errorFunc() {
+            alert('error');
+        }
+    }
+    function change_grid() {
+        debugger
+        var so_loai = 0;
+        var so_luong = 0;
+        var tong_tien = 0;
+        for (var i = 0; i < $("#Grid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#Grid").data("kendoGrid").dataSource.data()[i];
+            so_loai++;
+            so_luong += parseInt(dataItem.so_luong);
+            tong_tien += parseInt(dataItem.thanh_tien);
+        }
+        $("#Grid").find("span.so_sp").html(so_loai);
+        $("#Grid").find("span.so_luong_sp").html(so_luong);
+        $("#Grid").find("span.thanh_tien_sp").html(tong_tien);
+        return;
+    }
+    function onDataProduct() {
+        return {
+            text: $("#ma_san_pham").val()
+        }
+    }
+    function SaveToGrid() {
+        InsertToGrid();
+    }
+    function deleteRow(e) {
+        var data = $("#Grid").data("kendoGrid").dataItem($(e).parents('tr'));
+        if (data)
+            $("#Grid").data("kendoGrid").dataSource.remove(data);
+    }
+    function InsertToGrid() {
+        var ma_san_pham = item.ma_san_pham;
+        var so_luong = $("#so_luong").val();
+        var don_vi_tinh = "cai";
+        if (!ma_san_pham) {
+            alert("Chọn Sản Phẩm");
+            return;
+        }
+        if (!so_luong) {
+            alert("Nhập số lượng");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/Merchant_Order/GetProductInfo",
+            data: { ma_san_pham: ma_san_pham },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                var ten_san_pham = data.data.ten_san_pham;
+                var don_gia = data.data.don_gia;
+                var thanh_tien = don_gia * so_luong;
+                var grid = $("#Grid").data("kendoGrid");
+                grid.dataSource.add({ ma_san_pham: ma_san_pham, ten_san_pham: ten_san_pham, don_gia: don_gia, so_luong: so_luong, thanh_tien: thanh_tien, don_vi_tinh: don_vi_tinh });
+                toastr.success('', 'Đã thêm sản phẩm ' + $("#ma_san_pham").val());
+                $("#ReportDetailForm").trigger('reset');
+            }
+            else {
+                alert('error');
+            }
+        }
+
+        function errorFunc() {
+            alert('error');
+        }
+
+    }
+</script>

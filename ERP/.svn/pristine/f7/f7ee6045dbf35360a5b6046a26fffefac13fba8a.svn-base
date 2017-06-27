@@ -1,0 +1,632 @@
+﻿@{
+    int glb = 0;
+}
+
+<fieldset>
+    <div class="row-fluid check-type-service">
+        <b>Dịch vụ đăng ký mua Bài PR giá rẻ</b>
+    </div>
+    <table id="list-hdt-service" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Nguồn website</th>
+                <th>Web</th>
+                <th>Chuyên mục</th>
+                <th>SL</th>
+                <th>Đơn giá</th>
+                <th style="text-align:center">Giảm giá trực tiếp</th>
+                <th style="text-align:center">Chương trình KM</th>
+                <th><button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" onclick="plusGroup()" class="btn btn-minier btn-success tooltip-success"><i class="icon-plus"></i></button></th>
+            </tr>
+        </thead>
+        @if (ViewBag.productHDT != null && ViewBag.productHDT.Count > 0)
+        {
+            foreach (var item in ViewBag.productHDT)
+            {
+                <tbody class="list">
+                    <tr class="group-hdt-service">
+
+                        <td><input class="item-source" type="text" value="@item.NguonDan" /></td>
+                        <td>
+                            <div class="control-group">
+                                <div class="controls">
+                                    <input type="hidden" class="item-PKProduct" value="@item.PKProduct" />
+                                    <input class="input-value-suggess item-web" type="hidden" value="@item.Website" />
+                                    @(Html.Kendo().AutoComplete()
+                                                                    .Name("txt-AdvChannel-" + glb)
+                                                                    .DataTextField("Name")
+                                                                    .Placeholder("Nhập tên Web")
+                                                                    .Filter("contains")
+                                                                    .MinLength(1)
+                                                                    .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                    .DataSource(source =>
+                                                                    {
+                                                                        source.Read(read =>
+                                                                        {
+                                                                            read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                                .Data("onAdditionalDataChannel");
+                                                                        })
+                                                                        .ServerFiltering(true);
+                                                                    })
+                                                                    .Events(e =>
+                                                                    {
+                                                                        e.Select("onSelectChannelItem");
+                                                                    })
+                                    )
+
+                                </div>
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val("@Html.Raw(item.WebsiteName)");
+                                </script>
+                            </div>
+                            @{glb++;}
+                        </td>
+                        <td>
+                            <div class="control-group">
+                                <div class="controls">
+                                    <input class="input-value-suggess item-category" type="hidden" value="@item.Category" />
+                                    @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập chuyên mục")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem");
+                                                                })
+                                    )
+                                </div>
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val("@Html.Raw(item.CategoryName)");
+                                </script>
+                            </div>
+                            @{glb++;}
+
+
+                        </td>
+                        <td>
+                            <input placeholder="Nhập số lượng" onchange="resetGroupProduct()" class="item-qty currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.Number.ToString("#,##0")" />
+                        </td>
+                        <td>
+                            <input placeholder="Nhập đơn giá" onchange="resetGroupProduct()" class="item-price currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.Price.ToString("#,##0")" />
+
+                        </td>
+                        <td>
+                            <input placeholder="Nhập CK Tiền" onchange="resetGroupProduct()" class="item-ck-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.CKTienMat.ToString("#,##0")" />
+                        </td>
+                        <td>
+                            <input placeholder="Nhập CTKM" class="item-ck-money-Promotion" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.CTKMCKTien" />
+
+                        </td>
+                        <td>
+                            <div class="visible-desktop btn-group">
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" onclick="removeOneService(this,'@item.PKProduct')" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Nhân bản" type="button" onclick="clonRow(this)" class="btn btn-minier btn-default"><i class="fa fa-clone"></i></button><br />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="date-discount">
+                        <td colspan="3">
+                            <table class="table table-striped table-bordered table-hover table-service table-service-date">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày lên</th>
+                                        <th>Ngày xuống</th>
+                                        <th>Số ngày</th>
+                                        <th>số tuần</th>
+                                        <th><button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" onclick="plusDateService(this)" class="btn btn-minier btn-success tooltip-success"><i class="icon-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var time in item.ListTime)
+                                    {
+                                    <tr class="group-service-date">
+                                        <td>
+                                            <input class="item-pk" type="hidden" value="@time.PKTime" />
+                                            <input onchange="resetWeekDay(this)" class="item-date-dateup date-picker" data-date-format="dd/mm/yyyy" value="@time.DateUp.ToString("dd/MM/yyyy")" />
+                                        </td>
+                                        <td><input onchange="resetWeekDay(this)" class="item-date-datedown date-picker" data-date-format="dd/mm/yyyy" value="@time.DateDown.ToString("dd/MM/yyyy")" /></td>
+                                        <td><input onchange="resetWeekDay(this,0)" class="item-date-days" type="text" value="@time.NumberDay" /></td>
+                                        <td><input onchange="resetWeekDay(this,1)" class="item-date-weeks" type="text" value="@time.Week" /></td>
+                                        <td>
+                                            <div class="visible-desktop btn-group">
+                                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" onclick="removeThisRowDate(this,'@time.PKTime')" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                            <label class="pull-right" style="margin-top:-10px; font-size:15px;"> Tổng tiền : <span class="total_money_by_product" style="color:#dd5a43!important;font-weight:bold;"></span><i style="color:#dd5a43!important;"> đ</i></label>
+
+                        </td>
+                        <td colspan="1"></td>
+                        <td colspan="3">
+                            <table class="table table-striped table-bordered table-hover table-service table-service-discount">
+                                <thead>
+                                    <tr>
+                                        <th>Chiết khấu</th>
+                                        <th>Tiền CK</th>
+                                        <th>Tiền chưa VAT</th>
+                                        <th>Chương trình KM</th>
+                                        <th><button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" onclick="plusDiscountService(this)" class="btn btn-minier btn-success tooltip-success"><i class="icon-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var prmt in item.ListPromotion)
+                                    {
+                                    <tr class="group-service-discount">
+                                        <td>
+                                            <input class="item-pk" type="hidden" value="@prmt.PKPromotion" />
+                                            <input onchange="resetGroupProduct()" class="item-km-discount" type="text" value="@prmt.Discount" />
+                                        </td>
+                                        <td><input class="item-km-money_ck currency" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>
+                                        <td><input class="item-km-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@prmt.AmtNoVAT.ToString("#,##0")" /></td>
+                                        <td><input class="item-km-Promotion" value="@prmt.Promotion" /></td>
+                                        <td>
+                                            <div class="visible-desktop btn-group">
+                                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" onclick="removeThisRowPromotion(this,'@prmt.PKPromotion')" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+                                    }
+
+                                }
+
+
+
+    </table>
+    <div class="row-fluid">
+        <p style="margin-right:135px;font-size:1.4em;font-weight" class="pull-right">
+            <b>Tổng cộng : <span class="red" id="sum-money-product"></span></b>
+        </p>
+    </div>
+
+</fieldset>
+@Html.Partial("_discount_infomation")
+<div class="row-fluid">
+    @if (ViewBag.itemdraff != null)
+    {
+        if (!string.IsNullOrEmpty(ViewBag.itemdraff.GhiChu))
+        {
+            <fieldset>
+                <b>Thông tin bổ sung</b>
+                <div class="row-fluid">
+                    @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(ViewBag.itemdraff.GhiChu)
+                    )
+                </div>
+            </fieldset>
+        }
+
+    }
+    else
+    {
+        foreach (var item in ViewBag.Terms)
+        {
+
+            if (item.NameID == "PHIEUPR_THONG_TIN_BO_SUNG")
+            {
+                <fieldset>
+                    <b>@item.Title</b>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+                        )
+                    </div>
+                </fieldset>
+            }
+        }
+    }
+</div>
+<script type="text/javascript">
+    function saveServiceSupport() {
+        var result = saveHDT();
+        return result;
+    }
+    function resetGroupProduct(onlySum) {
+        var sum = 0
+        $("#list-hdt-service tr.group-hdt-service").each(function (index) {
+            var number = currencyToNumber($(this).find(".item-qty").val());
+            var price = currencyToNumber($(this).find(".item-price").val());
+            var CKTienMat = currencyToNumber($(this).find(".item-ck-money").val());
+            var one = number * price - CKTienMat;
+            $(this).next().find(".total_money_by_product").text(numberToCurrency(one));
+            if (onlySum) {
+                var lastDiscount = $(this).next().find(".table-service-discount .group-service-discount").last().find("input.item-km-money").val();
+                if (lastDiscount != undefined) {
+                    sum += currencyToNumber(lastDiscount);
+                } else {
+                    sum += one;
+                }
+            } else {
+                sum += resetDiscount($(this).next(), one);
+            }
+        })
+        $("#sum-money-product").text(numberToCurrency(sum));
+        sumMoneyProduct = sum;
+        resetSum(false);
+    }
+    function resetDiscount(e, money) {
+        var sum = money;
+        var ck_money = 0;
+        $(e).find(".table-service-discount .group-service-discount").each(function (index) {
+            var discount = currencyToNumber($(this).find("input.item-km-discount").val());
+            ck_money = (discount * sum / 100);
+            sum = sum - ck_money; // (discount * sum / 100);
+            $(this).find("input.item-km-money_ck").val(numberToCurrency(ck_money));
+            $(this).find("input.item-km-money").val(numberToCurrency(sum));
+        })
+        return sum;
+    }
+    function resetWeekDay(e, isDay) {
+        var week = snl = 0;
+        var parent = $(e).parents("tr.group-service-date");
+        var startDate = parent.find(".item-date-dateup").val();
+        var endDate = parent.find(".item-date-datedown").val();
+        if (isDay == 0) {
+            var days = parent.find(".item-date-days").val();
+            if (parseInt(days) == 0) {
+                alertMessage("Số ngày sai !");
+                return;
+            }
+            if (startDate == "") {
+                alertMessage("Chưa đặt ngày lên !");
+                return;
+            }
+            endDate = moment(startDate, "DD/MM/YYYY").add('days', parseInt(days - 1)).format("DD/MM/YYYY");
+            parent.find(".item-date-datedown").val(endDate);
+            var nweek = nsnl = "";
+            week = parseInt(days / 7);
+            if (week > 0) {
+                nweek = week + " tuần ";
+            }
+            snl = days % 7;
+            if (snl > 0) {
+                nsnl = snl + " ngày";
+            }
+            parent.find(".item-date-weeks").val(nweek + nsnl);
+            parent.find(".item-date-days").val(days);
+            // return;
+        }
+        else if (isDay == 1) {
+            var days = parent.find(".item-date-weeks").val() * 7;
+            if (parseInt(days) == 0) {
+                return;
+            }
+            if (startDate == "") {
+                alertMessage("Chưa đặt ngày lên !");
+                return;
+            }
+            endDate = moment(startDate, "DD/MM/YYYY").add('days', parseInt(days - 1)).format("DD/MM/YYYY");
+            parent.find(".item-date-datedown").val(endDate);
+            var nweek = nsnl = "";
+            week = parseInt(days / 7);
+            if (week > 0) {
+                nweek = week + " tuần ";
+            }
+            snl = days % 7;
+            if (snl > 0) {
+                nsnl = snl + " ngày";
+            }
+            parent.find(".item-date-days").val(days);
+            parent.find(".item-date-weeks").val(nweek + nsnl);
+
+        }
+        else if (startDate != "" && endDate != "") {
+            var days = getDateRange(startDate, endDate);
+            if (days == 0) {
+                parent.find(".item-date-days").val('');
+                parent.find(".item-date-weeks").val('');
+                parent.find(".item-date-datedown").val('');
+            }
+            if (days) {
+                var nweek = nsnl = "";
+                week = parseInt(days / 7);
+                if (week > 0) {
+                    nweek = week + " tuần ";
+                }
+                snl = days % 7;
+                if (snl > 0) {
+                    nsnl = snl + " ngày";
+                }
+                parent.find(".item-date-days").val(days);
+                parent.find(".item-date-weeks").val(nweek + nsnl);
+            } else {
+                return;
+            }
+        }
+        resetGroupProduct();
+        return days;
+    }
+
+    function getObjectThisDate(e, clone) {
+        var arr = [];
+        $(e).find(".table-service-date .group-service-date").each(function (index) {
+            var obj = {};
+            obj.PKTime = $(this).find(".item-pk").val();
+            obj.FkContract = $("#formContract").attr("data-contract");
+            obj.NgayLen = convertDate($(this).find("input.item-date-dateup").val());
+            if (clone) {
+                obj.NgayLen = $(this).find("input.item-date-dateup").val();
+                obj.NgayXuong = $(this).find("input.item-date-datedown").val();
+
+            } else {
+                obj.NgayLen = convertDate($(this).find("input.item-date-dateup").val());
+                if (obj.NgayLen == "") {
+                    return;
+                }
+                obj.NgayXuong = convertDate($(this).find("input.item-date-datedown").val());
+                if (obj.NgayXuong == "") {
+                    return;
+                }
+            }
+            obj.Week = $(this).find("input.item-date-weeks").val();
+            obj.NumberDay = $(this).find("input.item-date-days").val();
+            arr[index] = obj;
+        })
+        return arr;
+    }
+    function getObjectThisDiscount(e) {
+        var arr = [];
+        $(e).find(".table-service-discount .group-service-discount").each(function (index) {
+            var obj = {};
+            obj.PKPromotion = $(this).find(".item-pk").val();
+            obj.FkContract = $("#formContract").attr("data-contract");
+            obj.Discount = currencyToNumber($(this).find("input.item-km-discount").val());
+            if (obj.Discount == "") {
+                return;
+            }
+            obj.AmtNoVAT = currencyToNumber($(this).find("input.item-km-money").val());
+            if (obj.AmtNoVAT == "") {
+                return;
+            }
+            obj.Promotion = $(this).find("input.item-km-Promotion").val();
+            arr[index] = obj;
+        })
+        return arr;
+    }
+    function saveHDT() {
+        var arr = [];
+        var loop = true;
+        $("#list-hdt-service tr.group-hdt-service").each(function (index) {
+            var obj = {};
+            obj.ListTime = getObjectThisDate($(this).next());
+            obj.ListPromotion = getObjectThisDiscount($(this).next());
+            obj.PKProduct = $(this).find(".item-PKProduct").val();
+            obj.FKContract = $("#formContract").attr("data-contract");
+            obj.Website = $(this).find("input.item-web").val();
+            if (obj.Website == "") {
+                alertMessage("Tên Website không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Category = $(this).find("input.item-category").val();
+            if (obj.Category == "") {
+                alertMessage("Tên chuyên mục không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Price = currencyToNumber($(this).find(".item-price").val());
+            if (obj.PriceCharged == "") {
+                alertMessage("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Number = currencyToNumber($(this).find(".item-qty").val());
+            if (obj.Number == "") {
+                alertMessage("Số lượng không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.ProductType = "PHIEUPR";
+            obj.Location = ""
+            obj.Nature = "";
+            obj.Size = "";
+            obj.HUONG = "";
+            obj.NguonDan = $(this).find(".item-source").val();
+            obj.CKTienMat = currencyToNumber($(this).find(".item-ck-money").val());
+            obj.CTKMCKTien = $(this).find(".item-ck-money-note").val();
+            arr[index] = obj;
+        })
+        //console.log(arr);
+        //return;
+        $.ajax({
+            url: r + "/CRMContractList/ContractProductDraff_Save",
+            type: 'POST',
+            data: { listProduct: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                    loop = false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    var c = parseInt("@glb");
+    var chGlb = 0;
+    var typeContract = '@ViewBag.typeContract';
+    function setGlobalChannel(k) {
+        chGlb = k;
+    }
+    function onAdditionalDataChannel() {
+        return {
+            text: $("#txt-AdvChannel-" + chGlb).val()
+        };
+    }
+    function onSelectChannelItem(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents(".controls").find(".input-value-suggess").val(dataItem.Code);
+    }
+    function plusGroup() {
+        $.post(r + "/Ajax/GetInputSuggestService/", { incree: parseInt(c), Type: "DRAFF_PHIEUPR" }, function (data) {
+            $("#list-hdt-service").append(data);
+            c = c + 2;
+            resetGroupProduct();
+            addEventAfter();
+        })
+        return;
+    }
+    function plusDateService(e) {
+        var parent = $(e).parents("tr");
+        var tr = '';
+        tr += '<tr class="group-service-date"><td><input class="item-pk" type="hidden" value="0"/><input onchange="resetWeekDay(this)" class="item-date-dateup date-picker" /></td>';
+        tr += '<td><input onchange="resetWeekDay(this)" class="item-date-datedown date-picker" /></td>';
+        tr += '<td><input onchange="resetWeekDay(this,0)" class="item-date-days" type="text" /></td>';
+        tr += '<td><input onchange="resetWeekDay(this,1)" class="item-date-weeks" type="text" /></td>';
+        tr += '<td><div class="visible-desktop btn-group">';
+        tr += '<button data-rel="tooltip" data-placement="right" data-original-title="Xóa" type="button" onclick="removeThisRowDate(this)" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>';
+        tr += '</div></td></tr>';
+        parent.find(".table-service-date tbody").append(tr);
+        addEventAfter();
+    }
+    function plusDiscountService(e) {
+        var parent = $(e).parents("tr");
+        var tr = '';
+        tr += '<tr class="group-service-discount"><td><input class="item-pk" type="hidden" value="0"/><input onchange="resetGroupProduct()" class="item-km-discount" type="text" /></td>';
+        tr += '<td><input class="item-km-money_ck currency" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        tr += '<td><input class="item-km-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>';
+        tr += '<td><input class="item-km-Promotion" type="text"/></td>';
+        tr += '<td><div class="visible-desktop btn-group">';
+        tr += '<button data-rel="tooltip" data-placement="right" data-original-title="Xóa" type="button" onclick="removeThisRowPromotion(this)" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>';
+        tr += '</div></td></tr>';
+        parent.find(".table-service-discount tbody").append(tr);
+        addEventAfter();
+    }
+    function removeThisRowDate(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest("tr").remove();
+        if (pk) {
+            addTaskList("DATENORMAL", pk);
+        }
+        resetGroupProduct();
+    }
+    function removeThisRowPromotion(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest("tr").remove();
+        if (pk) {
+            addTaskList("PROMOTION_NORMAL", pk);
+        }
+        resetGroupProduct();
+    }
+    function removeOneService(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest("tr").next().remove();
+        $(e).closest("tr").remove();
+        if (pk) {
+            addTaskList("PDNORMAL", pk);
+        }
+        resetGroupProduct();
+        console.log(listTask);
+    }
+    function clonRow(btn) {
+        var e = $(btn).parents("tr.group-hdt-service");
+        var obj = {};
+        obj.ListTime = getObjectThisDate($(e).next(), true);
+        obj.ListPromotion = getObjectThisDiscount($(e).next());
+        obj.Website = $(e).find("input.item-web").val();
+        obj.Category = $(e).find("input.item-category").val();
+        obj.Price = currencyToNumber($(e).find(".item-price").val());
+        obj.Number = currencyToNumber($(e).find(".item-qty").val());
+        obj.NguonDan = $(e).find(".item-source").val();
+        obj.CKTienMat = currencyToNumber($(e).find(".item-ck-money").val());
+        obj.CTKMCKTien = $(e).find(".item-ck-money-note").val();
+        obj.WebsiteName = $(e).find("input.item-web-name").val();
+        obj.CategoryName = $(e).find("input.item-category-name").val();
+        console.log(obj);
+        $.ajax({
+            url: r + "/Ajax/CloneServicePR",
+            type: 'POST',
+            data: { incree: parseInt(c), normal: obj },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                $("#list-hdt-service").append(data);
+                c = c + 2;
+                resetGroupProduct();
+                addEventAfter();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    //BaoHV add
+    function copyServices() {
+        $("#list-hdt-service tr.group-hdt-service").each(function (index) {
+            $(this).find(".item-PKProduct").val(''); 
+        });
+        $("#list-hdt-service tr.date-discount .table-service-discount .group-service-discount").each(function (index) {
+            $(this).find(".item-pk").val('0');
+        })
+        $("#list-hdt-service tr.date-discount .table-service-date .group-service-date").each(function (index) {
+            $(this).find(".item-pk").val('0');
+        });
+    }
+</script>

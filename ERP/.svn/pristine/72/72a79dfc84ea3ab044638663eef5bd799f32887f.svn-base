@@ -1,0 +1,719 @@
+﻿@{
+    ViewBag.Title = Resources.Multi.MenuCustomerSupport;
+    var listPriority = new List<Object>();
+    listPriority.Add(new { Value = "TPRI002", Name = "Medium" });
+    listPriority.Add(new { Value = "TPRI003", Name = "High" });
+    listPriority.Add(new { Value = "TPRI001", Name = "Urgent" });
+    ViewBag.listPriority = listPriority;
+
+    var listImpact = new List<Object>();
+    listImpact.Add(new { Value = "TIMP001", Name = "Low" });
+    listImpact.Add(new { Value = "TIMP002", Name = "Medium" });
+    listImpact.Add(new { Value = "TIMP003", Name = "High" });
+    ViewBag.listImpact = listImpact;
+}
+
+<style>
+    .info-name {
+        color: #9D9D9D;
+    }
+
+    .para-info {
+        margin-bottom: 0px;
+        line-height: 18px;
+    }
+
+    .k-multiselect-wrap.k-floatwrap {
+        height: 40px;
+    }
+
+    #gridCustomerAppointment .k-grid-header {
+        display: none;
+    }
+
+    #gridCustomerAppointment .k-grid-content {
+        min-height: 180px !important;
+        padding-top: 5px;
+    }
+
+    #CreateTicketForm label {
+        margin-bottom: 0px;
+    }
+</style>
+@Html.Partial("_CSSearchResult")
+@Html.Partial("_CSCustomerInfo")
+@Html.Partial("_CSSurveyForm")
+@Html.Partial("_CSAnonymousCustomer")
+
+<div class="row-fluid">
+    <div class="span6">
+        <div class="row-fluid">
+
+            <div class="span12">
+                <span class="input-icon input-icon-right span4">
+                    <input type="text" id="txtSearchCustomer" placeholder="@Resources.Multi.Code, @Resources.Multi.Name , @Resources.Multi.Phone, @Resources.Multi.ID, @Resources.Multi.Email..." value="@ViewBag.Phone" class="span12" />
+                    <i class="icon-search"></i>
+                </span>
+                <span style="margin-left:5px;">
+                    <input type="text" id="txtSearchOrder" placeholder="@Resources.Multi.Order..." class="span2" />
+                </span>
+                <span style="display:none" id="divAddIncomingPhone">
+                    <span>Lưu số: </span><span id="incomingPhone" style="font-weight:bold;color:red;">@ViewBag.Phone?</span>
+                    <button class="btn btn-success btn-mini" onclick="AddIncomingPhoneToCustomer('@ViewBag.Phone','MobilePhone')" style="border-radius:2px">
+                        + <i class="icon-phone icon-only"></i>
+                    </button>
+                    <button class="btn btn-primary btn-mini" onclick="AddIncomingPhoneToCustomer('@ViewBag.Phone','HomePhone')" style="border-radius: 2px">
+                        + <i class="icon-home icon-only"></i>
+                    </button>
+                    <button class="btn btn-pink btn-mini" onclick="AddIncomingPhoneToCustomer('@ViewBag.Phone','OfficePhone')" style="border-radius: 2px">
+                        + <i class="icon-building icon-only"></i>
+                    </button>
+                </span>
+                <button class="btn btn-mini btn-warning pull-right" style="border-radius:2px" onclick="ShowFAQs()">
+                    <i class="icon-question-sign"></i>&nbsp; FAQs
+                </button>
+            </div>
+        </div>
+        <div class="row-fluid" style=" border: 1px solid #ccc; padding: 7px 5px 5px 7px; margin-top:5px; background-color: #FBFBFB; ">
+            <div id="divCustomerInfoCS">
+                <p style="margin-top: 5px; font-size: 12px; color: #777;padding-right:7px; ">
+                    <button class="btn btn-success btn-mini pull-right" onclick="showSaveAnonymousForm()" style="border-radius:2px">
+                        <i class="icon-user icon-only"></i> @Resources.Multi.Add @Resources.Multi.Customer.ToLower()
+                    </button>
+                   @Resources.Multi.lbNoteCustomerSupport
+                </p>
+
+            </div>
+            <div id="divCustomerHistory"></div>
+        </div>
+    </div>
+    <div class="span6">
+        <div class="row-fluid" style="padding-bottom:10px;">
+            <div class="span12">
+                <div class="row-fluid" style=" border-bottom: 1px dotted #ccc; margin: 4px 0 10px 0;">
+                    <div class="span4">
+                        <h5 style="margin-top:0px;">
+                            @Resources.Multi.CallRecord.ToUpper()
+                        </h5>
+                    </div>
+                    <div class="span8" style="display:inline-flex">
+                        <label>
+                            <input name="form-field-radio" type="radio" class="ace" onclick="ChangeRequestFrom('Call')">
+                            <span class="lbl"> Call</span>
+                        </label>
+
+                        <label style="margin-left: 10px">
+                            <input name="form-field-radio" type="radio" class="ace" onclick="ChangeRequestFrom('Email')">
+                            <span class="lbl"> Email</span>
+                        </label>
+
+                        <label style="margin-left:10px">
+                            <input name="form-field-radio" type="radio" class="ace" onclick="ChangeRequestFrom('Facebook')">
+                            <span class="lbl"> Facebook</span>
+                        </label>
+
+                        <label style="margin-left: 10px">
+                            <input name="form-field-radio" type="radio" class="ace" onclick="ChangeRequestFrom('Live chat')">
+                            <span class="lbl"> LiveChat</span>
+                        </label>
+                        <label style="margin-left: 10px">
+                            <input name="form-field-radio" type="radio" class="ace" onclick="ChangeRequestFrom('Landing page')">
+                            <span class="lbl"> LandingPage</span>
+                        </label>
+                        <label style="margin-left: 10px">
+                            <input name="form-field-radio" type="radio" class="ace" id="radioTicketRequestFrom" onclick="ChangeRequestFrom('Ticket')">
+                            <span class="lbl"> Ticket</span>
+                        </label>
+                    </div>
+
+                </div>
+                <div class="row-fluid">
+                    @using (Html.BeginForm("Ticket_CreateFromCustomerSupport", "Ticket", FormMethod.Post, new { @class = "form-horizontal", id = "CreateTicketForm", style = "margin-bottom:0px;" }))
+                    {
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <div class="row-fluid">
+                                    <div class="span12" style="margin-bottom:5px;">
+                                        <div class="row-fluid">
+                                            <label for="Title">@Resources.Multi.Title</label>
+                                            <input placeholder="@Resources.Multi.Title @Resources.Multi.Require.ToLower() (@Resources.Multi.Maximum.ToLower() 100 @Resources.Multi.Char.ToLower())" class="span12" id="Title" name="Title" type="text" value="">
+                                        </div>
+                                        <div class="row-fluid">
+                                            <label for="Detail">@Resources.Multi.Desc</label>
+                                            <textarea placeholder="@Resources.Multi.Desc @Resources.Multi.Content.ToLower() @Resources.Multi.Require (@Resources.Multi.Maximum.ToLower() 500 @Resources.Multi.Char.ToLower())" class="span12" cols="3" id="Detail" name="Detail"></textarea>
+                                        </div>
+
+                                        <div class="row-fluid">
+                                            <label for="Category">@Resources.Multi.RequireGroup</label>
+                                            @(Html.Kendo().DropDownList().Name("Category")
+                                                        .HtmlAttributes(new { @style = "width:100%" })
+                                                        .OptionLabel(Resources.Multi.RequireGroup+"...")
+                                                        .DataTextField("Name")
+                                                        .AutoBind(false)
+                                                        .DataValueField("CategoryID")
+                                                        .DataSource(dataSource =>
+                                                        {
+                                                            dataSource.Read(read => read.Action("GetListCategoryForTelesales", "Ticket"))
+                                                            .ServerFiltering(true);
+                                                        })
+                                            )
+                                        </div>
+                                        <div class="row-fluid" style="margin-top:3px;">
+                                            <label for="TypeID">@Resources.Multi.RequireType</label>
+                                            @(Html.Kendo().DropDownList().Name("TypeID")
+                                                        .AutoBind(false)
+                                                        .HtmlAttributes(new { @style = "width:100%" })
+                                                        .OptionLabel(Resources.Multi.RequireType+"...")
+                                                        .DataTextField("Name")
+                                                        .DataValueField("TypeID")
+                                                        .DataSource(dataSource =>
+                                                        {
+                                                            dataSource.Read(read => read.Action("GetListTypeForTelesales", "Ticket").Data("filterCategoryTicket"))
+                                                            .ServerFiltering(true);
+                                                        })
+                                                                .CascadeFrom("Category")
+                                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span6">
+
+                                <div class="row-fluid">
+                                    <div class="span12">
+                                        <input type="hidden" name="CustomerID" value="" />
+                                        <input type="hidden" name="CustomerName" value="" />
+                                        <input type="hidden" name="CustomerSource" value="" />
+                                        <input type="hidden" name="RequestFrom" value="" />
+                                        <input type="hidden" name="Status" />
+                                        <input type="hidden" name="RefID" />
+                                        <div class="row-fluid">
+                                            <label for="OrderID">@Resources.Multi.OrderCode <span id="lbCusInfo" style="font-weight:bold"></span></label>
+                                            @(Html.Kendo().AutoComplete()
+                              .Name("OrderID")
+                                .DataTextField("OrderID")
+                                  .DataSource(source =>
+                                  {
+                                      source.Read(read =>
+                                      {
+                                          read.Action("LoadOCMOrderSuggestForSendTicket", "CustomerSupport").Data("onAdditionalDataOrder");
+                                      }).ServerFiltering(true);
+                                  })
+                                   .HtmlAttributes(new { style = "font-size:13px;width:100%;" })
+                                  .Filter("containts")
+                                  .MinLength(2)
+                                  .Height(370)
+                                    .Placeholder(Resources.Multi.OrderCode)
+                                .Template("#=OrderID# - #=kendo.toString(TotalAmt,'N0')# - #=kendo.toString(kendo.parseDate(OrderDate),'HH:mm dd/MM/yyyy')#")
+
+                                            )
+                                        </div>
+                                        <div class="row-fluid">
+                                            <div class="span6">
+                                                <label for="Priority">@Resources.Multi.Priority</label>
+                                                <select data-placeholder="@Resources.Multi.Priority" id="Priority" class="span12" name="Priority">
+                                                    @foreach (var item in ViewBag.listPriority)
+                                                    {
+                                                        <option value="@item.Value">@item.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="span6">
+                                                <label for="Impact">@Resources.Multi.LevelAffect</label>
+                                                <select data-placeholder="@Resources.Multi.LevelAffect" class="span12" id="Impact" name="Impact">
+                                                    @foreach (var item in ViewBag.listImpact)
+                                                    {
+                                                        <option value="@item.Value">@item.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row-fluid">
+                                            <label for="Assignee">@Resources.Multi.CallBack</label>
+                                            @(Html.Kendo().DateTimePicker()
+                                                        .Name("ReCallTime")
+                            //.Value(DateTime.Now)
+                                                        .Format("MM/dd/yyyy HH:mm")
+                                                        .Min(DateTime.Now)
+                                                        .TimeFormat("HH:mm")
+                        .HtmlAttributes(new { @class = "input-mask-date input-mini", @style = "margin-top:3px;width:100%", placeholder = Resources.Multi.SetTimeCallback })
+                                            )
+                                        </div>
+                                        <div class="row-fluid">
+                                            <label for="Follower">Follower(s)</label>
+                                            @(
+ Html.Kendo().MultiSelect().Name("Follower")
+                     .DataValueField("UserName")
+                     .DataTextField("UserName")
+                        .Placeholder(Resources.Multi.Follower)
+                     .BindTo(ERPAPD.Models.Deca_RT_Follower.GetListUser())
+                     .HtmlAttributes(new { @class = "chosen-container chosen-container-multi", @style = "width:100%" })
+                                            )
+                                        </div>
+                                        @*<div class="row-fluid">
+                                                <div class="span12" style="display:inline-flex">
+                                                    <label>
+                                                        <input name="form-field-radio" type="radio" class="ace">
+                                                        <span class="lbl"> Đang xử lý</span>
+                                                    </label>
+                                                    <label style="margin-left:20px">
+                                                        <input name="form-field-radio" type="radio" class="ace">
+                                                        <span class="lbl"> Hoàn thành</span>
+                                                    </label>
+                                                </div>
+                                            </div>*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div style="display:inline-flex">
+                                    <div style="display:inline-flex">
+
+                                        @(Html.Kendo().DateTimePicker()
+                                        .Name("CustomerExpectationTimeLine")
+                            //.Value(DateTime.Now)
+                                                        .Format("MM/dd/yyyy HH:mm")
+                                                        .Min(DateTime.Now)
+                                                        .TimeFormat("HH:mm")
+                                            .HtmlAttributes(new { @class = "input-mask-date input-mini", @style = "width:180px", placeholder = Resources.Multi.Complete +" "+ Resources.Multi.At })
+                                        )
+                                        <input type="number" id="CustomerExpectationTime" placeholder="@Resources.Multi.Number @Resources.Multi.Hours" onchange="CalculateTimeLine()" style="width: 60px; height: 14px; margin-left: 5px" />
+                                    </div>
+                                    <div style="display:inline-flex; margin-left:20px">
+                                        <label>@Resources.Multi.Customer</label>
+                                        <label style="margin-left:15px">
+                                            <input type="radio" class="ace" name="Feeling" value="Rất hài lòng">
+                                            <span class="lbl">@Resources.Multi.VerySatisfied</span>
+                                        </label>
+                                        <label style="margin-left: 15px">
+                                            <input type="radio" class="ace " value="Hài lòng" name="Feeling">
+                                            <span class="lbl"> @Resources.Multi.Satisfied</span>
+                                        </label>
+                                        <label style="margin-left: 15px">
+                                            <input type="radio" class="ace " value="Không hài lòng" name="Feeling">
+                                            <span class="lbl"> @Resources.Multi.UnSatisfied</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <div class="row-fluid">
+                    <button type="button" class="btn btn-small btn-grey" style="width:25%" data-toggle="button" onclick="$('#CreateTicketForm')[0].reset()"><i class="icon-refresh"></i>&nbsp; @Resources.Multi.Refesh</button>
+                    <button type="button" class="btn btn-small btn-success " style="width:36%" onclick="SendSaveTicket('New')" data-toggle="button"><i class="icon-save"></i>&nbsp; @Resources.Multi.Save - @Resources.Multi.Change.ToLower() @Resources.Multi.Process.ToLower()</button>
+                    <button type="button" class="btn btn-small btn-primary" style="width:36%" onclick="SendSaveTicket('Resolved')" data-toggle="button"><i class="icon-check"></i>&nbsp; @Resources.Multi.Process @Resources.Multi.Complete.ToLower()</button>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="tabbable">
+                <ul class="nav nav-tabs padding-6 tab-color-blue background-blue" id="myTab">
+                    <li class="active">
+                        <a data-toggle="tab" href="#tab1">
+                            <i class="icon-calendar"></i>
+                            @Resources.Multi.Schedule
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="#tab2">
+                            <i class="icon-bullhorn"></i>
+                            @Resources.Multi.Announment
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="#tab3">
+                            <i class="icon-globe"></i>
+                            @Resources.Multi.MenuInfomationInternal
+                        </a>
+                    </li>
+                    <li class="pull-right" style="margin: -6px 10px 0px 0px;" id="divFilterAgentAppointment">
+                        <div class="row-fluid">
+                            <div class="span12" style="padding: 10px 5px 2px 10px; display: inline-flex;">
+                                <label style="margin-right:15px">
+                                    <input type="radio" class="ace" value="Today" onclick="LoadGridAppointment()" checked name="AppointmentFilter">
+                                    <span class="lbl"> @Resources.Multi.Today</span>
+                                </label>
+                                <label>
+                                    <input type="radio" class="ace " value="All" onclick="LoadGridAppointment()" name="AppointmentFilter">
+                                    <span class="lbl"> @Resources.Multi.All</span>
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class="tab-content" style="padding: 0px 0px 0px 0px;">
+                    <div id="tab1" class="tab-pane active">
+                        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.Deca_RT_Ticket>()
+                    .Name("gridCustomerAppointment")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.CustomerID).Width(300).ClientTemplate("<button type='button' data-ticketid='#=TicketID#' data-customerid='#=CustomerID#' data-customersource ='#=CustomerSource#' class='btn-success btn btn-minier' style='float:left;display:inline-block;color:white;' onclick ='GetAppointment(this)' >" + Resources.Multi.Begin + "</button> <button type='button' data-ticketid = '#=TicketID#'  class='btn-grey btn btn-minier' style='display:inline-block;margin-left:3px;' onclick ='DoneAppointment(this)' >" + Resources.Multi.Complete + "</button> &nbsp; #if(ReCallTime<new Date()){# <span style='color:red;'>#=kendo.toString(ReCallTime,'HH:mm dd/MM/yyyy')#</span> #}else{# #=kendo.toString(ReCallTime,'HH:mm dd/MM/yyyy')# #}#- #:CustomerName# - <b>#:Title#</b> #:Detail#").Title(Resources.Multi.Infomation);
+                    })
+                    .Pageable(a => a.Enabled(false))
+                    .Scrollable(scrollable => scrollable.Enabled(true))
+                    .Events(e => e.DataBound("resizeGrid"))
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Filter(a => a.Add(m => m.ReCallTime).IsLessThan(DateTime.Today.AddDays(1)))
+                    .Sort(s => s.Add(m => m.ReCallTime))
+                        //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.CustomerID);
+                        }).Read("AppointmentRead", "CustomerSupport"))
+                        )
+                    </div>
+                    <div id="tab2" class="tab-pane">
+                        @(Html.Kendo().ListView<ERPAPD.Models.DC_CS_ManageInfo>()
+                                           .Name("GridViewAnnoucement")
+                                    .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                                    .TagName("div")
+                                                    .Events(e => e.DataBound("resizeGrid"))
+                                                    .ClientTemplateId("GridAnnoucementRowTemplate")
+                                    .DataSource(dataSource =>
+                                    {
+                                        dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                                        dataSource.Read(read => read.Action("AnnoucementRead", "CustomerSupport", new { Type = "Annoucement" }));
+                                        dataSource.PageSize(5);
+                                    })
+                        )
+                    </div>
+                    <div id="tab3" class="tab-pane">
+                        @(Html.Kendo().ListView<ERPAPD.Models.DC_CS_ManageInfo>()
+                                    .Name("GridViewInternal")
+                                    .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                                    .TagName("div")
+                                                    .Events(e => e.DataBound("resizeGrid"))
+                                            .ClientTemplateId("GridViewInternalRowTemplate")
+                                    .DataSource(dataSource =>
+                                    {
+                                        dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                                        dataSource.Read(read => read.Action("AnnoucementRead", "CustomerSupport", new { Type = "Internal" }));
+                                        dataSource.PageSize(5);
+                                    })
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="margin-top:10px"></div>
+@Html.Partial("_CSFAQ")
+
+
+<script type="text/x-kendo-template" id="GridViewInternalRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style=" padding: 5px 15px 5px 15px; border-bottom: 1px dotted \\#ccc; ">
+            <div>
+                <span style="color:\\#00B4C1; font-size: 16px">#=Title#</span>
+                <br />
+                <span style="font-size:10px;color:\\#808080;">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#</span>
+                <br />
+            </div>
+            <div style="margin-top:5px;">
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="GridAnnoucementRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style=" padding: 10px 0px 0px 10px; display: inline-flex; border-bottom: 1px dotted \\#ccc;">
+            <div style="margin-top: 5px ;margin-right:5px;">
+                #if(Priority=='H'){#
+                <span style="background: \\#D15B47; padding: 4px 10px 4px 10px; color: white; border-radius:2px;">H</span>
+                #}else if(Priority == 'M'){#
+                <span style="background: \\#3A87AD; padding: 4px 10px 4px 10px; color: white; border-radius: 2px; ">M</span>
+                #}else{#
+                <span style="background: \\#A0A0A0; padding: 4px 10px 4px 10px; color: white; border-radius: 2px; ">L</span>
+                #}#
+            </div>
+            <div>
+                #if(Priority=='H'){#
+                <span style="color: \\#D15B47; ">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else if(Priority == 'M'){#
+                <span style="color: \\#3A87AD">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}else{#
+                <span style="color: \\#A0A0A0">#=CreatedBy# - #= kendo.toString(CreatedAt,'HH:mm dd/MM/yyyy')#:</span>
+                #}#
+                <span style="font-weight:bold; color:\\#555555">#=Title#</span>
+                #= htmlDecodeForAnnoucement(Content)#
+            </div>
+        </div>
+    </div>
+</script>
+<script id="IncomingCallTemplate" type="text/x-kendo-template">
+    <div style=" padding: 20px; font-size: 16px;">
+        <p class="delete-message">@Resources.Multi.CallReceive <span style=" color: red; ">#=Phone#</span></p>
+        <a class="btn btn-danger" href="@Url.Content("~/CustomerSupport/?Phone=#=Phone#")" target="_self">@Resources.Multi.OpenAtPage</a>
+        <a class="btn btn-primary" href="@Url.Content("~/CustomerSupport/?Phone=#=Phone#")" onclick="$('span.k-icon.k-i-close').click()" target="_blank">@Resources.Multi.OpenNewPage</a>
+    </div>
+</script>
+<script src="@Url.Content("~/Scripts/jquery.signalR-2.2.0.js")"></script>
+<script src="@Url.Content("~/signalr/hubs")"></script>
+
+<script type="text/javascript">
+    function CalculateTimeLine() {
+        var expectation = $("#CustomerExpectationTime").val();
+        var d1 = new Date();
+        d1.setHours(d1.getHours() + parseInt(expectation));
+        $("#CustomerExpectationTimeLine").val(kendo.toString(kendo.parseDate(d1), "MM/dd/yyyy HH:mm"));
+    }
+    function htmlDecodeForAnnoucement(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+    function onAdditionalDataOrder() {
+        return {
+            OrderID: $("#OrderID").val(),
+            CustomerID: $("#CreateTicketForm input[name='CustomerID']").val(),
+        };
+    }
+
+    function filterCategoryTicket() {
+        var selectedCategory = $("#Category").val();
+        return {
+            GroupID: selectedCategory
+        };
+    }
+    $(function () {
+        var keyword = locdau($("#txtSearchCustomer").val());
+        if (keyword.length > 3) {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            grid = $("#GridCustomerSearch").data("kendoGrid");
+
+            var filter = { logic: "and", filters: [] };
+
+            if (keyword) {
+                filter.filters.push({ field: "MetaOCM", operator: "contains", value: keyword });
+            }
+            grid.dataSource.filter(filter);
+        }
+        var call = $.connection.callHub;
+        var isIncomingTab = '@ViewBag.Phone';
+        call.client.IncomingCallFromCustomer = function (Phone) {
+            // viewbag khac so dt goi toi thi mo confirm.
+            if (isIncomingTab != Phone) {
+                var IncomingCallTemplate = kendo.template($("#IncomingCallTemplate").html());
+                var kendoWindow = $("<div />").kendoWindow({
+                    title: '@Resources.Multi.CallReceive...',
+                    resizable: false,
+                    modal: true
+                });
+                var data = {
+                    Phone: Phone,
+                };
+                kendoWindow.data("kendoWindow")
+                    .content(IncomingCallTemplate(data))
+                    .center().open();
+            }
+        };
+        $.connection.hub.start().done(function () {
+        });
+    });
+    var CustomerInfoTemplate = kendo.template($("#CustomerInfoTemplate").html());
+    var CutomerTabHistoryTemplate = kendo.template($("#divTabHistoryTemplate").html());
+
+    function SearchCustomer() {
+        var keyword = locdau($("#txtSearchCustomer").val());
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "@Resources.Multi.Infomation @Resources.Multi.Search",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            grid = $("#GridCustomerSearch").data("kendoGrid");
+
+            var filter = { logic: "and", filters: [] };
+
+            if (keyword) {
+                filter.filters.push({ field: "MetaOCM", operator: "contains", value: keyword });
+            }
+            grid.dataSource.filter(filter);
+        }
+    }
+
+    function SearchOrder() {
+        var keyword = locdau($("#txtSearchOrder").val());
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "@Resources.Multi.Infomation @Resources.Multi.Search",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            $.post(r + "/CustomerSupport/OrderSearchRead/", { OrderID: keyword }, function (data) {
+                if (data.success) {
+                    ShowCustomer(data.data);
+                } else {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Sorry,',
+                        text: "@Resources.Multi.CanNotFind",
+                        class_name: 'gritter-regular gritter-center ',
+                        time: '1500'
+                    });
+                }
+            });
+        }
+    }
+
+    $('#txtSearchCustomer').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            SearchCustomer();
+        }
+    });
+    $('#txtSearchOrder').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            SearchOrder();
+        }
+    });
+    function initTicketForm(customer) {
+        $("#CreateTicketForm input[name='CustomerID']").val(customer.CustomerID);
+        $("#CreateTicketForm input[name='CustomerName']").val(customer.Fullname);
+        $("#CreateTicketForm input[name='CustomerSource']").val(customer.DataSource);
+        $("#CreateTicketForm #lbCusInfo").text('(' + customer.CustomerID + ' - ' + customer.Fullname + ')');
+    }
+    function SendSaveTicket(status) {
+        if (status == 'New') {
+            $("#CreateTicketForm input[name='Status']").val('New');
+            $("#CreateTicketForm").submit();
+        } else {
+            $("#CreateTicketForm input[name='Status']").val('Resolved');
+            $("#CreateTicketForm").submit();
+        }
+    }
+    function ChangeRequestFrom(value) {
+        $("#CreateTicketForm input[name='RequestFrom']").val(value);
+    }
+    $('.input-mask-date').mask('99/99/9999 99:99');
+    $("#CreateTicketForm").validate({
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                beforeSend: function () {
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                },
+                success: function (data) {
+                    if (!data.error) {
+                        $.gritter.add({
+                            title: "@Resources.Multi.Success",
+                            text: "@Resources.Multi.Send ticket @Resources.Multi.Success!",
+                            class_name: 'gritter-success',
+                        });
+                        LoadGridAppointment();
+                        if ($("#GridTicketHistory").length > 0) {
+                            $("#GridTicketHistory").data("kendoGrid").dataSource.read();
+                        }
+                        $("#CreateTicketForm")[0].reset();
+                        $('input[name="form-field-radio"]').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: "@Resources.Multi.Error",
+                            text: data.message,
+                            class_name: 'gritter-error',
+                        });
+                    }
+                },
+                complete: function () {
+                }
+            });
+            return false;
+        }
+    });
+    function GetAppointment(obj) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var TicketID = $(obj).data("ticketid");
+        CustomerID = $(obj).data("customerid");
+        DataSource = $(obj).data("customersource");
+        PhysicalID = $(obj).data("customerid");
+        $('#radioTicketRequestFrom').prop('checked', true);
+        $("#CreateTicketForm input[name='RequestFrom']").val('Ticket');
+        $("#CreateTicketForm input[name='RefID']").val(TicketID);
+        loadData(true);
+        loadCustomerHistoryData();
+    }
+    function LoadGridAppointment() {
+        var isToday = $('input[name=AppointmentFilter]:checked').val()
+        var filter = { logic: "and", filters: [] };
+        var grid = $("#gridCustomerAppointment").data("kendoGrid");
+        if (isToday == "Today") {
+            var todate = new Date();
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "ReCallTime", operator: "lte", value: kendo.toString(todate, 'yyyy-MM-dd') });
+            grid.dataSource.filter(filter);
+        } else {
+            grid.dataSource.filter(filter);
+        }
+
+        var grid = $("#GridViewAnnoucement").data("kendoListView");
+        if (isToday == "Today") {
+            grid.dataSource.pageSize(5);
+            grid.dataSource.read();
+
+        } else {
+            grid.dataSource.pageSize(1000);
+            grid.dataSource.read();
+        }
+        var grid = $("#GridViewInternal").data("kendoListView");
+        if (isToday == "Today") {
+            grid.dataSource.pageSize(5);
+            grid.dataSource.read();
+
+        } else {
+            grid.dataSource.pageSize(1000);
+            grid.dataSource.read();
+        }
+    }
+
+    function resizeGrid() {
+        var offsetbottom;
+        //check tab nào đang hiển thị
+        if (parseInt($('#gridCustomerAppointment').offset().top) > 0) {
+            //tab thông báo đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#gridCustomerAppointment').offset().top);
+            $("#gridCustomerAppointment .k-grid-content").height(offsetbottom - 23);
+            $("#GridViewAnnoucement").height(offsetbottom - 18);
+            $("#GridViewInternal").height(offsetbottom - 18);
+        }
+    }
+    function DoneAppointment(obj) {
+        var isConfirm = confirm("@Resources.Multi.Complete @Resources.Multi.Schedule ticket ?");
+        if (isConfirm) {
+            var TicketID = $(obj).data("ticketid");
+            $.post(r + "/CustomerSupport/DoneAppointment", { TicketID: TicketID }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Success",
+                        text: "@Resources.Multi.Complete ticket.",
+                        class_name: 'gritter-success',
+                    });
+                    $("#gridCustomerAppointment").data("kendoGrid").dataSource.read();
+                } else {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error',
+                    });
+                }
+            });
+        }
+    }
+</script>

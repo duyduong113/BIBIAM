@@ -1,0 +1,190 @@
+﻿@model ERPAPD.Models.Users
+@{
+    ViewBag.Title = "AddNew";
+}
+
+<style>
+    .editor-label {
+        padding: 0 0 0 !important;
+    }
+
+    .k-edit-form-container {
+        width: 500px;
+    }
+
+    .k-invalidx {
+        width: 80%;
+    }
+</style>
+
+<div class="form-horizontal in-grid-form">
+    <fieldset class="span5" style="float:left">
+        <div class="control-group">
+            <label class="control-label" for="Title">@Resources.Multi.Account</label>
+            <div class="controls">
+                <input class="k-invalidx" placeholder="@Resources.Multi.Account" data-val="true" data-val-required="@Resources.Multi.Account @Resources.Multi.Is.ToLower() @Resources.Multi.Require.ToLower()." id="UserName" name="UserName" type="text" value="" data-bind="value:UserName" aria-invalid="true">
+                <span class="field-validation-valid" data-valmsg-for="Title" data-valmsg-replace="true"></span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="Detail">@Resources.Multi.FullName</label>
+            <div class="controls">
+                <input class="k-invalidx" placeholder="@Resources.Multi.FullName" data-val="true" data-val-required="@Resources.Multi.FullNameVaidate." id="FullName" name="FullName" type="text" value="" data-bind="value:FullName" aria-invalid="true">
+                <span class="field-validation-valid" data-valmsg-for="Detail" data-valmsg-replace="true"></span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="Detail">@Resources.Multi.Email</label>
+            <div class="controls">
+                <input class="k-invalidx" placeholder="@Resources.Multi.Email" data-val="true" data-val-required="@Resources.Multi.Email @Resources.Multi.Is @Resources.Multi.Require" id="Email" name="Email" type="text" value="" data-bind="value:Email" aria-invalid="true">
+                <span class="field-validation-valid" data-valmsg-for="Detail" data-valmsg-replace="true"></span>
+            </div>
+        </div>
+        <div class="control-group" style="display:none;">
+            <label class="control-label" for="Category">@Resources.Multi.Password</label>
+            <div class="controls">
+                <input class="k-invalidx" placeholder="@Resources.Multi.Password" data-val="true" id="Password" name="Password" type="password" value="" data-bind="value:Password" aria-invalid="true">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.Active</label>
+            <div class="controls">
+                <input type="checkbox" id="Active" name="Active" data-bind="value:Active">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.RoleGroup</label>
+            <div class="controls">
+                @(
+ Html.Kendo().MultiSelectFor(m => m.Groups)
+                                         .HtmlAttributes(new { @style = "width: 303px;" })
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .BindTo((IEnumerable<ERPAPD.Models.GroupViewModel>)ViewData["listGroup"])
+                )
+            </div>
+        </div>
+        @*<div class="control-group">
+                <label class="control-label" for="TypeID">@Resources.Multi.SalesApp</label>
+                <div class="controls">
+                    <input type="checkbox" id="IsAppUser" name="IsAppUser" data-bind="value:IsAppUser">
+                </div>
+            </div>*@
+        <div class="control-group">
+            <label class="control-label" for="Detail">@Resources.Multi.Phone</label>
+            <div class="controls">
+                <input class="k-invalidx" placeholder="@Resources.Multi.Phone" data-val="true" id="Phone" name="Phone" type="text" value="" data-bind="value:Phone" aria-invalid="true">
+                <span class="field-validation-valid" data-valmsg-for="Phone" data-valmsg-replace="true"></span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.Gender</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownListFor(m => m.Gender)
+                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                        .OptionLabel(Resources.Multi.Choose)
+                                        .DataTextField("Description")
+                                        .DataValueField("CodeID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListGender", "Users");
+                                            });
+                                        })
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.Position</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownListFor(m => m.Position)
+                                            .HtmlAttributes(new { @style = "width: 303px;" })
+                                            .OptionLabel(Resources.Multi.Choose)
+                                            .DataTextField("PositionName")
+                                            .DataValueField("PositionID")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("getListPosition", "Users");
+                                                });
+                                            })
+                )
+            </div>
+        </div>
+        @*<div class="control-group">
+                <label class="control-label" for="TypeID">@Resources.Multi.Level</label>
+                <div class="controls">
+                    @(Html.Kendo().DropDownListFor(m => m.LevelID)
+                                            .HtmlAttributes(new { @style = "width: 303px;" })
+                                            .OptionLabel(Resources.Multi.Choose)
+                                            .DataTextField("Description")
+                                            .DataValueField("LevelID")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("getListlevel", "Users").Data("filterLevel");
+                                                }).ServerFiltering(true);
+                                            })
+                                            .Enable(false)
+                                            .AutoBind(false)
+                                            .CascadeFrom("Position")
+                    )
+                </div>
+            </div>*@
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.Department</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownListFor(m => m.DepartmentID)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                        .OptionLabel(Resources.Multi.Choose)
+                                        .DataTextField("Department")
+                                        .DataValueField("DepartmentID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListDepartment", "Users");
+                                            });
+                                        })
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="TypeID">@Resources.Multi.Team</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownListFor(m => m.Team)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                        .OptionLabel(Resources.Multi.Choose)
+                                                        .DataTextField("TeamName")
+                                                        .DataValueField("TeamID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListTeam", "Users");
+                                            });
+                                        })
+                )
+            </div>
+        </div>
+        @*<div class="control-group">
+                <label class="control-label" for="Detail">@Resources.Multi.Extension</label>
+                <div class="controls">
+                    <input class="k-invalidx" placeholder="Extension" data-val="true" id="XLiteID" name="XLiteID" type="text" value="" data-bind="value:XLiteID" aria-invalid="true">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="Detail">@Resources.Multi.AccountCode</label>
+                <div class="controls">
+                    <input class="k-invalidx" placeholder="Account Code" data-val="true" id="XLiteCode" name="XLiteCode" type="text" value="" data-bind="value:XLiteCode" aria-invalid="true">
+                </div>
+            </div>*@
+    </fieldset>
+
+
+
+</div>
+

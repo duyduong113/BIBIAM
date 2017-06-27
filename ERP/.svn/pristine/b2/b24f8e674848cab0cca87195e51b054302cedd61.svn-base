@@ -1,0 +1,481 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_PageCategory>
+@{
+    ViewBag.Title = "Quản lý chuyên mục";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+</style>
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid frame-search">
+                <div class="span12">
+                    <input type="text" class="input-xs" id="txtCategory" placeholder="Nhập tên chuyên mục">
+                    <input type="text" class="input-xs" id="txtWebsite" placeholder="Nhập tên website">                    
+                    <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="Filter()" style="float:none">@Resources.Multi.Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        <article class="col-sm-12">
+            <div class="widget-body">
+               
+               @(Html.Kendo()
+                .Grid(Model)
+                .Name("Grid")
+                .Editable()
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.CategoryID)
+                        .HeaderTemplate("<input type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />")
+                        .ClientTemplate("<input class='checkrowid' type='checkbox' id='#=CategoryID#'  />")
+                        .HtmlAttributes(new { style = "text-align:center" })
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .Width(25).Filterable(false).Sortable(false);
+                    columns.Bound(p => p.CategoryID).Title("ID");
+                    columns.Bound(p => p.CategoryName).Width(250).Title("Tên chuyên mục").HtmlAttributes(new { @class = "editable" });
+                    columns.ForeignKey(p => p.WebsiteID, (System.Collections.IEnumerable)ViewBag.listWebsite, "WebsiteID", "WebsiteName").Title("Website").Width(100).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+
+                    columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.listType, "ParamID", "Value").Title("Loại").Width(100).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { @class = "editable" });
+                    //columns.Bound(p => p.TypeName).Width(250).Title("Loại");
+                    columns.Bound(p => p.Status).Width(80).Title("Trạng thái").HtmlAttributes(new { @class = "editable" });
+                    columns.Bound(p => p.RefID).Width(250).Title("RefID");
+
+                    columns.Bound(p => p.CreatedAt).Width(110).Title("Ngày tạo")
+                        .Format("{0:dd/MM/yyyy}")
+                        .HtmlAttributes(new { style = "text-align:right" });
+                    columns.Bound(p => p.CreatedBy).Width(100).Title("Người tạo");
+                    columns.Bound(p => p.UpdatedAt).Width(110).Title("Ngày cập nhật")
+                    //.ClientTemplate("#if(!kendo.toString(UpdatedAt, 'MM/dd/yyyy').includes('1900')){#<span>#=kendo.toString(UpdatedAt, 'MM/dd/yyyy')#</span>#}#")
+                        .Format("{0:dd/MM/yyyy}")
+                        .HtmlAttributes(new { style = "text-align:right" });
+                    columns.Bound(p => p.UpdatedBy).Width(100).Title("Người cập nhật");
+                })
+                .ToolBar(toolbar =>
+                {
+                    if (AllowUpdate)
+                    {
+                        toolbar.Template(@<text>
+                            <div class="pull-left">
+                                @if (AllowCreate)
+                                {
+                                    <a class="btn btn-success btn-small" onclick="Create()" href="javascript:void(0)" id="">
+                                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                    </a>
+                                    <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                                        @*<i class="icon-plus"></i>*@ @Resources.Multi.btnSave
+                                    </a>
+                                    <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                                        @*<i class="icon-plus"></i>*@ Hủy thay đổi
+                                    </a>
+                                }
+
+                                @if (AllowDelete)
+                                {
+                                    <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="showConfirmPopup(1)" id="btnGridDelete">
+                                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                    </a>
+                                }
+                            </div>
+                        </text>);
+                    }
+                }).Events(events => { events.DataBound("onDatabound");events.DetailExpand("detailExpand"); })
+                                        .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300 }))
+                                        .Resizable(r => r.Columns(true))
+                                        .Editable(e => e.Mode(GridEditMode.InCell))
+                                        .Navigatable()
+                                        .Scrollable()
+                                        .Sortable()
+                                        .DataSource(dataSource => dataSource
+                                            .Ajax()
+                                            .Batch(true)
+                                            .PageSize(20)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.CategoryID);
+                                                model.Field(p => p.CategoryID).Editable(false);
+                                                model.Field(p => p.Status).DefaultValue(true);
+                                                model.Field(p => p.CreatedBy).Editable(false);
+                                                model.Field(p => p.CreatedAt).Editable(false);
+                                                model.Field(p => p.UpdatedBy).Editable(false);
+                                                model.Field(p => p.UpdatedAt).Editable(false);
+                                            })
+                                            .Read(read => read.Action("CRM_PageCategory_Read", "CRMPageCategory"))
+                                            .Create(read => read.Action("UpdateDetail", "CRMPageCategory"))
+                                            .Update(read => read.Action("UpdateDetail", "CRMPageCategory"))
+                                                                )
+                                      .ClientDetailTemplateId("TypeDetails"))
+            </div>
+        </article>
+    </div>
+</div>
+
+<script id="TypeDetails" type="text/kendo-tmpl">
+
+    <div class="span4">
+        @(Html.Kendo()
+        .TabStrip()
+        .HtmlAttributes(new { @style = "width:1250px;" })
+                .Name("tabStrip_#=CategoryID#")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("TypeDetails").Content(@<text>
+
+                @(Html.Kendo()
+        .Grid<CRM24H.Models.CRM_PageCategory_Mapping>()
+                .Name("GridSubjectDetails_#=CategoryID#")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.RowID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllAnswer'  onClick='checkAllAnswer(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=RowID\\#'  />").Width(30).Filterable(false).Sortable(false);
+            columns.ForeignKey(p => p.PageID, (System.Collections.IEnumerable)ViewBag.listPage, "PageID", "PageName").Title("Tên Trang").EditorTemplateName("GridNullableForeignKey").Width(110).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+            columns.Bound(p => p.Type).Title("Tính phí").Width(50).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+            columns.Bound(o => o.CreatedAt).Title(Resources.Multi.CreatedAt).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110);
+            columns.Bound(o => o.CreatedBy).Title(Resources.Multi.CreatedBy).Width(110);
+        })
+        .ToolBar(toolBar =>
+        {
+
+            toolBar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+            toolBar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+
+            toolBar.Custom()
+            .Text("Delete")
+            .HtmlAttributes(new { @id = "btnDelete", @class = "btn btn-danger btn-small", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteAnswer();" });
+
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Events(events => { events.DataBound("dataBoundAnswer"); })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .Events(events => { events.Error("error_handler_SubDetails"); events.RequestEnd("onRequestEndSubDetails"); })
+        .PageSize(20)
+        .Model(model =>
+        {
+            model.Id(p => p.RowID);
+            model.Field(p => p.RowID).Editable(false);
+            model.Field(p => p.CreatedBy).Editable(false);
+            model.Field(p => p.CreatedAt).Editable(false);
+        })
+                                       .Read(read => read.Action("Read_CRM_PageCategory_Mapping", "CRMPageCategory", new { CategoryID = "#=CategoryID#" }))
+                                               .Create("Update_CRM_PageCategory_Mapping", "CRMPageCategory", new { CategoryID = "#=CategoryID#" })
+                                               .Update("Update_CRM_PageCategory_Mapping", "CRMPageCategory", new { CategoryID = "#=CategoryID#" })
+                        //.Destroy("SubjectDetails_Destroy", "TrainningOnlineSubject", new { SubID = "#=SubjectID#", classId = "#=SubjectID#", courseID = "#=CourseID#", teacher = "#=Teacher#" })
+        )
+        .Pageable(pager => pager
+        .PageSizes(new[] { 20, 100, 200, 300 }))
+
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+                        //.Filterable()
+                        //.ColumnMenu()
+        .ToClientTemplate())
+            </text>);
+        }).ToClientTemplate())
+    </div>
+</script>
+
+
+@Html.Partial("_popup")
+
+
+
+<script>
+
+    function Create() {
+        $("#Grid").data("kendoGrid").dataSource.insert();
+    }
+    function Update() {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    }
+    function Cancel() {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    }
+    $(".chosen-select").chosen();
+    $("#txtSearch").keypress(function (e) {
+        if (e.keyCode == 13) {
+            Filter();
+        }
+    });
+    function EditAction(id) {
+        window.location = r + "/CRMContractExtra/Create/" + id;
+    }
+    function onDatabound(e) {
+        resizegrid();
+        var grid = $("#Grid").data("kendoGrid");
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+    }
+    function resizegrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function Filter() {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        var txtCategory = $('#txtCategory').val();
+        if (txtCategory != "") {
+            filter.filters.push({ field: "CategoryName", operator: "contains", value: txtCategory });
+        }
+        var txtWebsite = $('#txtWebsite').val();
+        if (txtWebsite != "") {
+            filter.filters.push({ field: "WebsiteName", operator: "contains", value: txtWebsite });
+        }
+        grid.dataSource.filter(filter);
+    }
+    $(".frame-search").keypress(function (e) {
+        if (e.keyCode == 13) {
+            Filter();
+        }
+    });
+    var expandedRow; var curunitid;
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#Grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        id = expandedRow[0].cells[0].innerText;
+        var masterDataItem = $('#Grid').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.CategoryID;
+    }
+    function checkAllAnswer(e) {
+        var x = $(e).prop('checked');
+        $('#GridSubjectDetails_' + curunitid).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function onRequestEndSubDetails(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+            $("#GridConfig_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+    }
+    function error_handler_SubDetails(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+
+                }
+                $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+                //$("#GridConfig_" + curunitid).data("kendoGrid").dataSource.read();
+
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+            $("#GridConfig_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+    }
+    function dataBoundAnswer(e) {
+        console.log(curunitid);
+        var g = $("#GridSubjectDetails_" + curunitid).data("kendoGrid");
+        //g.read;
+        g.thead.find("[data-field=Id]>.k-header-column-menu").remove();
+
+    }
+    function DeleteAnswer() {
+        var listrowid = "";
+        $('#GridSubjectDetails_' + curunitid).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Xóa dòng được chọn?");
+            if (c == true) {
+                $.post(r + "/CRMPageCategory/DeleteAnswer", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllAnswer').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridSubjectDetails_" + curunitid).data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function cancelPageCategory(CategoryID) {
+        loadPageCategory(CategoryID);
+    }
+    function loadPageCategory(CategoryID) {
+        $.post(r + "/CRMPageCategory/ReadPage", { CategoryID: CategoryID }, function (data) {
+            if (data.success) {
+                if ($('#divPage_' + CategoryID).length >= 1) {
+                    $('#Page_' + CategoryID + ' .chosen-container').chosen("destroy");
+                }
+                var html1 = '';
+                $.each(data.data, function (i, row) {
+                    if (row.Status == true) {
+                        html1 += '<option value="' + row.PageID + '" Selected>' + row.PageName + '</option>';
+                    }
+                    else {
+                        html1 += '<option value="' + row.PageID + '">' + row.PageName + '</option>';
+                    }
+                });
+                $('#Page_' + CategoryID).html(html1);
+                $('#Page_' + CategoryID).chosen();
+            }
+        });
+    }
+    function savePageCategory(CategoryID) {
+
+        var list1 = $('#Page_' + CategoryID+ " option:selected");
+        var listdata = "";
+        list1.each(function () {
+            listdata += $(this).attr('value') + ";";
+        });
+
+
+        PostAndBlock(r + "/CRMPageCategory/savePageCategory", { CategoryID: CategoryID, listdata: listdata }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Lưu thành công',
+                    class_name: 'gritter-success'
+                });
+            }
+            else {
+                $.gritter.add({
+                    title: 'Lỗi',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+</script>

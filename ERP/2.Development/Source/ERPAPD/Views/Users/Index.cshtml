@@ -1,0 +1,336 @@
+﻿@model ERPAPD.Models.Users
+@{
+    ViewBag.Title = "Người dùng";
+    var listGender = new List<Object>();
+    listGender.Add(new { ID = "GENDER01", Name = "Nam" });
+    listGender.Add(new { ID = "GENDER02", Name = "Nữ" });
+    ViewBag.listGender = listGender;
+    string FormatDateTime = HttpContext.Current.Session["DateTime"] != null ? HttpContext.Current.Session["DateTime"].ToString() : "MM/dd/yyyy";
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid">
+                <div class="span12">
+                    <input type="text" id="filterText" placeholder="@Resources.Multi.Account, @Resources.Multi.FullName, @Resources.Multi.Email, @Resources.Multi.Phone…" />
+                    <select name="select" id="listDepartment" class='chosen-select span2' style="width: 200px" data-placeholder="@Resources.Multi.Department…" multiple onchange="filter()">
+                        @foreach (var a in ViewBag.listDepartment)
+                        {
+                            <option value="@a.Code">@a.Name</option>
+                        }
+                    </select>
+                    <select name="select" id="listStatus" class='chosen-select' data-placeholder="Trạng thái" multiple onchange="filter()">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@(Html.Kendo()
+      .Window()
+      .Name("windowpopup")
+      .Title("Chỉnh sửa")
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(600)
+      .Actions(actions => actions.Close())
+)
+@(Html.Kendo()
+    .Grid<ERPAPD.Models.Users>()
+    .Name("grid")
+    .HtmlAttributes(new { @style = "height:500px" })
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id)
+            .HeaderTemplate("<input type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+            .ClientTemplate("#if(UserName!='administrator'){# <input class='checkrowid' type='checkbox' id='#=Id#'  />#}#")
+            .HtmlAttributes(new { style = "text-align: center;" })
+            .HeaderHtmlAttributes(new { style = "text-align: center" })
+            .Width(35).Filterable(false).Sortable(false);
+        columns.Bound(p => p.Id).Width(80).Filterable(false).Visible(false);
+        columns.Bound(p => p.UserName).Width(100).Title(Resources.Multi.Account);
+        columns.Bound(p => p.FullName).Width(140).Title(Resources.Multi.FullName).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Gender, (System.Collections.IEnumerable)ViewBag.listGender, "ID", "Name").Width(100).Title(Resources.Multi.Gender).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Email).Width(140).Title(Resources.Multi.Email).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Phone).Width(90).Title(Resources.Multi.Phone).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Groups).Title("Nhóm quyền").EditorTemplateName("GroupsEditor").Width(120).Filterable(false).ClientTemplate("#=Template(Groups)#").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Active).Width(120).Title("Trạng thái").ClientTemplate("#if(Active == true){#Hoạt động#}else{#Ngưng hoạt động#}#").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Position, (System.Collections.IEnumerable)ViewBag.listPosition, "PositionID", "PositionName").Width(120).Title(Resources.Multi.Position).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.DepartmentID, (System.Collections.IEnumerable)ViewBag.listDepartment, "Code", "Name").Width(120).Title(Resources.Multi.Department).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Team, (System.Collections.IEnumerable)ViewBag.listTeam, "TeamID", "TeamName").Width(130).Title(Resources.Multi.Team).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.CreatedAt).Width(100).Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#").HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.CreatedBy).Width(100).Title(Resources.Multi.CreatedBy);
+        columns.Bound(p => p.UpdatedAt).Width(100).Format("{0:" + FormatDateTime + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.UpdatedBy).Width(100).Title(Resources.Multi.UpdatedBy);
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+            <div class="pull-left">
+                <a class="btn btn-success btn-small" href="javascript:void(0)" id="btnGridAdd">
+                    @*<i class="icon-plus"></i>*@ @Resources.Multi.btnAdd
+                </a>
+                <a class="btn btn-primary btn-small " href="javascript:void(0)" id="btnGridSave">
+                    @*<i class="icon-plus"></i>*@ @Resources.Multi.Save
+                </a>
+                <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel">
+                    @*<i class="icon-plus"></i>*@ Hủy thay đổi
+                </a>
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" id="btnActive" onclick="showConfirmPopup(1)">
+                    @*<i class="icon-ok"></i>*@ @Resources.Multi.Active
+                </a>
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" id="btnInactive" onclick="showConfirmPopup(0)">
+                    @*<i class="icon-remove"></i>*@ @Resources.Multi.InActive
+                </a>
+                <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnResetPassword" onclick="showConfirmPopup(2)">
+                    @*<i class=" icon-trash">   </i>*@ @Resources.Multi.ResetPassword
+                </a>
+                <a class="btn btn-info btn-small" @*href="@Url.Content("~/Users/Excel_Export")"*@ id="btnGridExport">
+                    @*<i class="fa fa-file-excel-o fa-1"></i>*@ @Resources.Multi.GridExport
+                </a>
+            </div>
+        </text>);
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+    .Sortable()
+    .Scrollable()
+    //.Groupable()
+    .Events(e => { e.DataBound("Databound"); e.Edit("OnEdit"); })
+    .Navigatable()
+    //.Filterable()
+    .Excel(excel => excel
+    .FileName("UsersList.xlsx")
+    .Filterable(true).AllPages(true)
+    .ProxyURL(Url.Action("Excel_Export", "Users")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    //.ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(20)
+    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Groups).DefaultValue(new List<ERPAPD.Models.GroupViewModel>());
+        model.Field(p => p.Id).Editable(false);
+        model.Field(p => p.DepartmentID).DefaultValue("0");
+        model.Field(p => p.UserName).Editable(true);
+        model.Field(p => p.Active).DefaultValue(true);
+        model.Field(p => p.CreatedAt).Editable(false);
+        model.Field(p => p.CreatedBy).Editable(false);
+        model.Field(p => p.UpdatedAt).Editable(false);
+        model.Field(p => p.UpdatedBy).Editable(false);
+    })
+    .Create(create => create.Action("Create", "Users"))
+    .Read(read => read.Action("Read", "Users"))
+    .Update(update => update.Action("Update", "Users"))
+    .Destroy("Destroy", "Users"))
+)
+@Html.Partial("_popup")
+<script type="text/kendo" id="template">
+    <ul>
+        #if(data != null){#
+        #for(var i = 0; i< data.length; i++){#
+        <li>#:data[i].Name#</li>
+        #}#
+        #}#
+    </ul>
+</script>
+<script type="text/javascript">
+    var Template = kendo.template($("#template").html(), { useWithBlock: false });
+</script>
+
+<script>
+    function readata(id) {
+        if (id == undefined) {
+            $("#grid").attr("data-import", "create");
+        }
+        else {
+            $("#grid").attr("data-import", "update");
+        }
+        var template = kendo.template($("#javascriptTemplate").html());
+        var PKContactID = "";
+        $.post(r + "/CRMContactList/GetlistUser", { PKContactID: id }, function (data) {
+            if (data.success) {
+                for (i in data.data) {
+                    if (data.data[i] == null) {
+                        data.data[i] = "";
+                    }
+                }
+                var result = template(data.data);
+                $("#windowpopup").kendoWindow({
+                    actions: {}, /*from Vlad's answer*/
+                    draggable: true,
+                    height: "300px",
+                    modal: true,
+                    resizable: false,
+                    width: "500px",
+                    visible: false /*don't show it yet*/
+                }).data("kendoWindow").center().open();
+                $("div.k-window").css("top", "100px");
+                $("#windowpopup").data("kendoWindow").content(result);
+            }
+            else {
+            }
+        });
+    }
+    $("#listDepartment").chosen();
+    $("#listStatus").chosen();
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function OnEdit(e) {
+        if (e.model.isNew() == false) {
+            $("#UserName").attr("readonly", true);
+        }
+        if (e.model.ImageUrl) {
+            $('#imgDisplayAvatar').attr('src', e.model.ImageUrl);
+        }
+    }
+    function filterLevel() {
+        return {
+            Position: $("#Position").val()
+        };
+    }
+    function successUploadImage(e) {
+        var imagePath = e.files[0];
+        $('#imgDisplayAvatar').attr('src', imagePath.name);
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function Databound() {
+        resizeGrid();
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 5);
+    }
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var listDepartment = $("#listDepartment option:selected");
+        var listStatus = $("#listStatus option:selected");
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var fillterStatus = { logic: "or", filters: [] };
+        var fillterDepartment = { logic: "or", filters: [] };
+
+        var filtertext = { logic: "or", filters: [] };
+
+
+        if (listDepartment.length > 0) {
+            for (var i = 0; i < listDepartment.length; i++) {
+                var option = listDepartment[i].value;
+                if (option == '') {
+                    fillterDepartment.filters.push({ field: "DepartmentID", operator: "contains", value: '' });
+                }
+                else {
+                    fillterDepartment.filters.push({ field: "DepartmentID", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterDepartment);
+        }
+
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "Active", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "Active", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        if (text) {
+            filtertext.filters.push({ field: "Username", operator: "contains", value: text });
+            filtertext.filters.push({ field: "FullName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Email", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    $('#btnGridExport').bind('click', function () {
+        $("#grid").getkendoGrid().saveAsExcel();
+    });
+    $('#btnGridAdd').click(function () {
+        $("#grid").data("kendoGrid").dataSource.insert();
+    });
+    $('#btnGridSave').click(function () {
+        if ($('#grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#grid').data('kendoGrid').saveChanges();
+        }
+    });
+    $('#btnGridCancel').click(function () {
+        $("#grid").data("kendoGrid").dataSource.cancelChanges();
+    });
+</script>
+

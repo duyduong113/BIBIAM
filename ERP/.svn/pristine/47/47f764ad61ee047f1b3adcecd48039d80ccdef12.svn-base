@@ -1,0 +1,190 @@
+﻿using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using BIBIAM.Core.Entities;
+using System.Data;
+using BIBIAM.Core.Data.DataObject;
+using System.Text.RegularExpressions;
+using System.Text;
+using MCC.Filters;
+using MCC.Models;
+using BIBIAM.Core;
+using MCC.Helpers;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    //[CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class Merchant_StockOutController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Create()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Detail(string id)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (!String.IsNullOrEmpty(id))
+                    {
+                        var data = db.FirstOrDefault<Merchant_StockOutHeader>("ma_gian_hang = {0} and ma_phieu_xuat_kho = {1}", currentUser.ma_gian_hang, id);
+                        if (data == null)
+                            return RedirectToAction("NotFound", "Error");
+                        else
+                            ViewBag.GDN = data;
+                    }
+                    else
+                        return RedirectToAction("NotFound", "Error");
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                }
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request, string ma_phieu)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = new DataSourceResult();
+                    if (isAdmin)
+                        data = KendoApplyFilter.KendoData<Merchant_StockOutDetail>(request, "ma_phieu_xuat_kho={0}".Params(ma_phieu));
+                    else
+                        data = KendoApplyFilter.KendoData<Merchant_StockOutDetail>(request, "ma_phieu_xuat_kho={0} and ma_gian_hang = {1}".Params(ma_phieu, currentUser.ma_gian_hang));
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult CreateGoodDespatchNote(Merchant_StockOutHeader GDN, List<Merchant_StockOutDetail> details, bool trang_thai)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                GDN.ma_gian_hang = currentUser.ma_gian_hang;
+                string rs = new Merchant_StockOutHeader_DAO().Upsert(GDN, details, trang_thai, currentUser.name, AppConfigs.MCCConnectionString);
+                string[] separators = { "@@" };
+                var str = rs.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (str[0] == "true")
+                {
+                    Merchant_Stock_ViewModel data;
+                    using (var db = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        using (var dbTrans = db.OpenTransaction())
+                        {
+                            if (isAdmin)
+                                data = db.FirstOrDefault<Merchant_Stock_ViewModel>(@"select 
+	                                                                            a.ma_phieu_xuat_kho as ma_phieu, 
+	                                                                            b.ten_kho, 
+                                                                                b.ma_kho,
+	                                                                            a.ma_don_hang, 
+	                                                                            a.ngay_xuat_kho as ngay_nhap_xuat,
+	                                                                            a.thu_kho, 
+	                                                                            a.nguoi_nhan as nguoi_giao_nhan,
+	                                                                            a.nguoi_xuat as nguoi_kiem_tra,
+	                                                                            a.ngay_tao,
+	                                                                            a.nguoi_tao,
+                                                                                a.dia_diem, 	
+	                                                                            a.trang_thai, 
+                                                                                a.ghi_chu,  	 	
+	                                                                            'GDN' as loai_phieu from Merchant_StockOutHeader a left join Merchant_WareHouse b
+                                                                                on a.ma_kho = b.ma_kho
+                                                                                where ma_phieu_xuat_kho = {0}", str[1]);
+                            else
+                                data = db.FirstOrDefault<Merchant_Stock_ViewModel>(@"select 
+	                                                                            a.ma_phieu_xuat_kho as ma_phieu, 
+	                                                                            b.ten_kho, 
+                                                                                b.ma_kho,
+	                                                                            a.ma_don_hang, 
+	                                                                            a.ngay_xuat_kho as ngay_nhap_xuat,
+	                                                                            a.thu_kho, 
+	                                                                            a.nguoi_nhan as nguoi_giao_nhan,
+	                                                                            a.nguoi_xuat as nguoi_kiem_tra,
+	                                                                            a.ngay_tao,
+	                                                                            a.nguoi_tao,
+                                                                                a.dia_diem, 	
+	                                                                            a.trang_thai, 
+                                                                                a.ghi_chu,  	 	
+	                                                                            'GDN' as loai_phieu from Merchant_StockOutHeader a left join Merchant_WareHouse b
+                                                                                on a.ma_kho = b.ma_kho
+                                                                                where ma_phieu_xuat_kho = {0} and ma_gian_hang = {1}", str[1], currentUser.ma_gian_hang);
+                            if (trang_thai)
+                            {
+
+                                List<Merchant_StockOutDetail> stockDetail = db.Select<Merchant_StockOutDetail>("ma_phieu_xuat_kho={0} and ma_gian_hang={1}", data.ma_phieu, currentUser.ma_gian_hang);
+                                foreach (var row in stockDetail)
+                                {
+                                    var exist = db.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_DetailLocation WHERE ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}", data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham);
+                                    if (exist)
+                                    {
+                                        var so_luong = db.Scalar<int>("SELECT TOP 1 so_luong FROM Merchant_DetailLocation WHERE ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3}", data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham);
+                                        if (so_luong >= row.so_luong_thuc_te)
+                                        {
+                                            db.Update<Merchant_DetailLocation>("so_luong=so_luong-{0}".Params(row.so_luong_thuc_te), "ma_kho = {0} and ma_gian_hang={1} and ten_vi_tri={2} and ma_san_pham={3} and so_luong>={4}".Params(data.ma_kho, currentUser.ma_gian_hang, row.vi_tri, row.ma_san_pham, row.so_luong_thuc_te));
+                                            db.Delete<Merchant_DetailLocation>("so_luong=0");
+                                            dbTrans.Commit();
+                                        }
+                                        else
+                                        {
+                                            dbTrans.Rollback();
+                                            return Json(new { success = false, error = "Số lượng tồn kho không đủ" });
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        return Json(new { success = false, error = "Chưa có sản phẩm này trong kho" });
+                                    }
+                                }
+                            }
+                        }
+                        new Merchant_StockOutHeader_DAO().UpdateInventoryMySQL(data.ma_phieu, currentUser.ma_gian_hang, currentUser.name, AppConfigs.MCCConnectionString);
+                        return Json(new { success = true, data = data, JsonRequestBehavior.AllowGet });
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false, error = str[0] });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền tạo mới" });
+            }
+        }
+    }
+}

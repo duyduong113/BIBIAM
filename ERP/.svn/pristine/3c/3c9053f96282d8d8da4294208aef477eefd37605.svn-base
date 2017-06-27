@@ -1,0 +1,306 @@
+﻿<style>
+    .infor-contract-name{
+        font-weight:bold;
+    }
+</style>
+<form data-pkadv="@ViewBag.pkAdv" data-dot-order="@ViewBag.c_dot_order" action=@Url.Action("SaveAdv","CRM_ProposedAdvertisement") id="formAdv" class="form">
+    @if (Model == null)
+    {
+        <div class="row-fluid">
+            <div class="span2">
+                <label for="form-field-8">Số hợp đồng</label>
+                @(Html.Kendo().AutoComplete()
+                          .Name("txt-AutoContract")
+                          .DataTextField("c_code")
+                          .Filter("contains")
+                          .MinLength(3)
+                          .HtmlAttributes(new { style = "width:100%" })
+                          .DataSource(source =>
+                          {
+                              source.Read(read =>
+                              {
+                                  read.Action("SuggestContract", "CRM_ProposedAdvertisement")
+                                      .Data("onDataContract");
+                              })
+                              .ServerFiltering(true);
+                          })
+                          .Events(e =>
+                         {
+                             e.Select("onSelectContract");
+                         })
+                )
+
+            </div>
+            <div class="span2">
+                <label for="form-field-8">  </label><br />
+                <a id="btnSearchContract" href="#" class="btn btn-small btn-primary"> Xem hợp đồng</a>
+            </div>
+            <div class="span2">
+                <label for="form-field-8">Mã book</label>
+                <input type="text" id="txt-BookCode" value="" readonly/>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
+    }
+    else
+    {
+        <div class="row-fluid">
+            <div class="span2">
+                <label for="form-field-8">Số hợp đồng</label>
+                <input type="text" id="txt-AutoContract" value="@Model.c_code" readonly />
+            </div>
+            <div class="span2">
+                <label for="form-field-8">Mã book</label>
+                <input type="text" id="txt-BookCode" value="" readonly/>
+            </div>
+            <div class="span2">
+                <label for="form-field-8"> </label><br />
+                <a id="btnSearchContract" href="#" class="btn btn-small btn-primary"> Xem hợp đồng</a>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
+    }
+  
+    <div id="contract-info" class="row-fluid" style="display:none">
+        <div id="customer-info-wrapper" class="span6">
+            <header><b>Thông tin khách hàng</b></header>
+            <div class="span12" style="margin-left: 0px;">
+                <label class="span12">Tên khách hàng: <span class="infor-contract-name" id="info-customer-name"></span> </label>  
+            </div>
+            <div class="span12" style="margin-left: 0px;">
+                <span class="span4">Ngành hàng: <span class="infor-contract-name" id="info-category-name"></span> </span> 
+                <span class="span4">Đại lý: <span class="infor-contract-name" id="info-customer-type"></span>  </span>
+                <span class="span4">Nhãn hàng: <span class="infor-contract-name" id="info-label-name"></span>  </span> 
+            </div>
+        </div>
+        <div id="contract-info-wrapper" class="span6">
+            <header><b>Thông tin thực hiện hợp đồng</b></header>
+            <table border="1" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Tổng DV QC theo HĐ</th>
+                        <th>DV đã xuất bản QC</th>
+                        <th>Đề nghị xuất bản QC đợt này</th>
+                        <th>DV QC chưa thực hiện</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th><span id="total-money-contract" class="pull-right" style="color:red;font-size:12px">0</span></th>
+                        <th><span id="total-qc-publish" class="pull-right" style="color:red;font-size:12px">0</span></th>
+                        <th><span id="total-qc-this-publish" class="pull-right" style="color:red;font-size:12px">0</span></th>
+                        <th><span id="total-qc-remain" class="pull-right" style="color:red;font-size:12px">0</span></th>
+                     
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</form>
+
+
+@if (Model != null)
+{
+    <script>
+        $(document).ready(function () {
+            $("#info-customer-name").html('@Html.Raw(Model.c_customer_name)');
+            $("#info-customer-type").html('@Html.Raw(@Model.c_customer_type)');
+            $("#info-category-name").html('@Html.Raw(@Model.c_category)');
+            $("#info-label-name").html('@Html.Raw(@Model.c_labels)');
+            $("#total-money-contract").html('@Model.c_total_money.ToString("#,##0")');
+            $("#total-qc-publish").html('@Model.tong_tien_da_xuat_ban.ToString("#,##0")');
+            $("#txt-BookCode").val('@Model.c_book_code'); 
+            CountMoney();
+            $('#contract-info').show();
+        })
+    </script>
+}
+else
+{
+    <script>
+        $('#contract-info').hide();
+    </script>
+}
+
+<script>
+    function onDataContract() {
+        return {
+            text: $("#txt-AutoContract").val()
+        };
+    }
+    function onSelectContract(e) {
+        $("#total-qc-publish,#total-money-contract,#info-customer-name,#info-customer-type,#info-category-name,#info-label-name").html('');      
+        $("#txt-BookCode").val('');
+        var dataItem = this.dataItem(e.item.index());
+        if (dataItem.c_book_code == "" && dataItem.c_contract_type != "CPM" && dataItem.c_contract_type!='PHIEUCPM') {
+            alertMessage('Hợp đồng chưa có mã book', 'Vui lòng booking trước khi đăng QC', false);
+            $('#line-action').hide();
+            return;
+        }
+        else {
+            $('#line-action').show();
+            $("#info-customer-name").html(dataItem.CustomerName);
+            $("#info-customer-type").html(dataItem.CustomerType);
+            $("#info-category-name").html(dataItem.CategoryName);
+            $("#info-label-name").html(dataItem.c_labels);
+            $("#txt-BookCode").val(dataItem.c_book_code);
+            $("#total-money-contract").html(kendo.toString(dataItem.c_total_money, "n0"));
+            $.get(r + "/CRM_ProposedAdvertisement/getMoneyPublishQC", { bookcode: $("#txt-AutoContract").val() }, function (data) {
+                if (data.success) {
+                    $("#total-qc-publish").html(kendo.toString(data.money, "n0"));
+                }
+            });
+            CountMoney();
+            $("#contract-info").show();
+        }       
+    }
+    
+    function CountMoney() {
+        var tong_tien_qc = currencyToNumber($("#total-money-contract").html());
+        var da_xb = currencyToNumber($("#total-qc-publish").html());
+        con_lai = tong_tien_qc - da_xb;
+        $("#total-qc-remain").html(kendo.toString(con_lai, "n0"));
+    }  
+</script>
+<script>
+    // Thông tin hợp đồng.
+    var adv = {
+        pk_adv: 0,
+        c_code: "",
+        c_note: "",
+        fk_staff: 0,
+    };
+    function checkGiaTri() {
+       
+        var total = currencyToNumber($('#total-money-contract').text());
+        var daxb = currencyToNumber($('#total-qc-publish').text());
+        var dotnay = currencyToNumber($('#total-qc-this-publish').text());
+        if (dotnay <= (total - daxb)) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    function saveAdv() {
+        try {    
+            adv.pk_adv = $("#formAdv").attr("data-pkadv");
+            adv.c_code = $('#txt-AutoContract').val();
+            adv.fk_staff = $('#staff-id').val();
+            if (adv.pk_adv == 0) {
+                if (adv.c_code != "") {
+                    if (checkGiaTri()) {
+
+                        $("form#formAdv").submit(); return true;
+                        console.log('Lưu số phiếu đề nghị thành công.');
+                    }
+                    else
+                    {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: 'Tổng tiền đăng đợt này lớn hơn giá trị HD trừ đã đăng QC.',
+                            class_name: 'gritter-error'
+                        });
+                        return false;
+                    }               
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: 'Vui lòng nhập số hợp đồng.',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+            }
+            else {
+                console.log('Phiếu đề nghị đã được tạo.');
+            }
+        } catch (e) {
+            return false;
+        }     
+    }
+    $("form#formAdv").validate({
+        rules: {
+            fk_contract: { required: true },
+        },
+        messages: {
+            fk_contract: { required: "Thông tin bắt buộc" },
+        },
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+        beforeSend: function () {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+        },
+        submitHandler: function (form) {
+            var _url = $('form#formAdv')[0].action;
+            $.ajax({
+                url: _url,
+                type: 'POST',
+                data: $('form#formAdv').serialize(),
+                data: adv,
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        $("#formAdv").attr("data-pkadv", data.pk_adv);
+                        return true;
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                        return false;
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+            });         
+        }
+    });
+
+    $('#btnSearchContract').bind('click', function (e) {
+      
+        var contractCode = $('#txt-AutoContract').val();
+        if (contractCode != "") {
+            $.post(r + "/CRMMnContract/GetContractByCode", { contractCode: contractCode }, function (data) {
+                if (data.success) { 
+                    var url = r + '/CRMMnContract/Detail/' + data.data.pk_contract + '?typeContract=' + data.data.c_contract_type;
+                    window.open(url, '_blank');
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: "Vui lòng nhập số hợp đồng",
+                        class_name: 'gritter-error'
+                    });
+                }
+            })
+        }
+        else {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: "Vui lòng nhập số hợp đồng",
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    })
+</script>
+

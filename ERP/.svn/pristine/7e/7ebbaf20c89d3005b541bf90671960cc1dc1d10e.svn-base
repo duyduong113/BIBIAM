@@ -1,0 +1,110 @@
+﻿@using BIBIAM.Core
+@using BIBIAM.Core.Entities
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.report_price);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+}
+<script type="text/x-kendo-template" id="StockOutHeader">
+    <form action="@Url.Content("~/Merchant_StockOut/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="col-md-12">
+            @if (all || create || update)
+            {
+                <button type="button" onclick="clearForm()" class="btn btn-default btn-circle"><i class="fa fa-ban" aria-hidden="true"></i> Hủy</button>
+            }
+        </div>
+        <div class="col-md-12">
+            <div class="row">
+                <input type="text" class="hidden" name="id" value="#=id?id:0#" id="id" />
+                    <div class="col-md-3">
+                        <label>Mã phiếu xuất kho</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" name="ma_phieu_xuat_kho" id="ma_phieu_xuat_kho" value="#=ma_phieu_xuat_kho?ma_phieu_xuat_kho:''#" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Mã đơn hàng</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" name="danh_sach_don_hang" id="danh_sach_don_hang" value="#=danh_sach_don_hang?danh_sach_don_hang:''#" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Mã chứng từ</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" name="ma_chung_tu" id="ma_chung_tu" value="#=ma_chung_tu?ma_chung_tu:''#">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Tên kho</label>
+                        @(Html.Kendo().DropDownList()
+                                      .Name("ma_kho")
+                                      .Value("#=ma_kho ? ma_kho : ''#")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel("--Chọn kho--")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Filter("contains")
+                                      .MinLength(2)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetWarehouseInfo", "CustomData");
+                                          }).ServerFiltering(false);
+                                      }).ToClientTemplate()
+
+                        )
+                    </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Người nhận</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="nguoi_nhan" id="nguoi_nhan" value="#=nguoi_nhan?nguoi_nhan:''#">
+                    </div>
+                </div>
+                #if(id>0){#
+                <div class="col-md-3">
+                    <label>Người xuất kho</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="nguoi_xuat_kho" id="nguoi_xuat_kho" value="#=nguoi_xuat_kho?nguoi_xuat_kho:''#">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label>Ngày xuất kho</label>
+                    <input type="text" class="form-control input-sm max100" value="#=ngay_xuat_kho?kendo.toString(kendo.parseDate(ngay_xuat_kho),'dd/MM/yyyy'):''#" readonly>
+                </div>
+                #}#
+            </div>
+        </div>
+        <div class="form-group col-md-12">
+            <div class="row">
+                <div class="col-md-12">
+                    <label>Ghi chú</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <textarea rows="2" class="form-control input-sm max100" name="ghi_chu" id="ghi_chu">#=ghi_chu?ghi_chu:''#</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            #if(trang_thai!= '@AllConstant.trang_thai_duyet.DA_DUYET'){#
+            @if (all || create || update)
+            {
+                <button type="button" onclick="AddOrder()" class="btn btn-primary btn-circle"><i class="fa fa-plus" aria-hidden="true"></i> Chọn đơn hàng</button>
+            }
+            #}#
+        </div>
+        <div class="col-md-12 gridDetail">
+        </div>
+    </form>
+</script>

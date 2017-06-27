@@ -1,0 +1,909 @@
+﻿<!DOCTYPE html>
+@{
+    string XliteID = HttpContext.Current.Session["XliteID"] == null ? Resources.Multi.LblExtensionNull : HttpContext.Current.Session["XliteID"].ToString();
+    string currentLanguage = HttpContext.Current.Session["Culture"] != null ? HttpContext.Current.Session["Culture"].ToString() : "";
+    string LanguageID = HttpContext.Current.Session["LanguageID"] != null ? HttpContext.Current.Session["LanguageID"].ToString() : "";
+    string currentDateTime = HttpContext.Current.Session["DateTime"] != null ? HttpContext.Current.Session["DateTime"].ToString() : "MM/dd/yyyy";
+
+    // ViewBag.currentLanguage
+
+}
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - Portal</title>
+    <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+    <meta name="description" content="Common form elements and layouts" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="@Url.Content("~/Scripts/assets/css/bootstrap.min.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Scripts/assets/css/bootstrap-responsive.min.css")" rel="stylesheet" />
+    <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/font-awesome.min.css")" />
+    @Styles.Render("~/Content/template")
+    @Styles.Render("~/Content/ace")
+
+    <!--[if IE 7]>s
+          <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/font-awesome-ie7.min.css")" />
+        <![endif]-->
+    @Styles.Render("~/Content/kendo/2014.3.1411/kendo")
+    <link href="@Url.Content("~/Content/customizekendo.css")" rel="stylesheet" type="text/css" />
+
+    <!--[if lte IE 8]>
+          <link rel="stylesheet" href="@Url.Content("~/Scripts/assets/css/ace-ie.min.css")" />
+        <![endif]-->
+    <!--inline styles related to this page-->
+    <!--ace settings handler-->
+    @*<script src="@Url.Content("~/Scripts/assets/js/ace-extra.min.js")"></script>*@
+    @Scripts.Render("~/bundles/setting")
+    <!--basic scripts-->
+    @Scripts.Render("~/bundles/jquery")
+
+    <script type="text/javascript">
+        if ("ontouchend" in document) document.write("<script src='@Url.Content("~/Scripts/assets/js/jquery.mobile.custom.min.js")'>" + "<" + "/script>");
+    </script>
+    @Scripts.Render("~/bundles/bootstrap")
+    <!--page specific plugin scripts-->
+    <!--[if lte IE 8]>
+          <script src="@Url.Content("~/Scripts/assets/js/excanvas.min.js")"></script>
+        <![endif]-->
+    @Scripts.Render("~/bundles/template")
+
+    @Scripts.Render("~/bundles/ace")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/kendo")
+
+
+    <script src="@Url.Content("~/Scripts/assets/js/x-editable/bootstrap-editable.min.js")"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        var ROOT = '@Url.Content("~/")';
+        var r = ROOT.substring(0, ROOT.length - 1);
+        var XliteID = '@XliteID';
+    </script>
+
+    <script src="@Url.Content("~/Scripts/jquery.signalR-2.2.0.min.js")"></script>
+    <script src="@Url.Content("~/signalr/hubs")"></script>
+    @*<script src="~/signalr/hubs"></script>*@
+    <script src="~/Scripts/PortalMessage.js"></script>
+
+    <script src="@Url.Content("~/Scripts/jquery.validate.js")"></script>
+
+
+
+    <style>
+        .inline-xlite-width input {
+            min-width: 50px;
+        }
+
+        .blockUI.blockMsg.blockPage {
+            border: none !important;
+            background-color: rgba(102, 102, 102, 0) !important;
+        }
+
+        .dropdown-menu.dropdown-closer {
+            top: 95%;
+        }
+
+        .badge-noti {
+            width: 14px;
+            font-weight: normal;
+            font-size: 8px;
+            max-height: 14px;
+            padding: 0px;
+        }
+
+        /*.submenu {
+            z-index: 90000 !important;
+        }*/
+
+        .menu-text {
+            z-index: 99999 !important;
+        }
+
+        .error {
+            border: 1px solid #b94a48 !important;
+            background-color: #fee !important;
+        }
+
+        .page-content {
+            padding: 8px 10px 5px 10px;
+        }
+    </style>
+</head>
+<body ng-app="app">
+    <div class="navbar" id="navbar">
+        <script type="text/javascript">
+            try { ace.settings.check('navbar', 'fixed') } catch (e) { }
+        </script>
+
+        <div class="navbar-innerDeca">
+            <div class="container-fluid">
+                <a href="@Url.Content("~/")" class="logo">
+                    @*<img style="padding-top: 5px;" src="@Url.Content("~/Images/logo_hompage.png")" />*@
+                </a>
+
+                <!--/.brand-->
+                <ul class="nav ace-nav pull-right">
+
+                    <li class="decaprofile">
+                        <a data-toggle="dropdown" href="@Url.Content("~/")" class="dropdown-toggle">
+                            @{
+                                string avartar = ERPAPD.Models.Users.Avatar();
+                            }
+                            <img class="nav-user-photo" src="@Url.Content("~/Content/image/upload/" + avartar)" alt="Jason's Photo">
+                            <span class="user-info">
+                                <small> @Resources.Multi.LblHello ,</small>
+                                <strong>@User.Identity.Name</strong>
+                            </span>
+
+                            <i class="icon-caret-down" style="font-size:24px;"></i>
+                        </a>
+                        <ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-closer">
+                            <li>
+                                <a href="@Url.Content("~/Account/ChangeProfile")">
+                                    <i class="icon-user"></i>
+                                    @*Thông tin cá nhân*@
+                                    @Resources.Multi.LblProfile
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Content("~/Account/ChangePassword")">
+                                    <i class="icon-key"></i>
+                                    @*Thay đổi mật khẩu*@
+                                    @Resources.Multi.LblChangePassW
+                                </a>
+                            </li>
+                            @*<li class="divider"></li>
+                                <li>
+                                    <a href="http://125.234.17.38:7878/MBV" target="_blank">
+                                        <i class="icon-group"></i>
+                                        Project Management
+                                    </a>
+                                </li>*@
+                            <li>
+                                <a href="javascript:void(0)">
+                                    <i class="icon-cog"></i>
+                                    @*Cài Đặt*@
+                                    @Resources.Multi.LblSetting
+                                </a>
+                            </li>
+                            @*<li class="divider"></li>*@
+                            <li>
+                                <a href="@Url.Content("~/Account/LogOff")">
+                                    <i class="icon-off"></i>
+                                    @*Đăng Xuất*@
+                                    @Resources.Multi.LblLogout
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                </ul>
+                @* begin Signal R *@
+                <ul class="nav ace-nav pull-right">
+                    <li>
+                        @*<div id="profile" class="btn-header transparent pull-right" data-toggle="popover" onclick="onclickprofile()">
+                                <span>
+                                    <a class="new_bg" href="javascript:void(0);" title="Thông báo" style="position: relative;">
+                                        <i class="icon-envelope icon-animated-vertical"></i>
+                                    <b class="badge bg-color-red bounceIn animated" style="position: absolute; top: -10px; right: -15px; display: none;" id="number_notify"> </b></a>
+                                </span>
+                            </div>*@
+
+                        @*<div class="popover fade bottom in" role="tooltip" id="divpopover" style="top: 40px; right: 10px; left:inherit; display: none;width:320px;">
+                                <div class="arrow" style="left:72%"></div><h3 class="popover-title" style="display: none;"></h3><div class="popover-content">
+                                    <ul class="nav nav-tabs nav-justified" role="tablist">
+                                        <li role="presentation" class="active" id="TabCountMessage" style="display: none;"><a onclick="onActiveTab(this)" class="popover-item" href="javascript:void(0);" title="Nhắc nhở">Nhắc nhở</a></li>
+                                        <li role="presentation" class="active" id="TabMessage"><a onclick="onActiveTab(this)" class="popover-item" id="Portal_Message_tab" href="javascript:void(0);" title="Message">Thông báo</a></li>
+                                        <li role="presentation" class="" id="TabPerformence"><a onclick="onActiveTab(this)" class="popover-item" href="javascript:void(0);" title="Thông tin">Hiệu suất</a></li>
+                                    </ul>
+                                    <div class="popover-content-profile">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="CountForAccountantTemplate" style="display:none">
+                                <div class="col-sm-12" style="margin-bottom: 10px;max-height: 400px;padding:0px;">
+                                    <h6 id="LastReadAccountant" style="margin: 3px;color:blue">Cập nhật lúc</h6>
+                                    <a data-link="/AccountantServiceApproveCashAdjust" href="#" style="padding:5px;" class="list-group-item " onclick="ClickMessage(this)">
+                                        <h6 class=" itemleft">Giảm giá ngoài chính sách</h6><h6 class="itemright " id="CountForAccountant1">0</h6><br>
+                                    </a>
+                                    <a data-link="/AccountantServiceApproveRegistration" href="#" style="padding:5px;" class="list-group-item " onclick="ClickMessage(this)">
+                                        <h6 class="itemleft">Phiếu Đăng ký</h6><h6 class="itemright " id="CountForAccountant2">0</h6><br>
+                                    </a>
+                                    <a data-link="/AccountantJobNewsList" href="#" style="padding:5px;" class="list-group-item " onclick="ClickMessage(this)">
+                                        <h6 class="itemleft">Duyệt kích tin/xác thực</h6><h6 class="itemright " id="CountForAccountant3">0</h6><br>
+                                    </a>
+                                    <a data-link="/AccountantApproveRequest" href="#" style="padding:5px;" class="list-group-item " onclick="ClickMessage(this)">
+                                        <h6 class="itemleft">Duyệt yêu cầu hạ bảo lưu</h6><h6 class="itemright" id="CountForAccountant4">0</h6><br>
+                                    </a>
+                                    <a data-link="/AccountantServicePriceList" href="#" style="padding:5px;" class="list-group-item " onclick="ClickMessage(this)">
+                                        <h6 class="itemleft">Cài đặt bảng giá tháng mới</h6><h6 class="itemright" id="CountForAccountant5">0</h6><br>
+                                    </a>
+                                </div>
+                            </div>*@
+                    </li>
+                </ul>
+                @* -- end Signal R *@
+                <ul class="nav ace-nav pull-right" id="notification" style="display: normal">
+
+                    <li class="green">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="icon-envelope icon-animated-vertical"></i>
+                            <span class="badge badge-success">5</span>
+                        </a>
+
+                        <ul class="pull-right dropdown-navbar dropdown-menu dropdown-caret dropdown-closer">
+                            <li class="nav-header">
+                                <i class="icon-envelope-alt"></i>
+                                5 Messages
+                            </li>
+
+                            <li>
+                                <a href="#">
+                                    <img src="@Url.Content("~/Scripts/assets/avatars/avatar.png")" class="msg-photo" alt="Alex's Avatar" />
+                                    <span class="msg-body">
+                                        <span class="msg-title">
+                                            <span class="blue">Alex:</span>
+                                            Ciao sociis natoque penatibus et auctor ...
+                                        </span>
+
+                                        <span class="msg-time">
+                                            <i class="icon-time"></i>
+                                            <span>a moment ago</span>
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="#">
+                                    <img src="@Url.Content("~/Scripts/assets/avatars/avatar3.png")" class="msg-photo" alt="Susan's Avatar" />
+                                    <span class="msg-body">
+                                        <span class="msg-title">
+                                            <span class="blue">Susan:</span>
+                                            Vestibulum id ligula porta felis euismod ...
+                                        </span>
+
+                                        <span class="msg-time">
+                                            <i class="icon-time"></i>
+                                            <span>20 minutes ago</span>
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="#">
+                                    <img src="@Url.Content("~/Scripts/assets/avatars/avatar4.png")" class="msg-photo" alt="Bob's Avatar" />
+                                    <span class="msg-body">
+                                        <span class="msg-title">
+                                            <span class="blue">Bob:</span>
+                                            Nullam quis risus eget urna mollis ornare ...
+                                        </span>
+
+                                        <span class="msg-time">
+                                            <i class="icon-time"></i>
+                                            <span>3:15 pm</span>
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    See all messages
+                                    <i class="icon-arrow-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav ace-nav pull-right">
+                    <li style="padding: 0px 10px 0 10px; ">
+                        <span style="color:white;font-size:12px;">Extension: </span><span id="editXliteCode" data-oldvalue="@XliteID" class="editable-click" style="font-weight:bold;font-size:13px;color:white;">@XliteID</span>
+                    </li>
+                </ul>
+                <ul class="nav ace-nav pull-right" style="display: normal;">
+                    <li class="logo">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            @if (currentLanguage == "vi")
+                            {
+                                <span>
+                                    CHANGE LANGUAGE
+                                </span>
+                                <span><img src="@Url.Content("~/img/flag-vn.jpg")" alt="hinh" style="width: 30px; height: 30px; border-radius: 50%; "></span>
+                            }
+                            else
+                            {
+                                <span>THAY ĐỔI NGÔN NGỮ </span>
+                                <span>
+                                    <img src="@Url.Content("~/img/flag-en.jpg")" alt="hinh"
+                                         style="width: 30px; height: 30px; border-radius: 50%; ">
+                                </span>
+                            }
+                        </a>
+                        <ul class="pull-right dropdown-navbar dropdown-menu dropdown-caret dropdown-closer" style="width:20px;">
+                            @if (currentLanguage == "vi")
+                            {
+                                <li id="lang-en">
+                                    <a href="@Url.Content("~/Home/ChangeCulture?languageID=EN&lang=en&returnurl=" + this.Request.RawUrl)">
+                                        <img src="@Url.Content("~/img/flag-en.jpg")" style="width: 30px; height: 30px; text-align: center; border-radius: 50%; ">
+                                        English
+                                    </a>
+                                </li>
+                                @*<li id="lang-vi">
+                                        <a href="javascript:void(0)" style="display: block; opacity: 0.1; cursor: not-allowed; ">
+                                            <img src="@Url.Content("~/img/flag-vn.jpg")" style="width: 30px; height: 30px; text-align: center; border-radius: 50%; ">
+                                            Việt Nam
+                                        </a>
+                                    </li>*@
+                            }
+                            else
+                            {
+                                @*<li id="lang-en">
+                                        <a href="javascript:void(0)" style="display: block; opacity: 0.1; cursor: not-allowed;">
+                                            <img src="@Url.Content("~/img/flag-en.jpg")" alt="hinht" style="width: 30px; height: 30px; text-align: center; border-radius: 50%; ">
+                                            English
+                                        </a>
+                                    </li>*@
+                                <li id="lang-vi">
+                                    <a href="@Url.Content("~/Home/ChangeCulture?languageID=VN&lang=vi&returnurl=" + this.Request.RawUrl)">
+                                        <img src="@Url.Content("~/img/flag-vn.jpg")" alt="hinh" style="width: 30px; height: 30px; text-align: center; border-radius: 50%; ">
+                                        Việt Nam
+                                    </a>
+                                </li>
+                            }
+                            <li hidden>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!--/.ace-nav-->
+            </div>
+            @* <div style="width: 40%;display: inline-block;font-size: 1.5em;color: #fff;font-weight: bold;margin-top: -30px;position: absolute;float: left;margin-left: 150px;"><marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">@Html.Raw(HttpUtility.HtmlDecode(MobiviPortal.Models.Deca_Login_Info.GetAllActiveDescription()))</marquee></div>*@
+
+            <!--/.container-fluid-->
+        </div>
+        <!--/.navbar-inner-->
+    </div>
+
+    <div class="main-container container-fluid">
+        <a class="menu-toggler" id="menu-toggler" href="#">
+            <span class="menu-text"></span>
+        </a>
+        <div class="sidebar" id="sidebar">
+            <script type="text/javascript">
+                try { ace.settings.check('sidebar', 'fixed') } catch (e) { }
+            </script>
+            <ul class="nav nav-list">
+                @*Menu Hệ thống*@
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-cogs"></i>
+                        <span class="menu-text"> @Resources.Multi.MenuSystem </span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li controllername="Users">
+                            <a href="@Url.Content("~/Users")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">  @Resources.Multi.MenuUsers </span>
+                            </a>
+                        </li>
+                        <li controllername="Groups">
+                            <a href="@Url.Content("~/Groups")">
+                                <i class="icon-angle-right"></i>
+                                @*<span class="menu-text"> Nhóm người dùng </span>*@
+                                <span class="menu-text">  @Resources.Multi.GroupUser </span>
+                            </a>
+                        </li>
+                        <li controllername="ConfigurationSystem">
+                            <a href="@Url.Content("~/ConfigurationSystem")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text"> Cấu hình hệ thống </span>
+                            </a>
+                        </li>
+                        @*<li controllername="ManageSyncLog">
+                                <a href="@Url.Content("~/ManageSyncLog")">
+                                    <i class="icon-angle-right"></i>
+                                    <span class="menu-text"> Quản lý đồng bộ </span>
+                                </a>
+                            </li>*@
+                        @*<li controllername="Assets">
+                                <a href="@Url.Content("~/Assets")">
+                                    <i class="icon-angle-right"></i>
+                                    <span class="menu-text"> @Resources.Multi.MenuManageController </span>
+                                </a>
+                            </li>*@
+                    </ul>
+                </li>
+                @*Menu Dữ liệu danh mục*@
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-hdd"></i>
+                        <span class="menu-text">  @Resources.Multi.MenuDataitem </span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li class="subLI">
+                            <a href="#" class="dropdown-toggle">
+                                <span class="menu-text"> Quản lý trang chủ </span>
+                                <b class="arrow icon-angle-down"></b>
+                            </a>
+                            <ul class="submenu">
+                                <li controllername="Article">
+                                    <a href="@Url.Content("~/Article")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text">Thông báo</span>
+                                    </a>
+                                </li>
+                                <li controllername="CSDailyNews">
+                                    <a href="@Url.Content("~/CSDailyNews")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text">Tin tức nội bộ </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="subLI">
+                            <a href="#" class="dropdown-toggle">
+                                <span class="menu-text"> Tỷ giá tiền tệ </span>
+                                <b class="arrow icon-angle-down"></b>
+                            </a>
+                            <ul class="submenu">
+                                <li controllername="Currencies">
+                                    <a href="@Url.Content("~/Currencies")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text">Cấu hình tiền tệ</span>
+                                    </a>
+                                </li>
+                                <li controllername="CRMExchangeRate">
+                                    <a href="@Url.Content("~/CRMExchangeRate")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> Tỷ giá tham khảo </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="subLI">
+                            <a href="#" class="dropdown-toggle">
+                                <span class="menu-text"> @Resources.Multi.MenuLocation </span>
+                                <b class="arrow icon-angle-down"></b>
+                            </a>
+                            <ul class="submenu">
+                                <li controllername="CRMAliasDefinition">
+                                    <a href="@Url.Content("~/CRMAliasDefinition")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuAliasDefinition </span>
+                                    </a>
+                                </li>
+                                <li controllername="CRMCountryDefinition">
+                                    <a href="@Url.Content("~/CRMCountryDefinition")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuCountryDefinition </span>
+                                    </a>
+                                </li>
+                                <li controllername="CRMRegionDefinition">
+                                    <a href="@Url.Content("~/CRMRegionDefinition")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuRegionDefinition </span>
+                                        @*<span class="menu-text"> Vùng miền </span>*@
+                                    </a>
+                                </li>
+                                <li controllername="CRMCityDefinition">
+                                    <a href="@Url.Content("~/CRMCityDefinition")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuCityDefinition </span>
+                                    </a>
+                                </li>
+                                <li controllername="CRMDistrict">
+                                    <a href="@Url.Content("~/CRMDistrict")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuDistrict </span>
+                                        @*<span class="menu-text"> Quận huyện </span>*@
+                                    </a>
+                                </li>
+                                <li controllername="CRMWards">
+                                    <a href="@Url.Content("~/CRMWards")">
+                                        <i class="icon-angle-right"></i>
+                                        <span class="menu-text"> @Resources.Multi.MenuWards </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li controllername="Utilities_Parameters">
+                            <a href="@Url.Content("~/Utilities_Parameters")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text"> Cấu hình tham số </span>
+                            </a>
+                        </li>
+                        <li controllername="ConfigurationImage">
+                            <a href="@Url.Content("~/ConfigurationImage")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text"> Cấu hình hình ảnh </span>
+                            </a>
+                        </li>
+                        <li controllername="Label">
+                            <a href="@Url.Content("~/Label")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text"> Quản lý nhãn </span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @*Menu Quản lý khách hàng*@
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-beer"></i>
+                        <span class="menu-text"> Quản lý sản phẩm</span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        @*<li controllername="PageType">
+                                <a href="@Url.Content("~/PageType")">
+                                    <i class="icon-angle-right"></i>
+                                    <span class="menu-text">Loại sản phẩm</span>
+                                </a>
+                            </li>*@
+                        <li controllername="Product_Info">
+                            <a href="@Url.Content("~/Product_Info")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Danh sách sản phẩm</span>
+                            </a>
+                        </li>
+
+                        <li controllername="Hierarchy">
+                            <a href="@Url.Content("~/Hierarchy")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Cây phân cấp</span>
+                            </a>
+                        </li>
+
+                        <li controllername="Product_Image">
+                            <a href="@Url.Content("~/Product_Image")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Hình ảnh sản phẩm</span>
+                            </a>
+                        </li>
+
+                        <li controllername="Product_Price">
+                            <a href="@Url.Content("~/Product_Price")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Bảng giá sản phẩm</span>
+                            </a>
+                        </li>
+
+                        <li controllername="Product_Promotion">
+                            <a href="@Url.Content("~/Product_Promotion")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Bảng giá khuyến mãi</span>
+                            </a>
+                        </li>
+
+                        <li controllername="Product_Hierarchy">
+                            <a href="@Url.Content("~/Product_Hierarchy")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Cây phân cấp sản phẩm</span>
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+                <li class="subLI">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-beer"></i>
+                        <span class="menu-text"> Quản lý khách hàng</span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li controllername="Merchant_Info">
+                            <a href="@Url.Content("~/Merchant_Info")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Quản lý gian hàng</span>
+                            </a>
+                        </li>
+                        <li controllername="Merchant_Contact">
+                            <a href="@Url.Content("~/Merchant_Contact")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Người liên hệ gian hàng</span>
+                            </a>
+                        </li>
+                        <li controllername="Merchant_Product">
+                            <a href="@Url.Content("~/Merchant_Product")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Sản phẩm gian hàng</span>
+                            </a>
+                        </li>
+                        <li controllername="Image_Info">
+                            <a href="@Url.Content("~/Image_Info")">
+                                <i class="icon-angle-right"></i>
+                                <span class="menu-text">Quản lý hình ảnh</span>
+                            </a>
+                        </li>   
+                    </ul>
+                </li>
+            </ul>
+            <!--/.nav-list-->
+
+            <div class="sidebar-collapse" id="sidebar-collapse">
+                <i class="icon-double-angle-left" data-icon1="icon-double-angle-left" data-icon2="icon-angle-right"></i>
+            </div>
+
+            @*            <script type="text/javascript">
+                try { ace.settings.check('sidebar', 'collapsed') } catch (e) { }
+                </script>*@
+        </div>
+
+        <div class="main-content">
+            <div class="breadcrumbs" id="breadcrumbs">
+                <ul class="breadcrumb">
+                    <li>
+                        <i class="icon-home home-icon"></i>
+                        <a href="@Url.Content("~/Home/")"> @Resources.Multi.LblHome</a>
+
+                        <span class="divider">
+                            <i class="icon-angle-right arrow-icon"></i>
+                        </span>
+                    </li>
+                    <li class="active">@ViewBag.Title</li>
+                </ul>
+                <!--.breadcrumb-->
+            </div>
+
+            <div class="page-content">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <!--PAGE CONTENT BEGINS-->
+                        @RenderSection("Body", required: false)
+                        @RenderBody()
+                        <!--PAGE CONTENT ENDS-->
+                    </div>
+                    <!--/.span-->
+                </div>
+                <!--/.row-fluid-->
+            </div>
+            <!--/.page-content-->
+        </div>
+        <!--/.main-content-->
+    </div>
+
+    <!--/.main-container-->
+    @Scripts.Render("~/bundles/layout")
+
+    <script>
+        function PostAndBlock(url, parameter, fun) {
+            $.blockUI({ message: '<i class="fa fa-spinner fa-3x fa-lg fa-spin txt-color-blueDark"></i>', theme: false });
+            $.post(url, parameter, function (data) {
+                $.unblockUI();
+                fun(data);
+            }).fail(function (error) {
+                $.unblockUI();
+                $.gritter.add({
+                    title: '',
+                    text: "Server Error",
+                    class_name: 'gritter-error'
+                });
+            });
+        }
+        function ConvertOutDate(Status, OutDate) {
+            if (Status == 3) {
+                return "background-color:#FFCC80";
+            }
+            else if (Status == 4) {
+                return "background-color:#FB8C00";
+            }
+            else {
+                return "";
+            }
+        }
+        function convertDateToUTC(date) { return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); }
+        function ConvertTimeZone(data, gmt) {
+            //console.log(gmt);
+            //console.log(data);
+            ////utc
+            //console.log(data.toUTCString());
+            //console.log(new Date(data.toUTCString()).getTime());
+            //
+            //offset
+            var offset = gmt * 60 * 60 * 1000;
+            //console.log(offset);
+            //console.log(new Date(new Date(convertDateToUTC(data)).getTime() + offset));
+            if (data == null)
+                return "";
+            return kendo.toString(kendo.parseDate(new Date(new Date(convertDateToUTC(data)).getTime() + offset)), "@Resources.Multi.DateFormat HH:mm");
+        }
+        function SaveExtensionAndCall() {
+            var XliteCode = $("#inputExtension").val();
+            var Phone = $("#hiddenPhoneCall").val();
+            $.post(r + "/Home/SaveXliteCode/", { XliteCode: XliteCode }, function (data) {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                if (data.success) {
+                    $("#editXliteCode").text(XliteCode);
+                    $("#ExtentionInputWindow").data("kendoWindow").close();
+                    XliteCall(Phone);
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: "@Resources.Multi.Error",
+                        // (string | mandatory) the text inside the notification
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        function XliteCall(phone) {
+            $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            $.post(r + "/Telesale/Call", { mobile: phone }, function (data) {
+                if (!data.success) {
+                    if (data.message == "Chưa có extension!") {
+                        $("#ExtentionInputWindow").data("kendoWindow").center().open();
+                        $("#hiddenPhoneCall").val(phone);
+                    }
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        $("#editXliteCode").editable(function (value, settings) {
+            var oldValue = $(this).data("oldvalue");
+            if (value) {
+                $.post(r + "/Home/SaveXliteCode/", { XliteCode: value }, function (data) {
+                    if (data.success) {
+                        $("#editXliteCode").text(value);
+                    } else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: "@Resources.Multi.Error",
+                            // (string | mandatory) the text inside the notification
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                        $("#editXliteCode").text(oldValue);
+                    }
+                });
+                return ("@Resources.Multi.Saving...");
+            } else
+                return
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-xlite-width',
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            data: function (value, settings) {
+                return '';
+            },
+            style: "inherit",
+        });
+
+        function locdau(str) {
+            //code by Minit - www.canthoit.info - 13-05-2009
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+            str = str.replace(/đ/g, "d");
+
+            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+            str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+            str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+            str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+            str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+            str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+            str = str.replace(/Đ/g, "D");
+
+            str = str.replace(/!|\$|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|,|\.|\:| |\"|\&|\#|\[|\]|~/g, " ");
+            str = str.replace(/-+-/g, "-"); //thay thế 2- thành 1-
+            str = str.replace(/^\-+|\-+$/g, "");//cắt bỏ ký tự - ở đầu và cuối chuỗi
+            return str;
+        }
+        var currentuserid = "@User.Identity.Name";
+
+        function loadMenu() {
+            var listAsset = "@ERPAPD.Models.Users.ListAsset()";
+            var data = listAsset.split(',');
+            if (data.indexOf("All") > -1) {
+
+            } else {
+                if (data.length > 0) {
+                    $("li[controllername]").each(function () {
+                        $(this).css("display", "none");
+                    });
+                    $("li[controllername]").each(function () {
+                        if (data.indexOf($(this).attr('controllername')) > -1) {
+                            $(this).css("display", "block");
+                        }
+                    });
+                    for (var i = 0; i < data.length; i++) {
+                        var a = $('[controllername=' + data[i] + ']');
+                        if (a.length > 0) {
+                            $(a).css('display', 'block');
+                            $(a).closest('.submenu').closest('li').css('display', 'block');
+                            $(a).closest('.submenu').closest('.submenu').closest('li').css('display', 'block');
+                        }
+                    }
+                }
+                $('.nav-list').find('.subLI').each(function () {
+                    var li = $(this).find('.submenu').find('li');
+                    var i = 0;
+                    $(this).find('.submenu').find('li').each(function () {
+                        if ($(this).css('display') == "none") {
+                            i++;
+                        }
+                    });
+                    if (li.length == i) {
+                        $(this).css('display', 'none');
+                    }
+                });
+                $('.nav-list').find('.subLI').each(function () {
+                    var li = $(this).find('.submenu').find('li');
+                    var i = 0;
+                    $(this).find('.submenu').find('li').each(function () {
+                        if ($(this).css('display') == "none") {
+                            i++;
+                        }
+                    });
+                    if (li.length == i) {
+                        $(this).css('display', 'none');
+                    }
+                });
+            }
+        }
+        loadMenu();
+
+        var pathname = window.location.pathname.toLowerCase();
+        $('.nav-list a').each(function () {
+            if ($(this).attr("href").toLowerCase() == pathname) {
+                var parent = $(this).parent("li");
+                parent.addClass("active");
+                if (parent.parent("ul").parent("li").length > 0) {
+                    parent.parent("ul").parent("li").addClass("active open");
+                    if (parent.parent("ul").parent("li").parent("ul").parent("li").length > 0) {
+                        parent.parent("ul").parent("li").parent("ul").parent("li").addClass("active open");
+                    }
+                }
+            }
+        });
+
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-52224516-12', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</body>
+@(Html.Kendo()
+    .Window()
+    .Name("ExtentionInputWindow")
+    .Title("Nhập mã Extension")
+     .Content(@<text>
+        @using (Html.BeginForm("CallWithExtension", "Home", FormMethod.Post, new { @class = "form-inline", id = "SaveXliteCodeForm", style = "margin:0;" }))
+        {
+            <input type="hidden" class="input-small" id="hiddenPhoneCall">
+            <input type="text" style="width: 185px;" class="input-small" id="inputExtension" placeholder="Mã extension">
+            <a class="btn btn-info btn-small" onclick="SaveExtensionAndCall()">Lưu và gọi</a>
+        }
+    </text>)
+        .Draggable(true)
+        .Modal(true)
+        .Visible(false)
+        .Width(300)
+        .Actions(actions => actions.Close())
+)
+
+</html>

@@ -1,0 +1,39 @@
+﻿IF EXISTS (SELECT name FROM [dbo].sysobjects 
+         WHERE name = 'p_Merchant_Product_Image_SyncToMySQL' AND type = 'P')
+   DROP PROCEDURE [dbo].p_Merchant_Product_Image_SyncToMySQL
+GO
+ 
+CREATE PROCEDURE [dbo].p_Merchant_Product_Image_SyncToMySQL
+	@ma_san_pham [varchar](50),
+	@ma_gian_hang [varchar](50),
+	@ma_anh_goc [varchar](512)
+AS
+BEGIN			    
+	if not exists (select * from OPENQUERY(MYSQL_BIBIAM_DEV,'select ma_san_pham, ma_gian_hang, ma_anh_goc from bibiam_dev1.Merchant_Product_Image') where ma_san_pham = @ma_san_pham and ma_gian_hang = @ma_gian_hang and ma_anh_goc = @ma_anh_goc)
+	begin
+			INSERT INTO openquery(MYSQL_BIBIAM_DEV,'select ma_san_pham,ma_gian_hang,url,ma_anh_goc
+													from bibiam_dev1.Merchant_Product_Image')
+			select ma_san_pham,ma_gian_hang,url,ma_anh_goc
+			from Merchant_Product_Image WITH (NOLOCK) where ma_san_pham = @ma_san_pham and ma_gian_hang = @ma_gian_hang and ma_anh_goc = @ma_anh_goc
+	end
+	else
+	begin
+	if not exists (select p.id from openquery(MYSQL_BIBIAM_DEV,'select * from bibiam_dev1.Merchant_Product_Image') p2 
+	RIGHT JOIN (select * from Merchant_Product_Image where  ma_san_pham = @ma_san_pham and ma_gian_hang = @ma_gian_hang and ma_anh_goc = @ma_anh_goc) p
+				on  p2.ma_san_pham = p.ma_san_pham and p2.ma_gian_hang = p.ma_gian_hang
+					where p2.ma_san_pham = p.ma_san_pham and
+					p2.ma_gian_hang = p.ma_gian_hang and
+					p2.url = p.url and
+					p2.ma_anh_goc = p.ma_anh_goc)			
+		update 
+		p2
+		set p2.ma_san_pham = p.ma_san_pham ,					
+		p2.ma_gian_hang = p.ma_gian_hang,					
+		p2.url = p.url,					
+		p2.ma_anh_goc = p.ma_anh_goc
+		FROM Merchant_Product_Image AS p WITH (NOLOCK)
+		JOIN OPENQUERY(MYSQL_BIBIAM_DEV, 'select * from bibiam_dev1.Merchant_Product_Image' ) AS p2
+        ON p2.ma_san_pham = p.ma_san_pham and p2.ma_gian_hang = p.ma_gian_hang
+		WHERE p.ma_san_pham = @ma_san_pham and p.ma_gian_hang = @ma_gian_hang and p.ma_anh_goc = @ma_anh_goc
+	end	
+END

@@ -1,0 +1,75 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.Providers;
+using System.Data.SqlClient;
+using ServiceStack.OrmLite;
+
+namespace BIBIAM.Core.Data.DataObject
+{
+    public class Footer_DAO
+    {
+        public string CreateUpdate(Footer footer, string UserName, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    var checkID = db.SingleOrDefault<Footer>("ma_footer={0}", footer.ma_footer);
+                    if (checkID != null)
+                    {
+                        footer.id = checkID.id;
+                        footer.nguoi_tao = checkID.nguoi_tao;
+                        footer.ngay_tao = checkID.ngay_tao;
+                        footer.nguoi_cap_nhat = UserName;
+                        footer.ngay_cap_nhat = DateTime.Now;
+                        db.Update(footer);
+                    }
+                    else
+                    {
+                        var lastId = db.FirstOrDefault<Footer>("SELECT TOP 1 * FROM Footer ORDER BY id DESC");
+                        if (lastId != null)
+                        {
+                            if (lastId.ma_footer.Contains("FOO"))
+                            {
+                                var nextNo = Int32.Parse(lastId.ma_footer.Substring(3, 10)) + 1;
+                                footer.ma_footer = "FOO" + String.Format("{0:0000000000}", nextNo);
+                            }
+                        }
+                        else
+                        {
+                            footer.ma_footer = "FOO" + "0000000001";
+                        }
+                        footer.ten_footer = !string.IsNullOrEmpty(footer.ten_footer) ? footer.ten_footer : "";
+                        footer.url_link = !string.IsNullOrEmpty(footer.url_link) ? footer.url_link : "";
+                        footer.image_link = !string.IsNullOrEmpty(footer.image_link) ? footer.image_link : "";
+                        footer.noi_dung = !string.IsNullOrEmpty(footer.noi_dung) ? footer.noi_dung : "";
+                        footer.levels = footer.levels != 0 ? footer.levels : 0;
+                        footer.orders = footer.orders != 0 ? footer.orders : 0;
+                        footer.hinh_anh = footer.hinh_anh;
+                        footer.loai = !string.IsNullOrEmpty(footer.loai) ? footer.loai : "";
+                        footer.nguoi_tao = UserName;
+                        footer.ngay_tao = DateTime.Now;
+                        footer.nguoi_cap_nhat = UserName;
+                        footer.ngay_cap_nhat = DateTime.Parse("01/01/1900");
+
+                        db.Insert(footer);
+                    }
+                    //SyncToMySQL
+                    List<SqlParameter> lstParameter = new List<SqlParameter>();
+                    lstParameter.Clear();
+                    lstParameter.Add(new SqlParameter("@ma_footer", footer.ma_footer));
+                    new SqlHelper(connectionString).ExecuteNoneQuery("p_Footer_SyncToMySQL", lstParameter);
+                    return "true@@" + footer.ma_footer;
+                }
+                catch (Exception e)
+                {
+                    return "false@@" + e.Message;
+                }
+            }
+        }
+
+    }
+}

@@ -1,0 +1,735 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+    ViewBag.Title = @Html.Raw(Resources.Global._brand_mng);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var newData = new BrandManagement();
+    newData.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG;
+}
+
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+
+    .title-news {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .label {
+        border-radius: 3px;
+        text-shadow: none;
+        font-size: 11px !important;
+        font-weight: bold;
+        padding: 2px 2px 2px 2px !important;
+    }
+
+    .label-success {
+        background-color: #468847 !important;
+    }
+
+    .label-warning {
+        background-color: #f89406 !important;
+    }
+
+    .label-important {
+        background-color: #b94a48 !important;
+    }
+
+    .label-default {
+        background-color: #999 !important;
+    }
+
+    .label-info {
+        background-color: #3a87ad !important;
+    }
+
+    .btn2 {
+        width: 70% !important;
+    }
+
+    .btn-danger {
+    }
+
+    .info-title {
+        font-weight: bold !important;
+        color: darkblue !important;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        max-width: 300px;
+        max-height: 200px;
+    }
+
+    .image-products {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-products img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-products .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-products:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #ff7d5e;
+        }
+</style>
+<div class="col-md-12">
+    <div class="tabbable-line">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="\\#tab_1" data-toggle="tab">Danh sách thương hiệu</a>
+            </li>
+            <li>
+                <a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Tạo/Chỉnh sửa </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane in active" id="tab_1">
+                <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                    <div class="row">
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                .Name("trang_thai")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .Events(e => e.Change("filter"))
+                                .OptionLabel("TRẠNG THÁI")
+                                .BindTo(new List<SelectListItem>
+                                    () {
+                                    new SelectListItem() {
+                                    Text = "ĐANG SỬ DỤNG",
+                                    Value = AllConstant.trang_thai.DANG_SU_DUNG
+                                    },
+                                    new SelectListItem() {
+                                    Text = "KHÔNG SỬ DỤNG",
+
+                                    Value = AllConstant.trang_thai.KHONG_SU_DUNG
+                                    }
+                                    })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                    )
+                                </div>
+                            </div>
+
+                        }
+                        <div class="col-md-8"></div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <div class="form-group">
+                                    <div class="input-group input-icon right">
+                                        <div class="input-group-btn input-icon right">
+                                            <i class="icon-magnifier" onclick="filter()"></i>
+                                            <input type="text" class="form-control form-control-solid input-circle" id="txtSearch" name="txtSearch" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="row-fluid">
+                    @(Html.Kendo().Grid<BIBIAM.Core.Entities.BrandManagement>
+                        ()
+                        .Name("Grid")
+                        .Columns(columns =>
+                        {
+                        columns.Bound(p => p.id)
+                            .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onclick='checkAll(this)' />")
+                            .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#+@@+#=trang_thai#+@@+#=ma_thuong_hieu#' />")
+                            .Width(20).Filterable(false).Sortable(false).HtmlAttributes(new { @class = "text-center" });
+                        columns.Bound(p => p.ma_thuong_hieu).Visible(false);
+                        columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-success' onclick='editBrand(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(25).HtmlAttributes(new { @class = "text-center" });
+
+                        columns.Template(@<text></text>).Width(400).Title("Thông tin thương hiệu")
+                        .ClientTemplate("<div class='col-md-2' style='padding-left: 0; text-align: left;'><img src='#=logo ? logo : ' http />/www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#' class='img-responsive' style='display:inline'></div>"
+                        + "<div class='col-md-8' style='padding-left:0;' " +
+                        "</br><span class='info-title'>mã thương hiệu </span><span> #=ma_thuong_hieu ? ma_thuong_hieu : ''#</span></br>"
+                        + "<span class='info-title'>Tên thương hiệu:</span><span>  #=ten_thuong_hieu ? ten_thuong_hieu : ''#</span></br>"
+                        + "<span class='info-title'>Mô tả:</span><span>  #=mo_ta ? mo_ta : ''#</span></br>"
+                        + "<span class='info-title'>slug:</span><span>  #=slug ? slug : ''#</span></br>"
+                        + "</div>");
+
+
+                        columns.Template(@<text></text>).Width(210).Title("Trạng thái sử dụng")
+                        .ClientTemplate(
+                        "#if(trang_thai=='" + AllConstant.trang_thai.DANG_SU_DUNG + "'){#"
+                        + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đang sử dụng</label>"
+                        + "#}else{#"
+                        + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Không sử dụng</label>"
+                        + "#}#"
+                        + "</br><span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span></br>"
+                        + "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') : ''#</span></br>"
+                        + "</br><span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span></br>"
+                        + "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') : ''#</span></br>"
+                        );
+
+                        })
+
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 100, 200, 300, 500 }))
+                        .Scrollable()
+                        .ToolBar(toolbar =>
+                        {
+                        toolbar.Template(@<text>
+                        <div class="pull-left">
+                            @if (create || all)
+                            {
+                                <a onclick=create() class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>
+                            }
+
+                            <button class="btn btn-small btn-primary" onclick="ActiveBrand()"><i class="fa fa-check-square-o" aria-hidden="true"></i> Sử dụng</button>
+                            <button class="btn btn-small btn-warning" onclick="InActiveBrand()"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Không sử dụng</button>
+
+                        </div>
+                        </text>);
+                        })
+                        .Events(events =>
+                        {
+                            events.DataBound("dataBound");
+                        })
+
+                        .Sortable()
+                        .Reorderable(reorderable => reorderable.Columns(true))
+                        .HtmlAttributes(new { @style = "height:590px" })
+                        .Resizable(resizable => resizable.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(false)
+                        .PageSize(20)
+                        .Sort(s => s.Add(a => a.id).Descending())
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                        })
+
+                        .Read(c => c.Action("Read", "BrandManagement"))
+                        ))
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="col-md-12 formBrand">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="EditTemplate">
+
+    <form action="@Url.Content("~/BrandManagement/CreateUpdateBrand")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#"/>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="actions" style="float: right;">
+                    @if (all || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle"><i class="fa fa-ban" aria-hidden="true"></i> @Html.Raw(Resources.Global._cancel)</a>
+                        <button type="submit" class="btn blue btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> @Html.Raw(Resources.Global._save_new)</a>
+                    }
+                    #if(id>0){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeBrand('#=ma_thuong_hieu#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="col-md-10">
+
+                                #if(id>0){#
+                                <div class="form-group">
+                                    <label>@Html.Raw(@Resources.Global._brand_id)<span class="required"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="ma_thuong_hieu" value="#=ma_thuong_hieu?ma_thuong_hieu:''#" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Logo<span class="required"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="logo" value="#=logo?logo:''#" readonly>
+                                    </div>
+                                </div>
+                                #}#
+                                <div class="form-group">
+                                    <label>@Html.Raw(@Resources.Global._brand_name)<span class="required"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="ten_thuong_hieu" value="#=ten_thuong_hieu?ten_thuong_hieu:''#">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>@Html.Raw(@Resources.Global._description)</label>
+                                    <textarea class="form-control input-sm max100" rows="12" cols="40" style="width:100%" placeholder="example..." name="mo_ta">#=mo_ta?mo_ta:''#</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>slug<span class="required"> * </span></label>
+                                    <div class="input-icon right">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="slug" value="#=slug?slug:''#">
+                                    </div>
+                                </div>
+                                #if(id>0){#
+                                <div class="form-group">
+                                    <label>@Html.Raw(@Resources.Global._created_date) </label>
+                                    <div class="input-icon right">
+                                        <input type="text" class="form-control input-sm max100" value="#=ngay_tao?kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy'):''#" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@Html.Raw(@Resources.Global._date_update) </label>
+                                    <div class="input-icon right">
+                                        <input type="text" class="form-control input-sm max100" value="#=ngay_cap_nhat?kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy'):''#" readonly>
+                                    </div>
+                                </div>
+                                #}#
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>@Html.Raw(@Resources.Global._logo)</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 255px; height:200px;">
+                                                    <img src="#=logo ? logo : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" style="width: 255px; height:200px;"  />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="width: 255px; height:200px;"> </div>
+                                                <div>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="hidden"><input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._status)</label>
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn red btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.KHONG_SU_DUNG'?'active':''#">
+                                            <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.KHONG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.KHONG_SU_DUNG' ?'checked':''#> @Html.Raw(Resources.Global._not_used)
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=trang_thai=='@AllConstant.trang_thai.DANG_SU_DUNG'?'active':''#">
+                                            <input type="radio" name="trang_thai" value="@AllConstant.trang_thai.DANG_SU_DUNG" class="toggle" #=trang_thai =='@AllConstant.trang_thai.DANG_SU_DUNG' ?'checked':''#> @Resources.Global._used
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</script>
+
+<script>
+
+    function dataBound(e) {
+    }
+    $("#txtSearch").keydown(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+
+            filterOr.filters.push({ field: "ma_thuong_hieu", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "ten_thuong_hieu", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "mo_ta", operator: "contains", value: noi_dung });
+
+            filter.filters.push(filterOr);
+        }
+        var trang_thai = $('#trang_thai').val();
+        if (trang_thai != null && trang_thai != "") {
+            filter.filters.push({ field: "trang_thai", operator: "eq", value: trang_thai });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function Getlistcheck(type) {
+        var listrowid = [];// mảng này gồm 2 chuỗi, chuỗi listrowidyes gồm các id thỏa mãn, chuỗi listrowidno ngược lại
+        var listrowidyes = '';
+        var listrowidno = '';
+        switch (type) {
+            case 1:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != '@AllConstant.trang_thai.DANG_SU_DUNG') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đang được sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 2:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            if ($(this).attr("id").split(/@@@@/)[1].trim() != '@AllConstant.trang_thai.KHONG_SU_DUNG') {
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else {
+                                toastr.error('', $(this).attr("id").split(/@@@@/)[2].trim() + " đang không sử dụng!");
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 3:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                            $(this).data();
+                        }
+                    })
+                }
+                break;
+        }
+        listrowid.listrowidyes = listrowidyes;
+        listrowid.listrowidno = listrowidno;
+        return listrowid;
+    }
+    function removeBrand(ma_thuong_hieu) {
+        bootbox.dialog({
+            message: " @Html.Raw(@Resources.Global._are_your_sure)", title: "@Html.Raw(@Resources.Global._brand_del)",
+            buttons:
+                {
+
+                    danger: { label: "@Html.Raw(@Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: " @Html.Raw(@Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: ' @Html.Raw(@Resources.Global._just_amoment)...' });
+                            $.post(r + "/BrandManagement/deleteBrand", { ma_thuong_hieu: ma_thuong_hieu }, function (data) {
+                                if (data.success) {
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', ' @Html.Raw(@Resources.Global._delete_successfully)');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function ActiveBrand() {
+        var data = Getlistcheck(1);
+        if (data.listrowidyes == '') {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Sử dụng các Brand đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/BrandManagement/ActiveBrand", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Sử dụng thành công Brand');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+    function InActiveBrand() {
+        var data = Getlistcheck(2);
+        if (data.listrowidyes == '') {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Không sử dụng các Brand đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/BrandManagement/ActiveBrand", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Ngưng sử dụng thành công ');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        loadformdetailbrand(@Html.Raw(Json.Encode(newData)));
+        $('.date-picker').datepicker({ format: 'dd/MM/yyyy', autoclose: true, orientation: "auto", todayHighlight: true, });
+    });
+    function toggleFullScreen() {
+        if (!document.fullscreenElement &&
+            !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            return true;
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            return false;
+        }
+    }
+
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+
+    }
+    function clearForm() {
+        loadformdetailbrand(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    }
+
+    function editBrand(e) {
+        var brand = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+       loadformdetailbrand(brand);
+        $("#tab_2_click").trigger("click");
+    }
+    function create() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function loadformdetailbrand(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+
+        $(".formBrand").html(EditTemplate(data));
+
+        loadValidate(data);
+
+        $('.fileinput').fileinput().on('change.bs.fileinput', function (e, files) {
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+
+    }
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+
+                        ten_thuong_hieu: { required: !0 },
+
+                    },
+                messages:
+                    {
+
+                        ten_thuong_hieu: {
+                            required: " @Html.Raw(Resources.Global._required_field)"
+                        },
+                    },
+
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+
+                    i.show(); r.hide();
+                    var imgurl = $(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="logo" value="' + imgurl + '"/>');
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: {},
+                        dataType: "json",
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#Grid").data("kendoGrid").dataSource.read();
+                                loadformdetailbrand(data.data);
+                                if (reset) {
+                                    clearForm();
+                                    reset = false;
+                                }
+
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+</script>
+
+
+
+

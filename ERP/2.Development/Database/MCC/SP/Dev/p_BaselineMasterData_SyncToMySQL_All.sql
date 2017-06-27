@@ -1,0 +1,102 @@
+﻿IF EXISTS (SELECT name FROM [dbo].sysobjects 
+         WHERE name = 'p_BaselineMasterData_SyncToMySQL_All' AND type = 'P')
+   DROP PROCEDURE [dbo].p_BaselineMasterData_SyncToMySQL_All
+GO
+
+CREATE PROCEDURE [dbo].p_BaselineMasterData_SyncToMySQL_All
+AS
+BEGIN			    
+	
+	update p2 set 
+	p2.ma_san_pham = mp.ma_san_pham,
+	p2.mo_ta = mp.mo_ta,
+	p2.ma_gian_hang = mp.ma_gian_hang,
+	p2.ma_loai_san_pham = mp.ma_loai_san_pham,
+	p2.ten_san_pham = mp.ten_san_pham,
+	p2.ten_san_pham_khong_dau = [dbo].[fuChuyenCoDauThanhKhongDauNosubtract](mp.ten_san_pham),
+	p2.url_san_pham = mp.url,
+	p2.slug_san_pham = mp.slug + '-' + CAST(mp.id as varchar(10)),
+	p2.ten_gian_hang = ISNULL(mi.ten_gian_hang,''),
+	p2.ten_gian_hang_khong_dau = [dbo].[fuChuyenCoDauThanhKhongDauNosubtract](ISNULL(mi.ten_gian_hang,'')),
+	p2.slug_gian_hang = ISNULL(mi.slug + '-' + CAST(mi.id as varchar(10)),''),
+	p2.logo_gian_hang = ISNULL(mi.logo_gian_hang,''),
+	p2.ten_thuong_hieu = ISNULL(bm.ten_thuong_hieu,''),
+	p2.ten_thuong_hieu_khong_dau = [dbo].[fuChuyenCoDauThanhKhongDauNosubtract](ISNULL(bm.ten_thuong_hieu,'')),
+	p2.slug_thuong_hieu = ISNULL(bm.slug + '-' + CAST(bm.id as varchar(10)),''),
+	p2.logo_thuong_hieu = ISNULL(bm.logo, ''),
+	p2.gia = ISNULL(mp.don_gia, 0) * 1.1,
+	p2.khuyen_mai = ISNULL(km.gia_tri, 0),
+	p2.loai_khuyen_mai = ISNULL(km.loai,'') ,
+	p2.gia_sau_khuyen_mai = CASE WHEN ISNULL(km.loai,'') ='tien' THEN (ISNULL(mp.don_gia, 0) - ISNULL(km.gia_tri, 0)) * 1.1
+								 WHEN ISNULL(km.loai,'') ='phan_tram' THEN (ISNULL(mp.don_gia, 0) - ISNULL(km.gia_tri, 0)) * 1.1
+							ELSE (ISNULL(mp.don_gia, 0) - (ISNULL(mp.don_gia, 0) * ISNULL(km.gia_tri, 0)) )* 1.1
+							END,
+								
+	p2.trang_thai = CASE WHEN (mp.trang_thai = 'DANG_SU_DUNG' and mp.trang_thai_duyet = 'DA_DUYET' and mp.trang_thai_xuat_ban = 'DA_XUAT_BAN' and mi.trang_thai_xac_thuc = 'DA_XAC_THUC') THEN 'DANG_SU_DUNG'
+						ELSE 'KHONG_SU_DUNG' END,
+	p2.ma_phan_cap_1 = ISNULL(mph.ma_cay_phan_cap_1,''),
+	p2.ma_phan_cap_2 = ISNULL(mph.ma_cay_phan_cap_2,''),
+	p2.ma_phan_cap_3 = ISNULL(mph.ma_cay_phan_cap_3,'')
+	from Merchant_Product mp WITH (NOLOCK) 
+	LEFT JOIN Merchant_Info mi WITH(NOLOCK)
+	on mp.ma_gian_hang=mi.ma_gian_hang
+	LEFT JOIN BrandManagement bm WITH(NOLOCK)
+	ON mp.thuong_hieu = bm.ma_thuong_hieu
+	JOIN OPENQUERY(MYSQL_BIBIAM_DEV, 'select * from merchant_product_masterdata' ) AS p2
+	ON p2.ma_san_pham = mp.ma_san_pham and p2.ma_gian_hang = mp.ma_gian_hang
+	LEFT JOIN Merchant_Product_Hierarchy mph
+	on mp.ma_san_pham = mph.ma_san_pham
+	AND mp.ma_gian_hang = mph.ma_gian_hang
+	LEFT JOIN
+	(
+		select d.ma_san_pham, d.ma_gian_hang, h.gia_tri, h.loai from Merchant_Product_Promotion h
+		JOIN Merchant_Product_Promotion_Detail d
+		on h.ma_chuong_trinh_km = d.ma_chuong_trinh_km
+		AND h.ma_gian_hang = d.ma_gian_hang
+		where DATEDIFF(d,h.ngay_bat_dau,GETDATE())>=0
+		AND DATEDIFF(d,h.ngay_ket_thuc,GETDATE())<=0
+		AND h.trang_thai = 'DANG_SU_DUNG'
+	) as km
+	on mp.ma_san_pham = km.ma_san_pham
+	AND mp.ma_gian_hang = km.ma_gian_hang
+
+	INSERT INTO openquery(MYSQL_BIBIAM_DEV,'select ma_san_pham, mo_ta, ma_gian_hang, ma_loai_san_pham, ten_san_pham, ten_san_pham_khong_dau, 
+							url_san_pham, slug_san_pham, ten_gian_hang, ten_gian_hang_khong_dau, slug_gian_hang, logo_gian_hang, ten_thuong_hieu, ten_thuong_hieu_khong_dau, 
+							slug_thuong_hieu, logo_thuong_hieu, gia, khuyen_mai, ma_phan_cap_1, ma_phan_cap_2, ma_phan_cap_3, loai_khuyen_mai, trang_thai, ngay_tao, gia_sau_khuyen_mai
+							from merchant_product_masterdata')
+	select mp.ma_san_pham, mp.mo_ta, mp.ma_gian_hang, mp.ma_loai_san_pham, mp.ten_san_pham, [dbo].[fuChuyenCoDauThanhKhongDauNosubtract](mp.ten_san_pham) as ten_san_pham_khong_dau,
+	mp.url as url_san_pham, mp.slug + '-' + CAST(mp.id as varchar(10)) as slug_san_pham, ISNULL(mi.ten_gian_hang,'') as ten_gian_hang, 
+	[dbo].[fuChuyenCoDauThanhKhongDauNosubtract](ISNULL(mi.ten_gian_hang,'')) as ten_gian_hang_khong_dau, ISNULL(mi.slug + '-' + CAST(mi.id as varchar(10)),'') as slug_gian_hang,
+	ISNULL(mi.logo_gian_hang,'') as logo_gian_hang, ISNULL(bm.ten_thuong_hieu,'') as ten_thuong_hieu, [dbo].[fuChuyenCoDauThanhKhongDauNosubtract](ISNULL(bm.ten_thuong_hieu,'')) as ten_thuong_hieu_khong_dau,
+	ISNULL(bm.slug + '-' + CAST(bm.id as varchar(10)),'') as slug_thuong_hieu, ISNULL(bm.logo, '') AS logo_thuong_hieu, ISNULL(mp.don_gia, 0) * 1.1, 0 as khuyen_mai, 
+	ISNULL(mph.ma_cay_phan_cap_1,'') AS ma_cay_phan_cap_1, ISNULL(mph.ma_cay_phan_cap_2,'') AS ma_cay_phan_cap_2, ISNULL(mph.ma_cay_phan_cap_3,'') AS ma_cay_phan_cap_3, '' as loai_khuyen_mai,
+	CASE WHEN (mp.trang_thai = 'DANG_SU_DUNG' and mp.trang_thai_duyet = 'DA_DUYET' and mp.trang_thai_xuat_ban = 'DA_XUAT_BAN' and mi.trang_thai_xac_thuc = 'DA_XAC_THUC') THEN 'DANG_SU_DUNG'
+						ELSE 'KHONG_SU_DUNG' END as trang_thai, mp.ngay_tao,
+	CASE WHEN ISNULL(km.loai,'') ='tien' THEN (ISNULL(mp.don_gia, 0) - ISNULL(km.gia_tri, 0)) * 1.1
+								 WHEN ISNULL(km.loai,'') ='phan_tram' THEN (ISNULL(mp.don_gia, 0) - ISNULL(km.gia_tri, 0)) * 1.1
+							ELSE (ISNULL(mp.don_gia, 0) - (ISNULL(mp.don_gia, 0) * ISNULL(km.gia_tri, 0)) )* 1.1
+							END
+	from Merchant_Product mp WITH (NOLOCK) 
+	LEFT JOIN Merchant_Info mi WITH(NOLOCK)
+	on mp.ma_gian_hang=mi.ma_gian_hang
+	LEFT JOIN BrandManagement bm WITH(NOLOCK)
+	ON mp.thuong_hieu = bm.ma_thuong_hieu
+	LEFT JOIN OPENQUERY(MYSQL_BIBIAM_DEV, 'select * from merchant_product_masterdata' ) AS p2
+	ON p2.ma_san_pham = mp.ma_san_pham and p2.ma_gian_hang = mp.ma_gian_hang
+	LEFT JOIN Merchant_Product_Hierarchy mph
+	on mp.ma_san_pham = mph.ma_san_pham
+	AND mp.ma_gian_hang = mph.ma_gian_hang
+	LEFT JOIN
+	(
+		select d.ma_san_pham, d.ma_gian_hang, h.gia_tri, h.loai from Merchant_Product_Promotion h
+		JOIN Merchant_Product_Promotion_Detail d
+		on h.ma_chuong_trinh_km = d.ma_chuong_trinh_km
+		AND h.ma_gian_hang = d.ma_gian_hang
+		where DATEDIFF(d,h.ngay_bat_dau,GETDATE())>=0
+		AND DATEDIFF(d,h.ngay_ket_thuc,GETDATE())<=0
+		AND h.trang_thai = 'DANG_SU_DUNG'
+	) as km
+	on mp.ma_san_pham = km.ma_san_pham
+	AND mp.ma_gian_hang = km.ma_gian_hang
+	where p2.ma_san_pham is null
+END

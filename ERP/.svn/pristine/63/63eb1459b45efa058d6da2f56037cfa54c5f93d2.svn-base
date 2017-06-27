@@ -1,0 +1,18 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_OCM_Territory>
+
+@(Html.Kendo().DropDownListFor(m => m)
+                  .AutoBind(false)
+                  .OptionLabel("Chọn...")
+                      .DataTextField("TerritoryName")
+                      .DataValueField("TerritoryID")
+                           .Events(e =>
+                        {
+                            e.Select("onChangeCity");
+                        })
+                  .DataSource(dataSource =>
+                  {
+                      dataSource.Read(read => read.Action("GetCity", "Territory"))
+                                .ServerFiltering(true);
+                  })
+)
+@Html.ValidationMessageFor(m => m)

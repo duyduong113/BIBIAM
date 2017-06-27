@@ -1,0 +1,50 @@
+﻿<div id="divCustomerHistory">
+    <h4 class="title-group">Thông tin bán hàng</h4>
+    <div class="row-fluid">
+        <div class="tabbable">
+            <ul class="nav nav-tabs tab-color-blue" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="#tabPromotion">
+                        <i class="icon-calendar"></i>
+                       Khuyến mãi
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#tabPrice">
+                        <i class="icon-exchange"></i>
+                        Bảng giá
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#tabScriptCall">
+                        <i class="icon-exchange"></i>
+                        Kịch bản thoại
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#tabViewReport">
+                        <i class="icon-exchange"></i>
+                        Page view report
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content" style="padding:0;">
+                <div id="tabPromotion" class="tab-pane active">
+                    <div style="height:300px;overflow:auto">
+                        @Html.Partial("tab/_tab_promotion")
+                    </div>
+                </div>
+                <div id="tabPrice" class="tab-pane">
+                    #tabPrice
+                </div>
+                <div id="tabScriptCall" class="tab-pane">
+                    #tabScriptCall
+                </div>
+                <div id="tabViewReport" class="tab-pane">
+                    #tabViewReport
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

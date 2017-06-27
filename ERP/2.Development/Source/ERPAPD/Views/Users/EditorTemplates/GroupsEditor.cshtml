@@ -1,0 +1,7 @@
+﻿@model IEnumerable<ERPAPD.Models.GroupViewModel>
+@(
+ Html.Kendo().MultiSelectFor(m => m)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .BindTo((IEnumerable<ERPAPD.Models.GroupViewModel>)ViewData["listGroup"])
+)

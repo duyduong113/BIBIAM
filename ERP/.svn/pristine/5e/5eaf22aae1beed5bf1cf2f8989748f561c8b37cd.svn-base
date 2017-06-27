@@ -1,0 +1,72 @@
+﻿@*Popup add PO detail*@
+<script type="text/x-kendo-template" id="CreatePOTemplate">
+    <form class="form-horizontal" id="createPOForm" method="post">
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>Tên Sản Phẩm<span class="required"> * </span></label>
+                @(Html.Kendo().AutoComplete()
+                .Name("ma_san_pham")
+                .HtmlAttributes(new { style = "width:100%" })
+                //.OptionLabel("Chọn sản phẩm...")
+                .DataTextField("ten_san_pham")
+                
+                // .DataValueField("ma_san_pham")
+                .Filter("contains")
+                .MinLength(2)
+                .Events(e => e.Select("ChangeTenSP"))
+               // .Events(events => { events.DataBound("onDataboundPopup"); })
+                .DataSource(source => 
+                { 
+                    source.Read(read => { read.Action("GetProduct", "Merchant_Product").Data("onDataProduct"); 
+                    }).ServerFiltering(true);
+                }).ToClientTemplate())
+            </div>
+            <div class="col-md-6 top15">
+                <label>Đơn giá<span class="required"> * </span></label>
+                <input type="text" id="don_gia" class="form-control input-sm max100" placeholder="" readonly>
+            </div>
+           
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>Tồn kho<span class="required"> * </span></label>
+                <input type="text" id="ton_kho" class="form-control input-sm max100" placeholder="" readonly>
+            </div>
+            <div class="col-md-6 top15">
+                <label>Số lượng<span class="required"> * </span></label>
+                @(Html.Kendo().NumericTextBox<int>()
+            .Name("so_luong")
+            .Format("n0")
+            .Step(1)
+            .Min(1)
+            .Max(10000)
+            .Placeholder("--Nhập số lượng--")
+            .HtmlAttributes(new { style = "width: 100%" })
+            .ToClientTemplate()
+                )
+            </div>
+            
+            
+        </div> 
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>Số lượng khuyến mãi<span class="required"> * </span></label>
+                @(Html.Kendo().NumericTextBox<int>()
+            .Name("so_luong_khuyen_mai")
+            .Format("n0")
+            .Step(1)
+            .Min(0)
+            .Max(10000)
+            .Placeholder("--Nhập số lượng--")
+            .HtmlAttributes(new { style = "width: 100%" })
+            .ToClientTemplate()
+                )
+            </div>
+            <div class="col-md-6 top15">
+                <label>Khuyến mãi<span class="required"> * </span></label>
+                <input type="text" id="phan_tram_khuyen_mai"  class="form-control input-sm max100" placeholder="%">
+            </div>
+        </div>
+    </form>
+    
+</script>

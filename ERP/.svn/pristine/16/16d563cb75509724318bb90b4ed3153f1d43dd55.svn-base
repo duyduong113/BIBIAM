@@ -1,0 +1,540 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_Contract>
+@{
+    ViewBag.Title = "Danh sách hợp đồng";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+    var listCustomerType = ViewBag.listCustomerType;
+    var listWeek = new List<int>();
+    for (int i = 1; i <= 53; i++)
+    {
+        listWeek.Add(i);
+    }
+
+}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<style>
+    input {
+        width: 100%;
+    }
+
+    .margin-bottom-10 {
+        margin-bottom: 10px;
+    }
+
+    .row-fluid input-prepend .remove-date {
+        left: 205px;
+    }
+
+    .k-grid-header th.k-header {
+        vertical-align: middle !important;
+        padding: 0;
+        padding-top: 4px;
+    }
+
+    .screen-body {
+        margin: 20px 0;
+        padding: 10px 3px;
+        border: solid 1px #d2d7da;
+    }
+
+    .btn-grid {
+        text-align: center;
+        width: 15px;
+        margin-top: 5px;
+        margin-left: 2px;
+    }
+
+    .hr-number {
+        border-top: solid 1px #000;
+        height: 20px;
+        background-color: #56bd6c;
+        line-height: 20px;
+    }
+</style>
+
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid(Model)
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.pk_contract)
+                .Title("Id")
+                .Width(30).Filterable(false).Sortable(false).Groupable(false)
+                .HeaderTemplate("<input type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+                .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=pk_contract#' id='#=pk_contract#' />")
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold; height: 51px" })
+                .HtmlAttributes(new { style = "text-align:center; background-color: \\#F7ADAD;" }).Locked(true).Lockable(false);
+        columns.Bound(p => p.c_week)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold; height: 51px" })
+                .HtmlAttributes(new { style = "text-align: center;" })
+                .ClientTemplate(
+                "<span class='tooltip-info' data-rel='tooltip' data-placement='left' title='' data-original-title='Chi tiết'> "
+                + "<a class='btn btn-minier btn-default btn-grid' href=" + Url.Action("Detail", "CRMMnDept", new { @Id = "1" }) + "><i class='icon-info bigger-125'></i></a>"
+                + "</span>"
+               + "<span class='tooltip-success' data-rel='tooltip' data-placement='bottom' title='' data-original-title='Điều chỉnh'>"
+               + "<a class='btn btn-minier btn-success btn-grid' href=''><i class='icon-pencil bigger-125'></i></a> "
+                + "</span>"
+               + "<span class='tooltip-error' data-rel='tooltip' data-placement='right' title='' data-original-title='Lịch sử'> "
+                + "<a class='btn btn-minier btn-danger btn-grid' href=''><i class='icon-book bigger-125'></i></a>"
+                + "</span>"
+                    ).Locked(true).Width(100);
+
+        columns.Bound(p => p.c_customer_name)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold; height: 51px" })
+                .Title("Mã HĐ").Locked(true)
+                .Width(200);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: left;font-weight: bold;" })
+                .Title("Loại HĐ")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("trạng thái nợ")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: left;font-weight: bold;" })
+                .Title("Lịch thanh toán theo HĐ")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("Ngày phải thanh toán")
+                .HeaderTemplate("<div><span>Tổng số <br/>hợp đồng <br/>còn nợ</span></div>")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                    .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                    .Title("Quá hạn")
+                    .HeaderTemplate("<div><span>Tổng số <br/>hợp đồng <br/>còn nợ</span></div>")
+                    .Width(100);
+        columns.Bound(p => p.c_dt_da_qc_den_hom_nay)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(120)
+                .Title("Tổng nợ theo hợp đồng")
+                .HeaderTemplate("<div style = 'height: 40px'><span >Tổng nợ theo<br/>hợp đồng</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .ClientTemplate("#=kendo.toString(c_dt_da_qc_den_hom_nay, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+
+        columns.Bound(p => p.c_dt_da_xuat_ban)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("DS đã XB quảng cáo")
+                .HeaderTemplate("<div style = 'height: 40px'><span>Đã XBQC</span></div><div class='hr-number'><span id=''>0</span></div>")
+                 .ClientTemplate("#=kendo.toString(c_dt_da_xuat_ban, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_dt_da_xuat_ban)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("DS đã XB quảng cáo")
+                .HeaderTemplate("<div style='height: 40px'><span>Đã XBQC<br/>đến hôm nay</span></div><div class='hr-number'><span id=''>0</span></div>")
+                 .ClientTemplate("#=kendo.toString(c_dt_da_xuat_ban, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_payment_money)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("Đã thu")
+                .ClientTemplate("#=kendo.toString(c_payment_money, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .HeaderTemplate("<div style='height: 40px'><span >Đã thu</span></div><div class='hr-number'><span id=''>0</span></div>");
+
+        columns.Bound(p => p.c_balance)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold" })
+                .Width(100)
+                .Title("Nợ còn lại")
+                .Format("#=kendo.toString(c_balance, 'n0')#")
+                .ClientTemplate("#=kendo.toString(c_balance, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .HeaderTemplate("<div style='height: 40px'><span>Còn nợ </span></div><div class='hr-number'><span id=''>0</span></div>");
+
+        columns.Bound(p => p.dang_quang_cao)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("Nợ còn lại theo hợp đồng")
+                 .HtmlAttributes(new { style = "text-align: center;" })
+                .HeaderTemplate("<div style='height: 40px'><span>Nợ còn lại<br/>theo<br/>hợp đồng</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .Width(150);
+        columns.Bound(p => p.c_payment_date)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .HtmlAttributes(new { style = "text-align: center;" })
+                .Title("Đã xuất hóa đơn")
+                .HeaderTemplate("<div style='height: 40px'><span>Đã xuất<br/>theo<br/>hóa đơn</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .Width(100).Format("{0:dd/MM/yyyy}");
+        columns.Bound(p => p.c_total_value)
+               .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+               .HeaderTemplate("<div style='height: 40px'><span>Chưa xuất hóa đơn</span></div><div class='hr-number'><span id=''>0</span></div>")
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .Title("Chưa xuất hóa đơn")
+               .ClientTemplate("#=kendo.toString(c_total_value, 'n0')#")
+               .Width(100);
+
+        columns.Bound(p => p.c_total_vat)
+               .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+               .HeaderTemplate("<div style='height: 40px'><span >Đièu chỉnh</span></div><div class='hr-number'><span id=''>0</span></div>")
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .ClientTemplate("#=kendo.toString(c_total_vat, 'n0')#")
+               .Title("Hoàn tất")
+               .Width(100);
+    })
+    .Excel(excel => excel
+        .FileName("Hợp đồng.xlsx")
+        .Filterable(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+    )
+    .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100, 200, 300, 500 }))
+    .Scrollable(scrollable => scrollable.Height(320))
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .Events(events => { events.DataBound("dataBound"); })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(10)
+
+    .Model(model =>
+    {
+        model.Id(p => p.pk_contract);
+    })
+    .Sort(a => a.Add(m => m.pk_contract).Descending()
+    )
+    .Read(read => read.Action("Read", "CRMMnContract"))
+                 )
+    )
+</div>
+
+<script>
+    //chuyen doi so --> chuoi dinh danh tien $1,000
+    function currency2String(value) {
+        return value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
+    }
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+        var total_da_qc = 0;
+        var total_da_xuat_ban = 0;
+        var total_da_thu = 0;
+        var total_con_no = 0;
+        var phai_thu = 0;
+        var vat = 0;
+        var ds_ky = 0;
+        var ds_khong_tinh = 0;
+        var da_xuat_hd = 0
+        var chua_xuat_hd = 0
+        var data = e.sender.dataSource._data;
+        for (var i = 0; i < data.length; i++) {
+            total_da_qc = total_da_qc + data[i].c_dt_da_qc_den_hom_nay;
+            total_da_xuat_ban = total_da_xuat_ban + data[i].c_dt_da_xuat_ban;
+            total_da_thu = total_da_thu + data[i].c_payment_money;
+            total_con_no = total_con_no + data[i].c_balance;
+            phai_thu = phai_thu + data[i].c_total_value;
+            vat = vat + data[i].c_total_vat;
+            ds_ky = ds_ky + data[i].c_total_money;
+            ds_khong_tinh = ds_khong_tinh + data[i].c_tien_khong_tinh;
+            da_xuat_hd = da_xuat_hd + data[i].tien_xuat_hoa_don;
+            chua_xuat_hd = chua_xuat_hd + data[i].tien_chua_xuat_hoa_don;
+        }
+        $('#CON_NO').text(currency2String(total_con_no));
+        $('#DA_THU').text(currency2String(total_da_thu));
+        $('#DA_XUAT_BAN').text(currency2String(total_da_xuat_ban));
+        $('#DA_QC').text(currency2String(total_da_qc));
+        $('#PHAI_THU').text(currency2String(phai_thu));
+        $('#VAT').text(currency2String(vat));
+        $('#DS_KY').text(currency2String(ds_ky));
+        $('#DS_KHONG_TINH').text(currency2String(ds_khong_tinh));
+        $('#DA_XUAT_HD').text(currency2String(da_xuat_hd));
+        $('#CHUA_XUAT_HD').text(currency2String(chua_xuat_hd));
+
+        var grid = $("#Grid").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter(),
+            group: grid.dataSource.group()
+        });
+        //var $exportLink = grid.element.find('.export');
+        //var href = $exportLink.attr('href');
+        //if (href) {
+        //    href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //    href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //    href = href.replace(/group=([^&]*)/, 'group=' + (requestObject.group || '~'));
+        //    $exportLink.attr('href', href);
+        //}
+    }
+    var keyfilter = "";
+    function setfilter(keyfilter) {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        $('#listfilter').val('');
+        if (keyfilter != "") {
+            if (keyfilter == "SAP_HET_HAN") {
+                $('#listfilter').val(1);
+            }
+            if (keyfilter == "SAP_HET_TIEN") {
+                $('#listfilter').val(0);
+            }
+        }
+        else {
+        }
+        var text = $('#listfilter').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            if (text == 1) {
+                filtertext.filters.push({ field: "c_het_han", operator: "eq", value: 1 });
+            }
+            else {
+                filtertext.filters.push({ field: "c_het_gia_tri", operator: "eq", value: 1 });
+            }
+            filter.filters.push(filtertext);
+        }
+
+        var listStatus = $('#listStatus option:selected');
+        if (listStatus.length > 0) {
+            var fillterStatus = { logic: "or", filters: [] }
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "c_status", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "c_status", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        var listStatusBill = $('#listStatusBill option:selected');
+        debugger;
+        if (listStatusBill.length > 0) {
+            var fillterStatusBill = { logic: "or", filters: [] }
+            for (var i = 0; i < listStatusBill.length; i++) {
+                var option = listStatusBill[i].value;
+                if (option == '') {
+                    fillterStatusBill.filters.push({ field: "tien_chua_xuat_hoa_don", operator: "gteq", value: -1 });
+                }
+                else {
+                    fillterStatusBill.filters.push({ field: "tien_chua_xuat_hoa_don", operator: "gt", value: option });
+                }
+            }
+            filter.filters.push(fillterStatusBill);
+        }
+        var text = $('#txtsearch').val();
+        var filtertext = { logic: "or", filters: [] };
+        if (text) {
+            filtertext.filters.push({ field: "c_customer_code", operator: "eq", value: text });
+            filtertext.filters.push({ field: "c_customer_name", operator: "contains", value: text });
+            //filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtLables').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_labels", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtCode').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_contract_code", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtBookCode').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_book_code", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var listYear = $('#listYearGetContract option:selected');
+        if (listYear.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listYear.length; i++) {
+                var option = listYear[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_year", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_year", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        var listWeek = $('#Week option:selected');
+        if (listWeek.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listWeek.length; i++) {
+                var option = listWeek[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_week", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_week", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        //Not yet
+        var listCongNo = $('#listCongNo option:selected');
+        if (listCongNo.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listCongNo.length; i++) {
+                var option = listCongNo[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_week", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_week", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+
+        var listRegion = $('#listRegion option:selected');
+        if (listRegion.length > 0) {
+
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_regionid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_regionid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        var listGroup = $('#listGroup option:selected');
+        if (listGroup.length > 0) {
+            var fillterlistGroup = { logic: "or", filters: [] }
+            for (var i = 0; i < listGroup.length; i++) {
+                var option = listGroup[i].value;
+                if (option == '') {
+                    fillterlistGroup.filters.push({ field: "c_teamid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistGroup.filters.push({ field: "c_teamid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistGroup);
+        }
+        var listStaff = $('#listStaff option:selected');
+        var fillterlistStaff = { logic: "or", filters: [] }
+        if (listStaff.length > 0) {
+            for (var i = 0; i < listStaff.length; i++) {
+                var option = listStaff[i].value;
+                if (option == '') {
+                    fillterlistStaff.filters.push({ field: "c_staffid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistStaff.filters.push({ field: "c_staffid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistStaff);
+        }
+
+        var orderDate = $('#NgayVeHD2Chieu').val();
+        if (orderDate) {
+            var startdate = orderDate.split('-')[0].trim();
+            var enddate = orderDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "c_ngay_ve_hai_chieu", operator: "gte", value: startdate });
+            filter.filters.push({ field: "c_ngay_ve_hai_chieu", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        var approveDate = $('#NgayLenXuongThucTe').val();
+        if (approveDate) {
+            var startdate = approveDate.split('-')[0].trim();
+            var enddate = approveDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "c_min_ngay_len_thuc_te", operator: "gte", value: startdate });
+            filter.filters.push({ field: "c_max_ngay_len_xuong_thuc_te", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        grid.dataSource.filter(filter);
+    }
+    //BaoHV
+    $("#btnAll").addClass("btn-grey").removeClass("btn-info");
+    $("#btn-count-contract button").click(function () {
+        $("#btn-count-contract button").addClass("btn-info").removeClass("btn-grey");
+        $(this).addClass("btn-grey").removeClass("btn-info");
+    });
+    $('.btn-info').bind('click', function () {
+        callFilter($(this).val(), false);
+    });
+    $('#btnAll').bind('click', function () {
+
+        callFilter($(this).val(), false);
+    });
+    function callFilter(statusFilter, stActive) {
+        $('#listStatus option:selected').removeAttr('selected');
+        //$('#listStatus').prop('disabled', stActive);
+        keyfilter = statusFilter;
+        setfilter(keyfilter);
+    }
+    function CountStatus() {
+        $.post(r + "/Ajax/CountStatus", { view: 'Contract' }, function (data) {
+            $('#txtAll').text(data.TAT_CA);
+            $('#txtSAP_HET_HAN').text(data.SAP_HET_HAN);
+            $('#txtSAP_HET_TIEN').text(data.SAP_HET_TIEN);
+        });
+    }
+    $(document).ready(function () {
+        $('#NgayVeHD2Chieu,#NgayLenXuongThucTe').daterangepicker({
+            ranges: {
+                'Hôm nay': [moment(), moment()],
+                'Hôm qua': [moment().subtract('days', 1), moment().subtract('days', 1)],
+                '7 ngày trước': [moment().subtract('days', 6), moment()],
+                '30 ngày trước': [moment().subtract('days', 29), moment()],
+                'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+                'Tháng trươc': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+            }, format: 'DD/MM/YYYY',
+            locale: {
+                applyLabel: 'Xác nhận',
+                cancelLabel: 'Đóng lại',
+                fromLabel: 'Từ',
+                toLabel: 'Đến',
+                customRangeLabel: 'Tuỳ chọn',
+                daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                firstDay: 1,
+            }
+        });
+        CountStatus();
+        // setfilter(keyfilter);
+    })
+    function delExitsDate(e) {
+        $(e).parents(".btncleardatetimepicker").find("input").val('');
+    }
+
+    $("#txtsearch,#txtLables,#txtCode,#txtBookCode").keypress(function (e) {
+        if (e.keyCode == 13) {
+            setfilter(keyfilter);
+        }
+    });
+    $('#listRegion').on('change', function () {
+        LoadGroupByRegion($('#listRegion').val());
+        setfilter(keyfilter);
+    });
+    function LoadGroupByRegion(Regionid) {
+        $.post(r + "/Ajax/GetlistGroupByRegion", { RegionID: Regionid, type: 'ALL' }, function (data) {
+            $("#divGroupByRegion").html(data);
+        });
+    }
+    function LoadUserByGroup(groupid) {
+        $.post(r + "/Ajax/GetlistEmployeeByGroup", { GroupID: groupid }, function (data) {
+            $("#emloyeebygroup").html(data);
+        });
+    }
+    $('#listStaff').on('change', function () {
+        LoadUserByGroup($('#listGroup').val());
+        setfilter(keyfilter);
+    });
+    $(".select-chosen").chosen();
+
+    $('#btnExport').click(function () {
+        debugger
+        var grid = $("#Grid").data("kendoGrid");
+        grid.saveAsExcel();
+    })
+
+</script>

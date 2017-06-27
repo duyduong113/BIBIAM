@@ -1,0 +1,82 @@
+﻿
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<style>
+    input {
+        width: 100%;
+    }
+
+    .margin-bottom-10 {
+        margin-bottom: 10px;
+    }
+
+    .row-fluid input-prepend .remove-date {
+        left: 205px;
+    }
+
+    .k-grid-header th.k-header {
+        vertical-align: middle !important;
+        padding:0;
+        padding-top: 4px;
+    }
+    .screen-body{
+        margin: 20px 0;
+        padding: 20px 10px;
+        border: solid 1px #a6b1b7;
+    }
+    .btn-grid{
+         text-align:center;  
+         width: 15px;
+         margin-top: 5px;
+         margin-left: 2px;
+    }
+    .hr-number{
+        border-top:solid 1px #000;
+        height: 20px;
+        background-color: #56bd6c;
+        line-height: 20px;
+    }
+</style>
+
+<div class="tabbable">
+    <ul class="nav nav-tabs tab-color-blue" id="myTabToDoList">
+        <li id="tabCustomer" class="active">
+            <a data-notif="" data-toggle="tab" href="#byCustomer">
+                <i class="icon-calendar"></i>
+                Khách hàng
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+        <li id="tabContract" class="">
+            <a data-notif="" data-toggle="tab" href="#byContract">
+                <i class="icon-legal"></i>
+                Hợp đồng
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content" style="padding: 0px">
+        <div id="byCustomer" class="tab-pane active">
+            <div class="row-fluid">
+                @Html.Partial("partial/_debt_grid_customer")
+            </div>
+        </div>
+        <div id="byContract" class="tab-pane">
+            <div class="row-fluid">
+                @Html.Partial("partial/_debt_grid_contract")
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#myTabToDoList li").click(function () {
+        var id = $(this).attr("id");
+        if (id == "tabCustomer") {
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (id == "tabContract") {
+            $("#GridContract").data("kendoGrid").dataSource.read();
+        }
+    })
+</script>
+

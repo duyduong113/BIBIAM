@@ -1,0 +1,404 @@
+﻿@model MCC.Models.LoginViewModel
+@using CaptchaMvc.HtmlHelpers;
+@{
+    Layout = null;
+    ViewBag.Title = Resources.Global._login;
+}
+
+<html lang="en">
+<!--<![endif]-->
+<!-- BEGIN HEAD -->
+<head>
+    <meta charset="utf-8" />
+    <title>@Html.Raw(Resources.Global._brandName) | @ViewBag.Title</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="" name="description" />
+    <meta content="" name="author" />
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&amp;subset=all" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/font-awesome/css/font-awesome.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/simple-line-icons/simple-line-icons.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/bootstrap/css/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/uniform/css/uniform.default.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <link href="@Url.Content("~/Content/assets/global/plugins/select2/css/select2.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/select2/css/select2-bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/bootstrap-toastr/toastr.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL PLUGINS -->
+    <!-- BEGIN THEME GLOBAL STYLES -->
+    <link href="@Url.Content("~/Content/assets/global/css/components.min.css")" rel="stylesheet" id="style_components" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/css/plugins.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END THEME GLOBAL STYLES -->
+    <!-- BEGIN PAGE LEVEL STYLES -->
+    <link href="~/Content/assets/pages/css/login-5.min.css" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL STYLES -->
+    <!-- BEGIN THEME LAYOUT STYLES -->
+    <!-- END THEME LAYOUT STYLES -->
+    <link rel="shortcut icon" href="~/Content/images/favicon.png" />
+
+    <!-- END LOGIN -->
+    <!--[if lt IE 9]>
+    <script src="@Url.Content("~/Content/assets/global/plugins/respond.min.js")"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/excanvas.min.js")"></script>
+    <![endif]-->
+    <!-- BEGIN CORE PLUGINS -->
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap/js/bootstrap.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/js.cookie.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery.blockui.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/uniform/jquery.uniform.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js")" type="text/javascript"></script>
+    <!-- END CORE PLUGINS -->
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/additional-methods.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/select2/js/select2.full.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootbox/bootbox.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.form.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/additional-methods.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap-toastr/toastr.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery.blockui.min.js")" type="text/javascript"></script>
+    <!-- END PAGE LEVEL PLUGINS -->
+    <!-- BEGIN THEME GLOBAL SCRIPTS -->
+    <script src="@Url.Content("~/Content/assets/global/scripts/app.min.js")" type="text/javascript"></script>
+    <!-- END THEME GLOBAL SCRIPTS -->
+    <!-- BEGIN PAGE LEVEL SCRIPTS -->
+    <script src="~/Content/assets/global/plugins/backstretch/jquery.backstretch.min.js" type="text/javascript"></script>
+    <link href="~/Content/assets/pages/css/login-5.min.css" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL SCRIPTS -->
+    <!-- BEGIN THEME LAYOUT SCRIPTS -->
+    <!-- END THEME LAYOUT SCRIPTS -->
+    <!-- BEGIN RECAPTCHAR VERSION 2 -->
+    <!-- END RECAPTCHAR VERSION 2 -->
+</head>
+<!-- END HEAD -->
+<body class=" login">
+    <!-- BEGIN : LOGIN PAGE 5-1 -->
+    <div class="user-login-5">
+        <div class="row bs-reset">
+            <div class="col-md-6 bs-reset mt-login-5-bsfix">
+                <div class="login-bg" style="background-image: url(../Content/assets/pages/img/login/bg1.jpg); ">
+
+                </div>
+            </div>
+            <div class="col-md-6 login-container bs-reset mt-login-5-bsfix">
+                <div style="text-align:center">
+                    <img src="@Url.Content("~/Content/images/logo.png")" style="width:200px; height:100px; margin-top:20px" alt="" />
+                </div>
+                <div class="login-content">
+                    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "login-form", role = "form", @id="myform" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-xs-12" style="text-align: center; padding-bottom:10px;">
+                                <span style="font-size: 30px; color: #1e1a4d; font-weight: 700; text-align: center;">ĐĂNG NHẬP HỆ THỐNG</span>
+                            </div>
+                        </div>
+                        <div class="row" style="padding-left: 90px">
+                            @Html.ValidationSummary(true, "", new { @class = "help-block" })
+                        </div>
+                        <div class="row" style="padding-left: 98px">
+                            <div class="col-xs-9">
+                                <div class="alert alert-danger display-hide">
+                                    <button class="close" data-close="alert"></button>
+                                    @*<span>Enter any username and password.</span>*@
+                                    <span>Vui lòng nhập tài khoản và mật khẩu.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-left: 98px">
+                            <div class="col-xs-5">
+                                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control placeholder-no-fix", @required = "required", placeholder = Resources.Global._username })
+                            </div>
+                            <div class="col-xs-4">
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control placeholder-no-fix", @required = "required", placeholder = Resources.Global._password })
+                            </div>
+                        </div>
+                        @*<div class="row" style="padding-left: 165px!important;padding-top:-10px!important">
+                            @Html.MathCaptcha("Làm mới", "Nhập kết quả bên trên:", "", true, new CaptchaMvc.Models.ParameterModel("max",1))
+                            <label class="text-danger">  @ViewBag.ErrMessage </label>
+                        </div>*@
+                        <div class="row" style="padding-left: 111px!important;padding-top:-10px!important;padding-bottom:20px;padding-right:20px">
+                            <div class="col-xs-9" style="border:1px solid #d3d3d3;">
+                    
+                                 <a onclick="random(0,9)" ><i class="fa fa-refresh" aria-hidden="true"></i> @Html.Raw(Resources.Global._refresh)</a>
+                           
+                                <div style="height:50px;">
+                                    <canvas id="myCanvas" style="text-align:center;display: block; width: 100%;height:100%;"></canvas>
+                                </div>
+                                <div class="col-xs-12" style="padding-bottom:10px!important">
+                                    <div class="col-xs-6 form-group">
+                                        <input id="captchaInput" name="captchaInput" class="form-control" type="text" />
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <label class="lblError"><span class="text-danger">Vui lòng nhập kết quả bạn thấy ở trên!</span></label>
+                                    </div>
+                                </div>
+                                
+                                
+                             </div>
+                        </div>
+          
+                        <div class="row" style="padding-left: 98px">
+                            <div class="col-sm-4">
+                                <div class="forgot-password">
+                                    <a onclick="showPopupForgot()" class="forget-password">@Resources.Global._forgot_your_password</a>
+                                </div>
+                            </div>
+                            <div class="col-sm-8" style="padding-right:0px;">
+                                <button class="btn blue" type="submit" onclick="return validateForm();">@Resources.Global._login</button>
+                            </div>
+                        </div>
+                     }
+                <!-- BEGIN FORGOT PASSWORD FORM -->
+                <!-- END FORGOT PASSWORD FORM -->
+                </div>
+                <div class="login-footer">
+                    <div class="row bs-reset">
+                        <div class="col-xs-5">
+                            <ul class="login-social">
+                                <li>
+                                    <a href="https://web.facebook.com/thietbinhanh/?fref=ts">
+                                        <i class="fa fa-facebook"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://plus.google.com/u/0/115600582385535835164">
+                                        <i class="fa fa-google-plus"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.youtube.com/watch?v=wl8uDgJvMcw">
+                                        <i class="fa fa-youtube"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-xs-7">
+                            @{
+                                var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant();
+                            }
+
+                            @using (Html.BeginForm("SetCulture", "Home", FormMethod.Post, new { id = "cultureForm", @style = "display:none;" }))
+                            {
+                                if (culture == "vi")
+                                {
+                                    <input name="culture" value="en-us" type="text" />
+                                }
+                                else
+                                {
+                                    <input name="culture" value="vi" type="text" />
+                                }
+                            }
+                            @if (culture == "vi")
+                            {
+                                <div class="text-left" style="font-size: 11px; text-align: center;">
+                                    <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 700; color: #ed2227">
+                                        <i class="fa fa-flag"></i> English
+                                    </a> | @Html.Raw(Resources.Global._copyright)
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-left" style="font-size: 11px; text-align: center;">
+                                    <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 700;color:#ed2227">
+                                        <i class="fa fa-flag"></i> Tiếng Việt
+                                    </a> | @Html.Raw(Resources.Global._copyright)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/Content/assets/pages/scripts/login-5.min.js" type="text/javascript"></script>
+    @*<script>
+            $(document).ready(function () {
+                $('#clickmewow').click(function () {
+                    $('#radio1003').attr('checked', 'checked');
+                });
+            })
+        </script>*@
+    @*<noscript>
+            <iframe src="//www.googletagmanager.com/ns.html?id=GTM-W276BJ"
+                    height="0" width="0" style="display:none;visibility:hidden"></iframe>
+        </noscript>*@
+    <script>
+        $(document).ready(function () {
+            random(0, 9);
+            $('#clickmewow').click(function () {
+                $('#radio1003').attr('checked', 'checked');
+            });
+        })
+    </script>
+    <!-- End -->
+</body>
+</html>
+<script>
+    var result = 0;
+    function validateForm() {
+        if ($('input[name=captchaInput]').val() == result)
+            myform.submit();
+        else
+        {
+            if ($('input[name=captchaInput]').val() == "")
+                $('.lblError span').text('Captcha không được để trống!');
+            else
+                $('.lblError span').text('Kết quả không hợp lệ!');
+
+            random(0, 9);
+            $('input[name=captchaInput]').val('');
+            return false;
+        }
+    }
+
+    function random(min, max) {
+        var num1 = 0, num2 = 0,operator= " + ", strcaptcha= "";
+        while (num1 <= num2)
+        {
+            num1 = Math.floor(Math.random() * (max - min + 1) + min);
+            num2 = Math.floor(Math.random() * (max - min + 1) + min);
+        }
+        value = Math.floor(Math.random() * (max - min + 1) + min);
+        if (value % 2 == 0)
+        {
+            operator = " + ";
+            result = num1 + num2;
+        }
+        else
+        {
+            operator = " - ";
+            result = num1 - num2;
+        }
+
+        // Create Image
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.font = "50pt sans-serif";
+        ctx.textBaseline = "alphabetic";
+        ctx.lineWidth = 2;
+        // Create gradient
+        var gradient = ctx.createLinearGradient(0, 0, c.width, 0);
+        gradient.addColorStop("0", "magenta");
+        gradient.addColorStop("0.5", "blue");
+        gradient.addColorStop("1.0", "red");
+        // Fill with gradient
+        ctx.fillStyle = gradient;
+        //ctx.fillStyle = "rgba(93,179,199,0.20)";
+
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        ctx.strokeStyle = gradient;
+        //ctx.strokeStyle = "rgba(35, 70, 237, .8)";
+
+        ctx.strokeText(num1 + operator + num2 + " = ?", 20, 100);
+
+        ctx.fillText(num1 + operator + num2 + " = ?", 20, 100);
+       
+
+    }
+
+    function showPopupForgot() {
+        bootbox.dialog({
+            closeButton: false,
+            message: '<form action="@Url.Content("~/Account/ForgotPass")" method="post" id="ForgotPassForm" novalidate="novalidate">' +
+        '<div class="row">' +
+            '<div class="col-md-12" style="text-align: center;" > ' +
+                '<h4>@Resources.Global._confirm_your_info_to_reset_password</h4>' +
+            '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+            '<label>@Resources.Global._username<span class="required"> * </span></label>' +
+            '<div class="input-icon left">' +
+                '<i class="icon-user"></i>' +
+                '<input type="text" id="username" name="username" class="form-control input-sm" placeholder="john.nguyen" />' +
+            '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+            '<label>@Resources.Global._email<span class="required"> * </span></label>' +
+            '<div class="input-icon left">' +
+                '<i class="fa fa-envelope-o" aria-hidden="true"></i>' +
+                '<input type="text" id="email" name="email" class="form-control input-sm" placeholder="john.nguyen@company.com" />' +
+            '</div>' +
+        '</div>' +
+    '</form>',
+            title: "@Resources.Global._forgot_your_password",
+            buttons:
+                {
+                    danger: {
+                        label: "@Resources.Global._close", className: "btn default btn-circle btn-sm",
+                        callback: function () {
+                        }
+                    },
+                    savenew: { label: "@Resources.Global._reset_my_password", className: "btn blue btn-circle btn-sm", callback: function () { $("#ForgotPassForm").submit(); return false; } }
+                }
+        });
+        loadValidateResetPass();
+    }
+
+    function loadValidateResetPass() {
+        var e = $("#ForgotPassForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        username: { required: !0 },
+                        email: { required: !0, email: !0 }
+                    },
+
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', 'Your password have been reset and send to your email. Thanks');
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            bootbox.hideAll();
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+</script>

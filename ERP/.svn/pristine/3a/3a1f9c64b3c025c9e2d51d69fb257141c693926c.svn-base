@@ -1,0 +1,54 @@
+﻿
+@{
+    ViewBag.Title = "Chi tiết khách hàng";
+}
+<style>
+    /*.fist-group{
+        height:310px;
+    }*/
+    .group-call {
+    border: solid 1px #CCC;
+    padding: 5px;
+    min-height: 330px !important;
+    position: relative;
+    background-color: #F8FAFB;
+}
+    .title-group,.font-primary{
+        color:#2283C5;
+    }
+    .info-cus li{
+        line-height:27px;
+        list-style-type:none;
+    }
+    .profile-user-info.profile-user-info-striped{
+        background-color:#fff;
+        margin:0;
+    }
+</style>
+@Html.Partial("_modal_popup")
+@Html.Partial("_SurveyForm")
+@Html.Partial("_FAQForm")
+<div class="row-fluid">
+    <div style="background-color:#F8FAFB;padding:5px;border: 1px solid #ccc;" class="span6">
+        <div class="span12">
+            @Html.Partial("_InfoCustomer")
+        </div>
+        <div style="margin:0" class="span12">
+            @Html.Partial("_History")
+        </div>
+
+
+    </div>
+    <div class="span6">
+        <div class="span12 group-call">
+            @Html.Partial("_RecordCall")
+        </div>
+        <div style="margin:0" class="span12">
+            @Html.Partial("_InfoSell")
+        </div>
+    </div>
+
+</div>
+<script>
+    $('[data-rel=tooltip]').tooltip();
+</script>

@@ -1,0 +1,128 @@
+﻿@if (ViewBag.currentWork != null)
+{
+    <div style="margin-left:0;background-color: #D6EBF5;padding:5px;" class="span12">
+        <h5 class="red">Thông tin công việc</h5>
+        <div class="profile-user-info profile-user-info-striped">
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Tiêu đề </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="username">@ViewBag.currentWork.Title</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Loại công việc </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="country">@ViewBag.currentWork.TypeName</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Nội dung </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="age">@ViewBag.currentWork.Description</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Người thực hiện </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="signup">'@ViewBag.currentWork.Person_contact</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Độ ưu tiên </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="login">
+                        @if (ViewBag.currentWork.Priority == 2)
+                        {
+                            @Html.Raw("Low")
+                        }
+                        else if (ViewBag.currentWork.Priority == 1)
+                        {
+                            @Html.Raw("Medium")
+                        }
+                        else
+                        {
+                            @Html.Raw("High")
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Hạn chót </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="about">@ViewBag.currentWork.Deadline</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@if (ViewBag.currentAppointment != null)
+{
+    <div style="margin-left:0;background-color: #D6EBF5;padding:5px;" class="span12">
+        <h5>Thông tin lịch hẹn</h5>
+        <div class="profile-user-info profile-user-info-striped">
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Tiêu để </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="username"> @ViewBag.currentAppointment.Title</span>
+                </div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Loại lịch hẹn </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="signup"> @ViewBag.currentAppointment.TypeName</span>
+                </div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Ngày giờ </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="country">@ViewBag.currentAppointment.Date</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Số tiếng </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="age"> @ViewBag.currentAppointment.Hours</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Địa điểm </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="signup"> @ViewBag.currentAppointment.Address</span>
+                </div>
+            </div>
+
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Mô tả </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="about"> @ViewBag.currentAppointment.Description</span>
+                </div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-name"> Bcc </div>
+
+                <div class="profile-info-value">
+                    <span class="editable editable-click" id="about"> @ViewBag.currentAppointment.Bcc</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}

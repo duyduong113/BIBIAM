@@ -1,0 +1,124 @@
+﻿@{
+    ViewBag.Title = Resources.Global._change_password;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <!-- BEGIN SAMPLE FORM PORTLET-->
+        <div class="portlet light">
+            <div class="portlet-title">
+                <div class="caption font-red-sunglo">
+                    <i class="fa fa-key font-dark"></i>
+                    <span class="caption-subject font-dark sbold uppercase">@Html.Raw(Resources.Global._change_password)</span>
+                </div>
+            </div>
+            <div class="portlet-body form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form role="form" method="post" id="ChangePasswordForm" action="@Url.Content("~/ChangePassword/Confirm")">
+                            <div class="form-body">
+                                @if (ViewBag.HasLocalPassword)
+                                {
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">@Html.Raw(Resources.Global._old_password)</label>
+                                        <div class="input-group">
+                                            <input type="password" name="oldPassword" class="form-control" placeholder="@Html.Raw(Resources.Global._old_password)">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-key"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">@Html.Raw(Resources.Global._password)</label>
+                                    <div class="input-group">
+                                        <input type="password" name="newPassword" class="form-control" placeholder="@Html.Raw(Resources.Global._password)">
+                                        <span class="input-group-addon">
+                                            <i class="fa fa-key"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">@Html.Raw(Resources.Global._confirm_new_password)</label>
+                                    <div class="input-group">
+                                        <input type="password" name="confirmNewPassword" class="form-control" placeholder="@Html.Raw(Resources.Global._confirm_new_password)">
+                                        <span class="input-group-addon">
+                                            <i class="fa fa-key"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn blue">Submit</button>
+                                <a onclick="window.history.back()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    loadValidate();
+    function loadValidate() {
+        var e = $("#ChangePasswordForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        oldPassword: { required: !0 },
+                        newPassword: { required: !0 },
+                        confirmNewPassword: { required: !0 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+
+    }
+</script>
+

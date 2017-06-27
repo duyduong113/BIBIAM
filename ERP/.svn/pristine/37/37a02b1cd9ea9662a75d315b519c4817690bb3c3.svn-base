@@ -1,0 +1,104 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent"></span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus(1)"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+
+
+<script>
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        var check = 0;
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                if ($(this).attr("data-status") == 'X') {
+                    $.gritter.add({
+                        title: 'Thông báo',
+                        text: 'Không thể xóa Hợp đồng đã đăng quảng cáo!',
+                        class_name: 'gritter-error'
+                    });
+                    $(this).prop('checked', false);
+                    check = check + 1;
+                    return;
+                }
+                else {
+                    listrowid += $(this).attr("id") + '@@@@';
+                }
+            }
+        });
+        if (check == 0) {
+            if (listrowid != "" && listrowid != null) {
+                if (e == 1) { // Send
+                    $('#popup-confirm').modal('show');
+                    $('#txtcontent').text("Bạn có muốn xóa dữ liệu này ?");
+                }
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Vui lòng chọn dữ liệu',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        
+    }
+    function onChangeStatus(type) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                if ($(this).attr("data-status") == 'X') {
+                    $.gritter.add({
+                        title: 'Thông báo',
+                        text: 'Không thể xóa Hợp đồng đã đăng quảng cáo!',
+                        class_name: 'gritter-error'
+                    });
+                    $(this).prop('checked', false);
+                    return;
+                }
+                else {
+                    listrowid += $(this).attr("id") + '@@@@';
+                }
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $.post(r + "/CRMMnContract/DeleteItem", { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    onCloseForm();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    onCloseForm();
+                }
+            });
+        }
+    }
+    function onCloseForm() {
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

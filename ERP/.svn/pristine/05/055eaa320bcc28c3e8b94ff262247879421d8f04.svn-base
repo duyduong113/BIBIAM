@@ -1,0 +1,140 @@
+﻿@{
+    Layout = null;
+    int i = 0;
+}
+@if (ViewBag.listTimeUpDown.Count > 0)
+{<div></div>
+    <ul id="list-time-updown" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+        <li>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngày bắt đầu</label>
+                    </div>
+                </div>
+                <div class="span3">
+                    <div class="control-group">
+                        <label>Thời gian dịch vụ</label>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngày kết thúc</label>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        @foreach (var item in ViewBag.listTimeUpDown)
+        {
+            i = i + 1;
+            <li class="group-time-updown" style="list-style:none;">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="control-group">
+                            <div class="controls">
+                                <input name="PKTime" class="input-mini span12 hdt-service-discount" value="@item.PKTime" type="hidden" />
+                                <input name="DateUp" value="@item.DateUp.ToString("dd/MM/yyyy")" class="input-medium span12 date-picker" onchange="tinhNgay(this,0)" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <div class="control-group">
+                            <div class="controls">
+                                <input name="Week" value="@item.Week" class="input-mini span6 no-week" onchange="tinhNgay(this,2)" type="text" />
+                                <input name="NumberDay" value="@item.NumberDay" class="input-mini span6 no-week" onchange="tinhNgay(this,1)" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <div class="controls">
+                                <input name="DateDown" value="@item.DateDown.ToString("dd/MM/yyyy")" class="input-medium span10 date-picker"  onchange="tinhNgay(this,0)" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    @if (i > 1)
+                    {
+                        <div class="span1">
+                            <div class="control-group">
+                                <div class="controls">
+                                    <button type="button" class="btn btn-minier btn-danger" onclick="minusHdtGroupTimeUpDown(this,'@item.PKTime')"><i class="icon-minus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="span1">
+                            <div class="control-group">
+                                <div class="controls">
+                                    <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupTimeUpDown(this,'@item.PKTime')"><i class="icon-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <ul id="list-time-updown" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+        <li>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngày bắt đầu</label>
+                    </div>
+                </div>
+                <div class="span3">
+                    <div class="control-group">
+                        <label>Thời gian dịch vụ</label>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngày kết thúc</label>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="group-time-updown" style="list-style:none">
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <div class="controls">
+                            <input name="PKTime" class="input-mini span12 hdt-service-discount" value=0 type="hidden" />
+                            <input name="DateUp" class="input-medium span12 date-picker" onchange="tinhNgay(this,0)" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span3">
+                    <div class="control-group">
+                        <div class="controls">
+                            <input name="Week" class="input-mini span6 no-week" onchange="tinhNgay(this,2)" type="text" />
+                            <input name="NumberDay" class="input-mini span6 no-week" onchange="tinhNgay(this,1)" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <div class="controls">
+                            <input name="DateDown" class="input-medium span10 date-picker" onchange="tinhNgay(this,0)" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span1">
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupTimeUpDown(this)"><i class="icon-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+}
+

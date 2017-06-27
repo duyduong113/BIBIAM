@@ -1,0 +1,112 @@
+﻿<div class="row-fluid">
+
+    @using (Html.BeginForm("SaveOther", "CRM_ProposedAdvertisement", FormMethod.Post, new { @class = "form-horizontal", id = "tab-other", enctype = "multipart/form-data" }))
+    {
+        if (Model != null)
+        {
+            <div class="span6">
+                <span>Ghi chú</span>
+                <textarea id="note" name="note" class="span12" cols="5" rows="5">@Model.c_note</textarea>
+            </div>
+            <div class="span6">
+                <div class="row-fluid">
+                    <span>File đính kèm <span style="color:red">( Dung lượng file < 10 MB )</span></span>
+                    @(Html.Kendo().Upload()
+                            .Name("files")
+                            .Async(a => a
+                                .Save("SaveOther", "CRM_ProposedAdvertisement")
+                                //.Remove("RemoveAndPersist", "SaveOther")
+                                .AutoUpload(false)
+                            )
+                    )
+                </div>
+
+                <div class="row-fluid">
+                    <p>Danh sách file đã upload</p>
+                    <ul style="list-style:circle">
+                        @if (ViewBag.listFile != null && ViewBag.listFile.Count > 0)
+                        {
+                            foreach (var item in ViewBag.listFile)
+                            {
+                                <li><a href="@Url.Action("DownloadFile","CRM_ProposedAdvertisement",new { fileName = @item.c_file_name})">@item.c_file_name</a></li>
+                            }
+                        }
+                        
+                    </ul>
+                </div>
+            </div>
+
+        }
+        else
+        {
+            <div class="span6">
+                <span>Ghi chú</span>
+                <textarea id="note" name="note" class="span12" cols="5" rows="5"></textarea>
+            </div>
+            <div class="span6">
+                <span>File đính kèm <span style="color:red">( Dung lượng file < 10 MB )</span></span>
+                @(Html.Kendo().Upload()
+          .Name("files")
+          .Async(a => a
+              .Save("SaveOther", "CRM_ProposedAdvertisement")
+              .Remove("RemoveAndPersist", "SaveOther")
+              .AutoUpload(false)
+          )
+
+                )
+            </div>
+        }
+
+        <input type="hidden" id="pk_adv" name="pk_adv" value="0" />
+        <input type="hidden" id="c_dot_order" name="c_dot_order" value="@ViewBag.c_dot_order" />
+    }
+</div>
+
+
+
+
+<script>
+    $('.k-button k-upload-selected').css('display', 'none');
+    function SaveOtherTab(pkadv) {
+        $('#pk_adv').val(pkadv);
+        if (adv.pkadv == 0 || adv == undefined) {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Vui lòng tạo phiếu đăng ký trước.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        else {
+            $('#tab-other').submit();
+        }
+    }
+    $("#tab-other").validate({
+        // Rules for form validation
+        submitHandler: function (form) {
+            var formData = new FormData($("#tab-other")[0]);
+            var url = $("#tab-other")[0].action;
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    return true;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+            });
+        }
+    });
+
+</script>

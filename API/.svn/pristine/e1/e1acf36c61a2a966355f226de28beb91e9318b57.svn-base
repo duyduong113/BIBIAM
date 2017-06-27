@@ -1,0 +1,40 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BIBIAM.Core
+{
+    public class AppConfigs
+    {
+        public static string ReadConfig(string key)
+        {
+            return ConfigurationManager.AppSettings[key] ?? string.Empty;
+        }
+
+        #region Configs
+        public static string MCCDBName { get { return ReadConfig(Constant.MCCDBName); } }
+        public static string ERPDBName { get { return ReadConfig(Constant.ERPDBName); } }
+        public static string UrlAPI { get { return ReadConfig(Constant.UrlAPI); } }
+        public static string Url { get { return ReadConfig(Constant.Url); } }
+        public static string MCCConnectionString { get { return ReadConfig(Constant.MCCConnectionString); } }
+        public static string ERPConnectionString { get { return ReadConfig(Constant.ERPConnectionString); } }
+        public static string FoldderName_Catalog { get { return ReadConfig(Constant.FoldderName_Catalog); } }
+        public static string FEConnectionString { get { return ReadConfig(Constant.FEConnectionString); } }
+        #endregion
+    }
+
+    public partial class Constant
+    {
+        public const string MCCDBName = "MCCDBName";
+        public const string ERPDBName = "ERPDBName";
+        public const string UrlAPI = "UrlAPI";
+        public const string Url = "Url";
+        public const string MCCConnectionString = "MCCConnection";
+        public const string ERPConnectionString = "ERPConnection";
+        public const string FoldderName_Catalog = "FoldderName_Catalog";
+        public const string FEConnectionString = "FEConnection";
+    }
+}

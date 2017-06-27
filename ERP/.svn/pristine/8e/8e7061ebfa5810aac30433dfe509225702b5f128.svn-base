@@ -1,0 +1,315 @@
+﻿@{
+    ViewBag.Title = "Quản lý lịch sử gọi";
+}
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm theo Mã, Tên, CMND, SĐT khách hàng…" style="width:250px" />
+                            <select name="select" id="listResultID" class='chosen-select span4' data-placeholder="@Resources.Multi.Select @Resources.Multi.Group.ToLower() kết quả…" multiple>
+                                @foreach (var a in (List<ERPAPD.Models.DC_Telesales_ResultList>)ViewData["ResultList"])
+                                {
+                                    if (a.SubId == "0")
+                                    {
+                                        <option value="@a.Id">@a.Description</option>
+
+                                    }
+                                }
+                            </select>
+                            <select name="select" id="listSubResultID" class='chosen-select span4' data-placeholder="Chọn kết quả…" multiple>
+                                @foreach (var a in (List<ERPAPD.Models.DC_Telesales_ResultList>)ViewData["ResultList"])
+                                {
+                                    if (a.SubId != "0")
+                                    {
+                                        <option value="@a.Id">@a.Description</option>
+
+                                    }
+                                }
+                            </select>
+                            <select name="select" id="listRule" class='chosen-select span2' data-placeholder="Chọn Rule…" multiple>
+                                <option value="">Tất cả</option>
+                                <option value="Rule 0">Rule 0</option>
+                                <option value="Rule 1">Rule 1</option>
+                                <option value="Rule 2">Rule 2</option>
+                                <option value="Rule 3">Rule 3</option>
+                                <option value="Rule 4">Rule 4</option>
+                                <option value="Rule 5">Rule 5</option>
+                            </select>
+                            <select name="select" id="listAgent" class='chosen-select span4' data-placeholder="Chọn agent…" multiple>
+                                @foreach (var a in ViewBag.listAgent)
+                                {
+                                    <option value="@a.UserName">@a.UserName</option>
+                                }
+                            </select>
+                           
+                            <input type="text" name="date-range-picker span2" id="CreatedAtDate" placeholder="Ngày gọi(từ-đến)" style="width: 130px;height:20px;" />
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small"  onclick="filter()">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.DC_Telesales_CallHistory>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.ID).Width(80).Filterable(false).Visible(false);
+        columns.Bound(p => p.CustomerID).Width(100).Title("Mã khách hàng");
+        columns.Bound(p => p.CustomerName).Width(150).Title(Resources.Multi.CustomerName);
+        columns.Bound(p => p.Phone).Width(110).Title(Resources.Multi.Phone);
+        columns.Bound(p => p.PhysicalID).Width(80).Title(Resources.Multi.ID);
+        columns.Bound(p => p.CustRule).Width(80).Title("Rule");
+        columns.ForeignKey(p => p.ResultID, (System.Collections.IEnumerable)ViewData["ResultList"], "Id", "Description").Width(150).Title("Nhóm @Resources.Multi.Result.ToLower()");
+        columns.ForeignKey(p => p.SubResultID, (System.Collections.IEnumerable)ViewData["ResultList"], "Id", "Description").Width(150).Title("@Resources.Multi.Result.ToLower()");
+        columns.Bound(p => p.Content).Width(150).Title(Resources.Multi.Content);
+        columns.Bound(p => p.RecallTime).Width(120).Title("Gọi lại").Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.isDone).Width(85).Title("Hoàn tất");
+        columns.Bound(p => p.Source).Width(85).Title("Nguồn");
+        columns.Bound(p => p.OrderID).Width(100).Title(Resources.Multi.OrderCode);
+        columns.Bound(p => p.RefType).Width(120).Title("Loại tham chiếu");
+        columns.Bound(p => p.RefID).Width(110).Title("Mã tham chiếu");
+        columns.Bound(p => p.CreatedAt).Title(Resources.Multi.CreatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Title(Resources.Multi.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+    })
+    .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+    .Sortable()
+    .Scrollable()
+    .Events(events => { events.DataBound("dataBound"); })
+            .ToolBar(toolbar =>
+            {
+
+                toolbar.Custom()
+                .Text(Resources.Multi.Export)
+                .HtmlAttributes(new { @class = "export btn btn-info" })
+                .Url(Url.Action("ExportData", "CallHistoryManagement", new { filter = "~", sort = "~" }));
+            })
+    .Navigatable()
+    .Filterable()
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+            .Read(read => read.Action("CallHistoryRead", "CallHistoryManagement")))
+        )
+    </div>
+</div>
+
+<script>
+    function filterCallResult() {
+        var selectedCallResultGroup = $("#ResultID").val();
+        return {
+            CallResultGroup: selectedCallResultGroup
+        };
+    }
+    $(document).ready(function () {
+        $('#CreatedAtDate').daterangepicker({
+            format: 'YYYY/MM/DD'
+        });
+        $("#listAgent").chosen();
+        $("#listRule").chosen();
+        $("#listResultID").chosen();
+        $("#listSubResultID").chosen();
+        $('a.export').bind('click', function () {
+
+        });
+
+    })
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var CreatedAtDate = $('#CreatedAtDate').val();
+
+        var filtertext = { logic: "or", filters: [] };
+
+        var listAgent = $('#listAgent option:selected');
+        var listRule = $('#listRule option:selected');
+        var listResultID = $('#listResultID option:selected');
+        var listSubResultID = $('#listSubResultID option:selected');
+        var fillterAgent = { logic: "or", filters: [] }
+        var fillterRule = { logic: "or", filters: [] }
+        var fillterResultID = { logic: "or", filters: [] }
+        var fillterSubResultID = { logic: "or", filters: [] }
+
+        if (listAgent.length > 0) {
+            for (var i = 0; i < listAgent.length; i++) {
+                var option = listAgent[i].value;
+                if (option == '') {
+                    fillterAgent.filters.push({ field: "CreatedBy", operator: "contains", value: '' });
+                }
+                else {
+                    fillterAgent.filters.push({ field: "CreatedBy", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterAgent);
+        }
+        if (listResultID.length > 0) {
+            for (var i = 0; i < listResultID.length; i++) {
+                var option = listResultID[i].value;
+                if (option == '') {
+                    fillterResultID.filters.push({ field: "ResultID", operator: "contains", value: '' });
+                }
+                else {
+                    fillterResultID.filters.push({ field: "ResultID", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterResultID);
+        }
+        if (listSubResultID.length > 0) {
+            for (var i = 0; i < listSubResultID.length; i++) {
+                var option = listSubResultID[i].value;
+                if (option == '') {
+                    fillterSubResultID.filters.push({ field: "SubResultID", operator: "contains", value: '' });
+                }
+                else {
+                    fillterSubResultID.filters.push({ field: "SubResultID", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterSubResultID);
+        }
+        if (listRule.length > 0) {
+            for (var i = 0; i < listRule.length; i++) {
+                var option = listRule[i].value;
+                if (option == '') {
+                    fillterRule.filters.push({ field: "CustRule", operator: "contains", value: '' });
+                }
+                else {
+                    fillterRule.filters.push({ field: "CustRule", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterRule);
+        }
+
+        if (CreatedAtDate) {
+            var startdate = CreatedAtDate.split('-')[0].trim();
+            var enddate = CreatedAtDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "CreatedAt", operator: "gte", value: startdate });
+            filter.filters.push({ field: "CreatedAt", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (text) {
+            filtertext.filters.push({ field: "CustomerID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "PhysicalID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+    var columnBankStatus = 1;
+    var columnstatus = 13;
+
+</script>

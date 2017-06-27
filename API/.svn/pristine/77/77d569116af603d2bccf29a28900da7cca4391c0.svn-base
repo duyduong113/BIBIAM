@@ -1,0 +1,115 @@
+﻿using BIBIAM.Core.Data.Providers;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using ServiceStack.OrmLite;
+using BIBIAM.Core.Entities;
+
+namespace BIBIAM.Core.Data.DataObject
+{
+    public class Hierarchy_DAO
+    {
+        public DataTable ReadAll(string connectionString)
+        {
+            List<SqlParameter> param = new List<SqlParameter>();
+            return new SqlHelper(connectionString).ExecuteString("select * from Hierarchy order by id desc", param);
+        }
+        public string Delete(string[] ids, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    foreach (var id in ids)
+                    {
+                        db.Delete<Hierarchy>(s => s.id == int.Parse(id));
+                    }
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+        }
+        public string UpSert(List<Hierarchy> lstHierarchy, string UserName, string Type, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    foreach (Hierarchy row in lstHierarchy)
+                    {
+                        var checkID = db.SingleOrDefault<Hierarchy>("ma_phan_cap={0}", row.ma_phan_cap);
+                        if (checkID != null)
+                        {
+                            checkID.cap = !string.IsNullOrEmpty(row.cap.ToString()) ? row.cap : 1;
+
+                            checkID.ten_phan_cap = !string.IsNullOrEmpty(row.ten_phan_cap) ? row.ten_phan_cap : "";
+                            checkID.aliasname = !string.IsNullOrEmpty(row.aliasname) ? row.aliasname : "";
+                            checkID.loai_phan_cap = !string.IsNullOrEmpty(row.loai_phan_cap) ? row.loai_phan_cap : "";
+
+                            checkID.ma_phan_cap_cha = !string.IsNullOrEmpty(row.ma_phan_cap_cha) ? row.ma_phan_cap_cha : "";
+                            if (checkID.cap == 1)
+                                checkID.ma_phan_cap_cha = "";
+                            if (!string.IsNullOrEmpty(checkID.ten_phan_cap))
+                                row.slug = StringHelper.convertToUnSign3(row.ten_phan_cap);
+                            else
+                                row.slug = "";
+                            checkID.trang_thai = !string.IsNullOrEmpty(row.trang_thai) ? row.trang_thai : AllConstant.trang_thai.DANG_SU_DUNG;
+                            checkID.nguoi_cap_nhat = UserName;
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            db.Update(checkID);
+                        }
+                        else
+                        {
+                            string ma_tu_tang = String.Empty;
+                            var lastId = db.FirstOrDefault<Hierarchy>("SELECT TOP 1 * FROM Hierarchy ORDER BY id DESC");
+                            if (lastId != null)
+                            {
+                                if (lastId.ma_phan_cap.Contains("CAP"))
+                                {
+                                    var nextNo = Int32.Parse(lastId.ma_phan_cap.Substring(3, 3)) + 1;
+                                    ma_tu_tang = "CAP" + String.Format("{0:000}", nextNo);
+                                }
+                            }
+                            else
+                            {
+                                ma_tu_tang = "CAP001";
+                            }
+                            row.ma_phan_cap = ma_tu_tang;
+                            row.cap = !string.IsNullOrEmpty(row.cap.ToString()) ? row.cap : 1;
+                            row.ten_phan_cap = !string.IsNullOrEmpty(row.ten_phan_cap) ? row.ten_phan_cap : "";
+                            row.aliasname = !string.IsNullOrEmpty(row.aliasname) ? row.aliasname : "";
+                            row.loai_phan_cap = !string.IsNullOrEmpty(row.loai_phan_cap) ? row.loai_phan_cap : "HRC06";
+                            row.ma_phan_cap_cha = !string.IsNullOrEmpty(row.ma_phan_cap_cha) ? row.ma_phan_cap_cha : "";
+                            if (row.cap == 1)
+                                row.ma_phan_cap_cha = "";
+                            row.trang_thai = !string.IsNullOrEmpty(row.trang_thai) ? row.trang_thai : AllConstant.trang_thai.DANG_SU_DUNG;
+                             if (!string.IsNullOrEmpty(row.ten_phan_cap))
+                                row.slug = StringHelper.convertToUnSign3(row.ten_phan_cap);
+                            else
+                                row.slug = "";
+                            row.nguoi_tao = UserName;
+                            row.ngay_tao = DateTime.Now;
+                            row.nguoi_cap_nhat = UserName;
+                            row.ngay_cap_nhat = DateTime.Now;
+                            db.Insert(row);
+                        }
+                        List<SqlParameter> param = new List<SqlParameter>();
+                        param.Add(new SqlParameter("@ma_phan_cap", row.ma_phan_cap));
+                        new SqlHelper(connectionString).ExecuteQuery("p_Hierarchy_SyncToMySQL", param);
+                    }
+
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+
+            }
+        }
+    }
+}

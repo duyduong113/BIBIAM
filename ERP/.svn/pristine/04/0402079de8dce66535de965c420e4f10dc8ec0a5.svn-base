@@ -1,0 +1,220 @@
+﻿
+<div id="popup-group"  style="width: 90%; margin-left: 0; left: 5%" class="modal hide group-view-popup">
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title">Thông báo</span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body overflow-visible">
+            <input id="id_group" type="hidden" />
+            <input id="bookcode-selected" type="hidden" />
+            <div class="row-fluid form-horizontal">
+               
+                <div class="span12">
+                    <h6><b>CHÚ Ý: Chọn 1 mã cha để giữ lại(Mã nào đã lên trang thì chọn mã đó để giữ lại)</b> </h6>
+                    @* </ Hiện thị thông tin> *@
+                    @(Html.Kendo()
+              .Grid<ERPAPD.Models.BookBannerViewModel>()
+              .Name("Grid_Group")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.PKBookLocation).Title("#").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=pk_book_req#' data-location='#=PKBookLocation#' data-bookcode='#=c_code#' />").Width(30).Filterable(false).Sortable(false);
+                  //columns.Bound(p => p.pk_book_req).Title("ID").Width(50).ClientTemplate("<a href='" + Url.Action("BookEdit", "CRM_BookBanner") + "/#=pk_book_req#'>#=pk_book_req#</a>");
+                  columns.Bound(p => p.c_code).Title("Mã book").Width(70);
+                  columns.Bound(p => p.InputDate)
+                         .Title("Ngày book")
+                         .Width(80).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(InputDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(InputDate,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+                  columns.Bound(p => p.CustomerName).Title("Khách hàng").Width(200);
+                  columns.Bound(p => p.c_labels).Title("Nhãn hàng").Width(100);
+                  columns.ForeignKey(p => p.Website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name")
+                         .Title("Website")
+                         .Width(100)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name")
+                         .Title("Chuyên mục")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Location, (System.Collections.IEnumerable)ViewBag.listLocation, "Code", "Name")
+                         .Title("Vị trí")
+                         .Width(150)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Nature, (System.Collections.IEnumerable)ViewBag.listNature, "Code", "Name")
+                         .Title("Tính chất")
+                         .Width(80)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.Bound(p => p.NgayLen)
+                         .Title("Ngày lên")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayLen,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayLen,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+                  columns.Bound(p => p.NgayXuong)
+                         .Title("Ngày xuống")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayXuong,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayXuong,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+
+                  columns.ForeignKey(p => p.c_group_id, (System.Collections.IEnumerable)ViewBag.listTeam, "Code", "Name")
+                          .Title("Nhóm")
+                          .Width(110)
+                          .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.c_staff_id, (System.Collections.IEnumerable)ViewBag.listStaff, "Code", "Name")
+                         .Title("Nhân viên")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.Bound(p => p.AccountStatus)
+                         .Title("Trạng thái")
+                         .Width(70)
+                         .ClientTemplate("#if(AccountStatus == 'KT_CHUA_XAC_NHAN'){#<b><font color='FFD700,' size='1'>Thường</font><br>#}#"
+                                        + "#if(AccountStatus == 'HAI_CHIEU'){# <b><font color='0x4169E1' size='1'>Hai chiều</font></b>#}#"
+                         );
+                  columns.Bound(p => p.IDBookLocation).Hidden();
+                  columns.Bound(p => p.c_customer_code).Hidden();
+              })
+              .Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .Navigatable()
+            //.Editable(editable => editable.Mode(GridEditMode.InCell))
+            //.Events(events => { events.DataBound("dataBound"); })
+            .Navigatable()
+            .Sortable()
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Sortable()
+            .Resizable(resize => resize.Columns(true))
+            .AutoBind(false)
+            .DataSource(dataSource => dataSource.Ajax()
+                                        .Batch(true)
+                                        .Sort(x => x.Add("pk_book_req").Descending())
+                                        .PageSize(50)
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.pk_book_req);
+                                        })
+                                        .Read(read => read.Action("Read_Group", "CRM_BookBanner").Data("getId")))
+
+                    )
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn btn-info btn-small" onclick="onSaveGroup()"> Gộp</a>
+            <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+        </div>
+    </div>
+
+
+
+<script>
+    function showGroupPopup(e) {
+        var listrowid = "";
+        var listid_req = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listid_req += $(this).attr("id") + '@@@@';
+                listrowid += $(this).data("location") + '@@@@';
+            }
+          
+        });
+
+        if (listid_req != "" && listid_req != null) {
+            $.post(r + "/CRM_BookBanner/CheckGroup", { listdata: listid_req }, function (data) {
+                if (!data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Chỉ được gộp các Mã book của cùng 1 Khách hàng',
+                        class_name: 'gritter-error'
+                    });
+                    return false;               
+                }
+                else {
+                    if (listrowid != "" && listrowid != null) {
+                        if (e == 'GOP') {
+                            $('#id_group').val(listrowid);
+                            readId();
+                            $('#popup-group').modal('show');
+                        }
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: 'Vui lòng chọn dữ liệu để gộp',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            })
+        }
+    }
+    function getId() {
+        return {
+            Id: $('#id_group').val(),
+        }
+    }
+    function readId() {
+        $("#Grid_Group").data("kendoGrid").dataSource.read();
+    }
+    function resizePopup() {
+        var popupHeight = $(".modal-backdrop").height();
+        $('.group-view-popup').css("height", popupHeight - 100);
+        $('.group-view-popup .modal-body-content').css("height", popupHeight - 200);
+    }
+    function onSaveGroup() {
+        var bookcode = "";
+        var listrowid = "";
+        var listrowlocation = "";
+        var isChecked = 0;
+        var id_keep = "";
+        $('#Grid_Group').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                isChecked++;
+                bookcode = $(this).data("bookcode");
+            }
+            listrowid += $(this).attr("id") + '@@@@';
+            listrowlocation += $(this).attr("data-location") + '@@@@';
+
+        });
+
+        if (isChecked > 1) {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Bạn chỉ được phép chọn 1 mã book để gộp',
+                class_name: 'gritter-error'
+            });
+
+        }
+        else {
+            if (bookcode == null || bookcode == "") {
+                $.gritter.add({
+                    title: 'Lỗi',
+                    text: 'Vui lòng chọn 1 mã book để gộp',
+                    class_name: 'gritter-error'
+                });
+            }
+            else {
+                $('#Grid_Group').find(".checkrowid").each(function () {
+                    if ($(this).prop('checked') == true) {
+                        id_keep = $(this).attr("id");
+                    }
+                });
+                $.post(r + "/CRM_BookBanner/Group", { listdata: listrowid, listrowlocation: listrowlocation, id_keep, bookcode }, function (data) {
+                               if (data.success) {
+                                   $.gritter.add({
+                                       title: '',
+                                       text: 'Gộp dữ liệu thành công',
+                                       class_name: 'gritter-success'
+                                   });
+                                   $('#popup-group').modal('hide');
+                                   $("#Grid").data("kendoGrid").dataSource.read();
+                               }
+
+                })
+
+            }
+           
+        }
+      
+    }
+</script>

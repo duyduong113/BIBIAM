@@ -1,0 +1,62 @@
+﻿@{
+    Layout = null;
+}
+ <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-size: 12pt;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt;" border="1" width="100%">
+            <tbody>
+                <tr>
+                    <td width="30%" class="headertxt">Chuyên mục</td>
+                    <td width="10%" class="headertxt">Giá trị sử dụng</td>
+                    <td width="15%" class="headertxt">Thời gian</td>
+                    <td width="10%" class="headertxt">Chiết khấu (%)</td>
+                    <td width="20%" class="headertxt">Thành tiền <br>(VND)</td>
+                </tr>
+                @{
+                    int sumDiscount = ViewBag.discount.SumDiscount;
+                    Double total = 0;
+                }
+                @if (ViewBag.Product.Count > 0)
+                {
+
+                    foreach (var item in ViewBag.Product)
+                    {
+                        Double discount = item.Discount + sumDiscount;
+                        Double totalItem = item.UnitPrice - (item.UnitPrice * discount / 100);
+                        total += totalItem;
+                        <tr>
+                            <td width="30%" align="center">@item.Name</td>
+                            <td width="10%" align="center">@item.UnitPrice.ToString("#,##0")</td>
+                            <td width="10%" align="center">@item.DateUp.ToString("MM/dd/yyyy") - @item.DateDown.ToString("MM/dd/yyyy")</td>
+                            <td width="10%" align="center">@discount</td>
+                            <td width="20%" align="right">@totalItem.ToString("#,##0")</td>
+                        </tr>
+                    }
+
+                }
+               
+                <tr>
+                    <td align="right" colspan="4">Tổng tiền</td>
+                    <td align="right">@total.ToString("#,##0")</td>
+                </tr>
+                @if (ViewBag.itemdraff.CheckVat == 1)
+                {
+                    <tr>
+                        <td align="right" colspan="4">Thuế GTGT 10%</td>
+                        <td align="right">@((total * 10 / 100).ToString("#,##0"))</td>
+                    </tr>
+                    total = total + total * 10 / 100;
+                }
+
+                <tr>
+                    <td align="right" colspan="4"><b>Tổng cộng</b></td>
+                    <td align="right"><b>@(total.ToString("#,##0"))</b></td>
+                </tr>
+            </tbody>
+        </table>
+ <div align="center">
+    Bằng chữ:  
+        <i>@ERPAPD.Helpers.SqlHelper.ToStringConvert((total + total * 10 / 100)) ./.</i><br>
+        @if (ViewBag.itemdraff.CheckVat == 0)
+        {
+            <i>(Đơn giá trên chưa bao gồm VAT 10%)</i>
+        }
+</div>

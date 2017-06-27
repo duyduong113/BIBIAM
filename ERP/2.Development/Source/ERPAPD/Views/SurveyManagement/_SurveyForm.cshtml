@@ -1,0 +1,529 @@
+﻿<style>
+    .Question {
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 10px;
+        margin-bottom: 3px;
+    }
+
+    .Aswer {
+        font-size: 12px;
+    }
+
+    .freetextMultiArea textarea {
+        margin-top: 3px;
+        margin-bottom: 3px;
+    }
+
+    .freetextArea textarea {
+        margin-top: 3px;
+        margin-bottom: 3px;
+    }
+
+    #scrollBarThis::-webkit-scrollbar {
+        width: 10px; /* for vertical scrollbars */
+        height: 5px; /* for horizontal scrollbars */
+    }
+
+    #scrollBarThis::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0);
+    }
+
+    #scrollBarThis::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+</style>
+@( Html.Kendo().Window().Name("SurveyFormWindow")
+      .Title("Làm khảo sát")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(900)
+    .HtmlAttributes(new { @class = "span12", style = "width:100%;margin-left:0px;" })
+)
+
+<script id="SurveyFormTemplate" type="text/x-kendo-template">
+    <div class="row-fluid">
+        <div class="span12" style="padding: 5px 10px 5px 10px;">
+            @*//chọn source search*@
+            <div class="row-fluid">
+                <div class="span5" style="display:inline-flex">
+                    <label>
+                        <input name="form-field-radio" id="radioSurveyCustomer" type="radio" class="ace" checked onclick="listLoad('SurveyCustomer')">
+                        <span class="lbl">@Resources.Multi.Customer @Resources.Multi.From.ToLower() @Resources.Multi.List.ToLower()</span>
+                    </label>
+                    <label style="margin-left:10px">
+                        <input name="form-field-radio" type="radio" class="ace" onclick="listLoad('SystemCustomer')">
+                        <span class="lbl"> @Resources.Multi.Customer @Resources.Multi.From.ToLower() @Resources.Multi.Systerm.ToLower()</span>
+                    </label>
+                    <label style="margin-left:10px">
+                        <input name="form-field-radio" type="radio" class="ace" onclick="listLoad('Others')" />
+                        <span class="lbl"> @Resources.Multi.Other</span>
+                    </label>
+                </div>
+                <div class="span7" id="searchBox">
+                    <span class="input-icon input-icon-right span12">
+                        <input type="text" id="SearchSurveyCustomer" placeholder="@Resources.Multi.Search @Resources.Multi.Follow.ToLower() @Resources.Multi.Name,  @Resources.Multi.Phone,  @Resources.Multi.ID  @Resources.Multi.Customer.ToLower()..." class="span12" />
+                        <i class="icon-search"></i>
+                    </span>
+                </div>
+            </div>
+            @using (Html.BeginForm("SaveSurvey", "SurveyManagement", FormMethod.Post, new { @class = "form-inline", id = "DoSurveyForm", style = "margin:0;" }))
+            {
+                <input type="hidden" name="SurveyManagementID" value="#=Id#" />
+                <input type="hidden" id="SurveyManagementCustomerID" value="#=Id#" />
+                <input type="hidden" name="Source" value="#=Source#" />
+                <input type="hidden" name="isNext" id="isNext" value="false" />
+                <input type="hidden" name="CustomerID" value="" />
+                <input type="hidden" name="PhysicalID" value="" />
+                @*//div customer*@
+                <div class="row-fluid" style="margin-top:5px">
+                    <div class="span2">
+                        <div class="row-fluid">
+                            <label style="margin-bottom:0px;">@Resources.Multi.OrderCode</label>
+                            <input type="text" name="OrderID" id="SurveyOrderID" placeholder="@Resources.Multi.OrderCode" class="span12" />
+                        </div>
+                    </div>
+                    <div class="span2">
+                        <label style="margin-bottom:0px;">@Resources.Multi.CustomerName</label>
+                        <input type="text" name="CustomerName" id="SurveyCustomerName" placeholder="@Resources.Multi.CustomerName" class="span12" />
+                    </div>
+                    <div class="span2">
+                        <label style="margin-bottom:0px;">@Resources.Multi.Phone</label>
+                        <input type="text" name="Phone" id="SurveyPhone" placeholder="@Resources.Multi.Phone" class=" span12" />
+                    </div>
+                    <div class="span2">
+                        <label style="margin-bottom:0px;">@Resources.Multi.CatagoryCustomer</label>
+                        <input type="text" name="CustomerRank" id="SurveyCustomerRank" placeholder="@Resources.Multi.CatagoryCustomer" class="span12" />
+                    </div>
+                    <div class="span2">
+                        <label style="margin-bottom:0px;">@Resources.Multi.MerchantName</label>
+                        <input type="text" name="Merchant" id="SurveyMerchant" placeholder="@Resources.Multi.MerchantName" class="span12" />
+                    </div>
+                    <div class="span2">
+                        <label style="margin-bottom:0px;">@Resources.Multi.Transproter </label>
+                        <input type="text" name="Carrier" id="SurveyCarrier" placeholder="@Resources.Multi.Transproter" class="span12" />
+                    </div>
+                </div>
+                <div class="row-fluid" id="scrollBarThis" style="margin-top: 12px; overflow-y: auto; min-height: 400px; max-height: 400px; border: 1px dotted \\#ccc; border-top: 2px double \\#7BCDDA; background-color: \\#f5f5f5;">
+                    <div class="span12" id="QuestionDetail" style="padding: 0px 5px 5px 10px; ">
+                    </div>
+                </div>
+                <div class="row-fluid" style=" float: right; padding: 10px 0 0 1px; text-align: right;">
+                    <a class="btn btn-danger btn-small" id="btnSkipCustomer" onclick="SkipSurveyCustomer(this)">@Resources.Multi.Skip</a>
+                    <button type="reset" class="btn btn-grey btn-small">@Resources.Multi.Refesh</button>
+                    <button type="submit" id="btnAddQuestion" class="btn btn-success btn-small">@Resources.Multi.Save @Resources.Multi.Survey.ToLower()</button>
+                    <button type="submit" class="btn btn-primary btn-small" onclick="$('\\#isNext').val('true')" id="btnAddQuestionAndNext">@Resources.Multi.Save @Resources.Multi.And.ToLower() @Resources.Multi.Next.ToLower()</button>
+                </div>
+
+            }
+        </div>
+    </div>
+</script>
+
+<script id="SurveyCustomerSearchTemplate" type="text/x-kendo-template">
+    <div class="row-fluid" id="divGridSearchResult">
+        <div class="span12">
+            <div class="row-fluid">
+                <label id="lblResultCount"></label>
+            </div>
+            <div class="row-fluid">
+                @(Html.Kendo()
+                .Grid<ERPAPD.Models.Deca_Customer_Index>
+                    ()
+                    .Name("GridCustomerSearch")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Fullname).Width(130).Title(Resources.Multi.CustomerName);
+                        columns.Bound(p => p.Phone).Width(90).Title(Resources.Multi.Phone);
+                        columns.Bound(p => p.Phone).Width(90).HeaderTemplate("").Title("").ClientTemplate("<button type='button' data-name='\\#=Fullname\\#' data-customerid='\\#=CustomerID\\#' data-phone='\\#=Phone\\#' data-physicalid='\\#=PhysicalID\\#' data-email='\\#=Email\\#' data-source='\\#=DataSource\\#' class='btn-success btn btn-minier' style='float:right;display:inline-block;color:white;' onclick='ShowCustomer(this)'>Chọn</button>").Width(70);
+                    })
+                    .Navigatable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .Scrollable(scrollable => scrollable.Enabled(false))
+                    .Events(data => data.DataBound("OnSearchGridBound"))
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(5)
+                        //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.CustomerID);
+                    }).Read("CustomerSearchRead", "SurveyManagement", new { ManagementID = "#=Id#", Source = "#=Source#", Keywork = "#=Keywork#" })).ToClientTemplate()
+                )
+            </div>
+        </div>
+    </div>
+</script>
+@( Html.Kendo().Window().Name("divGridSearchResult")
+      .Title("@Resources.Multi.Result.ToLower()")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(900)
+)
+
+
+@( Html.Kendo().Window().Name("SkipSurveyFormWindow")
+      .Title("Bỏ qua")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(400)
+)
+<script id="SkipSurveyTemplate" type="text/x-kendo-template">
+    @using (Html.BeginForm("SkipSurvey", "SurveyManagement", FormMethod.Post, new { @class = "form-inline", id = "SkipSurveyForm", style = "margin:0;" }))
+    {
+        <input type="hidden" name="ManagementCustomerID" value="#=CustomerID#" />
+        <input type="hidden" name="SurveyManagementID" value="#=SurveyManagementID#" />
+        <div class="row-fluid">
+            <label>@Resources.Multi.Reason @Resources.Multi.Skip.ToLower()</label>
+            <select class="span12" name="Reason">
+                <option value="Không nghe máy">@Resources.Multi.BusyOrNoHear</option>
+                <option value="Đang bận">@Resources.Multi.Busy</option>
+                <option value="Không muốn gọi">@Resources.Multi.NoWantCall</option>
+                <option value="Sai số hoặc nhầm số">@Resources.Multi.WrongNumber</option>
+            </select>
+        </div>
+        <div class="row-fluid">
+            <label>@Resources.Multi.Detail</label>
+            <textarea name="Description" class="span12"></textarea>
+        </div>
+        <div class="row-fluid">
+            <label>@Resources.Multi.CallBack</label>
+            @(Html.Kendo().DateTimePicker()
+        .Name("RecallTime")
+            //.Value(DateTime.Now)
+        .Format("MM/dd/yyyy HH:mm")
+        .Min(DateTime.Now)
+        .TimeFormat("HH:mm")
+        .HtmlAttributes(new { @class = "input-mask-date input-mini", @style = "margin-top:3px;width:100%", placeholder = Resources.Multi.SetTimeCallback })
+        .ToClientTemplate()
+            )
+        </div>
+        <div class="row-fluid" style="text-align:right;margin-top:5px;">
+            <a class="btn btn-grey btn-mini" onclick="$('\\#SkipSurveyFormWindow').data('kendoWindow').close()">@Resources.Multi.Complete</a>
+            <button class="btn btn-success btn-mini" type="submit">@Resources.Multi.Skip</button>
+        </div>
+    }
+</script>
+<script type="text/javascript">
+
+    var popupSearch;
+    var SurveyCustomerSearchTemplate = kendo.template($("#SurveyCustomerSearchTemplate").html());
+    var SkipSurveyTemplate = kendo.template($("#SkipSurveyTemplate").html());
+    function ShowCustomer(data) {
+        var CustomerID, PhysicalID, Fullname, Phone, Email, Source;
+        if (typeof data.DataSource == 'undefined') {
+            //from user click
+            CustomerID = $(data).data("customerid");
+            PhysicalID = $(data).data("physicalid");
+            Fullname = $(data).data("name");
+            Phone = $(data).data("phone");
+            Email = $(data).data("email");
+            Source = $(data).data("source");
+            $('#divGridSearchResult').data('kendoWindow').close();
+        } else {
+            CustomerID = data.CustomerID;
+            PhysicalID = data.PhysicalID;
+            Fullname = data.Fullname;
+            Phone = data.Phone;
+            Email = data.Email;
+            Source = data.DataSource;
+        }
+        //load data
+        if (typeof Source == "undefined" || Source == null || Source == "") {
+            Source = "SurveyCustomer";
+        }
+        $("#DoSurveyForm input[name='Source']").val(Source);
+        $('#SurveyCustomerName').val(Fullname);
+        $('#SurveyPhone').val(Phone);
+    }
+    function startSurvey(obj) {
+        currentID = $(obj).data("id");
+        var bindData = {
+            Id: currentID,
+            Source: 'SurveyCustomer',
+        };
+        var html = "";
+        var QuestionID = "";
+        var y = 0;
+        QuestionOrther = "";
+        ttaQuestion = "";
+        $.post(r + "/SurveyManagement/GetQuestionByManagementID", { ManagementID: currentID }, function (data) {
+            if (!data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+                return;
+            }
+            else if (data.data != null && data.data != "") {
+                for (var i = 0; i < data.data.length; i++) {
+                    y++;
+                    if (data.data[i].Type == "Multi choice") {
+                        html += '<div class="Question">' + y + ': ' + data.data[i].Description + '</div>';
+                        html += '<input type ="hidden" name ="' + data.data[i].QuestionID + '" value ="' + data.data[i].QuestionID + '" />';
+                        for (var j = 0; j < data.data[i].results.length; j++) {
+                            if (data.data[i].results[j].Answer == "Yes") {
+                                html += '<div class="Aswer"><input  type ="checkbox" name ="' + data.data[i].QuestionID + data.data[i].QuestionID + '" data-question="' + data.data[i].QuestionID + '" data-freetext="Yes" value="' + data.data[i].results[j].AnswerID + '"/><span style="margin-top:3px; margin-left:5px;">' + data.data[i].results[j].AnswerDescription + '</span></div>';
+                                QuestionOrther += data.data[i].QuestionID + data.data[i].QuestionID + ";";
+                                ttaQuestion += data.data[i].QuestionID + data.data[i].results[j].AnswerID + ";";
+                                html += '<span id="' + data.data[i].QuestionID + data.data[i].results[j].AnswerID + '" class="freetextMultiArea ' + data.data[i].QuestionID + data.data[i].QuestionID + 'multiFreetextHide" style="display:none;"><textarea placeholder="' + data.data[i].results[j].Description + '" name="Answer_' + data.data[i].QuestionID + data.data[i].results[j].AnswerID + '"  style="width: 97%; height: 20px;" ></textarea></span>';
+                            } else {
+                                html += '<div class="Aswer"><input type ="checkbox" name ="' + data.data[i].QuestionID + data.data[i].QuestionID + '"  value="' + data.data[i].results[j].AnswerID + '"/><span style=" margin-top:3px; margin-left:5px;">' + data.data[i].results[j].AnswerDescription + '</span></div>';
+                            }
+                        }
+                    }
+                    if (data.data[i].Type == "Single choice") {
+                        html += '<input type ="hidden" name ="' + data.data[i].QuestionID + '" value ="' + data.data[i].QuestionID + '" />';
+                        html += '<input type ="hidden" name ="QuestionType" value ="' + data.data[i].Type + '" />';
+                        html += '<div class="Question">' + y + ': ' + data.data[i].Description + '</div>';
+                        for (var j = 0; j < data.data[i].results.length; j++) {
+                            if (data.data[i].results[j].Answer == "Yes") {
+                                html += '<div class="Aswer"><input  type ="radio" name ="' + data.data[i].QuestionID + data.data[i].QuestionID + '"  data-question="' + data.data[i].QuestionID + '" data-freetext="Yes" value="' + data.data[i].results[j].AnswerID + '"/><span style=" margin-top:3px; margin-left:5px;">' + data.data[i].results[j].AnswerDescription + '</span></div>';
+                                QuestionOrther += data.data[i].QuestionID + data.data[i].QuestionID + ";";
+                                ttaQuestion += data.data[i].QuestionID + data.data[i].results[j].AnswerID + ";";
+                                html += '<span id="' + data.data[i].QuestionID + data.data[i].results[j].AnswerID + '" class="freetextArea ' + data.data[i].QuestionID + data.data[i].QuestionID + 'singleFreetextHide" style="display:none;"><textarea placeholder="' + data.data[i].results[j].Description + '" name="Answer_' + data.data[i].QuestionID + data.data[i].results[j].AnswerID + '"  style="width: 97%; height: 20px;" ></textarea></span>';
+                            } else {
+                                html += '<div class="Aswer"><input type ="radio" name ="' + data.data[i].QuestionID + data.data[i].QuestionID + '"  value="' + data.data[i].results[j].AnswerID + '"/><span style="margin-top:3px; margin-left:5px;">' + data.data[i].results[j].AnswerDescription + '</span></div>';
+                            }
+                        }
+                        //for (var j = 0; j < data.data[i].results.length; j++) {
+                        //    if (data.data[i].results[j].Answer == "Yes") {
+                        //        html += '<div class="Aswer"><input  type ="radio" name ="' + data.data[i].QuestionID + data.data[i].QuestionID + '"  id ="' + data.data[i].QuestionID + data.data[i].QuestionID + '"  value="Yes"/><span style="position:absolute; margin-top:3px; margin-left:5px;">Khác</span></div>';
+                        //        QuestionOrther += data.data[i].QuestionID + data.data[i].QuestionID + ";";
+                        //        ttaQuestion += data.data[i].QuestionID + ";";
+                        //        html += '<span id="' + data.data[i].QuestionID + '" style="display:none;"><textarea id="' + data.data[i].QuestionID + '" placeholder="" name="Answer' + data.data[i].QuestionID + '"  style="width: 300px; height: 100px; margin-left:20px;" ></textarea></span>';
+                        //    }
+                        //}
+                    }
+                    if (data.data[i].Type == "Free text") {
+                        html += '<div class="Question">' + y + ': ' + data.data[i].Description + '</div>';
+                        html += '<input type ="hidden" name ="' + data.data[i].QuestionID + '" value ="' + data.data[i].QuestionID + '" />';
+                        html += '<textarea id="' + data.data[i].QuestionID + '" placeholder="@Resources.Multi.CustomerAnswer" name="Answer_' + data.data[i].QuestionID + '" style="width: 97%; height: 20px; " ></textarea>';
+                    }
+                }
+                var SurveyFormTemplate = kendo.template($("#SurveyFormTemplate").html());
+                var popupDoSurvey = $("#SurveyFormWindow").data("kendoWindow");
+                popupDoSurvey.content(SurveyFormTemplate(bindData));
+                popupDoSurvey.center().open();
+                $("#QuestionDetail").html(html);
+                DisableCustomerInput();
+                loadNextSurveyCustomer();
+                ChangeRadio(QuestionOrther, ttaQuestion);
+                $('#SearchSurveyCustomer').bind('keypress', function (e) {
+                    var code = (e.keyCode ? e.keyCode : e.which);
+                    if (code == 13) {
+                        SearchCustomer();
+                    }
+                });
+                $("#DoSurveyForm").validate({
+                    // Rules for form validation
+                    submitHandler: function (form) {
+                        $(form).ajaxSubmit({
+                            beforeSend: function () {
+                                $("#btnAddQuestion").attr("disabled", "disabled");
+                                $("#btnAddQuestionAndNext").attr("disabled", "disabled");
+                                $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })
+                            },
+                            success: function (data) {
+                                if (data.success) {
+                                    $.gritter.add({
+                                        title: '@Resources.Multi.Success',
+                                        text: '@Resources.Multi.Save @Resources.Multi.Survey.ToLower() @Resources.Multi.Success.ToLower()',
+                                        class_name: 'gritter-success'
+                                    });
+                                    if ($('#isNext').val() == 'true') {
+                                        $('#radioSurveyCustomer').click();
+                                    }
+                                    $("#DoSurveyForm")[0].reset();
+                                    $('#isNext').val('false');
+                                    $(".freetextArea").hide();
+                                    $(".freetextMultiArea").hide();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                }
+                                else {
+                                    $.gritter.add({
+                                        // (string | mandatory) the heading of the notification
+                                        title: "@Resources.Multi.Error",
+                                        // (string | mandatory) the text inside the notification
+                                        text: data.message,
+                                        class_name: 'gritter-error'
+                                    });
+                                    $('#isNext').val('false');
+                                }
+                                $("#btnAddQuestion").removeAttr("disabled");
+                                $("#btnAddQuestionAndNext").removeAttr("disabled");
+                            },
+                            complete: function () {
+                                $.unblockUI();
+                            }
+                        });
+                        return false;
+                    }
+                });
+            }
+            else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: "@Resources.Multi.NoQuesttion @Resources.Multi.Survey.ToString().",
+                    class_name: 'gritter-error'
+                });
+                return;
+            }
+        });
+
+
+
+    }
+
+    function DisableCustomerInput() {
+        $('#SurveyCustomerID').attr("readonly", "readonly");
+        //$('#SurveyCustomerName').attr("disabled", "disabled");
+        $('#SurveyPhone').attr("readonly", "readonly");
+        //$('#SurveyPhysicalID').attr("disabled", "disabled");
+        //$('#SurveyEmail').attr("disabled", "disabled");
+        $("#searchBox").show();
+    }
+    function EnableCustomerInput() {
+        $('#SurveyCustomerID').removeAttr("readonly");
+        //$('#SurveyCustomerName').removeAttr("disabled");
+        $('#SurveyPhone').removeAttr("readonly");
+        //$('#SurveyPhysicalID').removeAttr("disabled");
+        //$('#SurveyEmail').removeAttr("disabled");
+        $("#searchBox").hide();
+    }
+    function ChangeRadio(e, ttaQuestion) {
+        $('input[type="radio"]').change(function () {
+            $("." + this.name + "freetextArea").hide();
+            if ($(this).data("freetext") == "Yes") {
+                $("#" + $(this).data("question") + $(this).val()).show();
+            }
+        });
+        $('input[type="checkbox"]').change(function () {
+            $("." + this.name + "multiFreetextHide").hide();
+            $("input[name='" + this.name + "']").each(function (input) {
+                var current = $("input[name='" + this.name + "']")[input];
+                if ($(current).data("freetext") == "Yes" && $(current).is(":checked")) {
+                    $("#" + $(current).data("question") + $(current).val()).show();
+                }
+            });
+        });
+    }
+    function SearchCustomer() {
+        var keyword = locdau($("#SearchSurveyCustomer").val());
+        var source = $("#DoSurveyForm input[name='Source']").val();
+        var bindData = {
+            Id: currentID,
+            Source: source,
+            Keywork: keyword
+        }
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "@Resources.Multi.Type @Resources.Multi.Infomation.ToLower() @Resources.Multi.Search.ToLower()",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            popupSearch = $("#divGridSearchResult").data("kendoWindow");
+            popupSearch.content(SurveyCustomerSearchTemplate(bindData));
+        }
+    }
+
+    function listLoad(type) {
+        $("#DoSurveyForm")[0].reset();
+        if (type == 'SurveyCustomer') {
+            DisableCustomerInput();
+            loadNextSurveyCustomer();
+            $("#DoSurveyForm input[name='Source']").val('SurveyCustomer');
+        } else if (type == 'Others') {
+            EnableCustomerInput();
+            $('#btnSkipCustomer').hide();
+        } else {
+            DisableCustomerInput();
+            $("#DoSurveyForm input[name='Source']").val('SystemCustomer');
+            $('#btnSkipCustomer').hide();
+
+        }
+    }
+    function loadNextSurveyCustomer() {
+        $('#btnSkipCustomer').show();
+        $.post(r + "/SurveyManagement/LoadNextSurveyCustomer", { ManagementID: currentID }, function (data) {
+            if (data.success) {
+                $('#SurveyOrderID').val(data.data.OrderID);
+                $('#SurveyCustomerName').val(data.data.Name);
+                $('#SurveyPhone').val(data.data.Phone);
+                $('#SurveyCustomerRank').val(data.data.CustomerRank);
+                $('#SurveyMerchant').val(data.data.Merchant);
+                $('#SurveyCarrier').val(data.data.Carrier);
+                $('#SurveyManagementCustomerID').val(data.data.Id);
+            } else {
+                $.gritter.add({
+                    title: '@Resources.Multi.Sorry,',
+                    text: data.message,
+                    class_name: 'gritter-info'
+                });
+            }
+        })
+    }
+    function OnSearchGridBound() {
+        $.unblockUI();
+        var data = this._data;
+        if (data.length == 1) {
+            ShowCustomer(data[0]);
+        } else if (data.length > 1) {
+            popupSearch.center().open();
+            $("#lblResultCount").html("@Resources.Multi.FindOut " + data.length + " @Resources.Multi.Result.ToLower()")
+        } else
+            $.gritter.add({
+                title: '@Resources.Multi.Sorry,',
+                text: '@Resources.Multi.CanNotFind',
+                class_name: 'gritter-info gritter-center ',
+                time: '1500'
+            });
+    }
+    function SkipSurveyCustomer(obj) {
+        var data = {
+            CustomerID: $('#SurveyManagementCustomerID').val(),
+            SurveyManagementID: currentID,
+        };
+        var wnd = $('#SkipSurveyFormWindow').data('kendoWindow');
+        wnd.content(SkipSurveyTemplate(data));
+        wnd.center().open();
+        $('.input-mask-date').mask('99/99/9999 99:99');
+        $("#SkipSurveyForm").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Bỏ qua @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    loadNextSurveyCustomer();
+                    $('#SkipSurveyFormWindow').data('kendoWindow').close();
+                }
+                else {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+    }
+</script>

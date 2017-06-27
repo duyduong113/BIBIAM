@@ -1,0 +1,352 @@
+﻿<style>
+    button.btclose {
+        float: right;
+        font-size: 22px;
+        text-shadow: 0 1px 0 #fff;
+        opacity: 0.2;
+        background: transparent;
+        border: 0;
+        margin-top: -3px;
+    }
+
+    .chosen-container .chosen-results {
+        max-height: 100px !important;
+    }
+
+    .form-horizontal .control-label {
+        width: 90px;
+    }
+
+    .form-horizontal .controls {
+        margin-left: 110px;
+    }
+</style>
+<div id="work-form" class="modal hide" tabindex="-1">
+    <form action="~/CRMCustomerSupportDetail/Create_Work" id="work-submit" method="post" enctype="multipart/form-data">
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title">Thêm công việc</span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body overflow-visible">
+            <div class="row-fluid form-horizontal">
+                <div class="span12">
+                    <div class="control-group">
+                        <label class="control-label">Khách hàng</label>
+                        <div class="controls">
+                            <input class="span12" type="text" value="@ViewBag.detailCustomer.CustomerName" disabled />
+                            <input name="CustomerID" type="hidden" value="@ViewBag.detailCustomer.CustomerID" />
+                            <input name="Status" type="hidden" value="YET" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Người liên hệ</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownList()
+                              .Name("contactList")
+                              .DataTextField("Name")
+                              .DataValueField("PKContactID")
+                              .HtmlAttributes(new { style = "width:100%", @name = "Person_contact" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("ContactRead", "CRM_CustomerSupport", new { CustomerID = ViewBag.detailCustomer.CustomerID });
+                                  });
+                              })
+                              
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Loại công việc</label>
+                        <div class="controls">
+                            <select name="Type" class="chosen-select" data-placeholder="Chọn người liên hệ" style="display: none;">
+                                @foreach (var item in ViewBag.listWorkType)
+                                {
+                                    <option value="@item.ParamID">@item.Value</option>
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Tiêu đề</label>
+                        <div class="controls">
+                            <input name="Title" class="span12" type="text" placeholder="Tiêu đề" value="" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Nội dung</label>
+                        <div class="controls">
+                            <textarea name="Description" class="span12" placeholder="Mô tả" style="overflow: hidden; word-wrap: break-word; resize: vertical; height: 60px; margin-left: 0px; margin-right: 0px; "></textarea>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Người thực hiện</label>
+                        <div class="controls">
+                            
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Hạn chót</label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input id="" name="Deadline" class="date-picker-app span11" placeholder="dd/mm/yyyy hh:mm" type="text" data-format="MM/dd/yyyy HH:mm">
+                                <span class="add-on">
+                                    <i class="icon-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Nhắc nhở</label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input name="RemindDate" class="date-picker-app span11" placeholder="dd/mm/yyyy hh:mm" type="text" data-format="MM/dd/yyyy HH:mm">
+                                <span class="add-on">
+                                    <i class="icon-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Độ ưu tiên</label>
+                        <div class="controls">
+                            <select name="Priority" class="chosen-select" id="" data-placeholder="Độ ưu tiên" style="display: none;">
+                                <option value="0" selected>High</option>
+                                <option value="1">Medium</option>
+                                <option value="2">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Đính kèm tập tin</label>
+                        <div class="controls">
+                            <input name="Files" type="file" id="Files-work" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" id="btn-work-submit" class="btn btn-info btn-small">Lưu</button>
+            <button type="button" id="btn-work-done" class="btn btn-success btn-small">Hoàn tất</button>
+            <button type="button" class="btn btn-default btn-small" data-dismiss="modal">Hủy</button>
+        </div>
+    </form>
+</div>
+<div id="appointment-form" class="modal hide" tabindex="-1">
+    <form action="~/CRMCustomerSupportDetail/Create_Appointment" id="appointment-submit" method="post" enctype="multipart/form-data">
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title">Đặt lịch hẹn</span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body overflow-visible">
+            <div class="row-fluid form-horizontal">
+                <div class="span12">
+                    <div class="control-group">
+                        <label class="control-label">Tiêu đề</label>
+                        <div class="controls">
+                            <input name="Title" class="span12" type="text" id="" placeholder="Tiêu đề" value="" />
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Ngày giờ</label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input name="Date" class="span6 date-picker-app" placeholder="dd/mm/yyyy hh:mm" type="text" data-format="MM/dd/yyyy HH:mm PP">
+                                <span class="add-on">
+                                    <i class="icon-calendar"></i>
+                                </span>
+                                <input type="number" name="Hours" class="span3 offset2" placeholder="Số tiếng" value="" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Loại</label>
+                    <div class="controls">
+                        <select name="Type" class="chosen-select" data-placeholder="Chọn người liên hệ" style="display: none;">
+                            @foreach (var item in ViewBag.listAppointmentType)
+                            {
+                                <option value="@item.ParamID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Địa điểm</label>
+                    <div class="controls">
+                        <input name="Address" class="span12" type="text" id="" placeholder="Địa điểm" value="" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Mô tả</label>
+                    <div class="controls">
+                        <textarea name="Description" class="span12" placeholder="Mô tả" style="overflow: hidden; word-wrap: break-word; resize: vertical; height: 60px; margin-left: 0px; margin-right: 0px; "></textarea>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Khách hàng</label>
+                    <div class="controls">
+                        <input class="span12" type="text" value="@ViewBag.detailCustomer.CustomerName" disabled />
+                        <input name="CustomerID" type="hidden" value="@ViewBag.detailCustomer.CustomerID" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Người liên hệ</label>
+                    <div class="controls">
+                        @(Html.Kendo().DropDownList()
+                              .Name("contactListApp")
+                              .DataTextField("Name")
+                              .DataValueField("PKContactID")
+                              .HtmlAttributes(new { style = "width:100%", @name = "Person_contact" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("ContactRead", "CRM_CustomerSupport", new { CustomerID = ViewBag.detailCustomer.CustomerID });
+                                  });
+                              })
+                             
+                        )
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Khách mời</label>
+
+                    <div class="controls">
+                        <input name="Guests" class="span12" type="text" id="" placeholder="Tiêu đề" value="" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Bcc</label>
+                    <div class="controls">
+                        <input class="span12" name="Bcc" type="text" id="" placeholder="Bcc" value="" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Đính kèm tập tin</label>
+                    <div class="controls">
+                        <input name="Files" type="file" id="Files-appointment" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" id="btn-appointment-submit" class="btn btn-info btn-small">Lưu</button>
+            <button type="button" class="btn btn-default btn-small" data-dismiss="modal">Hủy</button>
+        </div>
+    </form>
+</div>
+<div id="detail-work-form" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Chi tiết công việc</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div id="detail-work" class="modal-body overflow-visible">
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-default btn-small" data-dismiss="modal">Hủy</button>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#work-form, #appointment-form').on('shown', function () {
+            $(this).find('.chosen-select').chosen();
+        })
+        $('.date-picker-app').datetimepicker();
+    })
+    $("#btn-work-done").click(function () {
+        $("input[name=Status]").val("DONE");
+        $("#work-submit").submit();
+        return false;
+    })
+    $("#appointment-submit").validate({
+        rules: {
+            Title: {required: true},
+            Date: {required: true},
+            Address: {required: true},
+            CustomerID: {required: true, },
+        },
+        messages: {
+            Title: {required: "Thông tin bắt buộc"},
+            Date: {required: "Thông tin bắt buộc"},
+            Address: {required: "Thông tin bắt buộc"},
+            CustomerID: {required: "Thông tin bắt buộc"},
+        },
+        errorPlacement: function (error, element) {
+        },
+        submitHandler: function (form) {
+            $("#appointment-submit").ajaxSubmit({
+                clearForm: true, //To clear form after ajax submitting
+                beforeSend: function () { // Xử lý trước khi submit
+                },
+                success: function (data) {
+                    if (!data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    $('#appointment-form').modal('hide');
+                }
+            });
+            return false;
+        }
+
+    });
+    
+    $("#work-submit").validate({
+        rules: {
+            Title: {required: true},
+            Date: {required: true},
+            Address: {required: true},
+            CustomerID: {required: true, },
+        },
+        messages: {
+            Title: {required: "Thông tin bắt buộc"},
+            Date: {required: "Thông tin bắt buộc"},
+            Address: {required: "Thông tin bắt buộc"},
+            CustomerID: {required: "Thông tin bắt buộc"},
+        },
+        errorPlacement: function (error, element) {
+        },
+        submitHandler: function (form) {
+            $("#work-submit").ajaxSubmit({
+                clearForm: true, //To clear form after ajax submitting
+                beforeSend: function () { // Xử lý trước khi submit
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $("#GridWorks").data("kendoGrid").dataSource.read();
+                    } else {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    $('#work-form').modal('hide');
+                }
+            });
+            return false;
+        }
+    });
+    $('#Files-work, #Files-appointment').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+   
+</script>

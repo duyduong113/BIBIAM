@@ -1,0 +1,465 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@using MCC.Models;
+@{
+    ViewBag.Title = @Html.Raw(Resources.Global._merchant_promotion_ralated);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var newData = new Merchant_Product_Related();
+    //newData.active = true;
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        width: 300px;
+        height: 300px;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .image-product {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-product img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-product .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-product:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            color: #ff7d5e;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=trang_thai == '@AllConstant.trang_thai.DANG_SU_DUNG' ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-3" style="padding-left: 0; text-align: center;">
+                    <img src="#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#" class="img-responsive" style="display:inline">
+                </div>
+                <div class="col-md-7" style="padding-left:0;">
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=ten_san_pham#
+                        #if(trang_thai_duyet=='@AllConstant.trang_thai_duyet.DA_DUYET'){#
+                        #if(trang_thai_xuat_ban=='@AllConstant.trang_thai_xuat_ban.DA_XUAT_BAN'){#
+                        <span class="text-primary">@Html.Raw(@Resources.Global._published) </ span >
+                        #}else{#
+                        < span class="text-danger">@Html.Raw(@Resources.Global._waiting_for_publishing)</span>
+                        #}}else{#
+                        <span class="text-danger">@Html.Raw(@Resources.Global._waiting_for_approval)</span>
+                        #}#
+                        @*<span style="font-weight: 300; font-size: 13px; color: \\#217ebd; ">| #=domain#</span>*@
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._part_number): #=part_no ? part_no : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        Model : #=model ? model : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._sms_brand_name): <a href='\\#'>#=thuong_hieu ? thuong_hieu : ''#</a> - @Html.Raw(Resources.Global._made_in): #=xuat_xu ? xuat_xu : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._access_price): #=don_gia ? kendo.format('{0:N0}',don_gia) : ''#Đ - Giá sỉ: #=gia_si ? kendo.format('{0:N0}',gia_si) : ''#Đ
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(@Resources.Global._product_catalog) </span >
+                </div >
+
+                <div class="input">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type = "text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+                @*<div class="inputs" style="margin-right:10px;">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a>
+                </div>*@
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<BIBIAM.Core.Entities.Product_Info>()
+                        .Name("listView")
+                        .TagName("div")
+                        .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                        .ClientTemplateId("template")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Read(read => read.Action("Read", "Merchant_Product"));
+                            //dataSource.Read(read => read.Action("ReadProductInfo", "Merchant_Product"));
+                            dataSource.PageSize(5).Sort(s => s.Add(a => a.id).Descending());
+                        })
+                        .Events(events => { events.DataBound("onDatabound"); })
+                        .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 formEdit">
+    </div>
+</div>
+@Html.Partial("_Form_Order_Detail")
+@Html.Partial("_Order_Grid_Partial")
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._product) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    $(document).ready(function () {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+        Search();
+    });
+
+    function deleteRow(e) {
+
+        var dataItem = $("#RelatedGrid").data("kendoGrid").dataSource.getByUid($(e).parents('tr').attr("data-uid"));
+        //var dataItem = $("#RelatedGrid").data("kendoGrid").dataItem($(e).closest(".todo-tasklist-item"))
+        bootbox.dialog({
+            message: "@Html.Raw(@Resources.Global._are_your_sure)", title: "@Html.Raw(@Resources.Global._delete_chosen_product)",
+            buttons:
+                {
+
+                    danger: { label: "@Html.Raw(@Resources.Global._close)", className: "btn btn-xs btn-danger", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(@Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(@Resources.Global._just_amoment)...' });
+
+                            $.post(r + "/Merchant_Product_Related/Deletesp", { ma_san_pham: dataItem.ma_san_pham, ma_san_pham_de_nghi: dataItem.ma_san_pham_de_nghi }, function (data) {
+                                if (data.success) {
+                                    $("#RelatedGrid").data("kendoGrid").dataSource.remove(e);
+                                    toastr.clear();
+                                    toastr.success('', '@Html.Raw(@Resources.Global._delete_successfully)');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                            //$.ajax({
+                            //    type: "POST",
+                            //    async: true,
+                            //    url: r + "/Merchant_Product_Related/Deletesp",
+                            //    data: { ma_san_pham: .ma_san_pham, ma_san_pham_de_nghi: dataItem.ma_san_pham_de_nghi },
+                            //    success: function (data) {
+                            //        if (data.success)
+                            //        {
+                            //            $("#RelatedGrid").data("kendoGrid").dataSource.remove(e);
+                            //            toastr.clear();
+                            //            toastr.success('', 'Xóa thành công');
+                            //        }
+                            //        else {
+                            //            toastr.clear();
+                            //            toastr.error('', data.error);
+                            //        }
+                            //    }
+                            //});
+                            //App.unblockUI();
+
+                        }
+                    }
+                }
+        })
+        //var data = $("#RelatedGrid").data("kendoGrid").dataSource.getByUid($(e).parents('tr').attr("data-uid"));
+        //if (data)
+        //    $("#RelatedGrid").data("kendoGrid").dataSource.remove(data);
+    }
+
+    function onDataBound(e) {
+        $('.checkrowid').hover(
+           function () { $(this).addClass('hover') },
+           function () {
+               $(this).removeClass('hover')
+           });
+    }
+    function refresh() {
+        $("#RelatedGrid").data("kendoGrid").dataSource.read();
+    }
+    function review(e) {
+        //var promotion = [];
+        //promotion.gia_tri = currencyToNumber($("#RelatedGrid input[name='gia_tri']").val());
+        //if (!promotion.gia_tri)
+        //    promotion.gia_tri = 0;
+        //promotion.loai = $("#RelatedGrid input[name='loai']:checked").val();
+    }
+    function save() {
+        Validate();
+        var grid = $("#RelatedGrid").data("kendoGrid");
+        if (grid.dataSource.view().length == 0) {
+            toastr.error("@Html.Raw(@Resources.Global._no_product_related) !");
+            return;
+        }
+        $("#RelatedGrid").submit();
+        clearForm();
+    }
+    function Validate() {
+        for (var i = 0; i < $("#RelatedGrid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#RelatedGrid").data("kendoGrid").dataSource.data()[i];
+            if (dataItem.ma_san_pham == '' || dataItem.ma_san_pham == null) {
+                $("#RelatedGrid").data("kendoGrid").dataSource.remove(dataItem);
+                i--;
+            }
+        }
+    }
+    function saveAndnew() {
+        {
+            Validate();
+            var grid = $("#RelatedGrid").data("kendoGrid");
+            if (grid.dataSource.view().length == 0) {
+                toastr.error("@Html.Raw(@Resources.Global._no_product_related) !");
+                return;
+            }
+            $("#RelatedGrid").submit();
+            clearForm();
+        }
+    }
+    function resizeGrid(gridname) {
+    }
+
+    function dataBoundgrid(e) {
+        resizeGrid('Grid');
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+            toastr.error(message)
+        }
+    }
+    function onRequestEnd(e) {
+        if ((e.type == "create") && !e.response.Errors) {
+            debugger;
+            if (e.response.success)
+                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+        }
+        else
+            if ((e.type == "update") && !e.response.Errors) {
+                if (e.response.success)
+                    toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+
+            }
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    var reset = false;
+    function onDataBinding(e) {
+    }
+
+    function popup_onAdditionalData() {
+        return {
+            ma_san_pham: ma_san_pham
+        }
+    }
+
+    function clearForm() {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+    }
+    var ma_san_pham;
+    //using Partial
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        var RelatedGridTemplated = kendo.template($("#RelatedGridTemplated").html());
+        $("#gridTemplate").html(RelatedGridTemplated(data));
+        loadValidate(data);
+        $("#EditForm input[name='gia_tri']").blur(function () {
+            $("#ProductGrid").data("kendoGrid").dataSource.data([]);
+            $(this).val(numberToCurrency(currencyToNumber($(this).val())));
+        });
+        $("#EditForm input[type='radio']").on('change', function () {
+            $("#ProductGrid").data("kendoGrid").dataSource.data([]);
+        });
+    }
+    function loadValidate(e) {
+
+    }
+    loadForm(@Html.Raw(Json.Encode(newData)));
+    function edit(e) {
+        var product = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        ma_san_pham = product.ma_san_pham;
+        loadForm(product);
+
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (typeof seachText != 'undefined') {
+            if (seachText.length) {
+                filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "ma_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "part_no", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "xuat_xu", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "thuong_hieu", operator: "contains", value: seachText });
+                filter.filters.push(filterDesc);
+            }
+        }
+
+        listView.dataSource.filter(filter);
+    }
+    function openCreateDetailPO() {
+        var CreatePOTemplate = kendo.template($("#CreatePOTemplate").html());
+        bootbox.dialog({
+            closeButton: true,
+            message: CreatePOTemplate(0),
+            title: "@Html.Raw(Resources.Global._add_product) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._po_new_buttonnew)", className: "btn green btn-circle btn-sm", callback: function () { SaveToGrid(); return false; } },
+            }
+        });
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+        loadValidateCreatePOForm();
+    }
+    function onDatabound(e) {
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+
+</script>
+

@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B3854AD8-39B5-42B8-8FD9-6A7C4D562FFC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BIBIAM.Core.Entities</RootNamespace>
+    <AssemblyName>BIBIAM.Core.Entities</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Antlr3.Runtime">
+      <HintPath>..\ERP_API\bin\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\ERP_API\bin\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\ERP_API\bin\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Facebook">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Facebook.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Google">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Google.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.MicrosoftAccount.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.OAuth">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Twitter">
+      <HintPath>..\ERP_API\bin\Microsoft.Owin.Security.Twitter.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ERP_API\bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\ERP_API\bin\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack">
+      <HintPath>..\ERP_API\bin\ServiceStack.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\ERP_API\bin\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\ERP_API\bin\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite">
+      <HintPath>..\ERP_API\bin\ServiceStack.OrmLite.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.OrmLite.SqlServer">
+      <HintPath>..\ERP_API\bin\ServiceStack.OrmLite.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Redis">
+      <HintPath>..\ERP_API\bin\ServiceStack.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.ServiceInterface">
+      <HintPath>..\ERP_API\bin\ServiceStack.ServiceInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\ERP_API\bin\ServiceStack.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Banner.cs" />
+    <Compile Include="BrandManagement.cs" />
+    <Compile Include="Customer.cs" />
+    <Compile Include="Customer_Address.cs" />
+    <Compile Include="Footer.cs" />
+    <Compile Include="Hierarchy.cs" />
+    <Compile Include="Image_Info.cs" />
+    <Compile Include="Merchant_Catalog.cs" />
+    <Compile Include="Merchant_Contact.cs" />
+    <Compile Include="Merchant_DetailLocation.cs" />
+    <Compile Include="Merchant_Folder_Info.cs" />
+    <Compile Include="Merchant_History.cs" />
+    <Compile Include="Merchant_Image.cs" />
+    <Compile Include="Merchant_Image_Info.cs" />
+    <Compile Include="Merchant_Info.cs" />
+    <Compile Include="Merchant_LocationWarehouse.cs" />
+    <Compile Include="Merchant_Order.cs" />
+    <Compile Include="Merchant_Product.cs" />
+    <Compile Include="Merchant_Product_Hierarchy.cs" />
+    <Compile Include="Merchant_Product_Image.cs" />
+    <Compile Include="Merchant_Product_Info.cs" />
+    <Compile Include="Merchant_Product_Price.cs" />
+    <Compile Include="Merchant_Product_Promotion.cs" />
+    <Compile Include="Merchant_Product_Promotion_Detail.cs" />
+    <Compile Include="Merchant_Product_Property.cs" />
+    <Compile Include="Merchant_Product_Related.cs" />
+    <Compile Include="Merchant_Product_Warehouse.cs" />
+    <Compile Include="Merchant_StockInDetail.cs" />
+    <Compile Include="Merchant_StockInHeader.cs" />
+    <Compile Include="Merchant_StockOutDetail.cs" />
+    <Compile Include="Merchant_StockOutHeader.cs" />
+    <Compile Include="Merchant_Voucher.cs" />
+    <Compile Include="Merchant_Voucher_Detail.cs" />
+    <Compile Include="Merchant_Voucher_Hierarchy.cs" />
+    <Compile Include="Merchant_Voucher_Product.cs" />
+    <Compile Include="Merchant_Warehouse.cs" />
+    <Compile Include="Parameters.cs" />
+    <Compile Include="Product_Evaluation.cs" />
+    <Compile Include="Product_Hierarchy.cs" />
+    <Compile Include="Product_Hierarchy_Property.cs" />
+    <Compile Include="Product_Image.cs" />
+    <Compile Include="Product_Info.cs" />
+    <Compile Include="Product_Merchant.cs" />
+    <Compile Include="Product_Price.cs" />
+    <Compile Include="Product_Promotion.cs" />
+    <Compile Include="Product_Property.cs" />
+    <Compile Include="Product_Suggestion.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Property.cs" />
+    <Compile Include="Property_Detail.cs" />
+    <Compile Include="SEO_MerchantProduct.cs" />
+    <Compile Include="UserActivation.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BIBIAM.Core\BIBIAM.Core.csproj">
+      <Project>{a27e8c5c-7401-4b2c-bca5-77f0cb64ef1a}</Project>
+      <Name>BIBIAM.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

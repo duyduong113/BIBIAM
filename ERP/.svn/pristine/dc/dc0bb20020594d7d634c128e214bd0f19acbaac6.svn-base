@@ -1,0 +1,984 @@
+﻿@{
+    int glo = 0;
+}
+
+<fieldset>
+    <b class="title-ctr">Banner</b>
+    <div class="row-fluid">
+        <table id="list-real-service" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:7%">Web</th>
+                    <th style="width:10%">Chuyên mục</th>
+                    <th style="width:7%">Vị trí</th>
+                    <th style="width:7%">Tính chất</th>
+                    <th style="width:7%">Size</th>
+                    <th style="width:7%">Đơn giá</th>
+                    <th style="width:7%">Ngày lên</th>
+                    <th style="width:7%">Ngày xuống</th>
+                    <th style="width:7%">Thời gian</th>
+                    <th style="width:3%">Ngày bù</th>
+                    <th style="width:2%">KM</th>
+                    <th style="width:7%">Thành tiền</th>
+                    <th style="width:7%">Ghi chú</th>
+                    <th style="width:7%">Nhân viên</th>
+                    <th style="width:5%">
+                        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupRealBanner()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.realBanner != null && ViewBag.realBanner.Count > 0)
+                {
+                    foreach (var item in ViewBag.realBanner)
+                    {
+                        <tr class="group-real-service">
+                            <td class="first">
+                                <input type="hidden" class="item-pk-update" value="@item.pk_update" />
+                                <input class="input-value-suggess item-web" type="hidden" value="@item.c_website" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tên Web")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.WebsiteName)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-category" type="hidden" value="@item.c_category" />
+
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập chuyên mục")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.CategoryName)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-location" type="hidden" value="@item.c_location" />
+
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập vị trí")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-location-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.LocationName)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-nature" type="hidden" value="@item.c_nature" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tính chất")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-nature-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 25 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.NatureName)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-size" type="hidden" value="@item.c_size" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập Size")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 24 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.c_size)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <input onchange="resetRealBanner()" class="item-unit-price currency" type="text" value="@item.c_don_gia.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetRealBanner()" class="date-picker item-update" type="text" value="@item.c_real_update.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input onchange="resetRealBanner()" class="date-picker item-downdate" type="text" value="@item.c_real_downdate.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input class="item-week-time-hidden" type="hidden" />
+                                <input class="item-week-time" type="text" disabled value="@item.c_time" />
+                            </td>
+                            <td>
+                                <input  onchange="resetRealBanner()" class="item-days-time" type="text" value="@item.c_ngay_bu" />
+                            </td>
+                            <td>
+                                @if (item.c_km == "checked")
+                                {
+                                    <input onchange="resetRealBanner()" class="item-promotion" type="checkbox" value="1" checked />
+                                }
+                                else
+                                {
+                                    <input  onchange="resetRealBanner()" class="item-promotion" type="checkbox" value="0" />
+                                }
+                            </td>
+                            <td>
+                                <input class="item-total-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" readonly />
+                            </td>
+                            <td>
+                                <input class="item-note" type="text" value="@item.c_note" />
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-staff-id" value="@item.c_staff_id" type="hidden" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("FullName")
+                        .Placeholder("Nhập tên nhân viên")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { @readonly= "readonly",  style = "width:100%", @class = "txt-name-employer", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestEmployer", "CRMContractList")
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectEmployer").Change("onChangeValueSuggest");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.EmployerName)')
+                                </script>
+                                @{glo++;}
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealBanner(this, '@item.pk_update')"><i class="icon-minus"></i></button>
+                                <button data-rel="tooltip" data-placement="top" title="" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default tooltip-error" onclick="cloneRow(this)"><i class="icon-book"></i></button>
+                            </td>
+                        </tr>
+                                        }
+                                    }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row-fluid">
+        <p align="center">
+            <button onclick="countReal('REAL_BN')" class="btn btn-small btn-default" type="button">Tính thời gian</button>
+            <button onclick="saveRealBanner()" class="btn btn-small btn-success" type="button">Ghi nhận DSQC BN</button>
+            <button class="btn btn-small btn-danger" type="button">Đồng bộ từ OCM</button>
+        </p>
+    </div>
+</fieldset>
+<fieldset>
+    <b class="title-ctr">Bài PR</b>
+    <div class="row-fluid">
+        <table id="list-real-pr" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:10%">Web</th>
+                    <th style="width:10%">Chuyên mục</th>
+                    <th style="width:10%">Vị trí</th>
+                    <th style="width:7%">Miền</th>
+                    <th style="width:7%">Ngày lên</th>
+                    <th style="width:7%">SL</th>
+                    <th style="width:7%">Đơn giá</th>
+                    <th style="width:7%">Thành tiền</th>
+                    <th style="width:2%">KM</th>
+                    <th style="width:7%">Ngày XB</th>
+                    <th style="width:10%">Người XB</th>
+                    <th style="width:10%">Ghi chú</th>
+                    <th style="width:5%">
+                        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupRealPR()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.realPR != null && ViewBag.realPR.Count > 0)
+                {
+                    foreach (var item in ViewBag.realPR)
+                    {
+                        <tr class="group-real-pr">
+                            <td>
+                                <input type="hidden" class="item-pk-pr" value="@item.PKPRLocation" />
+                                <input class="input-value-suggess item-web" type="hidden" value="@item.Website" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tên Web")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.WebsiteName)');
+                                </script>
+                                @{glo++;}
+
+
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-category" type="hidden" value="@item.Category" />
+
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập chuyên mục")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.CategoryName)');
+                                </script>
+                                @{glo++;}
+
+
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-location" type="hidden" value="@item.Location" />
+
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập vị trí")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-location-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+                                )
+
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.LocationName)');
+                                </script>
+                                @{glo++;}
+
+
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-region" type="hidden" value="@item.VungMien" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("Name")
+                        .Placeholder("Nhập tên miền")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-region-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 52 })
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectChannelItem");
+                        })
+                                )
+
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.TenVungMien)');
+                                </script>
+                                @{glo++;}
+
+
+                            </td>
+                            <td>
+                                <input onchange="resetRealPR()" class="date-picker item-update" type="text" value="@item.NgayLen.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+
+                            </td>
+                            <td>
+                                <input onchange="resetRealPR()" class="item-qty currency" type="text" value="@item.SoLuong.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+
+                            </td>
+                            <td>
+                                <input onchange="resetRealPR()" class="item-unit-price currency" type="text" value="@item.DonGia.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+
+                            </td>
+                            <td>
+                                <input class="item-total-money" readonly="readonly" type="text" />
+
+                            </td>
+                            <td>
+                                @if (@item.Km == 1)
+                                {
+                                    <input class="item-promotion" type="checkbox" value="1" checked />
+                                }
+                                else
+                                {
+                                    <input class="item-promotion" type="checkbox" value="0" />
+                                }
+                            </td>
+                            <td>
+                                <input class="date-picker item-public-date" type="text" value="@item.PublishDate.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input class="input-value-suggess " type="hidden" value="" />
+                                @(Html.Kendo().AutoComplete()
+                        .Name("txt-real-service-" + glo)
+                        .DataTextField("FullName")
+                        //.Value(Html.Raw(item.FullName))
+                        .Placeholder("Nhập tên nhân viên")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-staff", @onfocus = "setGlobalReal(" + glo + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestEmployer", "CRMContractList")
+                            .Data("onAdditionalDataReal");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectEmployer");
+                        })
+                                )
+                                <script>
+                            $("#txt-real-service-@glo").val('@Html.Raw(item.PublishUser)');
+                                </script>
+                                @{glo++;}
+
+
+                            </td>
+                            <td>
+                                <input class="item-note" type="text" value="@item.GhiChu" />
+
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealPR(this, '@item.PKPRLocation')"><i class="icon-minus"></i></button>
+                                <button data-rel="tooltip" data-placement="top" title="" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRowPR(this)"><i class="icon-book"></i></button>
+                            </td>
+
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="row-fluid">
+        <p align="center">
+            <button onclick="countReal('REAL_PR')" class="btn btn-small btn-default" type="button">Thống kê</button>
+            <button onclick="saveRealPR()" class="btn btn-small btn-success" type="button">Ghi nhận DSQC</button>
+            <button class="btn btn-small btn-danger" type="button">Đồng bộ từ OCM</button>
+        </p>
+    </div>
+</fieldset>
+<ul style="margin-left:40%" class="row-fluid">
+    <li>
+        <b>
+            Tổng DS đã QC đến ngày hôm nay :
+            <span id="sum-revenue-real-now" class="red">0</span>
+        </b>
+    </li>
+    <li>
+        <b>
+            Tổng DS đã xuất bản QC :
+            <span id="sum-revenue-real-all" class="red">0</span>
+        </b>
+    </li>
+</ul>
+
+<script type="text/javascript">
+    var sumRealBannerNow = 0;
+    var sumRealBanner = 0;
+    var sumRealPrNow = 0;
+    var sumRealPr = 0;
+
+    $(document).ready(function () {
+        resetRealBanner();
+        resetRealPR();
+
+    })
+    function allSaveInReal(chk) {
+        var rs1 = saveRealBanner(chk);
+        var rs2 = saveRealPR(chk);
+        if (rs1 && rs2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    var co = parseInt("@glo");
+    var chGlo = 0;
+    function setGlobalReal(k) {
+        chGlo = k;
+    }
+
+    function onAdditionalDataReal() {
+        return {
+            text: $("#txt-real-service-" + chGlo).val()
+        };
+    }
+    function resetAllReal() {
+        resetRealBanner();
+        resetRealPR();
+    }
+    function resetRealBanner() {
+        sumGroupBNNow = 0;
+        sumGroupBN = 0;
+  
+        $("#list-real-service .group-real-service").each(function (index) {
+            resetWeekDay(this);
+            var unitPrice = currencyToNumber($(this).find(".item-unit-price").val());
+            var days = parseInt($(this).find(".item-week-time-hidden").val());
+            var sDate = $(this).find(".item-update").val();
+            if (sDate == "") {
+                return;
+            }
+            //baohv
+            var songaybu = $(this).find(".item-days-time").val();
+            if (songaybu != '') {
+                songaybu = songaybu;
+            }
+            else {
+                songaybu = 0;
+            }
+            var chkKM = $(this).find(".item-promotion").prop('checked');
+            if (chkKM == true) {
+                unitPrice = 0;
+            }
+            sDate1 = new Date(convertDate(sDate));
+            var eDate = $(this).find(".item-downdate").val();
+            if (eDate == "") {
+                return;
+            }
+            eDate1 = new Date(convertDate(eDate));
+            var now = new Date();
+            n = now.getTime();
+            d1 = sDate1.getTime();
+            d2 = eDate1.getTime();
+            days = getDateRange(sDate, eDate);
+            //baoadd
+            days = days - songaybu;
+            if (days < 0) {
+                days = 0;
+            }
+            var sumAll = Math.ceil(unitPrice / 7 * days);
+            if (d1 > n) {
+                days = 0;
+            } else if (d2 > n) {
+                days = getDateRange(sDate, moment().format("DD/MM/YYYY"));
+                eDate = now;
+            }
+            days = days - songaybu;
+            if (days < 0) {
+                days = 0;
+            }
+            var sum = Math.ceil(unitPrice / 7 * days);
+            if (!sum) {
+                sum = 0;
+            }
+            sumGroupBNNow += sum;
+            sumGroupBN += sumAll;
+            $(this).find(".item-total-money").val(numberToCurrency(sum));
+        })
+        sumRealBannerNow = sumGroupBNNow;
+        sumRealBanner = sumGroupBN;
+        $("#sum-revenue-real-now").text(numberToCurrency(sumRealBannerNow + sumRealPrNow));
+        $("#sum-revenue-real-all").text(numberToCurrency(sumRealBanner + sumRealPr));
+    }
+    function resetRealPR() {
+        var sumGroupPr = 0;
+        var sumGroupPrNow = 0;
+
+        $("#list-real-pr .group-real-pr").each(function (index) {
+            var unitPrice = currencyToNumber($(this).find(".item-unit-price").val());
+            var quantity = currencyToNumber($(this).find(".item-qty").val());
+            var upDate = $(this).find(".item-update").val();
+            if (upDate == "") {
+                return;
+            }
+            var upDate = new Date(convertDate(upDate));
+            var d1 = upDate.getTime();
+            var now = new Date();
+            var sumAll = unitPrice * quantity;
+            if(d1 > now.getTime()){
+                sum = 0;
+            } else {
+                sum = unitPrice * quantity;
+            }
+
+            sumGroupPr += sumAll;
+            sumGroupPrNow += sum;
+
+            $(this).find(".item-total-money").val(numberToCurrency(sumAll));
+        });
+        sumRealPrNow = sumGroupPrNow;
+        sumRealPr = sumGroupPr;
+
+        $("#sum-revenue-real-now").text(numberToCurrency(sumRealBannerNow + sumRealPrNow));
+        $("#sum-revenue-real-all").text(numberToCurrency(sumRealBanner + sumRealPr));
+
+    }
+    function plusGroupRealBanner() {
+        $.post(r + "/Ajax/GetInputSuggestService/", {incree: parseInt(co), Type: "REAL_BANNER"}, function (data) {
+            $("#list-real-service tbody").append(data);
+            co = co + 6;
+            addEventAfter();
+        })
+        return;
+    }
+    function minusGroupRealBanner(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("BNREALNORMAL", pk);
+        }
+        resetRealBanner();
+    }
+    function minusGroupRealPR(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("PRREALNORMAL", pk);
+        }
+        resetRealPR();
+    }
+    function saveRealBanner(check) {
+        var arr = [];
+        var loop = true;
+        $("#list-real-service .group-real-service").each(function (index) {
+            var obj = {};
+            obj.pk_update = $(this).find(".item-pk-update").val();
+            obj.fk_contract = $("#formContract").attr("data-contract");
+            obj.c_website = $(this).find("input.item-web").val();
+            if (obj.c_website == "") {
+                alert("Tên Website không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.c_category = $(this).find("input.item-category").val();
+            if (obj.c_category == "") {
+                alert("Tên chuyên mục không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.c_location = $(this).find("input.item-location").val();
+            if (obj.c_location == "") {
+                alert("Tên vị trí không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.c_nature = $(this).find(".item-nature").val();
+            if (obj.c_nature == "") {
+                alert("Tính chất không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.c_size = $(this).find(".item-size").val();
+            if (obj.c_size == "") {
+                alert("Size không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.c_don_gia = currencyToNumber($(this).find(".item-unit-price").val());
+            if (obj.c_don_gia == 0) {               
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrRealUpdate = convertDate($(this).find("input.item-update").val());
+            if (obj.StrRealUpdate == "") {
+                alert("Ngày lên không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrRealDowndate = convertDate($(this).find(".item-downdate").val());
+            if (obj.StrRealDowndate == "") {
+                alert("Ngày xuống không được để trống !");
+                loop = false;
+                return false;
+            }
+            if ($(this).find(".item-promotion").is(":checked")) {
+                obj.c_km = "checked";
+            }
+            obj.c_time = $(this).find(".item-week-time").val();
+            obj.c_ngay_bu = $(this).find(".item-days-time").val();
+            obj.c_note = $(this).find(".item-note").val();
+            obj.c_staff_id = $(this).find(".item-staff-id").val();
+            arr[index] = obj;
+            //console.log(arr);
+          
+        })
+        if (!loop) {
+            return false;
+        }
+        if (arr.length == 0) {
+            alertMessage("Chưa có dữ liệu BN !");
+            return false;
+        }
+        //console.log(arr);
+        if (check) {
+            return loop;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/ContractProductRealBanner_Save",
+            type: 'POST',
+            data: {listTime: arr},
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: "Cập nhật BN thành công",
+                        class_name: 'gritter-success'
+                    });
+                    loop = true;
+                } else {
+                    alertMessage(data.message);
+                    loop = false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage('Lỗi Cập nhật !');
+            }
+        });
+        return loop;
+    }
+    function plusGroupRealPR() {
+        $.post(r + "/Ajax/GetInputSuggestService/", {incree: parseInt(co), Type: "REAL_PR"}, function (data) {
+            $("#list-real-pr tbody").append(data);
+            co = co + 5;
+            addEventAfter();
+        })
+        return;
+    }
+
+    function saveRealPR(check) {
+        var arr = [];
+        var loop = true;
+        $("#list-real-pr .group-real-pr").each(function (index) {
+            var obj = {};
+            obj.PKPRLocation = $(this).find(".item-pk-pr").val();
+            obj.FKContract = $("#formContract").attr("data-contract");
+            obj.Website = $(this).find("input.item-web").val();
+            if (obj.Website == "") {
+                alert("Tên Website không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Category = $(this).find("input.item-category").val();
+            if (obj.Category == "") {
+                alert("Tên chuyên mục không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Location = $(this).find("input.item-location").val();
+            if (obj.Location == "") {
+                alert("Tên vị trí không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.VungMien = $(this).find(".item-region").val();
+            if (obj.VungMien == "") {
+                alert("Miền không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.DonGia = currencyToNumber($(this).find(".item-unit-price").val());
+            if (obj.DonGia == "") {
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.SoLuong = currencyToNumber($(this).find(".item-qty").val());
+            if (obj.SoLuong == "") {
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrRealUpDate = convertDate($(this).find("input.item-update").val());
+            if (obj.StrRealUpDate == "") {
+                alert("Ngày lên không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrPublishDate = convertDate($(this).find(".item-public-date").val());
+            if (obj.StrPublishDate == "") {
+                alert("Ngày Public không được để trống !");
+                loop = false;
+                return false;
+            }
+            if ($(this).find(".item-promotion").is(":checked")) {
+                obj.Km = 1;
+            }
+            obj.GhiChu = $(this).find(".item-note").val();
+            obj.PublishUser = $(this).find("input.item-staff").val();
+
+            arr[index] = obj;
+
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (arr.length == 0) {
+            alertMessage("Chưa có dữ liệu PR !");
+            return false;
+        }
+        if (check) {
+            return loop;
+        }
+        //return;
+        $.ajax({
+            url: r + "/CRMMnContract/ContractProductRealPR_Save",
+            type: 'POST',
+            data: {listTime: arr},
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: "Cập nhật PR thành công",
+                        class_name: 'gritter-success'
+                    });
+                    loop = true;
+                } else {
+                    alertMessage(data.message);
+                    loop = false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage('Lỗi Cập nhật !');
+            }
+        });
+        return loop;
+    }
+    function cloneRow(btn) {
+        var e = $(btn).parents(".group-real-service");
+        var obj = {};
+        obj.c_website = $(e).find("input.item-web").val();
+        obj.c_category = $(e).find("input.item-category").val();
+        obj.c_location = $(e).find("input.item-location").val();
+        obj.c_nature = $(e).find("input.item-nature").val();
+
+        obj.WebsiteName = $(e).find("input.item-web-name").val();
+        obj.Categoryname = $(e).find("input.item-category-name").val();
+        obj.LocationName = $(e).find("input.item-location-name").val();
+        obj.NatureName = $(e).find("input.item-nature-name").val();
+        obj.EmployerName = $(e).find("input.txt-name-employer").val();
+
+        obj.c_size = $(e).find(".item-size").val();
+        obj.c_don_gia = currencyToNumber($(e).find(".item-unit-price").val());
+        obj.StrRealUpdate = $(e).find("input.item-update").val();
+        obj.StrRealDowndate = $(e).find(".item-downdate").val();
+        if ($(e).find(".item-promotion").is(":checked")) {
+            obj.c_km = "checked";
+        }
+        obj.c_time = $(e).find(".item-week-time").val();
+        obj.c_ngay_bu = $(e).find(".item-days-time").val();
+        obj.c_note = $(e).find(".item-note").val();
+        obj.c_staff_id = $(e).find(".item-staff-id").val();
+        console.log(obj);
+        // return;
+        $.ajax({
+            url: r + "/Ajax/CloneServiceRealNM",
+            type: 'POST',
+            data: {incree: parseInt(co), row: obj},
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                $("#list-real-service").append(data);
+                co = co + 6;
+                addEventAfter();
+                resetRealBanner();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function cloneRowPR(btn) {
+        var e = $(btn).parents(".group-real-pr");
+        var obj = {};
+        obj.Website = $(e).find("input.item-web").val();
+        obj.Category = $(e).find("input.item-category").val();
+        obj.Location = $(e).find("input.item-location").val();
+        obj.VungMien = $(e).find(".item-region").val();
+
+        obj.WebsiteName = $(e).find("input.item-web-name").val();
+        obj.Categoryname = $(e).find("input.item-category-name").val();
+        obj.LocationName = $(e).find("input.item-location-name").val();
+        obj.TenVungMien = $(e).find("input.item-region-name").val();
+        obj.PublishUser = $(e).find("input.item-staff").val();
+
+        obj.DonGia = currencyToNumber($(e).find(".item-unit-price").val());
+        obj.SoLuong = currencyToNumber($(e).find(".item-qty").val());
+        obj.StrRealUpDate = $(e).find("input.item-update").val();
+        obj.StrPublishDate = $(e).find(".item-public-date").val();
+        if ($(e).find(".item-promotion").is(":checked")) {
+            obj.Km = 1;
+        }
+        obj.GhiChu = $(e).find(".item-note").val();
+        obj.PublishUser = $(e).find("input.item-staff").val();
+        console.log(obj);
+        // return;
+        $.ajax({
+            url: r + "/Ajax/CloneServiceRealNMPR",
+            type: 'POST',
+            data: {incree: parseInt(co), row: obj},
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                $("#list-real-pr").append(data);
+                co = co + 5;
+                addEventAfter();
+                resetRealPR();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function countReal(type) {
+        $("#popup-count-real").modal('show');
+        $.post(r + "/Ajax/GetRealCount/", { Type: type, FKContract: $("#formContract").attr("data-contract") }, function (data) {
+            $("#popup-count-real .modal-body").html(data);
+        })
+    }
+    function detailReal(type,w, c, l, n) {
+        $("#popup-detail-real").modal('show');
+        $.post(r + "/Ajax/GetRealDetail/", { Type: type, FKContract: $("#formContract").attr("data-contract"),Web: w,Cat: c,Lot: l,Nat: n }, function (data) {
+            $("#popup-detail-real .modal-body").html(data);
+        })
+    }
+</script>

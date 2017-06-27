@@ -1,0 +1,123 @@
+﻿<div id="myModalImport" class="modal fade" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="javascript:;" class="close" data-dismiss="modal" aria-hidden="true"></a>
+                <h4 class="modal-title">Import file</h4>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Import", "Merchant_StockIn", FormMethod.Post, new { @class = "form-horizontal", id = "import-san-pham", enctype = "multipart/form-data", novalidate = "novalidate" }))
+                {
+                    <div>
+                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                            <div class="input-group input-large">
+                                <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                    <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                    <span class="fileinput-filename"> </span>
+                                </div>
+                                <span class="input-group-addon btn default btn-file">
+                                    <span class="fileinput-new"> Chọn file </span>
+                                    <span class="fileinput-exists"> Thay đổi </span>
+                                    <input type="hidden"><input type="file" name="FileUpload">
+                                </span>
+                                <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Xóa </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn grey-salsa btn-outline" data-dismiss="modal">Close</a>
+                <a href="javascript:;" class="btn green" onclick="ImportFile()">
+                    <i class="fa fa-check"></i> Import
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var r_temp = '@Url.Content("~/")';
+    r_temp = r_temp.substring(0, r_temp.length - 1);
+
+    function ImportFile() {
+        $('#import-san-pham').submit();
+    }
+
+    function show_popup_import() {
+        $('#myModalImport').modal('show');
+    }
+
+    function getDataBeforeSubmit() {
+        var obj = new Object();
+
+        obj.ma_phieu_nhap_kho = $('input[name=ma_phieu_nhap_kho]').val();
+        obj.ma_gian_hang = $('input[name=ma_gian_hang]').val();
+        obj.ma_don_hang = $('input[name=ma_don_hang]').val();
+        obj.nguoi_giao = $('input[name=nguoi_giao]').val();
+        //obj.ngay_nhap_kho = $('input[name=ngay_nhap_kho]').val();
+        obj.ma_kho = $('input[name=ma_kho]').val();
+        obj.dia_diem = $('input[name=dia_diem]').val();
+        obj.thu_kho = $('input[name=thu_kho]').val();
+
+        return obj;
+    }
+
+    $("#import-san-pham").validate({
+       
+         // Rules for form validation
+        submitHandler: function (form) {
+            var formData = new FormData($("#import-san-pham")[0]);
+            var url = $("#import-san-pham")[0].action;
+            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+
+            //$.post(url, $('#import-san-pham').serialize(), function (data) {
+            //    if (data.success) {
+            //        $("#listView").data("kendoListView").dataSource.read();
+            //        toastr.success('Thành công', 'Đã import thành công:' + data.total + ' dòng', '<br> Lỗi:' + data.totalError);
+            //        $('#myModalImport').modal('toggle');
+            //        if (data.totalError > 0) {
+            //            window.open(r + "/ExcelImport/" + data.link, "_blank");
+            //        }
+            //    } else {
+            //        toastr.error('', data.message);
+            //        $('#myModalImport').show('hide');
+            //    }
+            //    App.unblockUI();
+            //});
+
+            var dataForm = getDataBeforeSubmit();//lay data tu form
+            var dataGrid = getDataFromGrid();// lay data tu grid
+            $("#import-san-pham").ajaxSubmit({
+                data: { data: dataForm, details: dataGrid },
+                dataType: "json",
+                beforeSend: function () {
+                    App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                },
+                success: function (data) {
+                    debugger
+                    if (data.success) {
+                        toastr.error('Thất bại', 'Import Lỗi:' + data.totalError + ' dòng');
+                        toastr.success('Thành công', 'Đã import thành công:' + data.total + ' dòng');
+                        
+                        $('#myModalImport').modal('toggle');
+                        if (data.totalError > 0) {
+                            window.open(r + "/ExcelImport/" + data.link, "_blank");
+                        }
+                        //loadForm(data.data);
+                        //$("#StockInGrid").data("kendoGrid").dataSource.read();
+                        //window.location = r_temp + "/Merchant_StockIn/Detail/?ma_phieu_nhap_kho=" + data.data.ma_phieu_nhap_kho;
+                        if (window.location.toString().includes("/Merchant_StockIn/Create"))
+                            window.location = r_temp + "/Merchant_StockIn/Detail/?ma_phieu_nhap_kho=" + data.data.ma_phieu_nhap_kho;
+                    } else {
+                        toastr.error('', data.message);
+                        $('#myModalImport').show('hide');
+                    }
+                },
+                complete: function (xhr) {
+                    App.unblockUI();
+                }
+            });
+        }
+    });
+</script>

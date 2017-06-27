@@ -1,0 +1,438 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using MCC.Controllers;
+using MCC.Filters;
+using MCC.Helpers;
+using Kendo.Mvc.Extensions;
+using System.Text.RegularExpressions;
+using System.Text;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class Merchant_WarehouseController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = dbConn.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = dbConn.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                    ViewBag.isAdmin = isAdmin;
+                    return View();
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ExWareHouseManagerment()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    if (isAdmin)
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>();
+                    else
+                        ViewBag.ds_san_pham = db.Select<Merchant_Product>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    ViewBag.ds_vi_tri = db.Select<Merchant_LocationWarehouse>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    ViewBag.units = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'UnitProduct' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                    return View();
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult StockIn()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    return View();
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+            using (IDbConnection dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new DataSourceResult();
+                if (isAdmin == true)
+                {
+                    data = KendoApplyFilter.KendoData<Merchant_Warehouse>(request);
+                }
+                else
+                {
+                    data = KendoApplyFilter.KendoData<Merchant_Warehouse>(request, " ma_gian_hang={0} ".Params(currentUser.ma_gian_hang));
+                }
+                return Json(data);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult CreateUpdate(Merchant_Warehouse data)
+        {
+            try
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    if (data.id > 0)
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                        {
+                            var exist_ma_kho = dbConn.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_Warehouse WHERE ma_kho = '" + data.ma_kho + "' AND id <>" + data.id);
+                            if (exist_ma_kho)
+                            {
+                                return Json(new { success = false, error = "Mã kho đã tồn tại" });
+                            }
+                            var exist_ten_kho = dbConn.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_Warehouse WHERE ten_kho = '" + data.ten_kho + "' AND id <>" + data.id);
+                            if (exist_ten_kho)
+                            {
+                                return Json(new { success = false, error = "Tên kho đã tồn tại" });
+                            }
+                            data.ngay_cap_nhat = DateTime.Now;
+                            data.nguoi_cap_nhat = User.Identity.Name;
+                            dbConn.UpdateOnly(data,
+                                    onlyFields: p =>
+                                        new
+                                        {
+                                            p.ma_kho,
+                                            p.ten_kho,
+                                            p.dia_chi,
+                                            p.phone,
+                                            p.fax,
+                                            p.email,
+                                            p.thu_kho,
+                                            p.ghi_chu,
+                                            p.trang_thai,
+                                            p.ngay_cap_nhat,
+                                            p.nguoi_cap_nhat
+                                        },
+                                where: p => p.id == data.id);
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Không có quyền chỉnh sửa" });
+                        }
+                    }
+                    else
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]))
+                        {
+                            var exist_ma_kho = dbConn.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_Warehouse WHERE ma_kho = '" + data.ma_kho + "'");
+                            if (exist_ma_kho)
+                            {
+                                return Json(new { success = false, error = "Mã kho đã tồn tại" });
+                            }
+                            var exist_ten_kho = dbConn.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_Warehouse WHERE ten_kho = '" + data.ten_kho + "'");
+                            if (exist_ten_kho)
+                            {
+                                return Json(new { success = false, error = "Tên kho đã tồn tại" });
+                            }
+                            data.ngay_tao = DateTime.Now;
+                            data.nguoi_tao = User.Identity.Name;
+                            data.ma_gian_hang = currentUser.ma_gian_hang;
+                            dbConn.Insert(data);
+                            int Id = (int)dbConn.GetLastInsertId();
+                            data.id = Id;
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Không có quyền tạo" });
+                        }
+                    }
+                }
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, error = e.Message });
+            }
+        }
+        public ActionResult deleteWarehouse(int id, string ma_kho)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["delete"]))
+            {
+                try
+                {
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        dbConn.Delete<Merchant_Warehouse>("id={0}", id);
+                        return Json(new { success = true });
+                    }
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Không có quyền xóa" });
+            }
+        }
+
+        public ActionResult MerchantStock()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = new List<Merchant_Warehouse>();
+                    if (isAdmin)
+                        data = db.Select<Merchant_Warehouse>();
+                    else
+                        data = db.Select<Merchant_Warehouse>("ma_gian_hang = {0}", currentUser.ma_gian_hang);
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ReadStockIn([DataSourceRequest]DataSourceRequest request)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = KendoApplyFilter.KendoDataByQuery<Merchant_Stock_ViewModel>(request, @"select * from (
+                                                                    select 
+	                                                                    a.ma_phieu_nhap_kho as ma_phieu, 
+	                                                                    ISNULL(b.ten_kho,'') as ten_kho, 
+                                                                        ISNULL(b.ma_kho,'') as ma_kho, 
+	                                                                    a.ma_don_hang, 
+	                                                                    a.ngay_nhap_kho as ngay_nhap_xuat,
+	                                                                    a.thu_kho, 
+	                                                                    a.nguoi_giao as nguoi_giao_nhan,
+	                                                                    a.nguoi_kiem_tra,
+	                                                                    a.ngay_tao,
+	                                                                    a.nguoi_tao, 
+	                                                                    a.dia_diem,
+	                                                                    a.trang_thai, 
+                                                                        a.ghi_chu,  	 	
+	                                                                    'GRN' as loai_phieu from Merchant_StockInHeader a left join Merchant_WareHouse b
+                                                                    on a.ma_kho = b.ma_kho
+                                                                        where a.ma_gian_hang = {0}
+                                                                    union all
+                                                                    select 
+	                                                                    a.ma_phieu_xuat_kho as ma_phieu, 
+	                                                                    ISNULL(b.ten_kho,'') as ten_kho, 
+                                                                        ISNULL(b.ma_kho,'') as ma_kho, 
+	                                                                    a.ma_don_hang, 
+	                                                                    a.ngay_xuat_kho as ngay_nhap_xuat,
+	                                                                    a.thu_kho, 
+	                                                                    a.nguoi_nhan as nguoi_giao_nhan,
+	                                                                    a.nguoi_xuat as nguoi_kiem_tra,
+	                                                                    a.ngay_tao,
+	                                                                    a.nguoi_tao,
+                                                                        a.dia_diem, 	
+	                                                                    a.trang_thai, 
+                                                                        a.ghi_chu,  	 	
+	                                                                    'GDN' as loai_phieu from Merchant_StockOutHeader a left join Merchant_WareHouse b
+                                                                    on a.ma_kho = b.ma_kho
+                                                                        where a.ma_gian_hang = {0}
+                                                                    ) as u
+                                                                    ".Params(currentUser.ma_gian_hang), "");
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult deleteLocation(int id)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["delete"]))
+            {
+                try
+                {
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        dbConn.Delete<Merchant_LocationWarehouse>("id={0}", id);
+                        return Json(new { success = true });
+                    }
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Don't have permission to delete" });
+            }
+        }
+        public ActionResult CreateUpdateLocation(Merchant_LocationWarehouse data, string ma_kho, string ten_kho)
+        {
+            try
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    if (data.id > 0)
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                        {
+                            var exist_ten_vi_tri = dbConn.Scalar<bool>("SELECT TOP 1 1 FROM Merchant_LocationWarehouse WHERE ten_vi_tri = '" + data.ten_vi_tri + "' AND id <>" + data.id);
+                            if (exist_ten_vi_tri)
+                            {
+                                return Json(new { success = false, error = "Tên vị trí kho đã tồn tại" });
+                            }
+                            var exist = dbConn.SingleOrDefault<Merchant_LocationWarehouse>("id={0}", data.id);
+                            dbConn.UpdateOnly(data,
+                                    onlyFields: p =>
+                                        new
+                                        {
+                                            p.ten_vi_tri,
+                                            p.mo_ta,
+                                            p.trang_thai
+                                        },
+                                where: p => p.id == data.id);
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Don't have permission to update" });
+                        }
+                    }
+                    else
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                        {
+                            var exist_ten_vi_tri = dbConn.Scalar<bool>(@"SELECT TOP 1 1 FROM Merchant_LocationWarehouse 
+                                                                        WHERE ten_vi_tri = {0} AND ma_kho = {1} AND ma_gian_hang = {2} ".Params(data.ten_vi_tri, ma_kho, currentUser.ma_gian_hang));
+                            if (exist_ten_vi_tri)
+                            {
+                                return Json(new { success = false, error = "Tên vị trí kho đã tồn tại" });
+                            }
+                            data.ma_gian_hang = currentUser.ma_gian_hang;
+                            data.ma_kho = ma_kho;
+                            data.ten_kho = ten_kho;
+                            dbConn.Insert(data);
+                            int Id = (int)dbConn.GetLastInsertId();
+                            data.id = Id;
+                        }
+                        else
+                        {
+
+                            return Json(new { success = false, error = "Don't have permission to create" });
+                        }
+                    }
+                }
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, error = e.Message });
+            }
+        }
+        public ActionResult ReadWarehouseLocation([DataSourceRequest]DataSourceRequest request, string ma_kho)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<Merchant_LocationWarehouse>();
+                if (isAdmin)
+                    data = dbConn.Select<Merchant_LocationWarehouse>("ma_kho = {0}", ma_kho);
+                else
+                    data = dbConn.Select<Merchant_LocationWarehouse>("ma_gian_hang ={0} and ma_kho = {1}", currentUser.ma_gian_hang, ma_kho);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult ReadLocation([DataSourceRequest]DataSourceRequest request, string ma_kho)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+
+                var data = new DataSourceResult();
+                data = KendoApplyFilter.KendoData<Merchant_LocationWarehouse>(request, "ma_gian_hang={0} and ma_kho={1}".Params(currentUser.ma_gian_hang, ma_kho));
+                return Json(data);
+            }
+        }
+        public ActionResult Active(string data)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                try
+                {
+                    string[] separators = { "," };
+                    string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    if (ids.Length == 0)
+                    {
+                        return Json(new { success = false, message = "Chọn các kho cần kích hoạt!" });
+                    }
+
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        foreach (var id in ids)
+                        {
+                            var exists = dbConn.FirstOrDefault<Merchant_Warehouse>("ma_kho={0}".Params(id));
+                            dbConn.UpdateOnly(new Merchant_Warehouse { trang_thai = exists.trang_thai == AllConstant.trang_thai.DANG_SU_DUNG ? AllConstant.trang_thai.KHONG_SU_DUNG : AllConstant.trang_thai.DANG_SU_DUNG }, onlyFields: p => p.trang_thai, where: p => p.ma_kho == (id));
+                        }
+                    }
+                    return Json(new { success = true, message = "Thành công!" });
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền thực hiên chức năng này!" });
+            }
+        }
+        public ActionResult Delete(string data)
+        {
+            if (isAdmin && accessDetail != null && (accessDetail.access["all"] || accessDetail.access["delete"]))
+            {
+
+                string[] separators = { "," };
+                string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (ids.Length == 0)
+                {
+                    return Json(new { success = false, message = "Chọn kho cần xóa!" });
+                }
+                string st = new BIBIAM.Core.Data.DataObject.Merchant_Warehouse_DAO().Delete(ids, AppConfigs.MCCConnectionString);
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công!" });
+                else
+                    ModelState.AddModelError("", st);
+            }
+            return Json(new { success = false, message = "Xóa không thành công! " });
+        }
+        public ActionResult ReadDetailLocation([DataSourceRequest]DataSourceRequest request, string ma_kho, string ten_vi_tri)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+
+                //var data = new DataSourceResult();
+                //data = KendoApplyFilter.KendoData<Merchant_DetailLocation>(request, "ma_gian_hang={0} and ma_kho={1} and ten_vi_tri={2}".Params(currentUser.ma_gian_hang, ma_kho, ten_vi_tri));
+                //return Json(data);
+
+                if (isAdmin)
+                    return Json(dbConn.Select<Merchant_DetailLocation>(s => s.ma_kho == ma_kho && s.ten_vi_tri == ten_vi_tri).ToDataSourceResult(request));
+                else
+                    return Json(dbConn.Select<Merchant_DetailLocation>(s => s.ma_gian_hang == currentUser.ma_gian_hang && s.ma_kho == ma_kho && s.ten_vi_tri == ten_vi_tri).ToDataSourceResult(request));
+            }
+        }
+    }
+}

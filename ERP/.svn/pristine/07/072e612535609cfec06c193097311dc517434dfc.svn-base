@@ -1,0 +1,1 @@
+ALTER TABLE cms_Schedule_News DROP COLUMN gio_xuat_ban

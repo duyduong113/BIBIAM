@@ -1,0 +1,15 @@
+﻿@*@model int*@
+@model IEnumerable<ERPAPD.Models.DC_Company_Branch>
+@(Html.Kendo().DropDownListFor(m => m)
+                  .AutoBind(false)
+                  .OptionLabel("Chọn...")
+                    .DataTextField("BranchName")
+                    .DataValueField("BranchID")
+                  .DataSource(dataSource =>
+                  {
+                      dataSource.Read(read => read.Action("GetBranch", "Company").Data("filterBranch"))
+                     .ServerFiltering(true);
+                  })
+                 .CascadeFrom("CompanyID")
+)
+@Html.ValidationMessageFor(m => m)

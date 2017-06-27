@@ -1,0 +1,162 @@
+﻿@model CMS.Models.RegisterViewModel
+@{
+    ViewBag.Title = "Register";
+    Layout = null;
+}
+
+<html lang="en">
+<!--<![endif]-->
+<!-- BEGIN HEAD -->
+<head>
+    <meta charset="utf-8" />
+    <title>@Html.Raw(Resources.Global._brandName) | @ViewBag.Title</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="" name="description" />
+    <meta content="" name="author" />
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&amp;subset=all" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/font-awesome/css/font-awesome.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/simple-line-icons/simple-line-icons.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/bootstrap/css/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/uniform/css/uniform.default.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <link href="@Url.Content("~/Content/assets/global/plugins/select2/css/select2.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/plugins/select2/css/select2-bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL PLUGINS -->
+    <!-- BEGIN THEME GLOBAL STYLES -->
+    <link href="@Url.Content("~/Content/assets/global/css/components.min.css")" rel="stylesheet" id="style_components" type="text/css" />
+    <link href="@Url.Content("~/Content/assets/global/css/plugins.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END THEME GLOBAL STYLES -->
+    <!-- BEGIN PAGE LEVEL STYLES -->
+    <link href="@Url.Content("~/Content/assets/pages/css/login-3.min.css")" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL STYLES -->
+    <!-- BEGIN THEME LAYOUT STYLES -->
+    <!-- END THEME LAYOUT STYLES -->
+    <link rel="shortcut icon" href="favicon.ico" />
+</head>
+<!-- END HEAD -->
+<body class="login">
+    <!-- BEGIN LOGIN -->
+    <div class="content">
+        <!-- BEGIN LOGIN FORM -->
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "login-form", role = "form" }))
+        {
+            <div class="logo">
+                <a href="@Url.Content("~/")">
+                    <img src="@Url.Content("~/Content/images/logo2.png")" alt="" />
+                </a>
+            </div>
+            @Html.AntiForgeryToken()
+            <h3 class="form-title">Sign up an account now!</h3>
+            @Html.ValidationSummary(true, "", new { @class = "help-block" })
+            <div class="form-group">
+                @Html.LabelFor(m => m.UserName, "Username", new { @class = "" })
+                <div class="input-icon">
+                    <i class="fa fa-circle-thin"></i>
+                    @Html.TextBoxFor(m => m.UserName, new { @class = "form-control form-control-solid placeholder-no-fix", placeholder = "john.nguyen" })
+                </div>
+                @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "help-block" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Password, new { @class = "" })
+                <div class="input-icon">
+                    <i class="fa fa-eye-slash"></i>
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control placeholder-no-fix" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.FullName, "FullName", new { @class = "" })
+                <div class="input-icon">
+                    <i class="icon-user"></i>
+                    @Html.TextBoxFor(m => m.FullName, new { @class = "form-control placeholder-no-fix", placeholder = "John Nguyen" })
+                </div>
+
+                @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "help-block" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.PhoneNumber, "Phone number", new { @class = "" })
+                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control placeholder-no-fix", placeholder = "0909xxxxxx" })
+                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "help-block" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Email, "Email", new { @class = "" })
+                <div class="input-icon">
+                    <i class="fa fa-at"></i>
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control placeholder-no-fix", placeholder = "youremail@domain.com" })
+                </div>
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "help-block" })
+            </div>
+            <div class="form-actions">
+                <a class="btn btn-block" href="@Url.Content("~/")">Go back</a>
+                <button type="submit" class="btn red btn-block uppercase">Register</button>
+            </div>
+        }
+        @Html.Partial("AndroidIOS")
+        @{
+            var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant();
+        }
+
+        @using (Html.BeginForm("SetCulture", "Home", FormMethod.Post, new { id = "cultureForm", @style = "display:none;" }))
+        {
+            if (culture == "vi")
+            {
+                <input name="culture" value="en-us" type="text" />
+            }
+            else
+            {
+                <input name="culture" value="vi" type="text" />
+            }
+        }
+
+        @if (culture == "vi")
+        {
+            <div class="text-left" style="margin-top:20px;">
+                <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 300;">
+                    <i class="fa fa-globe"></i> English
+                </a> | @Html.Raw(Resources.Global._copyright)
+            </div>
+        }
+        else
+        {
+            <div class="text-left" style="margin-top:20px;">
+                <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 300; ">
+                    <i class="fa fa-globe"></i> Tiếng Việt
+                </a> | @Html.Raw(Resources.Global._copyright)
+            </div>
+        }
+    </div>
+    <!-- END LOGIN -->
+    <!--[if lt IE 9]>
+    <script src="@Url.Content("~/Content/assets/global/plugins/respond.min.js")"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/excanvas.min.js")"></script>
+    <![endif]-->
+    <!-- BEGIN CORE PLUGINS -->
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap/js/bootstrap.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/js.cookie.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery.blockui.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/uniform/jquery.uniform.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js")" type="text/javascript"></script>
+    <!-- END CORE PLUGINS -->
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/jquery-validation/js/additional-methods.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/assets/global/plugins/select2/js/select2.full.min.js")" type="text/javascript"></script>
+    <!-- END PAGE LEVEL PLUGINS -->
+    <!-- BEGIN THEME GLOBAL SCRIPTS -->
+    <script src="@Url.Content("~/Content/assets/global/scripts/app.min.js")" type="text/javascript"></script>
+    <!-- END THEME GLOBAL SCRIPTS -->
+    <!-- BEGIN PAGE LEVEL SCRIPTS -->
+    <script src="@Url.Content("~/Content/assets/pages/scripts/login.min.js")" type="text/javascript"></script>
+    <!-- END PAGE LEVEL SCRIPTS -->
+    <!-- BEGIN THEME LAYOUT SCRIPTS -->
+    <!-- END THEME LAYOUT SCRIPTS -->
+</body>
+</html>
+
+

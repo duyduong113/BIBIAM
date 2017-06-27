@@ -1,0 +1,388 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_Telesales_PromotionInfo>
+@{
+    ViewBag.Title = "Quản lý thông tin khuyến mãi";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div id="newlistICareID" style="display: inline-block;">
+            <input type="text" id="txtTitle" name="txtTitle" placeholder="Tìm theo tiêu đề, nội dung..." style="width: 350px;" />
+            <select name="select" id="ActiveDocument" class='chosen-select span2' style="width:250px;" multiple data-placeholder="Chọn trạng thái...">
+                <option value="true" selected>Active</option>
+                <option value="false">Inactive</option>
+            </select>
+            <select name="select" id="UserID" class='chosen-select span2' style="width:250px;" multiple data-placeholder="Chọn người tạo...">
+                <option value="">All</option>
+                @foreach (var item in ViewBag.User)
+                {
+                    <option value="@item.UserName">@item.UserName</option>
+                }
+            </select>
+        </div>
+        <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none" onclick="filter()">Lọc dữ liệu</button>
+
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+              .Grid(Model)
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#'  />").Width(30).Filterable(false).Sortable(false);
+                  columns.Bound(p => p.ID).HeaderTemplate("").HtmlAttributes(new { cid = "#=ID#" }).ClientTemplate("<button type='button' class='btn btn-info btn-mini' style='display:inline-block;' onclick ='Edit(#=ID#)' >Chỉnh sửa</button>").Title("").Width(90);
+                  columns.Bound(p => p.Title).Title("Tiêu đề").Width(200);
+                  columns.Bound(p => p.AppliedForCompanies).Title("Áp dụng cho").ClientTemplate("#=getTextByValue(data)#").Width(200);
+                  columns.Bound(p => p.StartDate).Title("Ngày bắt đầu").Width(100).Format("{0:dd/MM/yyyy}").ClientTemplate("#if(kendo.toString(StartDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(StartDate,'dd/MM/yyyy') #" + "#}#");
+                  columns.Bound(p => p.EndDate).Title("Ngày kết thúc").Width(100).Format("{0:dd/MM/yyyy}").ClientTemplate("#if(kendo.toString(EndDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(EndDate,'dd/MM/yyyy') #" + "#}#");
+                  columns.Bound(p => p.IsAll).Title("Áp dụng tất cả").Width(80);
+                  columns.Bound(p => p.CreatedBy).Title("Tạo bởi").Width(100);
+                  columns.Bound(p => p.CreatedAt).Title("Tạo lúc").Width(100).Format("{0:dd/MM/yyyy}");
+                  columns.Bound(p => p.UpdatedBy).Title("Cập nhật bởi").Width(100);
+                  columns.Bound(p => p.UpdatedAt).Width(100).Format("{0:dd/MM/yyyy}").Title("Cập nhật lúc").ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(UpdatedAt,'dd/MM/yyyy') #" + "#}#");
+
+                  //columns.Command(command => { command.Custom("Edit").Click("Edit").HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") }); command.Custom("ViewDetails").Click("showDetails"); }).Width(100);
+              })
+              .Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .Navigatable()
+              .Events(events => { events.DataBound("dataBound"); })
+              .ToolBar(toolbar =>
+              {
+                  toolbar.Custom()
+                         .Text("Tạo mới")
+                         .HtmlAttributes(new { id = "btnCreate", @class = "btn btn-success", @style = "display:" + (AllowCreate ? "inline-block" : "none"), @Href = "javascript:void(0)" });
+                  toolbar.Custom()
+
+                       .Text("Ngưng hoạt động")
+                       .HtmlAttributes(new { @id = "btnActivebrary", @class = "btn btn-warning", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), @Href = "javascript:InactiveDocument()" });
+
+                  toolbar.Custom()
+                         .Text("Xóa bỏ")
+                         .HtmlAttributes(new { id = "btnDelete", @class = "btn btn-danger", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:void(0)" });
+                  //toolbar.Custom()
+                  //       .Text("Add New +")
+                  //       .HtmlAttributes(new { id = "btnCreate", @style = "background-color:#2BB65D;color:white;display:" + (AllowCreate ? "inline-block" : "none"), @Href = "javascript:void(0)" });
+                  //toolbar.Custom()
+
+                  //     .Text("Inactive")
+                  //     .HtmlAttributes(new { @id = "btnActivebrary", @style = "background-color:#abbac3;color:white;display:" + (AllowUpdate ? "inline-block" : "none"), @Href = "javascript:InactiveDocument()" });
+
+                  //toolbar.Custom()
+                  //       .Text("Delete -")
+                  //       .HtmlAttributes(new { id = "btnDelete", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:void(0)" });
+              })
+                .Navigatable()
+                .Sortable()
+                .Scrollable(scrollable => scrollable.Virtual(false))
+                .Sortable()
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource
+                .Ajax()
+                .Filter(f => { f.Add(a => a.IsActive).IsEqualTo(true); })
+                .PageSize(100)
+                .Read("DailyNew_Read", "TelesalesPromotionInfo"))
+        )
+        @(Html.Kendo()
+              .Window()
+              .Name("Details")
+              .Title("PostContent")
+              .Visible(false)
+              .Modal(true)
+              .Draggable(true)
+              .Width(800)
+        )
+        <script type="text/x-kendo-template" id="template">
+            <div><h3>#=Title#</h3></div>
+            <div>#=Content#</div>
+        </script>
+
+        <script type="text/javascript">
+            var detailsTemplate = kendo.template($("#template").html());
+
+            function showDetails(e) {
+                e.preventDefault();
+
+                var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                var wnd = $("#Details").data("kendoWindow");
+
+                wnd.content(detailsTemplate(dataItem));
+                wnd.center().open();
+            }
+        </script>
+    </div>
+</div>
+
+<script>
+    function getTextByValue(data) {
+        if (data.AppliedForCompanies != null && typeof data.AppliedForCompanies != "undefined") {
+            var result = "";
+            for (var i = 0; i < data.AppliedForCompanies.length; i++) {
+                result += data.AppliedForCompanies[i] + "; "
+            }
+            if (result.length > 0)
+                result = result.substring(0, result.length - 2);
+            return result;
+        }
+        else
+            return "";
+
+    }
+    function filter() {
+        $.post(r + "/Account/checkUser", function (data) {
+            if (data.success) {
+            }
+            else {
+                window.location.reload();
+            }
+        });
+        grid = $("#Grid").data("kendoGrid");
+        var ActiveDocument = $("#ActiveDocument option:selected");
+        var ActiveUser = $("#UserID option:selected");
+        var department = $("#txtTitle").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterActiveDocument = { logic: "or", filters: [] };
+        var filterActiveUser = { logic: "or", filters: [] };
+        var filterlistDescription = { logic: "or", filters: [] };
+        if (ActiveUser.length > 0) {
+            for (var i = 0; i < ActiveUser.length; i++) {
+                var option = ActiveUser[i].value;
+                if (option == "") {
+                    filterActiveUser.filters.push({ field: "RowCreatedUser", operator: "contains", value: "" });
+                }
+                filterActiveUser.filters.push({ field: "RowCreatedUser", operator: "eq", value: option });
+                //filterActiveDocument.filters.push({ field: "Active", operator: "contains", value: option });
+            }
+            filter.filters.push(filterActiveUser);
+        }
+        if (ActiveDocument.length > 0) {
+            for (var i = 0; i < ActiveDocument.length; i++) {
+                var option = ActiveDocument[i].value;
+                if (option == "") {
+                    filterActiveDocument.filters.push({ field: "Status", operator: "contains", value: "" });
+                }
+                filterActiveDocument.filters.push({ field: "Status", operator: "eq", value: option });
+                //filterActiveDocument.filters.push({ field: "Active", operator: "contains", value: option });
+            }
+            filter.filters.push(filterActiveDocument);
+        }
+        if (department) {
+            filterlistDescription.filters.push({ field: "Title", operator: "contains", value: department });
+            filterlistDescription.filters.push({ field: "Description", operator: "contains", value: department });
+            filter.filters.push(filterlistDescription);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $("#ActiveDocument, #UserID").chosen();
+    $(document.body).keydown(function (e) {
+        var Description = $("#ActiveDocument option:selected");
+        var PartnerType = $("#UserID option:selected");
+        var txtTitle = $("#txtTitle").val();
+        if (Description.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+        if (PartnerType.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+        if (txtTitle.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+    });
+    function InactiveDocument() {
+        var listrowid = "";
+        $("#Grid").find(".checkrowid").each(function () {
+            if ($(this).prop("checked") == true) {
+                listrowid += $(this).attr("id") + "@@@@";
+            }
+        });
+
+        if (listrowid != null && listrowid != "") {
+            var c = confirm("Are you sure you want to Inactive this record");
+            if (c == true) {
+                $.post(r + "/TelesalesPromotionInfo/Inactive", { data: listrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: 'Inactive successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $('#Grid').data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $('#Grid').data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    $('#btnCreate').bind('click', function () {
+        window.location = '@Url.Action("Create", "TelesalesPromotionInfo")';
+    });
+
+    function Edit(Id) {
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location = '@Url.Action("Edit", "TelesalesPromotionInfo")/' + Id;
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+    function dataBound() {
+        resizeGrid();
+        //load selected
+        var gridDataSource = $("#Grid").data("kendoGrid").dataSource;
+        var $Grid = $("#Grid");
+
+        $('#Grid').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-KendoGrid-rowid', data_entry.ArticleId);
+        });
+
+        //Mark any selected rows as selected (persists selections from page to page)
+        var selectedRowIds = $Grid.attr('data-KendoGrid-selected');
+        if (selectedRowIds != null) {
+            var selectedRowIdArray = selectedRowIds.split(',');
+            var visibleRows = $Grid.find('.kendo-data-row');
+            $(visibleRows).each(function () {
+                $row = $(this);
+                var rowID = $row.attr('data-KendoGrid-rowid');
+                if (_.contains(selectedRowIdArray, rowID)) {
+                    //$row.addClass('k-state-selected');
+                    $row.find('.checkItem').attr('checked', 'checked');
+                }
+            });
+            var totalview = $("#Grid").data("kendoGrid").dataSource.view().length;
+            var totalchecked = $('.checkItem:checked').length;
+            if (totalview != totalchecked) {
+                $('#checkAll').removeAttr("checked");
+            }
+            else {
+                $('#checkAll').attr("checked", "checked");
+            }
+        }
+    }
+
+    function onChange(e) {
+
+    }
+
+    function readData(e) {
+        var $Grid = $("#Grid");
+        var $cb = $(e);
+
+        //Get Current Selected Values
+        var selectedVals = [];
+        var selectedRowIds = $Grid.attr('data-KendoGrid-selected');
+        if (selectedRowIds != null && selectedRowIds != "") {
+            selectedVals = selectedRowIds.split(',');
+        }
+
+        var $row = $cb.parents('.kendo-data-row').first();
+        var rowId = $row.attr('data-KendoGrid-rowid');
+        if ($cb.is(':checked')) {
+            //$row.addClass('k-state-selected');
+            selectedVals.push(rowId);
+        }
+        else {
+            $('#checkAll').removeAttr("checked");
+            //$row.removeClass('k-state-selected');
+            selectedVals = _.without(selectedVals, rowId);
+        }
+
+        //Set selected values to a custom data attribute on the grid
+        $Grid.attr('data-KendoGrid-selected', selectedVals);
+    }
+
+    function getValue(e) {
+        readData(e);
+    }
+    $('#btnDelete').bind('click', function () {
+        var data = "";
+        $("#Grid").find(".checkrowid").each(function () {
+            if ($(this).prop("checked") == true) {
+                data += $(this).attr("id") + "@@@@";
+            }
+        });
+        if (data != null && data != "") {
+            var c = confirm("Are you sure you want to DELETE this record");
+            if (c == true) {
+                $.post(r + "/TelesalesPromotionInfo/Delete", { data: data, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: 'Delete successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return
+            }
+        }
+        else {
+            $.gritter.add({
+                text: "Please choose data!",
+                class_name: "gritter-error"
+            });
+            return;
+        }
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+</script>

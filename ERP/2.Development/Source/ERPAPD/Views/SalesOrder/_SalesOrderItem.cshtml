@@ -1,0 +1,28 @@
+﻿<style>
+    .info-names {
+        font-size: 16px;
+    }
+
+    .para-infos {
+        line-height: 30px;
+        padding-left: 10px;
+    }
+</style>
+<script type="text/x-kendo-template" id="ItemTemplate">
+    <div class="row-fluid" style="margin-bottom: 10px;">
+        <div class="span12">
+            <div class="para-infos" style="background-color: \\#D6DBDE;">
+                <span class="info-names">Tổng: </span>
+                <span class="info-names" style="font-weight:bold;"> #=kendo.toString(Amount,'n0')#đ</span>
+            </div>
+            <div class="para-infos" style="background-color: \\#C3CCD2; ">
+                <span class="info-names">Chiết khấu: </span>
+                <span class="info-names" style="font-weight:bold;"> #=kendo.toString(Tax,'n0')#đ (10%)</span>
+            </div>
+            <div class="para-infos" style="background-color: \\#0082C1; color: white;">
+                <span class="info-names">Tổng tiền:</span>
+                <span class="info-names" style="font-weight:bold;" id="sumTotal" data-total="#=Total#"> #=kendo.toString(Total,'n0')#đ</span>
+            </div>
+        </div>
+    </div>
+</script>

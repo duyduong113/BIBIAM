@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+    int stt = 0;
+    string strDay = "", strDayKM = "";
+    if (ViewBag.sumDay != null)
+    {
+
+        int week = ViewBag.sumDay.c_days / 7;
+        int days = ViewBag.sumDay.c_days % 7;
+        strDay = week + " Tuần - " + days + " ngày";
+        int weekKM = ViewBag.sumDay.c_km_days / 7;
+        int daysKM = ViewBag.sumDay.c_km_days % 7;
+        strDayKM = weekKM + " Tuần - " + daysKM + " ngày";
+    }
+}
+<div class="row-fluid">
+    <table id="" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:3%">STT</th>
+                <th style="width:7%">Web</th>
+                <th style="width:10%">Chuyên mục</th>
+                <th style="width:7%">Vị trí</th>
+                <th style="width:7%">Tính chất</th>
+                <th style="width:7%">Size</th>
+                <th style="width:7%">Đơn giá</th>
+                <th style="width:7%">Ngày lên</th>
+                <th style="width:7%">Ngày xuống</th>
+                <th style="width:7%">Thời gian tính tiền</th>
+                <th style="width:7%">Thời gian KM</th>
+                <th style="width:3%">Ngày bù</th>
+                <th style="width:7%">Ghi chú</th>
+                <th style="width:7%">Nhân viên</th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.realBanner != null && ViewBag.realBanner.Count > 0)
+                {
+                    foreach (var item in ViewBag.realBanner)
+                    {
+                    stt++;
+                <tr class="">
+                    <td>@stt</td>
+                    <td class="first">@Html.Raw(item.WebsiteName) </td>
+                    <td>@Html.Raw(item.CategoryName)</td>
+                    <td>@Html.Raw(item.LocationName)</td>
+                    <td>@Html.Raw(item.NatureName)</td>
+                    <td>@Html.Raw(item.c_size)</td>
+                    <td>@item.c_don_gia.ToString("#,##0")</td>
+                    <td>@item.c_real_update.ToString("dd/MM/yyyy")</td>
+                    <td>@item.c_real_downdate.ToString("dd/MM/yyyy") </td>
+                    @if(item.c_km == "checked"){
+                        <td>0</td>
+                        <td>@item.c_time</td>
+                    }else{
+                        <td>@item.c_time</td>
+                        <td>0</td>
+                    }
+                    <td>@item.c_ngay_bu</td>
+                    <td>@item.c_note</td>
+                    <td>@Html.Raw(item.EmployerName)</td>
+                </tr>
+                  }
+               }
+        </tbody>
+        <tbody>
+            <tr>
+                <td colspan="9" style="text-align:right;color:red;font-size:1.2em"><b>Tổng thời gian</b></td>
+                <td class="title-pu">@strDay</td>
+                <td class="title-pu">@strDayKM</td>
+                <td colspan="3"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

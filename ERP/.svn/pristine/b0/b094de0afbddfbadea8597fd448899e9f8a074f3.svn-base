@@ -1,0 +1,529 @@
+﻿@using BIBIAM.Core.Entities
+@using BIBIAM.Core
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._car_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    var newData = new Merchant_Stock_ViewModel();
+    newData.trang_thai = AllConstant.trang_thai_duyet.NHAP;
+}
+<style>
+    #StockDetailGrid {
+        height: 400px;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=trang_thai == '@Html.Raw(AllConstant.trang_thai_duyet.DA_DUYET)' ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=ma_phieu#" style="cursor:default;">
+                <div class="col-md-12" style="padding-left:0;">
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=loai_phieu == 'GRN' ? 'Phiếu nhập kho' : 'Phiếu xuất kho'# - #=ma_phieu ? ma_phieu : ''#
+                        @*<span style="font-weight: 300; font-size: 13px; color: \\#217ebd; ">| #=domain#</span>*@
+                    </div>
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-text">
+                        Mã đơn hàng: #=ma_don_hang ? ma_don_hang : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #=loai_phieu=='GRN'?'Ngày nhập kho':'Ngày xuất kho'#: #=kendo.toString(kendo.parseDate(ngay_nhap_xuat),'yyyy/MM/dd') !='0001/01/01' && ngay_nhap_xuat !=null ? kendo.toString(kendo.parseDate(ngay_nhap_xuat),'dd/MM/yyyy'): '' #
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        Trạng thái: <span class="#=trang_thai=='Aproved'?'text-primary':'text-danger'#">#=trang_thai#</span>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <select id="phieu_xuat_nhap_kho" class="caption-subject text-primary uppercase">
+                        <option value="0">Phiếu nhập kho</option>
+                        <option value="1">Phiếu xuất kho</option>
+                        @*<option value="2">Tất cả</option>*@
+                    </select>
+                </div>
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" id="txtSearch" class="form-control form-control-solid input-circle" onkeyup="Search()" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+                <div class="inputs" style="margin-right:10px;">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<Merchant_Stock_ViewModel>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("ReadStockIn", "Merchant_Warehouse"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.ngay_tao).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 formEdit">
+    </div>
+</div>
+@Html.Partial("_GRN_Form_Partial")
+@Html.Partial("_GRN_Grid_Partial")
+@Html.Partial("_GDN_Form_Partial")
+@Html.Partial("_GDN_Grid_Partial")
+<script>
+    function filterWarehouse() {
+        return {
+            ma_kho: $("#ma_kho").val()
+        }
+    }
+    $(document).ready(function () {
+
+        loadForm(@Html.Raw(Json.Encode(newData)));
+        Search();
+    });
+    var duyet_nhap_kho = false;
+    var duyet_xuat_kho = false;
+    function resetDuyetKho() {
+        duyet_nhap_kho = false;
+        duyet_xuat_kho = false;
+    }
+    function DuyetPhieuNhapKho() {
+        Validate();
+        var grid = $("#StockDetailGrid").data("kendoGrid");
+        if (grid.dataSource.view().length == 0) {
+            toastr.error("Phiếu nhập kho này chưa có sản phẩm nào!");
+            return;
+        }
+        bootbox.dialog({
+            closeButton: true,
+            message: "Bạn có chắc chắn thông tin của mình là đúng? Thông tin sau khi duyệt sẽ không được chỉnh sửa",
+            title: "@Html.Raw(Resources.Global._notification) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () { duyet_nhap_kho = true; Upsert(); } }
+            }
+        });
+    }
+    function DuyetPhieuXuatKho() {
+        Validate();
+        var grid = $("#StockDetailGrid").data("kendoGrid");
+        if (grid.dataSource.view().length == 0) {
+            toastr.error("Phiếu xuất kho này chưa có sản phẩm nào!");
+            return;
+        }
+        bootbox.dialog({
+            closeButton: true,
+            message: "Bạn có chắc chắn thông tin của mình là đúng? Thông tin sau khi duyệt sẽ không được chỉnh sửa",
+            title: "@Html.Raw(Resources.Global._notification) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () { duyet_xuat_kho = true; Upsert(); } }
+            }
+        });
+    }
+    function Search() {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $("#txtSearch").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "ma_phieu", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ma_don_hang", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "trang_thai", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "nguoi_giao_nhan", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        filter.filters.push({ field: "loai_phieu", operator: "contains", value: $("#phieu_xuat_nhap_kho").val() == '0' ? 'GRN' : $("#phieu_xuat_nhap_kho").val() == '1' ? 'GDN' : "" });
+        listView.dataSource.filter(filter);
+    }
+    function onDatabound(e) {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+    }
+    function clearForm() {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+    }
+    function loadForm(data) {
+        if (data.loai_phieu == null) {
+            data.loai_phieu = $("#phieu_xuat_nhap_kho").val() == 0 ? "GRN" : "GDN";
+        }
+        switch (data.loai_phieu) {
+            case 'GRN':
+                var EditTemplate = kendo.template($("#StockInHeader").html());
+                $(".formEdit").html(EditTemplate(data));
+                loadValidate(data.loai_phieu);
+                var GridTemplate = kendo.template($("#StockInDetailGrid").html());
+                $("#gridTemplate").html(GridTemplate(data));
+                break;
+            case 'GDN':
+                var EditTemplate = kendo.template($("#StockOutHeader").html());
+                $(".formEdit").html(EditTemplate(data));
+                loadValidate(data.loai_phieu);
+                var GridTemplate = kendo.template($("#StockOutDetailGrid").html());
+                $("#gridTemplate").html(GridTemplate(data));
+                break;
+                //default:
+                //    var EditTemplate = kendo.template($("#phieu_xuat_nhap_kho").val() == 1 ? $("#StockOutHeader").html() : $("#StockInHeader").html());
+                //    $(".formEdit").html(EditTemplate(data));
+                //    loadValidate(data.loai_phieu);
+                //    var GridTemplate = kendo.template($("#phieu_xuat_nhap_kho").val() == 1 ? $("#StockOutDetailGrid").html() : $("#StockInDetailGrid").html());
+                //    $("#gridTemplate").html(GridTemplate(data));
+                //    break;
+        }
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+    }
+    $("#phieu_xuat_nhap_kho").bind('change', function () {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(this).val() == 0 ? "GRN" : "GDN";
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "loai_phieu", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+            listView.dataSource.filter(filter);
+        }
+        else
+            listView.dataSource.filter({});
+    })
+    function gridSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        gridSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function DLonChange(e) {
+        if (e.sender.dataItem()) {
+            $("#EditForm input[name='thu_kho']").val(e.sender.dataItem().thu_kho)
+            $("#EditForm input[name='dia_diem']").val(e.sender.dataItem().dia_chi)
+        }
+        $.each($("#StockDetailGrid").data("kendoGrid").dataSource.data(), function () {
+            this.vi_tri = "";
+        });
+        $("#StockDetailGrid").data("kendoGrid").refresh();
+    }
+    function loadValidate(type) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        if (type == 'GRN' || type == null) {
+            e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ma_don_hang: { minlength: 4, required: !0, maxlength: 50 },
+                        nguoi_giao_nhan: { minlength: 4, required: !0, maxlength: 500 },
+                        ngay_nhap_xuat: { required: !0 },
+                        nguoi_nhan: { minlength: 4, required: !0, maxlength: 500 },
+                        ma_kho: { minlength: 4, required: !0 },
+                        ten_kho: { minlength: 4, required: !0 },
+                        dia_diem: { required: !0, maxlength: 500 },
+                        thu_kho: { required: !0, maxlength: 500 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    kendo.toString(kendo.parseDate($("#EditForm input[name='ngay_nhap_kho']").val()), 'yyyy/MM/dd');
+                    var obj = getDataFromGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { details: obj, trang_thai: duyet_nhap_kho },
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', duyet_nhap_kho ? 'Duyệt thành công' : '@Resources.Global._save_successfully')
+                                loadForm(data.data);
+                                $("#listView").data("kendoListView").dataSource.read();
+                                setTimeout(function () { $(".todo-tasklist-item_" + data.ma_phieu).addClass("selected") }, 1000);
+                                Search();
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            resetDuyetKho();
+                            App.unblockUI();
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            resetDuyetKho();
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+        }
+        else {
+            e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ma_don_hang: { minlength: 4, required: !0, maxlength: 50 },
+                        nguoi_giao: { minlength: 4, required: !0, maxlength: 500 },
+                        ngay_nhap_kho: { required: !0 },
+                        nguoi_nhan: { minlength: 4, required: !0, maxlength: 500 },
+                        ngay_xuat_kho: { required: !0 },
+                        ma_kho: { minlength: 4, required: !0 },
+                        ten_kho: { minlength: 4, required: !0 },
+                        dia_diem: { required: !0, maxlength: 500 },
+                        thu_kho: { required: !0, maxlength: 500 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    kendo.toString(kendo.parseDate($("#EditForm input[name='ngay_xuat_kho']").val()), 'yyyy/MM/dd');
+                    var obj = getDataFromGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { details: obj, trang_thai: duyet_xuat_kho },
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', duyet_xuat_kho ? 'Duyệt thành công' : '@Resources.Global._save_successfully')
+                                //$("#StockDetailGrid").data("kendoGrid").dataSource.read({ ma_phieu: data.ma_phieu });
+                                loadForm(data.data);
+                                $("#listView").data("kendoListView").dataSource.read();
+                                setTimeout(function () { $(".todo-tasklist-item_" + data.ma_phieu).addClass("selected") }, 1000);
+                                Search();
+                            }
+                            else {
+                                toastr.error('', data.error);
+                            }
+                        },
+                        complete: function (xhr) {
+                            resetDuyetKho();
+                            App.unblockUI();
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            resetDuyetKho();
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+        }
+    }
+    function deleteRow(e) {
+        var data = $("#StockDetailGrid").data("kendoGrid").dataItem($(e).parents('tr'));
+        if (data)
+            $("#StockDetailGrid").data("kendoGrid").dataSource.remove(data);
+    }
+    function onSave(data) {
+        if (data.values.so_luong_thuc_te || data.values.so_luong_thuc_te == 0) {
+            if (data.values.so_luong_thuc_te < 1 || data.values.so_luong_thuc_te > 1000000) {
+                data.preventDefault();
+                toastr.warning(data.values.so_luong_thuc_te < 1 ? 'Số lượng tối thiểu là 1' : 'Số lượng tối đa là 1,000,000');
+            }
+        }
+        else if ((data.values.so_luong_yeu_cau || data.values.so_luong_yeu_cau == 0) && (data.values.so_luong_yeu_cau < 1 || data.values.so_luong_yeu_cau > 1000000)) {
+            data.preventDefault();
+            toastr.warning(data.values.so_luong_yeu_cau < 1 ? 'Số lượng tối thiểu là 1' : 'Số lượng tối đa là 1,000,000');
+        }
+        $("#StockDetailGrid").data("kendoGrid").refresh();
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            if (e.errors) {
+                var message = "\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                toastr.error(message)
+            }
+        }
+    }
+    function onRequestEnd() { }
+    function Create() {
+        //$("#StockDetailGrid").data("kendoGrid").dataSource.insert()
+        var ds = $("#StockDetailGrid").data("kendoGrid").dataSource;
+        ds.insert(0, {
+            id : 0,
+            ma_san_pham: "",
+            vi_tri: "",
+            don_vi_tinh: "cai",
+            so_luong_yeu_cau: 0,
+            so_luong_thuc_te: 0,
+            ghi_chu: ""
+        });
+    }
+    function Cancel() {
+        if ($('#StockDetailGrid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#StockDetailGrid').data('kendoGrid').cancelChanges();
+        }
+    }
+
+    function Validate() {
+        for (var i = 0; i < $("#StockDetailGrid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#StockDetailGrid").data("kendoGrid").dataSource.data()[i];
+            if (dataItem.ma_san_pham == '' || dataItem.ma_san_pham == null) {
+                $("#StockDetailGrid").data("kendoGrid").dataSource.remove(dataItem);
+                i--;
+            }
+        }
+    }
+    function getDataFromGrid() {
+        Validate();
+        var obj = [];
+        $.each($("#StockDetailGrid").data("kendoGrid").dataSource.data(), function () {
+            if (!this.ma_san_pham) {
+                return;
+            }
+            var detail = new Object();
+            detail.ma_san_pham = this.ma_san_pham;
+            detail.vi_tri = this.vi_tri;
+            detail.don_vi_tinh = this.don_vi_tinh;
+            detail.so_luong_yeu_cau = this.so_luong_yeu_cau;
+            detail.so_luong_thuc_te = this.so_luong_thuc_te;
+            detail.ghi_chu = this.ghi_chu;
+            obj.push(detail);
+        });
+        return obj;
+    }
+    function GridPartialonDatabound(e) {
+        var count = 0;
+        //$.each($("#StockDetailGrid").data("kendoGrid").dataSource.data(), function () {
+        //    if (this.ma_san_pham)
+        //        count++;
+        //});
+        //$("#check_san_pham").text(count)
+    }
+
+    function Upsert() {
+        $("#EditForm").submit();
+    }
+</script>

@@ -1,0 +1,520 @@
+﻿@{
+    ViewBag.Title = "CRMMaster";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+@*Mẫu form form-horizontal gồm, tất cả các control và footer*@
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <form id="idform" class="form-horizontal">
+                @*Text box binh thuong*@
+                <div class="control-group">
+                    <label class="control-label" for="textbox1">Text Field</label>
+                    <div class="controls">
+                        <input type="text" id="textbox1" placeholder="Username">
+                    </div>
+                </div>
+
+                @*Text box co warning*@
+                <div class="control-group warning">
+                    <label class="control-label" for="inputWarning">Input with warning</label>
+                    <div class="controls">
+                        <span class="input-icon input-icon-right">
+                            <input type="text" id="inputWarning"><i class="icon-warning-sign"></i>
+                        </span>
+                        <span class="help-inline">Something may have gone wrong</span>
+                    </div>
+                </div>
+
+                @*Text box co password*@
+                <div class="control-group">
+                    <label class="control-label" for="txtPassword">Password Field</label>
+                    <div class="controls">
+                        <input type="password" id="txtPassword" placeholder="Password">
+                        <span class="help-inline">Inline help text</span>
+                    </div>
+                </div>
+
+                @*Text box readonly*@
+                <div class="control-group">
+                    <label class="control-label" for="txtreadonly">Readonly field</label>
+                    <div class="controls">
+                        <input type="text" id="txtreadonly" value="This text field is readonly!" readonly="readonly">
+                    </div>
+                </div>
+
+                @*Text box disabled*@
+                <div class="control-group">
+                    <label class="control-label" for="txtdisable">Disable field</label>
+                    <div class="controls">
+                        <input type="text" id="txtdisable" value="This text field is disable!" disabled="disabled">
+                    </div>
+                </div>
+
+                @*Text box mini size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtmini">Mini text field </label>
+                    <div class="controls">
+                        <input class="input-mini" type="text" id="txtmini" placeholder=".input-mini">
+                    </div>
+                </div>
+
+                @*Text box small size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtsmall">Small text field </label>
+                    <div class="controls">
+                        <input class="input-small" type="text" id="txtsmall" placeholder=".input-small">
+                    </div>
+                </div>
+
+                @*Text box medium size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtmedium">Medium text field</label>
+                    <div class="controls">
+                        <input class="input-medium" type="text" id="txtmedium" placeholder=".input-medium">
+                    </div>
+                </div>
+
+                @*Text box large size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtlarge">Large text field</label>
+                    <div class="controls">
+                        <input class="input-large" type="text" id="txtlarge" placeholder=".input-large">
+                    </div>
+                </div>
+
+                @*Text box xlarge size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtxlarge">XLarge text field</label>
+                    <div class="controls">
+                        <input class="input-xlarge" type="text" id="form-field-4" placeholder=".input-xlarge">
+                    </div>
+                </div>
+
+                @*Text box xxlarge size*@
+                <div class="control-group">
+                    <label class="control-label" for="txtxxlarge">XXLarge text field</label>
+                    <div class="controls">
+                        <input class="input-xxlarge" type="text" id="txtxxlarge" placeholder=".input-xxlarge">
+                    </div>
+                </div>
+
+                @*Input with left icon *@
+                <div class="control-group">
+                    <label class="control-label">Input with left icon</label>
+                    <div class="controls">
+                        <span class="input-icon">
+                            <input type="text" id="txticonleft">
+                            <i class="icon-leaf"></i>
+                        </span>
+                    </div>
+                </div>
+
+                @*Input with right icon *@
+                <div class="control-group">
+                    <label class="control-label">Input with right icon</label>
+                    <div class="controls">
+                        <span class="input-icon input-icon-right">
+                            <input type="text" id="txticonright">
+                            <i class="icon-leaf"></i>
+                        </span>
+                    </div>
+                </div>
+
+                @*Begin select file upload*@
+                <div class="control-group">
+                    <label class="control-label">Upload file</label>
+                    <div class="controls">
+                        <input type="file" id="txtselectfile">
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('#txtselectfile').ace_file_input({
+                            no_file: 'No File ...',
+                            btn_choose: 'Choose',
+                            btn_change: 'Change',
+                            droppable: false,
+                            onchange: null,
+                            thumbnail: false //| true | large
+                            //whitelist:'gif|png|jpg|jpeg'
+                            //blacklist:'exe|php'
+                            //onchange:''
+                            //
+                        });
+                        //Tùy chỉnh độ dài của control input file theo cách bên dưới hoặc đưa vào fieldset
+                        $('#idform .ace-file-input').addClass("span6");
+                    });
+                </script>
+                @*End select file upload*@
+
+                @*Begin checkbox default*@
+                <div class="control-group">
+                    <label class="control-label">Checkbox </label>
+                    <div class="controls">
+                        <label>
+                            <input name="defaultchk" type="checkbox" class="ace" />
+                            <span class="lbl"> choice 1</span>
+                        </label>
+                    </div>
+                </div>
+                @* checkbox full*@
+                <div class="control-group">
+                    @*<label class="control-label">Checkbox 1</label>*@
+                    <div class="controls">
+                        <label>
+                            <input name="fullchk" class="ace ace-checkbox-2" type="checkbox" />
+                            <span class="lbl"> choice 2</span>
+                        </label>
+                    </div>
+                </div>
+                @* checkbox disable*@
+                <div class="control-group">
+                    @*<label class="control-label">Checkbox 1</label>*@
+                    <div class="controls">
+                        <label>
+                            <input name="disablechk" disabled="" type="checkbox" class="ace" />
+                            <span class="lbl"> disabled</span>
+                        </label>
+                    </div>
+                </div>
+                @* End checkbox*@
+
+                @*Begin radio button default*@
+                <div class="control-group">
+                    <label class="control-label">Radio</label>
+                    <div class="controls">
+                        <label>
+                            <input name="form-field-radio" type="radio" class="ace" />
+                            <span class="lbl"> radio option 1</span>
+                        </label>
+                    </div>
+                </div>
+                @*Disable radio button*@
+                <div class="control-group">
+                    @* <label class="control-label">Radio</label>*@
+                    <div class="controls">
+                        <label>
+                            <input disabled="" name="form-field-radio" type="radio" class="ace" />
+                            <span class="lbl"> disabled</span>
+                        </label>
+                    </div>
+                </div>
+                @*End radio button*@
+
+                <div class="control-group">
+                    <label class="control-label">Default select</label>
+                    <div class="controls">
+                        <select id="otpdefault">
+                            <option value="AL">Chọn quốc gia</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Chosen</label>
+                    <div class="controls">
+                        <select class="chosen-select" id="idchosen" data-placeholder="Choose a country...">
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Mutiselect</label>
+                    <div class="controls">
+                        <select multiple="" class="chosen-select" id="idchosenmutiselect" data-placeholder="Choose a Country...">
+                            <option value="">&nbsp;</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                        </select>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $(".chosen-select").chosen();
+                        $('#chosen-multiple-style').on('click', function (e) {
+                            var target = $(e.target);
+                            var which = parseInt($.trim(target.text()));
+                            if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                            else $('#form-field-select-4').removeClass('tag-input-style');
+                        });
+                    });
+                </script>
+
+                @*Begin footer cua 1 form*@
+                <style>
+                    .form-footer-custom {
+                        background: #F7F7F7;
+                        height: 30px;
+                        padding-top: 8px;
+                        padding-bottom: 8px;
+                    }
+                </style>
+                <div class="row-fluid">
+                    <div class="form-footer-custom">
+                        <div class="pull-right" style="padding-right:15px">
+                            <button class="btn btn-info btn-small" type="button">
+                                <i class="icon-ok"></i>Lưu
+                            </button>
+                            <button class="btn btn-default btn-small" type="reset">
+                                <i class="icon-undo"></i>Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @*End footer cua 1 form*@
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<h2> Bộ button mẫu </h2>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <form id="idform" class="form-horizontal">
+                <button type="button" id="btnAdd" class="btn btn-success btn-small" onclick="">@Resources.Multi.btnAdd</button> @*Thêm*@
+                <button type="button" id="btnNew" class="btn btn-success btn-small" onclick="">Tạo mới</button>
+                <button type="button" id="btnDelete" class="btn btn-danger btn-small" onclick="">@Resources.Multi.btnDelete</button> @*Xóa*@
+                <button type="button" id="btnDeny" class="btn btn-danger btn-small" onclick="">Từ chối</button> @*Từ chối*@
+                <button type="button" id="btnEdit" class="btn btn-primary btn-small" onclick="">@Resources.Multi.btnEdit</button> @*Chỉnh sửa*@
+                <button type="button" id="btnViewDetail" class="btn btn-primary btn-small" onclick="">Chi tiết</button> 
+                <button type="button" id="btnSave" class="btn btn-primary btn-small" onclick="">@Resources.Multi.btnSave</button> @*Lưu lại*@
+                <button type="button" id="btnConfirm" class="btn btn-primary btn-small" onclick="">@Resources.Multi.btnConfirm</button> @*Xác nhận*@
+                <button type="button" id="btnOk" class="btn btn-primary btn-small" onclick="">@Resources.Multi.btnOK</button> @*Đồng ý*@
+                <button type="button" id="btnSearchF" class="btn btn-primary btn-small" onclick="">Tìm kiếm</button>
+                <button type="button" id="btnApprove" class="btn btn-warning btn-small" onclick="">Duyệt</button>
+                <button type="button" id="btnActive" class="btn btn-warning btn-small" onclick="">Hoạt động</button>
+                <button type="button" id="btnInActive" class="btn btn-warning btn-small" onclick="">Ngưng hoạt động</button>
+                <button type="button" id="btnCancel" class="btn btn-default btn-small" onclick="">Hủy</button>
+                <button type="button" id="btnClose" class="btn btn-default btn-small" onclick="">Đóng</button>
+                <button type="button" id="btnBack" class="btn btn-default btn-small" onclick="">Quay lại</button>
+                <button type="button" id="btnReset" class="btn btn-default btn-small" onclick="">Bỏ qua</button>
+                <button type="button" id="btnPrint" class="btn btn-info btn-small" onclick="">In</button>
+                <button type="button" id="btnExportExcel" class="btn btn-info btn-small" onclick="">Xuất Excel</button>
+                <button type="button" id="btnSend" class="btn btn-info btn-small" onclick="">Gửi</button>
+                <button type="button" id="btnImportExcel" class="btn btn-purple btn-small" onclick="">Nhập Excel</button>
+                <button type="button" id="btnUploadFile" class="btn btn-purple btn-small" onclick="">Tải lên</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<h2> Bộ filter và form có grid mẫu </h2>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <input type="text" id="filterText" placeholder="Nhập thông tin cần tìm" />
+            <button type="button" id="btnSearchF" class="btn btn-primary btn-small" onclick="">Tìm kiếm</button>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+        .Grid<ERPAPD.Models.ExchangeRates>()
+        .Name("Grid")
+        .HtmlAttributes(new { style = "height: auto;" })
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=CurrencyCode#'  />").Width(35).Filterable(false).Sortable(false);
+            columns.Bound(p => p.CurrencyCode).Width(80).Title(Resources.Multi.CurrencyID);
+            columns.Bound(p => p.UnitExchange).Width(80).Title(Resources.Multi.UnitExchange);
+            columns.Bound(p => p.ChangeFrom).Width(80).Title(Resources.Multi.UnitExchange);
+            columns.Bound(p => p.AmountExchange).Width(80).Title("Tỷ giá");
+            columns.Bound(p => p.ExchangeDate).Width(120).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.ExchangeDate).ClientTemplate("#if(kendo.toString(ExchangeDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(ExchangeDate,'" + Resources.Multi.DateFormat + " hh:mm:ss') #" + "#}#");
+            columns.Bound(p => p.ExchangeBy).Width(100).Title(Resources.Multi.ExchangeBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                <div class="pull-left">
+                    @if (AllowCreate)
+                    {
+                        <a class="btn btn-success btn-small" href="~/CustomerInfo/Create" id="btnGridAdd">
+                            @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                        </a>
+                    }
+                    @if (AllowUpdate)
+                    {
+
+                        <a class="btn btn-primary btn-small " href="" id="btnSave">
+                            @*<i class="fa fa-save"></i>*@ @Resources.Multi.btnSave
+                        </a>
+                        <a class="btn btn-default btn-small " href="" id="btnCancel">
+                            @*<i class="icon-check"></i>*@ Hủy
+                        </a>
+                    }
+                    <a class="btn btn-small btn-grey" href="javascript:void(0)" id="btnGridAdd">
+                        @*<i class="icon-plus"></i>*@ Label
+                    </a>
+                    <div class="btn-group" style="margin-left: 20px">
+                        <button data-toggle="dropdown" class="btn btn-small btn-inverse dropdown-toggle">
+                            Thao tác khác
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" style="min-width:110px !important">
+                            <li>
+                                @if (AllowDelete)
+                                {
+                                    <a class="btn btn-danger btn-small" style="text-align:left" id="btnDelete">
+                                        <i class="icon-trash"></i> Xóa
+                                    </a>
+                                }
+                                @if (AllowExport)
+                                {
+                                    <a class="btn btn-info btn-small" href="" style="text-align:left" id="btnGridExport">
+                                        <i class="fa fa-file-excel-o fa-1"></i> @Resources.Multi.GridExport
+                                    </a>
+                                    <a class="btn btn-purple btn-small" href="" style="text-align:left" id="btnGridImport">
+                                        <i class="fa fa-file-excel-o fa-1"></i> @Resources.Multi.GridImport
+                                    </a>
+                                }
+                            </li>
+                        </ul>
+
+                    </div>
+                    <a class="btn btn-small btn-grey" href="javascript:void(0)" id="btnGridAdd">
+                        <i class="icon-plus"></i> Tùy chỉnh hiển thị dữ liệu
+                    </a>
+                </div>
+            </text>);
+})
+//.Events(events => { events.DataBound("dataBound"); })
+.Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+.Navigatable()
+//.Editable(editable => editable.Mode(GridEditMode.InCell))
+.Scrollable(scrollable => scrollable.Virtual(false))
+.Sortable()
+//.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+.Resizable(resize => resize.Columns(true))
+.DataSource(dataSource => dataSource
+.Ajax()
+.Batch(true)
+.PageSize(50)
+    //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+.Model(model =>
+{
+    model.Id(p => p.CurrencyCode);
+})
+//.Read("GetExchangeRate", "CRMExchangeRate", new { fromCurrence = Resources.Multi.CurencyCode })
+)
+        )
+    </div>
+</div>
+
+<h2> Bộ Popup </h2>
+<h4 class="pink">
+    <i class="icon-hand-right green"></i>
+    <a href="#modal-form" role="button" class="blue" data-toggle="modal"> Show popup </a>
+</h4>
+
+<div id="modal-form" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Edit</span>
+       @* <button type="button" class="close" data-dismiss="modal">&times;</button>*@
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+       
+    </div>
+    @* modal-header custom*@
+    <style>
+        button.btclose {
+            float: right;
+            font-size: 22px;
+            text-shadow: 0 1px 0 #fff;
+            opacity: 0.2;
+            background: transparent;
+            border: 0;
+            margin-top: -3px;           
+        }
+        .chosen-container .chosen-results {
+            max-height: 100px !important;
+        }
+    </style>
+
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid">
+            <div class="span7">
+                <div class="control-group">
+                    <label class="control-label">Location</label>
+                    <div class="controls">
+                        <select class="chosen-select" data-placeholder="Choose a Country...">
+                            <option value="">&nbsp;</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Username</label>
+                    <div class="controls">
+                        <input type="text" id="username" placeholder="Username" value="alexdoe" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Name</label>
+                    <div class="controls">
+                        <input class="input-small" type="text" id="firstname" placeholder="First Name" value="Alex" />
+                        <input class="input-small" type="text" id="lastname" placeholder="Last Name" value="Doe" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-info btn-small ">
+            <i class="icon-ok"></i>Lưu
+        </button>
+        <button class="btn btn-default btn-small" data-dismiss="modal">
+            <i class="icon-undo"></i>Hủy
+        </button>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //chosen plugin inside a modal will have a zero width because the select element is originally hidden
+        //and its width cannot be determined.
+        //so we set the width after modal is show      
+        $('#modal-form').on('show', function () {
+            $(this).find('.chosen-container').each(function () {
+                $(this).find('a:first-child').css('width', '210px');
+                $(this).find('.chosen-drop').css('width', '210px');               
+                $(this).find('.chosen-search input').css('width', '200px');
+            });
+        });
+    });
+</script>
+<

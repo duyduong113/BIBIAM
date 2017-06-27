@@ -1,0 +1,340 @@
+﻿@using CMS.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._hashtag);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+}
+@{
+    var newData = new Hashtag();
+    newData.status = "1";
+}
+
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .displaynone {
+        display: none;
+    }
+
+    .displayblock {
+        display: block;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-5">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=status == 'true' ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+
+                <div class="col-md-8" style="padding-left:0;">
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=hashtagname#
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._hashtag_list)</span>
+                </div>
+
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<Hashtag>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Hashtag"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit"></div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._edit_hashtag)</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <div class="tabbable-line">
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane in active" id="tab_1_1">
+                        <form action="@Url.Content("~/Hashtag/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+                            <input type="hidden" name="id" value="#=id#" />
+                            <div class="row">
+                                <div class="form-group col-md-12" style="margin-bottom:-5px;">
+                                    <div class="actions" style="float: right;">
+                                        @if (all || update)
+                                        {
+                                            <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                                        }
+                                        @if (all || update)
+                                        {
+                                            <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                            <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._hashtag_name)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm" placeholder="@Html.Raw(Resources.Global._hashtag_name)" name="hashtagname" value="#=hashtagname!=null ? hashtagname : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=status=='false' ? 'active' : ''#">
+                                                    #if(status=='false'){#
+                                                    <input type="radio" name="status" value="false" class="toggle" checked> @Html.Raw(Resources.Global._inactive)
+                                                    #}else{#
+                                                    <input type="radio" name="status" value="false" class="toggle"> @Html.Raw(Resources.Global._inactive)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=status=='true' ? 'active' : ''#">
+                                                    #if(status=='true'){#
+                                                    <input type="radio" name="status" value="true" class="toggle" checked> @Html.Raw(Resources.Global._active)
+                                                    #}else{#
+                                                    <input type="radio" name="status" value="true" class="toggle"> @Html.Raw(Resources.Global._active)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    #if(id>0){#
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._date_created)</label>
+                                        <div class="input-icon right">
+                                            <input type="text" class="form-control input-sm max100" value="#=created_at?kendo.toString(kendo.parseDate(created_at),'dd/MM/yyyy'):''#" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._date_update)</label>
+                                        <div class="input-icon right">
+                                            <input type="text" class="form-control input-sm max100" value="#=updated_at?kendo.toString(kendo.parseDate(updated_at),'dd/MM/yyyy'):''#" readonly>
+                                        </div>
+                                    </div>
+                                    #}#
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._hashtag) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    $(document).ready(function () {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+        //Search();
+    });
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+        $('.fileinput').fileinput().on('change.bs.fileinput', function (e, files) {
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+        $('.fileinput .thumbnail').hover(function (e) {
+            $(this).find('i').remove();
+            var product = $("#listView").data("kendoListView").dataItem($("#listView").data("kendoListView").element.find('.selected'));
+            if ((product && product.url == $(".fileinput-new.thumbnail img").attr("src")) || (!$(".fileinput-preview.fileinput-exists.thumbnail img").length && $(".fileinput-new.thumbnail img").attr("src").indexOf("http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image") == 0))
+                return;
+            $(this).append('<i class="fa fa-times fa-4" onclick="dropImage(0)"></i>')
+        });
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        hashtagname: { required: !0 }
+                    },
+                messages:
+                    {
+
+                        hashtagname: {
+                            required: "Thông tin bắt buộc"
+                        }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var imgurl = $(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url_link" value="' + imgurl + '"/>');
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: {},
+                        dataType: "json",
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                reset = false;
+                                loadForm(data.data);
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function edit(e) {
+        var product = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(product);
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length)
+        {
+            filterDesc.filters.push({ field: "hashtagname", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+    function onDatabound(e) {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+</script>

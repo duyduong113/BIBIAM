@@ -1,0 +1,25 @@
+﻿using ServiceStack.DataAnnotations;
+using System;
+
+namespace BIBIAM.Core.Entities
+{
+    public class Banner : BaseEntity
+    {
+        public string ma_banner { get; set; }
+        public string url_link { get; set; }
+        public string image_link { get; set; }
+        public string image { get; set; }
+        public string ma_chuyen_muc { get; set; }
+        public string vi_tri { get; set; }
+        public string loai { get; set; }
+        public string trang_thai { get; set; }
+        public string alt { get; set; }
+    }
+    public class TableSync
+    {
+        [AutoIncrement]
+        public int id { get; set; }
+        public string ten_bang { get; set; }
+        public string ten_sp { get; set; }
+    }
+}

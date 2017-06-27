@@ -1,0 +1,193 @@
+﻿@{
+    ViewBag.Title = "ERPAPD | SalesApp User";
+}
+<div id="selectUser" class="span12" style="float:left">
+    <select name="select" id="listUser" class='chosen-select span10' data-placeholder="Chọn user..." multiple>
+        @foreach (var a in ViewBag.listUser)
+        {
+            <option value="@a.UserName">@a.UserName</option>
+        }
+    </select>
+    <button id="btnNew" style="height:28px;" onclick="AddNew()" class="btn btn-mini btn-success">Thêm vào</button>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Users>()
+    .Name("grid")
+    .HtmlAttributes(new { @style = "height:500px" })
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).Width(80).Filterable(false).Visible(false);
+        columns.Bound(p => p.UserName).Width(100).Title("Người dùng");
+        columns.Bound(p => p.FullName).Width(120).Title(Resources.Multi.Name);
+        columns.Bound(p => p.Email).Width(120).Title("Email");
+        columns.Bound(p => p.Phone).Width(120).Title(Resources.Multi.Phone);
+        columns.Bound(p => p.IsAppUser).Width(120).Title("Người sử dụng").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.CreatedAt);
+        columns.Bound(p => p.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+        columns.Bound(p => p.UpdatedBy).Width(100);
+    })
+    .ToolBar(tools =>
+    {
+        tools.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel);
+        tools.Excel().Text(Resources.Multi.Export);
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Events(events => { events.DataBound("dataBound"); })
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+                //.Groupable()
+    .Navigatable()
+    .Filterable()
+    .Excel(excel => excel
+    .FileName("SalesAppUserList.xlsx")
+    .Filterable(true)
+    .ProxyURL(Url.Action("Excel_Export", "SalesAppUser")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Id).Editable(false);
+        model.Field(p => p.UserName).Editable(false);
+        model.Field(p => p.FullName).Editable(false);
+        model.Field(p => p.Email).Editable(false);
+        model.Field(p => p.Phone).Editable(false);
+        model.Field(p => p.CreatedAt).Editable(false);
+        model.Field(p => p.CreatedBy).Editable(false);
+        model.Field(p => p.UpdatedAt).Editable(false);
+        model.Field(p => p.UpdatedBy).Editable(false);
+    })
+    .Read(read => read.Action("Read", "SalesAppUser"))
+    .Update(update => update.Action("Update", "SalesAppUser")))
+
+        )
+
+    </div>
+</div>
+<script>
+    $("#listUser").css('witdh', "80%");
+    $("#listUser").chosen();
+    $("#listUser").val(['']);
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        resizeGrid();
+    }
+    function AddNew() {
+        if ($("#listUser").val() == null) {
+            alert("Chọn người dùng!");
+            return;
+        }
+        $.post(r + "/SalesAppUser/Addnew/?id=" + $("#listUser").val(), function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Thêm người dùng app thành công!',
+                    class_name: 'gritter-success'
+                });
+                $("#grid").data("kendoGrid").dataSource.read();
+
+                $.post(r + "/SalesAppUser/getListUser", function (data) {
+                    if (data.success) {
+                        var item = "";
+                        item += "<option value=''>Chọn...</option>";
+                        for (var i = 0; i < data.data.length; i++) {
+                            var value = data.data[i];
+                            item += "<option value='" + value.UserName + "'>" + value.UserName + "</option>";
+                        }
+                        $("#listUser").html(item);
+                        $("#listUser").trigger("chosen:updated");
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Error  : ' + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+
+            } else {
+                $.gritter.add({
+                    title: '',
+                    text: message,
+                    class_name: 'gritter-error'
+                });
+            }
+        })
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.type == "update" || e.type == "create" || e.type == "delete") {
+            if (e.response.Errors == null) {
+                if (e.response.Errors == null) {
+                    $.gritter.add({
+                        title: '',
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+
+                    $.post(r + "/SalesAppUser/getListUser", function (data) {
+                        if (data.success) {
+                            var item = "";
+                            item += "<option value=''>Chọn...</option>";
+                            for (var i = 0; i < data.data.length; i++) {
+                                var value = data.data[i];
+                                item += "<option value='" + value.UserName + "'>" + value.UserName + "</option>";
+                            }
+                            $("#listUser").html(item);
+                            $("#listUser").trigger("chosen:updated");
+                        }
+                        else {
+                            $.gritter.add({
+                                title: '',
+                                text: '@Resources.Multi.Error  : ' + data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                    });
+                }
+            }
+        }
+    }
+</script>

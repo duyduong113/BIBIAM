@@ -1,0 +1,123 @@
+﻿<style>
+    #GridCustomerSearch .k-grid-content {
+        height: 170px !important;
+    }
+</style>
+<div class="row-fluid" id="divGridSearchResult" style="display:none">
+    <div class="span12">
+        <div class="row-fluid">
+            <label id="lblResultCount"></label>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo()
+                    .Grid<DecaPay.Models.Sales_Order_Customer>()
+                    .Name("GridCustomerSearch")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.CustomerId).Width(100).Title("Mã khách hàng");
+                        columns.Bound(p => p.FirstName).ClientTemplate("#=FirstName# #=LastName#").Width(130).Title("Tên khách hàng");
+                        columns.Bound(p => p.Address).Width(90).Title("Địa chỉ");
+                        columns.Bound(p => p.Phone).Width(90).Title("SĐT");
+                        columns.Bound(p => p.IncomePoint).Format("{0:N0}").Width(130).Title("Điểm tích lũy");
+                        columns.Bound(p => p.CustomerId).Width(90).HeaderTemplate("").Title("").ClientTemplate("<button type='button' data-Id='#=Id#' class='btn-success btn btn-minier' style='float:right;display:inline-block;color:white;' onclick ='ShowCustomer(this)' >Chọn</button>").Width(70);
+                    })
+                    .Navigatable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .Scrollable(scrollable => scrollable.Enabled(false))
+                    .AutoBind(false)
+                    .Events(data => data.DataBound("OnSearchGridBound"))
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+                        //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                        }).Read("CustomerSearchRead", "SalesOrder"))
+            )
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#divGridSearchResult').kendoWindow({
+            width: "700px",
+            actions: ["Close"],
+            title: "Kết quả",
+            visible: false,
+            modal: true,
+            open: function (e) {
+                this.wrapper.css({ top: '10%' });
+            }
+        });
+    });
+    function ShowCustomer(data) {
+        if (data.Id) {
+            loadData({ Id: data.Id });
+        } else {
+            loadData({ Id: $(data).attr("data-Id") });
+        }
+
+        //loadCustomerHistoryData();
+    }
+
+    function OnSearchGridBound() {
+        var data = this._data;
+        if (data.length == 1) {
+            ShowCustomer(data[0]);
+        } else if (data.length > 1) {
+            var popup = $("#divGridSearchResult").data("kendoWindow");
+            popup.center().open();
+            $("#lblResultCount").html("Tìm thấy " + data.length + " kết quả")
+        } else {
+            $.gritter.add({
+                title: 'Xin lỗi,',
+                text: "Không tìm thấy thông tin khách hàng <br/>" +
+                    "<button class='btn btn-success btn-mini pull-right' onclick='showSaveAnonymousForm()' style='border-radius:2px'>" +
+                    "<i class='icon-user icon-only'></i> Thêm mới khách hàng" +
+                    "</button>" +
+                    "<button class='btn btn-purple btn-mini pull-right' onclick='addKHVL()' style='border-radius:2px;margin-right:5px;'>" +
+                    "<i class='icon-user icon-only'></i> KH vãng lai" +
+                    "</button>",
+                class_name: 'gritter-regular gritter-center ',
+                time: '1500'
+            });
+        }
+    }
+
+    function loadData(data) {
+        $.post(r + "/SalesOrder/LoadCustomer/", { Id: data.Id }, function (data) {
+            if (data.success) {
+                console.log(data.data);
+                $("#divCustomerInfoCS").html(CustomerInfoTemplate(data.data));
+                $("#divCustomerHistory").html(HistoryTemplate(data.data))
+                $('#divGridSearchResult').data('kendoWindow').close();
+                $("#discount").attr("data-point", parseFloat(data.data.ICPoint) - parseFloat(data.data.UsedPoint));
+                $("#spanDiscount").html(kendo.toString(parseFloat(data.data.ICPoint) - parseFloat(data.data.UsedPoint), 'n0') + " điểm = " + kendo.toString((parseFloat(data.data.ICPoint) - parseFloat(data.data.UsedPoint)) * 1000, 'n0') + "đ");
+                $("#txtCustomerSearch").val("");
+                $("#txtSearchBarcode").focus();
+            } else {
+                $.gritter.add({ 
+                    title: 'Xin lỗi,',
+                    text: "Không tìm thấy thông tin khách hàng <br/>" +
+                        "<button class='btn btn-success btn-mini pull-right' onclick='showSaveAnonymousForm()' style='border-radius:2px'>" +
+                        "<i class='icon-user icon-only'></i> Thêm mới khách hàng" +
+                        "</button>" +
+                        "<button class='btn btn-purple btn-mini pull-right' onclick='addKHVL()' style='border-radius:2px;margin-right:5px;'>" +
+                        "<i class='icon-user icon-only'></i> KH vãng lai" +
+                        "</button>",
+                    class_name: 'gritter-regular gritter-center ',
+                    time: '1500'
+                });
+            }
+        });
+    }
+
+    function addKHVL() {
+        $('.gritter-item-wrapper').remove();
+        loadData({ Id: 3 });
+    }
+</script>

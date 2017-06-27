@@ -1,0 +1,631 @@
+﻿@using CMS.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._article_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+
+    var newData = new Article();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .displaynone {
+        display: none;
+    }
+
+    .displayblock {
+        display: block;
+    }
+</style>
+
+@Html.Partial("_popup_select2")
+<div class="row">
+    <div class="col-md-4">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=active == true ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-2" style="padding-left: 0; text-align: center;">
+                    <img src="#=imagesPublicId ? imagesPublicId : 'http://www.placehold.it/150x150/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" style="display: inline" class="img-responsive">
+                </div>
+                <div class="col-md-9" style="padding-left:0;">
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="icon-pencil"></i> @Html.Raw(Resources.Global._edit)</a>
+                    </span>
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=name#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._created_by) #=createdBy# @Html.Raw(Resources.Global._at) #=kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm')#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #=description#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #if(isDefault){#
+                        <span class="fa fa-check font-green"></span> @Html.Raw(Resources.Global._default)
+                        #}#
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._article)</span>
+                </div>
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small ">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                    <div class="portlet-input input-inline input-small ">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <button type="submit" class="btn red" data-target="#modal_demo_2" data-toggle="modal">Modal 2</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<CMS.Models.Article>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Article"));
+                                dataSource.PageSize(5).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(e => e.DataBound("onDatabound"))
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-8 formEdit">
+
+    </div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Article/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._add_edit) @Html.Raw(Resources.Global._article)</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeArticle('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <input type="hidden" name="id" value="#=id#" />
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                #if(isDefault==false){#
+                                <input type="hidden" name="isDefault" value="false">
+                                #}else{#
+                                <input type="hidden" name="isDefault" value="true">
+                                #}#
+                                <label>@Html.Raw(Resources.Global._type)<span class="required"> * </span></label>
+                                <div class="input-group">
+
+                                    @(Html.Kendo().DropDownList()
+                                        .Name("type")
+                                        .Value("#=type ? type : ''#")
+                                        .DataTextField("Name")
+                                        .DataValueField("Value")
+                                        .OptionLabel(Html.Raw(Resources.Global._type).ToString() + "...")
+                                         .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetCodeMaster", "CustomData").Data("DataType");
+                                              }).ServerFiltering(true);
+                                          }).HtmlAttributes(new { style = "width: 100%" }).ToClientTemplate()
+                                    )
+                                    <span class="input-group-btn">
+                                        <a class="btn #=isDefault==false ? 'default' : 'green'# btn-sm" onclick="changeDefault(this)">
+                                            <i class="fa fa-check"></i> @Html.Raw(Resources.Global._default)
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn red btn-sm btn-outline #=!allUser ? 'active' : ''#">
+                                            #if(allUser==false){#
+                                            <input type="radio" name="allUser" value="false" class="toggle" checked> @Html.Raw(Resources.Global._company)
+                                            #}else{#
+                                            <input type="radio" name="allUser" value="false" class="toggle"> @Html.Raw(Resources.Global._company)
+                                            #}#
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=allUser ? 'active' : ''#">
+                                            #if(allUser==true){#
+                                            <input type="radio" name="allUser" value="true" class="toggle" checked> @Html.Raw(Resources.Global._all)
+                                            #}else{#
+                                            <input type="radio" name="allUser" value="true" class="toggle"> @Html.Raw(Resources.Global._all)
+                                            #}#
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group #=allUser ? 'displaynone' : ''#" style=" margin-top:25px;" id="listcompany">
+                                <label>@Html.Raw(Resources.Global._company)</label>
+
+                                @(Html.Kendo().DropDownList()
+                                      .Name("companycode")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._company) + "...")
+                                      .DataTextField("companyname")
+                                      .DataValueField("companycode")
+                                      .Value("#=companycode#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetCompany", "CustomData");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                )
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._title)<span class="required"> * </span></label>
+                                <div class="input-icon right">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm" placeholder="@Html.Raw(Resources.Global._title)" name="name" value="#=name!=null ? name : ''#">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._description)<span class="required"> * </span></label>
+                                <textarea class="form-control" name="description" rows="5">#=description!=null ? description : ''#</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._category)</label>
+                                @(Html.Kendo().DropDownList()
+                                    .Name("category")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._category) + "...")
+                                    .DataTextField("hierarchyname")
+                                    .DataValueField("hierarchycode")
+                                    .Value("#=category!= 0 ? category:''#")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("getHierarchy", "CustomData").Data("Level01");
+                                        }).ServerFiltering(false);
+                                    })
+                                    .ToClientTemplate()
+                                )
+                            </div>
+                            <div class="form-group">
+                                <label>@Html.Raw("hashtag")</label> 
+                                @(Html.Kendo().MultiSelect()
+                                    .Name("hashtagcode")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    //.OptionLabel(Resources.Global._hashtag + "...")
+                                    .Placeholder(Html.Raw("hashtag...").ToString())
+                                    .DataTextField("hashtagname")
+                                    .DataValueField("hashtagcode")
+                                    //.Value("#=hashtag!= 0 ? hashtag:''#")
+                                    .AutoBind(false)
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("getHashtag", "CustomData");
+                                        }).ServerFiltering(false);
+                                    })
+                                    .ToClientTemplate()
+                                )
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>@Html.Raw(Resources.Global._cover_photo)</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 200px; ">
+                                                    <img src="#=imagesPublicId ? imagesPublicId : 'http://www.placehold.it/200x100/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 200px;"> </div>
+                                                <div>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._content_Caps)</label>
+                                <div class="clearfix">
+                                    @(Html.Kendo().Editor().Name("content")
+                                        .Value("#=content ? content : ''#")
+                                        .Encode(false)
+                                        .HtmlAttributes(new { style = "height:450px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                                        .Tools(tools => tools
+                                        .Clear()
+                                        .Bold().Italic().Underline().Strikethrough()
+                                        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                        .InsertUnorderedList().InsertOrderedList()
+                                        .Outdent()
+                                        .Indent()
+                                        .CreateLink().Unlink()
+                                        .InsertImage()
+                                        .InsertFile()
+                                        .SubScript()
+                                        .SuperScript()
+                                        .TableEditing()
+                                        .ViewHtml()
+                                        .Formatting()
+                                        .CleanFormatting()
+                                        .FontColor()
+                                        .BackColor()
+                                        .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a>")))
+                                        .Messages(m => m
+                                            .ImageWebAddress("Đường dẫn ảnh")
+                                            .DialogCancel("Hủy")
+                                            .DialogInsert("Thêm")
+                                        )
+                                        .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image(@HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + "/Content/Upload/images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser"))
+                                        .FileBrowser(fileBrowser => fileBrowser
+                                        .File(@HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + "/Content/Upload/docs/{0}")
+                                        .Read("Read", "FileBrowser")
+                                        .Create("Create", "FileBrowser")
+                                        .Destroy("Destroy", "FileBrowser")
+                                        .Upload("Upload", "FileBrowser")
+                                        ).ToClientTemplate()
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="clearfix">
+                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                    #if(active==false){#
+                                    <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._inactive)
+                                    #}else{#
+                                    <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._inactive)
+                                    #}#
+                                </label>
+                                <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                    #if(active==true){#
+                                    <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._active)
+                                    #}else{#
+                                    <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._active)
+                                    #}#
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <i class="fa fa-newspaper-o" style="font-size: 72px; color: \\#e1e5ec"></i>
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._article) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    function onDatabound() {
+        var listView = this;
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+</script>
+<script>
+    function changeDefault(e) {
+        var checkDefault = $(e).hasClass("green");
+        if (checkDefault) {
+            $(e).removeClass("green").addClass("default");
+            $("input[name='isDefault']").val("false");
+        } else {
+            $(e).removeClass("default").addClass("green");
+            $("input[name='isDefault']").val("true");
+        }
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement &&
+            !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            return true;
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            return false;
+        }
+    }
+
+    function onFullScreen(e) {
+        var editor = $("#content").data("kendoEditor");
+        if ($(e).html() == "@Html.Raw(Resources.Global._full_screen)") {
+            $(e).html("@Html.Raw(Resources.Global._restore_down)");
+            editor.wrapper.css("height", $(window).height())
+            .css("width", "100%")
+            .css("position", 'fixed')
+            .css("top", 0)
+            .css("left", 0).css("z-index", 10000).css("overflow", "hidden");
+        } else {
+            $(e).html("@Html.Raw(Resources.Global._full_screen)");
+            editor.wrapper.css("height", "450px").css("position", 'relative').css("width", "100%").css("z-index", 10).css("overflow", "auto");
+        }
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeArticle(id) {
+        bootbox.dialog({
+            message: "@Html.Raw(Resources.Global._are_your_sure)", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._article)",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Article/deleteArticle", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function getTextById(datas, key, value, requestField) {
+        var response = _.filter(JSON.parse(datas), function (data) {
+            return data[key] == value;
+        });
+        return response[0] ? response[0][requestField] : "";
+    }
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        loadValidate();
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+
+        if (data.hashtagcode!=null)
+            $("#hashtagcode").data("kendoMultiSelect").value(data.hashtagcode.toString().split(';'));
+
+        loadValidate();
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+        setTimeout(function () {
+            initChangeAllUser();
+        }, 1000);
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        name: { required: !0 },
+                        type: { required: !0 },
+                        description: { required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    var hashtagcodes = $("#hashtagcode").val();
+                    $(e).ajaxSubmit({
+                        data: { hashtagcodes: hashtagcodes },
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    loadForm(data.data);
+                                }
+                                setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "description", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "content", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+
+    function initChangeAllUser() {
+        $('input[type=radio][name=allUser]').change(function () {
+            if (this.value == 'false') {
+                $("#listcompany").css("display", "block");
+            }
+            else if (this.value == 'true') {
+                $("#listcompany").css("display", "none");
+            }
+        });
+    }
+
+    function Level01() {
+        return {
+            level: 1,
+            parentcode: '',
+            hierarchytype: 'HT002'
+        };
+    }
+
+    function DataType() {
+        return {
+            type: 'ArticleType'
+        };
+    }
+</script>
+<script src="~/Content/assets/global/plugins/select2/js/select2.full.min.js"></script>

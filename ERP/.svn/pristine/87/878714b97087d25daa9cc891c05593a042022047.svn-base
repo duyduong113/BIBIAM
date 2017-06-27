@@ -1,0 +1,22 @@
+﻿@{
+    Layout = null;
+}
+<select id="listGroup" class="select" multiple data-placeholder="Nhóm" style="width:99%">
+    @foreach (var item in ViewBag.listTeam)
+    {
+        <option value="@item.TeamID">@item.TeamName</option>
+    }
+</select>
+<script type="text/javascript">
+    $(".select").chosen();
+    $('#listGroup').on('change', function () {
+        LoadUserByGroup($('#listGroup').val());
+        // setfilter(keyfilter);
+    });
+    function LoadUserByGroup(groupid) {
+        debugger;
+        $.post(r + "/Ajax/GetlistEmployeeByGroup", { GroupID: groupid }, function (data) {
+            $("#emloyeebygroup").html(data);
+        });
+    }
+</script>

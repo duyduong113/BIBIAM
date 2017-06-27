@@ -1,0 +1,18 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+                .AutoBind(false)
+                .OptionLabel("Chọn...")
+                .DataTextField("ShortName")
+                .DataValueField("Id")
+                .Events(e =>
+                {
+                    e.Select("onChangeCompany");
+                })
+                .DataSource(dataSource =>
+                {
+                    dataSource.Read(read => read.Action("GetCompany", "Company"))
+                    .ServerFiltering(true);
+                })
+)
+@Html.ValidationMessageFor(m => m)

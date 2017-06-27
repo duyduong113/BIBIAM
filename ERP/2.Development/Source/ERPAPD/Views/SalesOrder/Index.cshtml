@@ -1,0 +1,268 @@
+﻿@{
+    ViewBag.Title = "Danh sách đơn hàng";
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">Lọc dữ liệu theo điều kiện</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm theo tên khách hàng, CMND, điện thoại…" style="width:310px" />
+                            <input type="text" name="date-range-picker span2" id="CreatedAtDate" placeholder="Ngày đơn hàng(từ-đến)" style="width: 130px;height:20px;" />
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">Lọc dữ liệu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<DecaPay.Models.Sales_Order_Header>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#'/>").Width(40).Filterable(false).Sortable(false);
+        columns.Bound(p => p.SalesOrderId).Width(100).Title("Mã đơn hàng");
+        columns.Bound(p => p.CustomerId).Width(100).Title("Mã khách hàng");
+        columns.Bound(p => p.FirstName).Width(120).ClientTemplate("#=FirstName# #=LastName#").Title("Họ tên");
+        columns.Bound(p => p.OrderDate).Width(120).Title("Ngày đơn hàng").Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.Amount).Format("{0:N0}").Width(90).Title("Giá trị");
+        columns.Bound(p => p.PrintedInvoice).Width(140).Title("Đã in hóa đơn");
+        columns.Bound(p => p.CreatedAt).Title("Tạo lúc").Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+        columns.Bound(p => p.CreatedBy).Title("Tạo bởi").Width(100);
+        columns.Bound(p => p.UpdatedAt).Title("Cập nhật lúc").Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+        columns.Bound(p => p.UpdatedBy).Title("Cập nhật bởi").Width(100);
+    })
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100 }))
+    .Sortable()
+    .Scrollable()
+    .Events(events => { events.DataBound("dataBound"); events.DetailExpand("detailExpand"); })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Custom()
+                .Text("Tạo đơn hàng")
+               .HtmlAttributes(new { @class = "btn btn-primary", @Href = "javascript:CreateOrder()" });
+                toolbar.Excel().Text("Xuất ra Excel").HtmlAttributes(new { @style = "margin-left:10px" });
+            })
+    .Excel(excel => excel
+            .FileName("SalesOrderList.xlsx")
+            .AllPages(true)
+            .Filterable(true)
+            .ProxyURL(Url.Action("Excel_Export", "SalesOrder")))
+    .Navigatable()
+    .Filterable()
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+    .DataSource(dataSource => dataSource
+
+    .Ajax()
+    .Batch(true)
+    .Sort(a => a.Add(b => b.OrderDate).Descending())
+    .PageSize(20)
+        .Read(read => read.Action("Read", "SalesOrder")))
+        .ClientDetailTemplateId("orderDetail")
+        )
+    </div>
+</div>
+
+<script id="orderDetail" type="text/kendo-tmpl">
+    <div class="row-fluid">
+        <div style="width:1200px">
+            @(Html.Kendo()
+                .TabStrip()
+                .Name("tabStrip_#=Id#")
+                .SelectedIndex(0)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .Items(items =>
+                {
+                    items.Add().Text("Sản phẩm").Content(@<text>
+                        @(Html.Kendo()
+                            .Grid<DecaPay.Models.Sales_Order_Detail>()
+                            .Name("grid2_#=Id#")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(o => o.MSIN).Title("Mã sản phẩm").Width(100);
+                                columns.Bound(o => o.ItemName).Title("Tên sản phẩm").Width(260);
+                                columns.Bound(o => o.Unit).Title("ĐVT").Width(80);
+                                columns.Bound(o => o.Quantity).Title("Số lượng").Width(60);
+                                columns.Bound(o => o.UnitPrice).Title("Đơn giá").Width(80).Format("{0:N0}");
+                                columns.Bound(o => o.Amount).Title("Thành tiền").Width(80).Format("{0:N0}");
+                                columns.Bound(p => p.UpdatedAt).Title("Cập nhật lúc").Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                                columns.Bound(p => p.UpdatedBy).Title("Cập nhật bởi").Width(100);
+                            })
+                            .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .PageSize(6)
+                            .Read(read => read.Action("Detail_Read", "SalesOrder", new { Id = "#=Id#" }))
+                            )
+                            .Pageable(pager => pager
+                            .PageSizes(new[] { 6, 10, 20, 100, 200, 300 }))
+                            .Resizable(resize => resize.Columns(true))
+                            .Sortable()
+                            .ToClientTemplate())
+                    </text>);
+                }).ToClientTemplate())
+        </div>
+    </div>
+</script>
+
+
+<script>
+    function CreateOrder() {
+        window.open(r + '/SalesOrder/Create', '_blank');
+    }
+
+    var expandedRow;
+
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    $(document).ready(function () {
+        $('#CreatedAtDate').daterangepicker({
+            format: 'YYYY/MM/DD'
+        });
+    })
+
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var CreatedAtDate = $('#CreatedAtDate').val();
+
+        var filtertext = { logic: "or", filters: [] };
+
+        if (CreatedAtDate) {
+            var startdate = CreatedAtDate.split('-')[0].trim();
+            var enddate = CreatedAtDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "OrderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "OrderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        if (text) {
+            filtertext.filters.push({ field: "CustomerId", operator: "contains", value: text });
+            filtertext.filters.push({ field: "FirstName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "LastName", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Update successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+
+        //// ask the parameterMap to create the request object for you
+        //var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        //.options.parameterMap({
+        //    page: grid.dataSource.page(),
+        //    sort: grid.dataSource.sort(),
+        //    filter: grid.dataSource.filter()
+        //});
+
+        //// Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.export');
+
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        ////href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        ////href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        ////update filter descriptor with the filters applied
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+</script>

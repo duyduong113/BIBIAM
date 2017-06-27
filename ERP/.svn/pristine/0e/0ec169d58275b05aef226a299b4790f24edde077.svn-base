@@ -1,0 +1,66 @@
+﻿@using MCC.Models;
+@{
+    var serial = new tw_CarSerial();
+}
+@{
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetaila != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+<script type="text/x-kendo-tmpl" id="templateUser">
+    <div class="todo-tasklist-item todo-tasklist-item_#=id#" style="cursor:default;">
+        <div class="col-md-1" style="padding-left: 0; text-align: center;">
+            #if(user.imagesSize){#
+            <img class="todo-userpic img-responsive" src="#=user.imagesSize.face#" style="display:inline;">
+            #}else if(user.gender == null || user.gender == 'unknown'){#
+            <img class="todo-userpic img-responsive" src="@Url.Content("~/Content/images/unknown.png")" style="display:inline;">
+            #}else{#
+            <img class="todo-userpic img-responsive" src="#=user.gender== 'male' ? '@Url.Content("~/Content/images/male.png")' : '@Url.Content("~/Content/images/female.png")'#" style="display:inline;">
+            #}#
+        </div>
+        <div class="col-md-10" style="padding-left:0;">            
+            <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                #=user.fullName#
+            </div>
+            <div class="todo-tasklist-item-text">
+                <a href="mailto:#=user.email ? user.email : 'N/A'#">#=user.email ? user.email : 'N/A'#</a> - #=user.phone ? user.phone : 'N/A'#
+            </div>
+            <div class="todo-tasklist-item-text">
+                #=showroomName#
+            </div>
+            <div class="todo-tasklist-item-text">
+                #if(isManager){#
+                <span class="badge badge-empty badge-danger"></span> @Html.Raw(Resources.Global._busrole_manager)
+                #}#
+                #if(isLeader){#
+                <span class="badge badge-empty badge-primary" style="margin-left:5px;"></span> @Html.Raw(Resources.Global._busrole_leader)
+                #}#
+                #if(isConsultant){#
+                <span class="badge badge-empty badge-success" style="margin-left:5px;"></span> @Html.Raw(Resources.Global._busrole_saleman)
+                #}#
+            </div>
+        </div>
+    </div>
+</script>
+
+<script>
+    function SearchUser(e, id) {
+        listView = $("#listViewUser_" + id).data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "user.fullName", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "user.email", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "user.phone", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+</script>

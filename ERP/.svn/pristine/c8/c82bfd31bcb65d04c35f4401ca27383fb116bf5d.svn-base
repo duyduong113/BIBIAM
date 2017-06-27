@@ -1,0 +1,17 @@
+﻿@{
+    Layout = null;
+}
+<li class="title-list">Danh sách cột hiển thị</li>
+@{
+    if (ViewBag.listColumns != null)
+    {
+        foreach (var item in ViewBag.listColumns)
+        {
+            
+            <li data-active="1" class="span12 ui-state-default ">
+                <span class="span7 item btn-grey">@item.COLUMN_NAME</span>
+                <span class="span3"><a onclick="removeColumn(this)" href="javascript:void(0)"><i class="icon-plus"></i></a></span>
+            </li>
+        }
+    }
+}

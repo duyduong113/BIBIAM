@@ -1,0 +1,141 @@
+﻿<div class="row-fluid" style="margin-bottom:5px;">
+    <div class="span9">
+        <span class="input-icon input-icon-right span12">
+            <input type="text" id="txtCustomerIDSearchForteleSale" placeholder="Nhập Mã, Tên , SĐT, CMND, MNV của khách hàng và enter để tìm..." class="span12" />
+            <i class="icon-search"></i>
+        </span>
+    </div>
+    <div class="span3">
+        @if ((bool)ViewData["IsContinue"])
+        {
+            <button class="btn btn-warning btn-mini pull-right span12" data-rule="Rule" id="btnStartCalling" data-physicalid="id" data-id="id" onclick="GetCustomerForPopup(this)">Tiếp tục chiến?</button>
+        }
+        else
+        {
+            <button class="btn btn-success btn-mini pull-right span12" data-rule="Rule" id="btnStartCalling" data-physicalid="id" data-id="id" onclick="GetCustomerForPopup(this)">Chiến thôi!</button>
+        }
+    </div>
+</div>
+
+@*<input type="text" id="txtCustomerIDSearchForteleSale" class="span8" placeholder="Tìm khách hàng theo: Mã, Tên , SĐT, CMND, MNV…" />
+    <span style="float:none;">
+        <button type="button" id="btnSearchCustomerIDSearchForteleSale" class="btn btn-primary btn-small" onclick="filterCustomerSearchForTeleSale()">TÌM</button>
+    </span>*@
+<div class="row-fluid">
+    <div id="GridSearchResult">
+        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.Deca_Customer_Telesale>()
+                    .Name("GridCustomerAssignmentSearch")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.CustomerID).Width(100).Title("Mã khách hàng");
+                        columns.Bound(p => p.Fullname).Width(130).Title(Resources.Multi.CustomerName);
+                        columns.Bound(p => p.Phone).Width(90);
+                        columns.Bound(p => p.Income).Width(80).Title("Thu nhập").Format("{0:N0}");
+                        columns.Bound(p => p.CreditLimit).Width(90).Title("Hạn mức").Format("{0:N0}");
+                        columns.Bound(p => p.CustomerID).Width(90).HeaderTemplate("").Title("").ClientTemplate("<button type='button' data-id = '#=CustomerID#' data-rule='search' data-physicalid = '#=PhysicalID#', class='btn-success btn btn-minier' style='float:right;display:inline-block;color:white;' onclick ='GetCustomerForPopup(this)' >Bắt đầu</button>").Width(70);
+                    })
+                    .Navigatable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .HtmlAttributes(new { @style = "height:170px;margin-top:7px;" })
+                    .Scrollable(scrollable => scrollable.Enabled(false))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(5)
+                        //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.CustomerID);
+                        }).Read("CustomerSearchRead", "Telesale"))
+        )
+    </div>
+</div>
+
+<div id="dialog-confirm"></div>
+
+<script type="text/javascript">
+    function filterCustomerSearchForTeleSale() {
+        var keyword = $("#txtCustomerIDSearchForteleSale").val();
+        if (keyword.length < 1) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Please input your keyword to search (minimum 1 characters)",
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            $("#GridSearchResult").show();
+            resizeGridAnnoucementAgent();
+            grid = $("#GridCustomerAssignmentSearch").data("kendoGrid");
+
+            var filter = { logic: "and", filters: [] };
+            var filtertext = { logic: "or", filters: [] };
+
+            if (keyword) {
+                filtertext.filters.push({ field: "CustomerID", operator: "contains", value: keyword });
+                filtertext.filters.push({ field: "FullName", operator: "contains", value: keyword });
+                filtertext.filters.push({ field: "Phone", operator: "contains", value: keyword });
+                filtertext.filters.push({ field: "PhysicalID", operator: "contains", value: keyword });
+                filtertext.filters.push({ field: "EmployeeID", operator: "contains", value: keyword });
+                filter.filters.push(filtertext);
+            }
+
+            grid.dataSource.filter(filter);
+
+            //$("#GridCustomerAssignmentSearch").data("kendoGrid").dataSource.read();
+
+        }
+    }
+
+    $('#txtCustomerIDSearchForteleSale').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterCustomerSearchForTeleSale();
+        }
+    });
+
+    function GetCustomerForPopup(obj) {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        var id = $(obj).data("id");
+        var physical = $(obj).data("physicalid");
+        var rule = $(obj).data("rule");
+        if (rule == "Rule") {
+            $.post(r + "/Telesale/getPopupRuleData/", function (data) {
+                if (data.success) {
+                    LoadDataToPopup(data, "RequestSystem", '', '', true);
+                    $("#btnStartCalling").removeClass("btn-success").addClass("btn-warning").text("Tiếp tục chiến?");
+                } else {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        } else {
+            $.post(r + "/Telesale/getPopupData/", { PhysicalID: physical, CustomerID: id }, function (data) {
+                if (data.success) {
+                    LoadDataToPopup(data, "Search", '', '', true);
+                    $("#btnStartCalling").removeClass("btn-success").addClass("btn-warning").text("Tiếp tục chiến?");
+                } else {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+
+</script>
+
+<style type="text/css">
+    #GridSearchResult {
+        display: none;
+    }
+</style>

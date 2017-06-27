@@ -1,0 +1,415 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.Providers;
+using System.Data.SqlClient;
+using ServiceStack.OrmLite;
+using MySql.Data.MySqlClient;
+namespace BIBIAM.Core.Data.DataObject
+{
+    public class Merchant_Info_DAO
+    {
+        public DataTable ReadAll(string connectionString)
+        {
+            List<SqlParameter> param = new List<SqlParameter>();
+            return new SqlHelper(connectionString).ExecuteString("select * from Merchant_Info order by id desc", param);
+        }
+        public int Delete(string[] ids, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                //using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        foreach (var id in ids)
+                        {
+                            List<SqlParameter> param = new List<SqlParameter>();
+                            param.Add(new SqlParameter("@id", id));
+                            new SqlHelper().ExecuteNoneQuery("delete Merchant_Info where id = @id", param, CommandType.Text);
+                        }
+                        //dbTrans.Commit();
+                        return 1;
+                    }
+                    catch
+                    {
+                        //dbTrans.Rollback();
+                        return 0;
+                    }
+                }
+            }
+        }
+        public string CreateMerchant(Merchant_Info row, string UserName, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                //using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        var checkID = db.SingleOrDefault<Merchant_Info>("id={0}", row.id);
+                        if (checkID == null)
+                        {
+                            string ma_gian_hang = String.Empty;
+
+                            var lastId = db.FirstOrDefault<Merchant_Info>("SELECT TOP 1 * FROM Merchant_Info ORDER BY id DESC");
+                            if (lastId != null)
+                            {
+                                if (lastId.ma_gian_hang.Contains("GH"))
+                                {
+                                    var nextNo = Int32.Parse(lastId.ma_gian_hang.Substring(7, 2)) + 1;
+                                    ma_gian_hang = "GH" + String.Format("{0:0000000}", nextNo);
+                                }
+                            }
+                            else
+                            {
+                                ma_gian_hang = "GH0000001";
+                            }
+                            row.ma_gian_hang = ma_gian_hang;
+                            row.slug = StringHelper.convertToUnSign3(row.ten_gian_hang);
+                            row.ngay_tao = DateTime.Now;
+                            row.nguoi_tao = UserName;
+                            row.ngay_tiep_xuc = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                            row.ngay_ky_hop_dong = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                            row.ngay_duyet = !string.IsNullOrEmpty(row.ngay_duyet.ToString()) ? row.ngay_duyet : DateTime.Parse("1900-01-01");
+                            row.ngay_hoat_dong = !string.IsNullOrEmpty(row.ngay_hoat_dong.ToString()) ? row.ngay_hoat_dong : DateTime.Parse("1900-01-01");
+                            row.trang_thai_duyet = AllConstant.trang_thai_duyet.CHUA_DUYET;
+                            row.trang_thai_xuat_ban = AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN;
+                            row.trang_thai_xac_thuc = AllConstant.trang_thai_xac_thuc.CHUA_XAC_THUC;
+                            row.ngay_tao = DateTime.Now;
+                            row.nguoi_tao = "System";
+                            row.ngay_cap_nhat = DateTime.Now;
+                            row.nguoi_cap_nhat = "System";
+                            db.Insert(row);
+                            new SqlHelper().ExecuteNoneQuery("update tw_User set ma_gian_hang='" + ma_gian_hang + "' where name='" + UserName + "'", new List<SqlParameter>(), CommandType.Text);
+                        }
+                        //dbTrans.Commit();
+                        return "true";
+                    }
+                    catch (Exception e)
+                    {
+                        //dbTrans.Rollback();
+                        return e.Message.ToString();
+                    }
+                }
+            }
+        }
+        public string Authentication(Merchant_Info row, string UserName, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        var checkID = db.FirstOrDefault<Merchant_Info>(s => s.id == row.id && s.ma_gian_hang == row.ma_gian_hang && s.trang_thai_xac_thuc == "A");
+                        if (checkID == null)
+                        {
+                            dbTrans.Rollback();
+                            return "Không xác định được gian hàng!";
+                        }
+                        var newData = Newtonsoft.Json.JsonConvert.SerializeObject(checkID);
+                        Merchant_Info data = Newtonsoft.Json.JsonConvert.DeserializeObject<Merchant_Info>(new Merchant_History_DAO().getValueHistory("Merchant_Info", row.ma_gian_hang, db));
+                        data.trang_thai_xac_thuc = AllConstant.trang_thai_xac_thuc.DA_XAC_THUC;
+                        db.Update(data);
+                        var rs = new Merchant_History_DAO().createHistory("Merchant_Info", checkID.ma_gian_hang, newData, UserName, db);
+                        if (rs != "true")
+                        {
+                            dbTrans.Rollback();
+                            return rs;
+                        }
+                        dbTrans.Commit();
+                        return "true";
+                    }
+                    catch (Exception e)
+                    {
+                        dbTrans.Rollback();
+                        return e.Message.ToString();
+                    }
+                }
+            }
+        }
+        public string Update(Merchant_Info row, string UserName, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    var checkID = db.SingleOrDefault<Merchant_Info>("ma_gian_hang = {0}", row.ma_gian_hang);
+                    if (checkID != null)
+                    {
+                        bool changeFlag = false;
+                        if (!String.IsNullOrEmpty(row.ten_viet_tat) && checkID.ten_viet_tat != row.ten_viet_tat)
+                        {
+                            checkID.ten_viet_tat = row.ten_viet_tat;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.ten_tieng_anh) && checkID.ten_tieng_anh != row.ten_tieng_anh)
+                        {
+                            checkID.ten_tieng_anh = row.ten_tieng_anh;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.website) && checkID.website != row.website)
+                        {
+                            checkID.website = row.website;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.dien_thoai) && checkID.dien_thoai != row.dien_thoai)
+                        {
+                            checkID.dien_thoai = row.dien_thoai;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.fax) && checkID.fax != row.fax)
+                        {
+                            checkID.fax = row.fax;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.dia_chi_tru_so) && checkID.dia_chi_tru_so != row.dia_chi_tru_so)
+                        {
+                            checkID.dia_chi_tru_so = row.dia_chi_tru_so;
+                            changeFlag = true;
+                        }
+
+                        if (!String.IsNullOrEmpty(row.mo_ta) && checkID.mo_ta != row.mo_ta)
+                        {
+                            checkID.mo_ta = row.mo_ta;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.email) && checkID.email != row.email)
+                        {
+                            var checkEmail = db.FirstOrDefault<Merchant_Info>("email = {0} and ma_gian_hang!={1}", row.email, row.ma_gian_hang);
+                            if (checkEmail != null)
+                            {
+                                return "Email đã tồn tại!";
+                            }
+                            checkID.email = row.email;
+                            changeFlag = true;
+                        }
+                        if (!String.IsNullOrEmpty(row.tai_khoan_thanh_toan) && checkID.tai_khoan_thanh_toan != row.tai_khoan_thanh_toan)
+                        {
+                            checkID.tai_khoan_thanh_toan = row.tai_khoan_thanh_toan;
+                            changeFlag = true;
+                        }
+                        checkID.logo_gian_hang = string.IsNullOrEmpty(row.logo_gian_hang) ? checkID.logo_gian_hang : row.logo_gian_hang;
+                        checkID.ma_tinh_tp = string.IsNullOrEmpty(row.ma_tinh_tp) ? checkID.ma_tinh_tp : row.ma_tinh_tp;
+                        checkID.ten_tinh_tp = string.IsNullOrEmpty(row.ten_tinh_tp) ? checkID.ten_tinh_tp : row.ten_tinh_tp;
+                        checkID.ma_quan_huyen = string.IsNullOrEmpty(row.ma_quan_huyen) ? checkID.ma_quan_huyen : row.ma_quan_huyen;
+                        checkID.ten_quan_huyen = string.IsNullOrEmpty(row.ten_quan_huyen) ? checkID.ten_quan_huyen : row.ten_quan_huyen;
+                        if (changeFlag)
+                        {
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            checkID.nguoi_cap_nhat = UserName;
+                            checkID.trang_thai_xac_thuc = AllConstant.trang_thai_xac_thuc.CHUA_XAC_THUC;
+                            var newData = Newtonsoft.Json.JsonConvert.SerializeObject(checkID);
+                            //var rs = new Merchant_History_DAO().createHistory("Merchant_Info", checkID.ma_gian_hang, newData, UserName, db);
+                            //if (rs != "true")
+                            //{
+                            //    return "Ghi lịch sử thất bại!";
+                            //}
+                            if (db.ExecuteNonQuery("update Merchant_Info set trang_thai_xac_thuc = '" + AllConstant.trang_thai_xac_thuc.CHUA_XAC_THUC + "' where id = {0} and ma_gian_hang = {1}".Params(checkID.id, checkID.ma_gian_hang)) > 0)
+                            {
+                                checkID.ngay_cap_nhat = DateTime.Now;
+                                checkID.nguoi_cap_nhat = UserName;
+                                db.Update(checkID);
+                                return "true";
+                            }
+                            else
+                            {
+                                return "Xác thực không thành công!";
+                            }
+                        }
+                        else
+                        {
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            checkID.nguoi_cap_nhat = UserName;
+                            db.Update(checkID);
+                            return "true";
+                        }
+                    }
+                    return "Thông tin không xác định!";
+                }
+                catch (Exception)
+                {
+                    return "Error";
+                }
+
+            }
+        }
+        public string UpSert(List<Merchant_Info> lstMerchant_Info, string UserName, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                using (var dbTrans = db.OpenTransaction(IsolationLevel.ReadCommitted))
+                {
+                    try
+                    {
+                        foreach (Merchant_Info row in lstMerchant_Info)
+                        {
+                            var checkID = db.SingleOrDefault<Merchant_Info>("id={0}", row.id);
+                            if (checkID == null)
+                            {
+                                string CustomerID = String.Empty;
+
+                                var lastId = db.FirstOrDefault<Merchant_Info>("SELECT TOP 1 * FROM Merchant_Info ORDER BY id DESC");
+                                if (lastId != null)
+                                {
+                                    if (lastId.ma_gian_hang.Contains("GH"))
+                                    {
+                                        var nextNo = Int32.Parse(lastId.ma_gian_hang.Substring(7, 2)) + 1;
+                                        CustomerID = "GH" + String.Format("{0:0000000}", nextNo);
+                                    }
+                                }
+                                else
+                                {
+                                    CustomerID = "GH0000001";
+                                }
+                                row.ma_gian_hang = CustomerID;
+                                row.slug = StringHelper.convertToUnSign3(row.ten_gian_hang);
+                                row.ngay_tao = DateTime.Now;
+                                row.nguoi_tao = UserName;
+                                row.ngay_tiep_xuc = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                                row.ngay_ky_hop_dong = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                                row.ngay_duyet = !string.IsNullOrEmpty(row.ngay_duyet.ToString()) ? row.ngay_duyet : DateTime.Parse("1900-01-01");
+                                row.ngay_hoat_dong = !string.IsNullOrEmpty(row.ngay_hoat_dong.ToString()) ? row.ngay_hoat_dong : DateTime.Parse("1900-01-01");
+                                row.ngay_cap_nhat = !string.IsNullOrEmpty(row.ngay_cap_nhat.ToString()) ? row.ngay_cap_nhat : DateTime.Parse("1900-01-01");
+                                db.Insert(row);
+                                //List<SqlParameter> param = new List<SqlParameter>();
+                                //param.Add(new SqlParameter("@1", row.ma_gian_hang));
+                                //param.Add(new SqlParameter("@2", row.tai_khoan_thanh_toan));
+                                //param.Add(new SqlParameter("@3", row.website));
+                                //new SqlHelper().ExecuteNoneQuery("insert into Merchant_Info(ma_gian_hang,trang_thai_xuat_ban,website) values(@1,@2,@3)", param, CommandType.Text);
+                            }
+                            else
+                            {
+                                checkID.ten_gian_hang = !string.IsNullOrEmpty(row.ten_gian_hang) ? row.ten_gian_hang : "";
+                                checkID.slug = StringHelper.convertToUnSign3(checkID.ten_gian_hang);
+                                checkID.ten_viet_tat = !string.IsNullOrEmpty(row.ten_viet_tat) ? row.ten_viet_tat : "";
+                                checkID.website = !string.IsNullOrEmpty(row.website) ? row.website : "";
+                                checkID.dien_thoai = !string.IsNullOrEmpty(row.dien_thoai) ? row.dien_thoai : "";
+                                checkID.email = !string.IsNullOrEmpty(row.email) ? row.email : "";
+                                checkID.fax = !string.IsNullOrEmpty(row.fax) ? row.fax : "";
+                                checkID.logo_gian_hang = !string.IsNullOrEmpty(row.logo_gian_hang) ? row.logo_gian_hang : "";
+                                checkID.ten_tieng_anh = !string.IsNullOrEmpty(row.ten_tieng_anh) ? row.ten_tieng_anh : "";
+                                checkID.dia_chi_tru_so = !string.IsNullOrEmpty(row.dia_chi_tru_so) ? row.dia_chi_tru_so : "";
+                                checkID.ten_tinh_tp = !string.IsNullOrEmpty(row.ten_tinh_tp) ? row.ten_tinh_tp : "";
+                                checkID.ten_quan_huyen = !string.IsNullOrEmpty(row.ten_quan_huyen) ? row.ten_quan_huyen : "";
+                                checkID.trang_thai_xuat_ban = !string.IsNullOrEmpty(row.trang_thai_xuat_ban) ? row.trang_thai_xuat_ban : AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN;
+                                checkID.ma_quan_huyen = !string.IsNullOrEmpty(row.ma_quan_huyen) ? row.ma_quan_huyen : "";
+                                checkID.ma_tinh_tp = !string.IsNullOrEmpty(row.ma_tinh_tp) ? row.ma_tinh_tp : "";
+                                checkID.ngay_tiep_xuc = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                                checkID.ngay_ky_hop_dong = !string.IsNullOrEmpty(row.ngay_tiep_xuc.ToString()) ? row.ngay_tiep_xuc : DateTime.Parse("1900-01-01");
+                                checkID.nguoi_duyet = !string.IsNullOrEmpty(row.nguoi_duyet) ? row.nguoi_duyet : "";
+                                checkID.ngay_duyet = !string.IsNullOrEmpty(row.ngay_duyet.ToString()) ? row.ngay_duyet : DateTime.Parse("1900-01-01");
+                                checkID.ngay_hoat_dong = !string.IsNullOrEmpty(row.ngay_hoat_dong.ToString()) ? row.ngay_hoat_dong : DateTime.Parse("1900-01-01");
+                                checkID.trang_thai_duyet = !string.IsNullOrEmpty(row.trang_thai_duyet) ? row.trang_thai_duyet : AllConstant.trang_thai_duyet.CHUA_DUYET;
+                                checkID.ly_do_giay_to_phap_ly = !string.IsNullOrEmpty(row.ly_do_giay_to_phap_ly) ? row.ly_do_giay_to_phap_ly : "";
+                                checkID.tai_khoan_thanh_toan = !string.IsNullOrEmpty(row.tai_khoan_thanh_toan) ? row.tai_khoan_thanh_toan : ""; ;
+                                checkID.dao_tao_quan_ly = !string.IsNullOrEmpty(row.dao_tao_quan_ly) ? row.dao_tao_quan_ly : "";
+                                checkID.mo_ta = !string.IsNullOrEmpty(row.mo_ta) ? row.mo_ta : "";
+                                checkID.nguoi_tao = !string.IsNullOrEmpty(row.nguoi_tao) ? row.nguoi_tao : "";
+                                checkID.ngay_tao = !string.IsNullOrEmpty(row.ngay_tao.ToString()) ? row.ngay_tao : DateTime.Parse("1900-01-01");
+                                checkID.ngay_cap_nhat = DateTime.Now;
+                                checkID.nguoi_cap_nhat = UserName;
+                                db.Update(checkID);
+                            }
+                        }
+                        dbTrans.Commit();
+                        return "true";
+                    }
+                    catch (Exception e)
+                    {
+                        dbTrans.Rollback();
+                        return e.Message.ToString();
+                    }
+                }
+            }
+        }
+        public Merchant_Info ReadByMerchantID(string ma_gian_hang, string connectionString)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                Merchant_Info data = db.SingleOrDefault<Merchant_Info>("ma_gian_hang = {0}", ma_gian_hang);
+                if (data == null)
+                    return new Merchant_Info();
+                return data;
+            }
+        }
+        public string SyncToMySQL(string id, string connectionString)
+        {
+            Merchant_Info SyncMerchant;
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+                    SyncMerchant = db.FirstOrDefault<Merchant_Info>("id = {0}", id);
+                    if (SyncMerchant == null)
+                        return "Không tìm thấy sản phẩm";
+
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+            using (MySqlConnection con = new MySqlConnection(AppConfigs.FEConnectionString))
+            {
+                con.Open();
+                try
+                {
+                    List<SqlParameter> param = new List<SqlParameter>();
+                    //Sync Product
+                    param.Add(new SqlParameter("@ma_gian_hang", SyncMerchant.ma_gian_hang));
+                    new SqlHelper(connectionString).ExecuteQuery("p_Merchant_Info_SyncToMySQL", param);
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+        }
+
+        public string ChangeStatus(string[] ids, string connectionString, string Username, string status)
+        {
+            using (var db = new OrmliteConnection().openConn(connectionString))
+            {
+                try
+                {
+
+                    foreach (var id in ids)
+                    {
+                        var checkID = db.SingleOrDefault<Merchant_Info>("id={0}", id);
+                        if (checkID != null)
+                        {
+                            checkID.trang_thai_xac_thuc = (status == AllConstant.trang_thai_xac_thuc.DA_XAC_THUC) ? AllConstant.trang_thai_xac_thuc.DA_XAC_THUC : AllConstant.trang_thai_xac_thuc.CHUA_XAC_THUC;
+                            checkID.nguoi_cap_nhat = Username;
+                            checkID.ngay_cap_nhat = DateTime.Now;
+                            db.UpdateOnly(checkID,
+                                            onlyFields: p =>
+                                            new
+                                            {
+                                                p.trang_thai_xac_thuc,
+                                                p.nguoi_cap_nhat,
+                                                p.ngay_cap_nhat
+                                            },
+                                             where: p => p.id == checkID.id);
+                            string rs = SyncToMySQL(id, connectionString);
+                            if (rs != "true")
+                            {
+                                return "Lỗi đồng bộ!";
+                            }
+                        }
+                    }
+                    return "true";
+                }
+                catch (Exception e)
+                {
+                    return e.Message.ToString();
+                }
+            }
+        }
+
+    }
+}

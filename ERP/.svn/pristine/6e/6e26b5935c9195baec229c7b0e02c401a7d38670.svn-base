@@ -1,0 +1,28 @@
+﻿@model DecaPay.Models.DC_CS_Daily_New
+@{
+    ViewBag.Title = "Detail";
+}
+<style>
+    h3, .h3 {
+  font-size: 24px;
+  color: #f37c2b;
+  text-align:justify;
+}
+    h5, .h5 {
+      font-size: 14px;
+      text-align:justify;
+    }
+    .detail {
+        padding: 0px;
+      line-height: 13px;
+      /* text-rendering: geometricPrecision; */
+      color: rgb(51, 51, 51);
+      font-family: arial;
+      font-size: 13px;
+    }
+</style>
+@Html.HiddenFor(model => model.Id)
+<p class="paddingnew h3 fontpage"><strong>@Model.Title</strong></p>
+<p class="paddingnew h5 fontpage"><strong>@Model.Description</strong></p>
+<p class ="detail">@Html.Raw(HttpUtility.HtmlDecode(@Model.Content))</p>
+<a class="btn btn-primary btn-small" href="@Url.Content("~/Home")">Back</a>

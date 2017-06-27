@@ -1,0 +1,506 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_Telesales_QuestionList>
+
+@{
+    ViewBag.Title = "Quản lý danh sách câu hỏi ";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listAnswerType = new List<Object>();
+    listAnswerType.Add(new { Value = "Yes/No", Name = "Yes/No" });
+    listAnswerType.Add(new { Value = "Free text", Name = "Free text" });
+    listAnswerType.Add(new { Value = "Number", Name = "Number" });
+    ViewBag.listAnswerType = listAnswerType;
+
+}
+
+<style>
+    .class-with-width {
+        width: 450px !important;
+    }
+
+    .modal {
+        width: 300px !important;
+    }
+</style>
+
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div id="newlistICareID" style="display: inline-block;">
+                            <input type="text" id="question" name="Question" placeholder="Câu hỏi..." style="width: 350px;height:20px" />
+                            @*<input type="text" id="LibraryDescription" name="LibraryID" placeholder="Search Description name ...." style="width: 350px;" />*@
+                            @*<select name="select" id="ActiveCategory" class='chosen-select span2' style="width:250px;" multiple data-placeholder="Select Active...">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Inactive</option>
+                        </select>*@
+                            <select name="select" id="listRegion" class='chosen-select span2' style="width:250px;" multiple data-placeholder="Chọn vùng miền...">
+                                @foreach (var item in ViewBag.listRegion)
+                                {
+                                    <option value="@item.TerritoryID">@item.TerritoryName</option>
+                                }
+                            </select>
+                            <select name="select" id="listAnswerType" class='chosen-select span2' style="width:250px;" multiple data-placeholder="@Resources.Multi.ChooseTypeQuestion...">
+                                @foreach (var item in ViewBag.listAnswerType)
+                                {
+                                    <option value="@item.Value">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row-fluid">
+    <div class="span12">
+
+        @(Html.Kendo()
+        .Grid(Model)
+        .Name("Grid")
+        .HtmlAttributes(new { style = "height: auto;" })
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#'  />").Width(35).Filterable(false).Sortable(false);
+            columns.ForeignKey(p => p.RegionID, (System.Collections.IEnumerable)ViewBag.listRegion, "TerritoryID", "TerritoryName").EditorTemplateName("GridNullableForeignKey").Title(Resources.Multi.MenuRegionDefinition).Width(250).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+            columns.Bound(p => p.Question).Title(Resources.Multi.Question).EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+            columns.ForeignKey(p => p.AnswerType, (System.Collections.IEnumerable)ViewBag.listAnswerType, "Value", "Name").EditorTemplateName("GridNullableForeignKey").Title(Resources.Multi.Catagory).Width(250).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+
+            columns.Bound(p => p.RowCreatedUser).Width(100).Title(Resources.Multi.CreatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.RowCreatedTime).Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(RowCreatedTime," + Constants.TIME_ZONE + ")#");
+            columns.Bound(p => p.RowLastUpdatedUser).Width(100).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.RowLastUpdatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(100).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= ConvertTimeZone(RowLastUpdatedTime," + Constants.TIME_ZONE + ") #" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+            toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") });
+            //toolbar.Custom()
+            //    .Text("Add new ")
+            //    .HtmlAttributes(new { id = "btnAdd", @class = "btn-success btn-toolbar", @style = "display:" + (AllowCreate ? "inline-block" : "none") + ";color:white;", Href = "javascript:void(0)" });
+
+            //toolbar.Custom()
+            //        .Text("Export To Excel")
+            //        .HtmlAttributes(new { @class = "export" })
+            //        .Url(Url.Action("Export", "TelesalesQuestionList", new { filter = "~", sort = "~", RegionID = "~" }));
+            //toolbar.Custom()
+            //       .Text("Import From Excel")
+            //       .HtmlAttributes(new { id = "import", Href = "javascript:void(0)" });
+            toolbar.Custom()
+                    .Text(Resources.Multi.Delete)
+                    .HtmlAttributes(new { @id = "btnDelete", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:Delete()" });
+
+        })
+        .Events(events => { events.DataBound("dataBound"); })
+        .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Scrollable(scrollable => scrollable.Virtual(false))
+        .Sortable().ColumnMenu()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(50)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+            {
+                model.Id(p => p.ID);
+                model.Field(p => p.ID).Editable(false);
+                //model.Field(p => p.RegionID).Editable(false);
+                model.Field(p => p.RowCreatedTime).Editable(false);
+                model.Field(p => p.RowCreatedUser).Editable(false);
+                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+            })
+            //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                .Read("Read", "TelesalesQuestionList")
+                .Create("Create", "TelesalesQuestionList")
+                .Update("Update", "TelesalesQuestionList")
+            )
+        )
+    </div>
+</div>
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimport")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importform" action="@Url.Content("~/TelesalesQuestionList/ImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+
+
+<script>
+
+    $('#listAnswerType').chosen();
+    $('#listRegion').chosen();
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+
+        ////  Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.export');
+        //var href = $exportLink.attr('href');
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //$exportLink.attr('href', href);
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    @*@{
+        var data = new ERPAPD.Models.DC_Telesales_QuestionList();
+    }
+
+    $('#btnAdd').bind('click', function () {
+        var detailsTemplate = kendo.template($("#create").html());
+        bootbox.dialog(detailsTemplate('@data'), [{
+            "label": "Save",
+            "class": "btn-small btn-success",
+            "callback": function () {
+                var region = $('#RegionID').val();
+                var answertype = $('#AnswerType').val();
+                var question = $('#question').val();
+                if (!region) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Please input Region',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+
+                if (!answertype) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Please input AnswerType',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+
+                if (!question) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Please input Question',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+
+                $('.saveform').submit();
+            }
+        }, {
+            "label": "Cancel",
+            "class": "btn-small btn-primary",
+            "callback": function () {
+                //Example.show("Primary button");
+            }
+        }]
+        );
+
+        $(".saveform").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    });*@
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function Delete() {
+        var checkrowid = "";
+        $("#Grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("id") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var cf = confirm("@Resources.Multi.DeleteConfirm");
+            if (cf == true) {
+                $.post(r + "/TelesalesQuestionList/Delete", { data: checkrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: "Delete successfully.",
+                            class_name: 'gritter-success',
+                        });
+                        $("#Grid").data("kendoGrid").dataSource.read();
+                        $("#checkboxcheckAll").prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            text: data.error,
+                            class_name: 'gritter-error',
+                        });
+
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Please select data',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors: ";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            //alert(message);
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function onRequestEnd(e) {
+      
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function filter() {
+      
+        grid = $("#Grid").data("kendoGrid");
+
+        var listAnswerType = $("#listAnswerType option:selected");
+        var listRegion = $("#listRegion option:selected");
+        var question = $("#question").val();
+
+
+        var filter = { logic: "and", filters: [] };
+        var filterQuestion = { logic: "or", filters: [] };
+        var filterRegion = { logic: "or", filters: [] };
+        var filterAnswerType = { logic: "or", filters: [] };
+
+        if (question) {
+            filterQuestion.filters.push({ field: "Question", operator: "contains", value: question });
+            filter.filters.push(filterQuestion);
+        }
+
+        if (listAnswerType.length > 0) {
+            for (var i = 0; i < listAnswerType.length; i++) {
+                var option = listAnswerType[i].value;
+                if (option == "") {
+                    filterAnswerType.filters.push({ field: "AnswerType", operator: "contains", value: "" });
+                }
+                filterAnswerType.filters.push({ field: "AnswerType", operator: "eq", value: option });
+
+            }
+            filter.filters.push(filterAnswerType);
+        }
+
+        if (listRegion.length > 0) {
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == "") {
+                    filterRegion.filters.push({ field: "RegionID", operator: "contains", value: "" });
+                }
+                filterRegion.filters.push({ field: "RegionID", operator: "eq", value: option });
+
+            }
+            filter.filters.push(filterRegion);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    $('#import').bind('click', function () {
+        $("#windowimport").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        $('#FileUpload').ace_file_input({
+            no_file: 'No File ...',
+            btn_choose: 'Choose',
+            btn_change: 'Change',
+            droppable: false,
+            onchange: null,
+            thumbnail: false //| true | large
+            //whitelist:'gif|png|jpg|jpeg'
+            //blacklist:'exe|php'
+            //onchange:''
+            //
+        });
+    });
+
+    $('#btnImport').bind('click', function () {
+        $('#importform').submit();
+    });
+
+    (function () {
+        $("#importform").ajaxForm({
+            beforeSend: function () {
+                $("#windowimport").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimport").data("kendoWindow").open();
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownload').css('display', 'none');
+                        $('#btndownload').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+    })();
+
+
+    $('#question').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+</script>

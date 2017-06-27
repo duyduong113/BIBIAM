@@ -1,0 +1,219 @@
+﻿@{
+    string typeContract = ViewBag.typeContract;
+    if (typeContract == "CPM" || typeContract == "PHIEUCPM")
+    {
+        @Html.Partial("product/_cpm")
+    }
+    else
+    {
+        @Html.Partial("product/_normal")
+
+    }
+}
+<fieldset class="row-fluid revernus">
+    <div class="span4">
+        <div class="row-fluid">
+            <div class="profile-user-info">
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh số ký</b> </div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input name="StrTotalMoney" id="revenues-money" type="text" value="" readonly />
+                        </span>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+
+                    <div class="profile-info-name">
+                        <input onchange="resetRevenus()" class="ace" type="checkbox" name="c_check_vat" id="check-vat">
+                        <label class="lbl" for="check-vat"> VAT 10%</label>
+                    </div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input name="StrTotalVat" id="revenues-vat" type="text" value="" readonly />
+
+                        </span>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Tổng giá trị HĐ</b> </div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input name="StrTotalValue" id="revenues-sum" type="text" value="" readonly />
+
+                        </span>
+                    </div>
+                </div>
+
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh số thực hiện</b></div>
+                    <div class="profile-info-value">
+                        <div class="controls">
+                            <span>
+                                <input name="StrTotalInYear" id="revenues-real" type="text" value="" readonly />
+
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh số chuyển năm sau</b></div>
+                    <div class="profile-info-value">
+                        <div class="controls">
+                            <span>
+                                <input name="StrTotalNextYear" id="revenues-next-year" type="text" readonly value=""/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="span4">
+        <div class="row-fluid rev-middle">
+            <div class="profile-user-info">
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh số khác</b></div>
+                    <div class="profile-info-value">
+                        <input name="StrTotalCustomerTotalMoney" id="revenues-customer-total" onchange="resetRevenus()" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Website khác</b></div>
+                    <div class="profile-info-value">
+                        <input name="StrOutSideMoney" id="revenues-other-website" onchange="resetRevenus()" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh thu ngoài chính sách</b></div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input name="StrDSOutCS" id="revenues-out-cs" onchange="saleDirect()" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </span>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Chiếm tỉ lệ</b></div>
+                    <div class="profile-info-value">
+                        <div class="controls">
+                            <input name="c_phan_tram_ncs" style="width:30px" id="c_phan_tram_ncs" onchange="saleDirect()" class="input-small currency" type="number" />
+                            <span id="">%</span>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="span4">
+        <div class="row-fluid">
+            <div class="profile-user-info">
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Doanh số hủy/chờ hủy </b> </div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input onchange="resetRevenus()" name="StrDSHuy" name1="c_ds_huy" id="revenues-end-wait" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </span>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Ngày ĐCDS hủy/chờ hủy</b> </div>
+                    <div class="profile-info-value">
+                        <span>
+                            <input name="StrDateHuy" name1="c_ngay_bao_huy" id="revenues-date-end" class="date-picker" type="text" />
+                        </span>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-name"><b>Lý do</b> </div>
+                    <div class="profile-info-value">
+                       <textarea name="c_ly_do_huy" id="revenues-end-reason" style="width: 220px;resize:none" class="" type="text" ></textarea>
+                    </div>
+                </div>
+                <div class="profile-info-row" style="margin-top:20px!important; z-index:100!important">
+                    <div class="profile-info-name"><b>Trạng thái hủy</b></div>
+                    <div class="profile-info-value">
+                        <select id="status-end-rev" name="c_huy_status" message="Ban phai chon trang thai hop dong!" style="width:50%">
+                            <option value="0" name="" selected>--- Chọn TT hủy ---</option>
+                            <option value="1">Chờ hủy</option>
+                            <option value="2">Chắc chắn hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</fieldset>
+<script type="text/javascript">
+
+    //DuyVND
+    //function resetRevenus() {
+    //    debugger
+    //    var vat = 0;
+    //    var sumMoneyOtherCustomer = currencyToNumber($("#revenues-customer-total").val());
+    //    var moneyOtherWebsite = currencyToNumber($("#revenues-other-website").val());
+    //    var real = sumMoneyGroup - sumMoneyNextYear;
+    //    var revenues = real  + moneyOtherWebsite ;
+    //    $("#revenues-money").val(numberToCurrency(revenues));
+    //    if ($("#check-vat").is(":checked")) {
+    //        vat = revenues * 10 / 100;
+    //    }
+    //    $("#revenues-vat").val(numberToCurrency(vat));
+    //    $("#revenues-sum").val(numberToCurrency(revenues + vat));
+    //    moneyBeforeVat = revenues;
+    //    moneyAfterVat = revenues + vat;
+    //    if (sumMoneyOtherCustomer > revenues) {
+    //        alert("Doanh số khác không được lớn hơn doanh số ký");
+    //        return;
+    //    }
+    //    if (sumMoneyOtherCustomer > revenues) {
+    //        alert("Doanh số chuyển năm sau không được lớn hơn doanh số ký");
+    //        return;
+    //    }
+    //    $("#revenues-real").val(numberToCurrency(real));
+    //    $("#revenues-next-year").val(numberToCurrency(sumMoneyNextYear));
+    //    changeMoney();
+    //    changePercent(true);
+    //};
+
+    //BaoHV sua theo note chi Nhi
+    //https://trello.com/c/srVHfXtx
+    function resetRevenus(check) {
+      
+        var vat = 0;
+        var sumMoneyOtherCustomer = currencyToNumber($("#revenues-customer-total").val());
+        var revenues_cancel_new = currencyToNumber($("#revenues-end-wait").val()).valueOf(); // DS hủy
+        var moneyOtherWebsite = currencyToNumber($("#revenues-other-website").val());
+        var revenues = parseFloat(sumMoneyGroup) + sumMoneyOtherCustomer + moneyOtherWebsite - revenues_cancel_new;
+        var real = revenues - sumMoneyNextYear - sumMoneyOtherCustomer;
+
+        $("#revenues-money").val(numberToCurrency(revenues));
+        if ($("#check-vat").is(":checked")) {
+            vat = revenues * 10 / 100;
+        }
+        $("#revenues-vat").val(numberToCurrency(vat));
+        $("#revenues-sum").val(numberToCurrency(revenues + vat));
+        moneyBeforeVat = revenues;
+        moneyAfterVat = revenues + vat;
+        if (sumMoneyOtherCustomer > revenues  ) {
+            alertMessage("Doanh số khác không được lớn hơn doanh số ký");
+            return;
+        }
+        if (sumMoneyNextYear > revenues) {
+            alertMessage("Doanh số chuyển năm sau không được lớn hơn doanh số ký");
+            return;
+        }
+        $("#revenues-real").val(numberToCurrency(real));
+        $("#revenues-next-year").val(numberToCurrency(sumMoneyNextYear));
+        if ($("#list-schedule-paypal tbody.list tr").length > 0) {
+            changeMoney();
+        }
+        if ($("#list-staff-revenue tbody.list tr").length > 0) {
+            changePercent(true);
+        }
+    };
+
+
+</script>

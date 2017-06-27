@@ -1,0 +1,253 @@
+﻿using ServiceStack.OrmLite;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ERPAPD.Models;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using ERPAPD.Helpers;
+using System.Data;
+using System.IO;
+using OfficeOpenXml;
+using System.Collections;
+using System.Data.OleDb;
+using NPOI.HSSF.UserModel;
+using System.Dynamic;
+using System.Text.RegularExpressions;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.DataObject;
+
+namespace ERPAPD.Controllers
+{
+    public class HierarchyController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (asset.View)
+            {
+                ViewBag.Create = asset.Create;
+                ViewBag.Update = asset.Update;
+                ViewBag.Delete = asset.Delete;
+                ViewBag.Export = asset.Export;
+                ViewBag.listWebsite = CRM_Website.GetList();
+
+                using (IDbConnection db = OrmliteConnection.openConn())
+                {
+                    //ViewBag.listAll = db.Select<Hierarchy>();
+                    ViewBag.listAll = db.Select<DropListDown>("Select ma_phan_cap as Value , ten_phan_cap as Text from Hierarchy");
+                    ViewBag.listStatus = db.Select<BIBIAM.Core.Entities.Parameters>(s => s.Type == "HierarchyStatus").OrderBy(s => s.ID);
+                    ViewBag.listHierarchyType = db.Select<BIBIAM.Core.Entities.Parameters>(s=>s.Type== "HierarchyType").OrderBy(s=>s.ID);
+                }
+
+                return View();
+
+
+            }
+            else
+            {
+                return RedirectToAction("NoAccessRights", "Error");
+            }
+        }
+
+        #region Read_Action
+
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        {
+            if (asset.View)
+            {
+                //using (IDbConnection dbConn = OrmliteConnection.openConn())
+                //{
+                //    //var data = Hierarchy.ReadAll();
+                //    DataTable data = new DataTable();
+                //    string st = string.Empty;
+                //    using (var client = new HttpClient())
+                //    {
+                //        client.BaseAddress = new Uri(AllConstant.UriAPI);
+                //        client.DefaultRequestHeaders.Accept.Clear();
+                //        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                //        HttpResponseMessage response = client.GetAsync("api/Hierarchy/GetAllDataTable?key=" + AllConstant.KeyAPI + "&type=datatable").Result;
+
+                //        if (response.IsSuccessStatusCode)
+                //        {
+                //            st = response.Content.ReadAsStringAsync().Result;
+                //            var test = JsonConvert.DeserializeObject(st);
+                //            data = (DataTable)JsonConvert.DeserializeObject(test.ToString(), (typeof(DataTable)));
+                //        }
+                //    }
+                //    return Json(data.ToDataSourceResult(request));
+                //}
+
+                var data = new Hierarchy_DAO().ReadAll("");
+                return Json(data.ToDataSourceResult(request));
+            }
+            else
+            {
+                return RedirectToAction("NoAccessRights", "Error");
+            }
+        }
+
+        #endregion
+
+        //public ActionResult ReadAllFromLevel([DataSourceRequest] DataSourceRequest request)
+        //{
+        //    if (asset.View)
+        //    {
+        //        using (IDbConnection dbConn = OrmliteConnection.openConn())
+        //        {
+        //            //var data = Hierarchy.ReadAll();
+        //            DataTable data = new DataTable();
+        //            string st = string.Empty;
+        //            using (var client = new HttpClient())
+        //            {
+        //                client.BaseAddress = new Uri(AllConstant.UriAPI);
+        //                client.DefaultRequestHeaders.Accept.Clear();
+        //                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        //                HttpResponseMessage response = client.GetAsync("api/Hierarchy/GetAllDataTable?key=" + AllConstant.KeyAPI + "&type=datatable").Result;
+
+        //                if (response.IsSuccessStatusCode)
+        //                {
+        //                    st = response.Content.ReadAsStringAsync().Result;
+        //                    var test = JsonConvert.DeserializeObject(st);
+        //                    data = (DataTable)JsonConvert.DeserializeObject(test.ToString(), (typeof(DataTable)));
+        //                }
+        //            }
+        //            return Json(data.ToDataSourceResult(request));
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("NoAccessRights", "Error");
+        //    }
+        //}
+
+        // HttpVerb.Post| HttpVerb.Get
+        [AcceptVerbs(HttpVerbs.Post)] 
+        public ActionResult Create([DataSourceRequest] DataSourceRequest request, [Bind(Prefix = "models")]IEnumerable<Hierarchy> listrow)
+        {
+            ModelState.Clear(); // phải clear
+            if (asset.Create)
+            {
+
+                //using (var client = new HttpClient())
+                //{
+                //    client.BaseAddress = new Uri(AllConstant.UriAPI);
+                //    client.DefaultRequestHeaders.Accept.Clear();
+                //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                //    string data = JsonConvert.SerializeObject(listrow);
+                //    HttpResponseMessage response = client.GetAsync("api/Hierarchy/UpSert?key=" + AllConstant.KeyAPI + "&data=" + data + "&UserName=" + currentUser.UserName + "&Type=Insert").Result;
+                //    if (response.IsSuccessStatusCode)
+                //    {
+                //        string st = response.Content.ReadAsStringAsync().Result;
+                //        st = (string)JsonConvert.DeserializeObject(st, (typeof(string)));
+                //        if (st == "true")
+                //            return Json(new { success = true, message = "Thành công" });
+                //        else
+                //            ModelState.AddModelError("", st);
+                //    }
+                //    else
+                //        ModelState.AddModelError("", "Vui lòng nhập mã phân cấp");
+                //}
+
+                string st = new Hierarchy_DAO().UpSert(listrow.ToList(), currentUser.UserName, "Insert","");
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công" });
+                else
+                    ModelState.AddModelError("", st);
+
+                return Json(listrow.ToDataSourceResult(request, ModelState));
+            }
+            ModelState.AddModelError("", "Bạn không có quyền Create");
+            return Json(new List<Hierarchy>().ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Update([DataSourceRequest] DataSourceRequest request, [Bind(Prefix = "models")]IEnumerable<Hierarchy> listrow)
+        {
+            ModelState.Clear(); // phải clear
+            if (asset.Update)
+            {
+
+                string st = new Hierarchy_DAO().UpSert(listrow.ToList(), currentUser.UserName, "Update","");
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công" });
+                else
+                    ModelState.AddModelError("", st);
+
+                //using (var client = new HttpClient())
+                //{
+                //    client.BaseAddress = new Uri(AllConstant.UriAPI);
+                //    client.DefaultRequestHeaders.Accept.Clear();
+                //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                //    string data = JsonConvert.SerializeObject(listrow);
+                //    HttpResponseMessage response = client.GetAsync("api/Hierarchy/UpSert?key=" + AllConstant.KeyAPI + "&data=" + data + "&UserName=" + currentUser.UserName + "&Type=Update").Result;
+                //    if (response.IsSuccessStatusCode)
+                //    {
+                //        string st = response.Content.ReadAsStringAsync().Result;
+                //        st = (string)JsonConvert.DeserializeObject(st, (typeof(string)));
+                //        if (st == "true")
+                //            return Json(new { success = true, message = "Thành công" });
+                //        else
+                //            ModelState.AddModelError("", st);
+                //    }
+                //    else
+                //        ModelState.AddModelError("", "Vui lòng nhập tên loại sản phẩm");
+                //}
+                return Json(listrow.ToDataSourceResult(request, ModelState));
+            }
+            ModelState.AddModelError("", "Bạn không có quyền Update");
+            return Json(new List<Hierarchy>().ToDataSourceResult(request, ModelState));
+        }
+        public ActionResult DeletePage(string data)
+        {
+            if (asset.Delete)
+            {
+                //using (var client = new HttpClient())
+                //{
+                //    client.BaseAddress = new Uri(AllConstant.UriAPI);
+                //    client.DefaultRequestHeaders.Accept.Clear();
+                //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                //    HttpResponseMessage response = client.GetAsync("api/Hierarchy/Delete?key=" + AllConstant.KeyAPI + "&data=" + data).Result;
+                //    if (response.IsSuccessStatusCode)
+                //    {
+                //        string st = response.Content.ReadAsStringAsync().Result;
+                //        if ((bool)JsonConvert.DeserializeObject(st, (typeof(bool))))
+                //            return Json(new { success = true, message = "Thành công" });
+                //    }
+                //}
+
+                string[] separators = { "@@" };
+                string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                string st = new Hierarchy_DAO().Delete(ids,"");
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công" });
+                else
+                    ModelState.AddModelError("", st);
+            }
+            return Json(new { success = false, message = "Bạn " });
+        }
+
+        public ActionResult getHirerachyParent(string cap, string loai_phan_cap)
+        {
+            IDbConnection db = OrmliteConnection.openConn();
+            try
+            {
+                var data = new List<DropListDown>();
+                data = db.Query<DropListDown>("Select ma_phan_cap as Value , ten_phan_cap as Text from Hierarchy where cap=" + (int.Parse(cap) - 1) + " and loai_phan_cap='" + loai_phan_cap + "'").ToList();
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = e.Message });
+            }
+        }
+
+    }
+}

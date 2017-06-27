@@ -1,0 +1,139 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Resources.Global._managementFVL;
+}
+<div class="row">
+    <div class="col-md-8">
+        <a onclick="addNew()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._po_add)</a>
+        <a onclick="saveChange()" class="btn blue btn-outline btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_savechange)</a>
+        <a onclick="cancel()" class="btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_skip)</a>
+
+    </div>
+</div>
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<MCC.Models.tw_ManagementFVL>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.ForeignKey(p => p.serialid, (System.Collections.IEnumerable)ViewBag.listSerial, "id", "name").Title("Model").Width(210).EditorTemplateName("GridForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.supprice).Title(@Html.Raw(Resources.Global._supprice).ToString()).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847; text-align:right" }).Format("{0:N0}");
+                columns.Bound(p => p.conprice).Title(@Html.Raw(Resources.Global._conprice).ToString()).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847; text-align:right" }).Format("{0:n0}");
+                columns.Bound(p => p.fromdate).Title(@Html.Raw(Resources.Global._fromdate).ToString()).Width(150).EditorTemplateName("Date").Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(p => p.todate).Title(@Html.Raw(Resources.Global._todate).ToString()).Width(120).EditorTemplateName("Date").Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(p => p.createdAt).Title(Html.Raw(Resources.Global._cardefinition_title_createat).ToString()).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                columns.Bound(p => p.createdBy).Title(Html.Raw(Resources.Global._cardefinition_title_createby).ToString()).Width(100);
+                columns.Bound(p => p.updatedAt).Title(Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString()).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                columns.Bound(p => p.updatedBy).Title(Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString()).Width(100);
+            })
+            .Events(events => { events.DataBound("dataBound"); })
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .Pageable()
+            .Navigatable()
+            .Scrollable()
+            .ColumnMenu()
+            //.HtmlAttributes(new { @style = "height:500px;" })
+            .Resizable(resizable => resizable.Columns(true))
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.id);
+                    model.Field(p => p.createdAt).Editable(false);
+                    model.Field(p => p.createdBy).Editable(false);
+                    model.Field(p => p.updatedAt).Editable(false);
+                    model.Field(p => p.updatedBy).Editable(false);
+                })
+                .Create("Create", "ManagementFVL")
+                .Read("Read", "ManagementFVL")
+                .Update("Update", "ManagementFVL")
+            )
+        )
+    </div>
+</div>
+<script>
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            toastr.error("", message);
+        }
+    }
+    function onRequestEnd(e) {
+
+        if ((e.type == "create" || e.type == "update") && !e.response.Errors) {
+            toastr.success("", "@Resources.Global._save_successfully");
+        }
+        //if (e.type == "read") {
+        //    getModel();
+        //}
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    function dataBound(e) {
+        resizeGrid();
+        //if (this.dataSource.total() == 0) {
+        //    var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+        //    $(".k-grid-pager").remove();
+        //    $(this.element).find("tbody").html(NoItemsTemplate({}));
+        //    $(this.element).css("border", "none");
+        //}
+    }
+    function addNew() {
+        $("#grid").data("kendoGrid").dataSource.insert();
+    }
+    function cancel() {
+        $("#grid").data("kendoGrid").dataSource.cancelChanges();
+    }
+    function saveChange() {
+        if ($('#grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#grid').data('kendoGrid').saveChanges();
+        }
+    }
+    var columnset;
+    columnset = $('#grid [data-field=serialid]')[0].cellIndex;
+    function getModel() {
+        var html1 = '<input id="serialid" name="serialid" type="text" /><script>jQuery(function(){jQuery("#serialid").kendoDropDownList({"dataSource":';
+        var values = '[';
+        $.post(r + "/ManagementFVL/getModel", function (data) {
+            console.log(data.data[0].UserID);
+            for (var i = 0; i < data.data.length; i++) {
+                values += ' {"Text":"' + data.data[i].name + '","Value":"' + data.data[i].id + '"},';
+            }
+            if (values.length > 0) {
+                values = values.substring(0, values.length - 1) + ']';
+            }
+            else {
+                values += ']';
+            }
+            html1 += values + ',"dataTextField":"Text","dataValueField":"Value","optionLabel":"- Please select -", "filter":"contains"});});';
+            html1 += '<\/script><span class="field-validation-valid" data-valmsg-for="serialid" data-valmsg-replace="true"></span>';
+            var grid = $('#grid').data("kendoGrid");
+            grid.columns[columnset].editor = html1;
+            grid.columns[columnset].values = eval(values);
+            //grid.setOptions({ columns: grid.columns });
+            grid.refresh();
+            console.log(html1);
+        });
+    }
+</script>

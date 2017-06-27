@@ -1,0 +1,139 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using MCC.Controllers;
+using MCC.Filters;
+using MCC.Helpers;
+using Kendo.Mvc.Extensions;
+using System.Text.RegularExpressions;
+using System.Text;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.DataObject;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class MerchantManagementController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+
+                ViewBag.isAdmin = isAdmin;
+                return View();
+
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (isAdmin)
+                        return Json(dbConn.Select<Merchant_Info>().ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Duyet_Danh_Sach(string data)
+        {
+            if (isAdmin && accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                string[] separators = { "," };
+                string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (ids.Length == 0)
+                {
+                    return Json(new { success = false, message = "Chọn các sản phẩm cần duyệt!" });
+                }
+                using (var db = MCC.Helpers.OrmliteConnection.openConn())
+                {
+                    foreach (var id in ids)
+                    {
+                        db.ExecuteNonQuery("update Merchant_Info set trang_thai_duyet = {3} where id = {2}".Params(currentUser.name, DateTime.Now, id, AllConstant.trang_thai_duyet.DA_DUYET));
+                        //var rs = new Merchant_Product_DAO().SyncToMySQL(id, currentUser.name);
+
+                        //SyncToMySQL
+                        var rs = new Merchant_Info_DAO().SyncToMySQL(id, AppConfigs.MCCConnectionString);
+                    }
+                }
+                return Json(new { success = true, JsonRequestBehavior.AllowGet });
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult ActiveMerchant(string data)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+
+                string[] separators = { "," };
+                string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (ids.Length == 0)
+                {
+                    return Json(new { success = false, message = "Chọn các sản phẩm cần kích hoạt!" });
+                }
+                string st = new Merchant_Info_DAO().ChangeStatus(ids, AppConfigs.MCCConnectionString, currentUser.name, AllConstant.trang_thai_xac_thuc.DA_XAC_THUC);
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công!" });
+                else
+                    ModelState.AddModelError("", st);
+            }
+            return Json(new { success = false, message = "Kích hoạt không thành công! " });
+        }
+        public ActionResult InActiveMerchant(string data)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+
+                string[] separators = { "," };
+                string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (ids.Length == 0)
+                {
+                    return Json(new { success = false, message = "Chọn các sản phẩm cần ngưng hoạt động!" });
+                }
+                string st = new Merchant_Info_DAO().ChangeStatus(ids, AppConfigs.MCCConnectionString, currentUser.name, AllConstant.trang_thai_xac_thuc.CHUA_XAC_THUC);
+                if (st == "true")
+                    return Json(new { success = true, message = "Thành công!" });
+                else
+                    ModelState.AddModelError("", st);
+            }
+            return Json(new { success = false, message = "Ngưng hoạt động không thành công! " });
+        }
+        public ActionResult Update(Merchant_Info item, HttpPostedFileBase file)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                string rs = new Merchant_Info_DAO().Update(item, currentUser.name, AppConfigs.MCCConnectionString);
+                if (rs == "true")
+                {
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        var data = dbConn.FirstOrDefault<Merchant_Info>("ma_gian_hang={0}".Params(item.ma_gian_hang));
+                        return Json(new { success = true, data = data });
+                    }
+                }
+                return Json(new { success = false, message = rs, JsonRequestBehavior.AllowGet });
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+       
+    }
+}

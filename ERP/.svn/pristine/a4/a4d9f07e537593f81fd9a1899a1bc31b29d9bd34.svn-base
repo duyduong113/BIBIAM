@@ -1,0 +1,111 @@
+﻿
+@{
+    Layout = null;
+    int glb = ViewBag.countID;
+}
+<tr class="group-cpm-service">
+    <td>
+        <input type="hidden" class="cpm-PKCpm" value="@ViewBag.productCPM.PKCpm" />
+        @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên kênh")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-channel", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 83 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+        )
+        <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(@ViewBag.productCPM.AdvChannel)');
+        </script>
+        @{glb++;}
+    </td>
+    <td>
+        @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên chuyên mục")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-categories", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+        )
+        <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(ViewBag.productCPM.Category)');
+        </script>
+        @{glb++;}
+    </td>
+    <td>
+        @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên vị trí")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-small cpm-position", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+        )
+        <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(ViewBag.productCPM.Location)');
+        </script>
+        @{glb++;}
+    </td>
+    <td>
+        <input class="input-small date-picker cpm-start-date" type="text" value="@ViewBag.productCPM.DateUpString" style="text-align:right" />
+    </td>
+    <td>
+        <input class="input-small date-picker cpm-end-date" type="text" value="@ViewBag.productCPM.DateDownString" style="text-align:right" />
+    </td>
+    <td>
+        <input onchange="resetGroupProduct()" class="input-small cpm-unit currency" type="text" value="@ViewBag.productCPM.UnitPrice.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+    </td>
+    <td>
+        <input onchange="resetGroupProduct()" class="input-small cpm-qty currency" type="text" value="@ViewBag.productCPM.Quantity.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+    </td>
+    <td>
+        <input onchange="resetGroupProduct()" class="input-small cpm-discount currency" type="text" value="@ViewBag.productCPM.Discount.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+    </td>
+    <td>
+        <input class="input-small cpm-total currency" type="text" value="@ViewBag.productCPM.TotalAmt.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupCPM(this)"><i class="icon-minus"></i></button>
+        <button data-rel="tooltip" data-placement="bottom" title="" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRow(this)"><i class="fa fa-clone"></i></button>
+    </td>
+</tr>

@@ -1,0 +1,583 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&subset=all" rel="stylesheet" type="text/css" />
+    @Styles.Render("~/Content/assets/global/plugins/globalTemplate")
+    @Styles.Render("~/Content/assets/global/css/themeTemplate")
+    @Styles.Render("~/Content/assets/layouts/layout/css/layoutStyleTemplate")
+    <link rel="shortcut icon" href="@Url.Content("~/Content/images/logo thietbinhanh.png")" />
+    @Styles.Render("~/Content/kendo/2014.3.1411/kendo")
+    @Scripts.Render("~/Scripts/kendo/2014.3.1411/kendo")
+    @Scripts.Render("~/Content/assets/global/plugins/corePluginTemplate")
+    @Scripts.Render("~/Content/assets/global/plugins/pagePluginTemplate")
+    @Scripts.Render("~/Content/assets/global/scripts/globalScriptTemplate")
+    @Scripts.Render("~/Content/assets/layouts/themeLayoutTemplate")
+    <script>
+        var magh = '@ViewBag.magh';
+        var accountfb = '@ViewBag.accountfb';
+        var ROOT = '@Url.Content("~/")';
+        var r = ROOT.substring(0, ROOT.length - 1);
+    </script> 
+    @Scripts.Render("~/Scripts/firebaseclient")
+</head>
+<body class="page-container-bg-solid">
+    <div class="page-wrapper">
+        <div class="page-wrapper-row">
+            <div class="page-wrapper-top">
+                <!-- BEGIN HEADER -->
+                <div class="page-header">
+                    <!-- BEGIN HEADER TOP -->
+                    <div class="page-header-top">
+                        <div class="container-fluid">
+                            <!-- BEGIN LOGO -->
+                            <div class="page-logo">
+                                <a href="@Url.Content("~/")">
+                                    <img src="@Url.Content("~/Content/images/logo.png")" style="width: 160px; height: 50px; margin-top: 0px; " alt="logo" class="logo-default" />
+                                </a>
+                            </div>
+                            <!-- END LOGO -->
+                            <!-- BEGIN RESPONSIVE MENU TOGGLER -->
+                            <a href="javascript:;" class="menu-toggler"></a>
+                            <!-- END RESPONSIVE MENU TOGGLER -->
+                            <!-- BEGIN TOP NAVIGATION MENU -->
+                            <div class="top-menu">
+                                @{
+                                    var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant();
+                                }
+
+                                @using (Html.BeginForm("SetCulture", "Home", new { returnUrl = ViewBag.controllerName }, FormMethod.Post, new { id = "cultureForm", @style = "display:none;" }))
+                                {
+                                    if (culture == "vi")
+                                    {
+
+                                        <input name="culture" value="en-us" type="text" />
+                                    }
+                                    else
+                                    {
+                                        <input name="culture" value="vi" type="text" />
+                                    }
+                                }
+                                <ul class="nav navbar-nav pull-right">
+                                    @Html.Partial("_LoginPartial")
+                                    <li class="dropdown dropdown-user">
+                                        @if (culture == "vi")
+                                        {
+                                            <div class="text-left" style="font-size: 11px; text-align: center;">
+                                                <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 700; color: #ed2227">
+                                                    <i class="fa fa-flag"></i> English
+                                                </a>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-left" style="font-size: 11px; text-align: center;">
+                                                <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 700;color:#ed2227">
+                                                    <i class="fa fa-flag"></i> Tiếng Việt
+                                                </a>
+                                            </div>
+                                        }
+                                    </li>
+                                </ul>
+                                <ul class="nav navbar-nav pull-right">
+                                    <!-- BEGIN NOTIFICATION DROPDOWN -->
+                                    @*<li class="dropdown dropdown-extended dropdown-notification dropdown-dark" id="header_notification_bar">
+                                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                                            <i class="icon-bell"></i>
+                                            <span class="badge badge-default">7</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li class="external">
+                                                <h3>
+                                                    You have
+                                                    <strong>12 pending</strong> tasks
+                                                </h3>
+                                                <a href="app_todo.html">view all</a>
+                                            </li>
+                                            <li>
+                                                <ul class="dropdown-menu-list scroller" style="height: 250px;" data-handle-color="#637283">
+                                                    <li>
+                                                        <a href="javascript:;">
+                                                            <span class="time">just now</span>
+                                                            <span class="details">
+                                                                <span class="label label-sm label-icon label-success">
+                                                                    <i class="fa fa-plus"></i>
+                                                                </span> New user registered.
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>*@
+                                    <!-- END NOTIFICATION DROPDOWN -->
+                                    <!-- BEGIN TODO DROPDOWN -->
+                                    @*<li class="dropdown dropdown-extended dropdown-tasks dropdown-dark" id="header_task_bar">
+                                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                                            <i class="icon-calendar"></i>
+                                            <span class="badge badge-default">3</span>
+                                        </a>
+                                        <ul class="dropdown-menu extended tasks">
+                                            <li class="external">
+                                                <h3>
+                                                    You have
+                                                    <strong>12 pending</strong> tasks
+                                                </h3>
+                                                <a href="app_todo_2.html">view all</a>
+                                            </li>
+                                            <li>
+                                                <ul class="dropdown-menu-list scroller" style="height: 275px;" data-handle-color="#637283">
+                                                    <li>
+                                                        <a href="javascript:;">
+                                                            <span class="task">
+                                                                <span class="desc">New release v1.2 </span>
+                                                                <span class="percent">30%</span>
+                                                            </span>
+                                                            <span class="progress">
+                                                                <span style="width: 40%;" class="progress-bar progress-bar-success" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">
+                                                                    <span class="sr-only">40% Complete</span>
+                                                                </span>
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>*@
+                                    <!-- END TODO DROPDOWN -->
+                                    <li class="droddown dropdown-separator">
+                                        <span class="separator"></span>
+                                    </li>
+                                    <!-- BEGIN INBOX DROPDOWN -->
+                                    @*<li class="dropdown dropdown-extended dropdown-inbox dropdown-dark" id="header_inbox_bar">
+                                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                                            <span class="circle">3</span>
+                                            <span class="corner"></span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li class="external">
+                                                <h3>
+                                                    You have
+                                                    <strong>7 New</strong> Messages
+                                                </h3>
+                                                <a href="app_inbox.html">view all</a>
+                                            </li>
+                                            <li>
+                                                <ul class="dropdown-menu-list scroller" style="height: 275px;" data-handle-color="#637283">
+                                                    <li>
+                                                        <a href="#">
+                                                            <span class="photo">
+                                                                <img src="../assets/layouts/layout/img/avatar2.jpg" class="img-circle" alt="">
+                                                            </span>
+                                                            <span class="subject">
+                                                                <span class="from"> Lisa Wong </span>
+                                                                <span class="time">Just Now </span>
+                                                            </span>
+                                                            <span class="message"> Vivamus sed auctor nibh congue nibh. auctor nibh auctor nibh... </span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>*@
+                                    <!-- END INBOX DROPDOWN -->
+                                    <!-- BEGIN USER LOGIN DROPDOWN -->
+                                    @*<li class="dropdown dropdown-user dropdown-dark">
+                                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                                            <img alt="" class="img-circle" src="../assets/layouts/layout/img/avatar9.jpg">
+                                            <span class="username username-hide-mobile">Nick</span>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-default">
+                                            <li>
+                                                <a href="page_user_profile_1.html">
+                                                    <i class="icon-user"></i> My Profile
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="page_user_login_1.html">
+                                                    <i class="icon-key"></i> Log Out
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>*@
+                                    <!-- END USER LOGIN DROPDOWN -->
+                                    <!-- BEGIN QUICK SIDEBAR TOGGLER -->
+                                    @*<li class="dropdown dropdown-extended quick-sidebar-toggler">
+                                        <span class="sr-only">Toggle Quick Sidebar</span>
+                                        <i class="icon-logout"></i>
+                                    </li>*@
+                                    <!-- END QUICK SIDEBAR TOGGLER -->
+                                </ul>
+                            </div>
+                            <!-- END TOP NAVIGATION MENU -->
+                        </div>
+                    </div>
+                    <!-- END HEADER TOP -->
+                    <!-- BEGIN HEADER MENU -->
+                    <div class="page-header-menu">
+                        <div class="container-fluid">
+                            <!-- BEGIN HEADER SEARCH BOX -->
+                            <form class="search-form" action="page_general_search.html" method="GET">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search" name="query">
+                                    <span class="input-group-btn">
+                                        <a href="javascript:;" class="btn submit">
+                                            <i class="icon-magnifier"></i>
+                                        </a>
+                                    </span>
+                                </div>
+                            </form>
+                            <!-- END HEADER SEARCH BOX -->
+                            <!-- BEGIN MEGA MENU -->
+                            <!-- DOC: Apply "hor-menu-light" class after the "hor-menu" class below to have a horizontal menu with white background -->
+                            <!-- DOC: Remove data-hover="dropdown" and data-close-others="true" attributes below to disable the dropdown opening on mouse hover -->
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;">
+                                            <i class="icon-settings"></i>
+                                            <span class="title">@Resources.Global._administrator</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @{
+                                                var menuView = (List<string>)ViewData["menuView"];
+                                            }
+                                            @if (menuView.Contains("UserManagement") || menuView.Contains("GroupManagement") || menuView.Contains("SMTPConfigManagement") || menuView.Contains("LanguageManagement"))
+                                            {
+                                                if (menuView.Contains("UserManagement"))
+                                                {
+                                                    <li class="">
+                                                        <a href="@Url.Content("~/UserManagement")" class="nav-link">
+                                                            <i class="fa fa-user"></i>
+                                                            <span class="title">@Resources.Global._user_mgnt</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("GroupManagement"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/GroupManagement")" class="nav-link">
+                                                            <i class="fa fa-users"></i>
+                                                            <span class="title">@Resources.Global._group_mgnt</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("LanguageManagement"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/LanguageManagement")" class="nav-link">
+                                                            <i class="fa fa-flag"></i>
+                                                            <span class="title">@Resources.Global._language_mgnt</span>
+                                                        </a>
+                                                    </li>
+                                                }
+
+
+                                            }
+
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;">
+                                            <i class="icon-social-dribbble"></i>
+                                            <span class="title">Quản lý danh mục</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @if (menuView.Contains("Customer") || menuView.Contains("MerchantManagement") || menuView.Contains("Merchant_Info") || menuView.Contains("CodeMasterManagement") || menuView.Contains("Hierarchy"))
+                                            {
+                                                if (menuView.Contains("CodeMasterManagement"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/CodeMasterManagement")" class="nav-link">
+                                                            <i class="fa fa-table"></i>
+                                                            <span class="title">@Resources.Global._code_master</span>
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                                if (menuView.Contains("Merchant_Info"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Info")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._merchant_info</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("MerchantManagement"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/MerchantManagement")" class="nav-link ">
+                                                            <span class="title">Quản Lí Gian Hàng</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Hierarchy"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Hierarchy")" class="nav-link">
+                                                            <i class="fa fa-table"></i>
+                                                            <span class="title">Cây phân cấp</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Customer"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Customer")" class="nav-link">
+                                                            <i class="fa fa-tty"></i>
+                                                            <span class="title">@Resources.Global._cm</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("BrandManagement"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/BrandManagement")" class="nav-link">
+                                                            <i class="fa fa-table"></i>
+                                                            <span class="title">Quản lý thương hiệu</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;">
+                                            <i class="icon-settings"></i>
+                                            <span class="title">@Resources.Global._content_management</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @if (menuView.Contains("Article") || menuView.Contains("FooterManagement") || menuView.Contains("BrandManagement") || menuView.Contains("Banner"))
+                                            {
+                                                if (menuView.Contains("Article"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Article")" class="nav-link">
+                                                            <span class="title">@Resources.Global._article_mgnt</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Article"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/FooterManagement")" class="nav-link">
+                                                            <span class="title">@Resources.Global._footer_mgnt</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Banner"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Banner")" class="nav-link">
+                                                            <span class="title">@Resources.Global._mng_banner</span>
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                            }
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;">
+                                            <i class="fa fa-university"></i>
+                                            <span class="title">@Resources.Global._product</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @if (menuView.Contains("Merchant_Info") || menuView.Contains("Merchant_Image_Info") ||
+                        menuView.Contains("Merchant_Catalog") || menuView.Contains("SEO_MerchantProduct") ||
+                        menuView.Contains("Merchant_Product_Related"))
+                                            {
+                                                if (menuView.Contains("Merchant_Product"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Product")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._product_catalog</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_Image_Info"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Image_Info")" class="nav-link">
+                                                            <span class="title">@Resources.Global._gallery_photos</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_Catalog"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Catalog")" class="nav-link">
+                                                            <span class="title">Quản lý catelog</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("SEO_MerchantProduct"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/SEO_MerchantProduct")" class="nav-link">
+                                                            <span class="title">Quản lý từ khóa SEO</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_Product_Related"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Product_Related")" class="nav-link">
+                                                            <span class="title">@Resources.Global._merchant_promotion_ralated</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                 if (menuView.Contains("Merchant_ReportPrice"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_ReportPrice")" class="nav-link">
+                                                            <span class="title">@Resources.Global.report_price</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                
+                                            }
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                           
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;" class="nav-link nav-toggle">
+                                            <i class="fa fa-sticky-note-o" aria-hidden="true"></i>
+                                            <span class="title">Đơn Hàng</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @if (menuView.Contains("Merchant_Order") || menuView.Contains("Merchant_Product_Promotion") || menuView.Contains("Merchant_Voucher"))
+                                            {
+                                                if (menuView.Contains("Merchant_Order"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Order")" class="nav-link ">
+                                                            <span class="title">Quản Lí Đơn Hàng</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_Product_Promotion"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Product_Promotion")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._promotional_campaign</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_Voucher"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Voucher")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._voucher</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="hor-menu">
+                                <ul class="nav navbar-nav">
+                                    <li class="menu-dropdown classic-menu-dropdown ">
+                                        <a href="javascript:;" class="nav-link nav-toggle">
+                                            <i class="fa fa-industry"></i>
+                                            <span class="title">Quản lý kho</span>
+                                            <span class="arrow"></span>
+                                        </a>
+                                        <ul class="dropdown-menu pull-left">
+                                            @if (menuView.Contains("Merchant_Warehouse") || menuView.Contains("Merchant_StockIn"))
+                                            {
+                                                if (menuView.Contains("Merchant_Warehouse"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_Warehouse")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._ware_house</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                if (menuView.Contains("Merchant_StockIn"))
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@Url.Content("~/Merchant_StockIn")" class="nav-link ">
+                                                            <span class="title">@Resources.Global._grn_mangement</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- END MEGA MENU -->
+                        </div>
+                    </div>
+                    <!-- END HEADER MENU -->
+                </div>
+                <!-- END HEADER -->
+            </div>
+        </div>
+        <div class="page-wrapper-row full-height">
+            <div class="page-wrapper-middle">
+                <!-- BEGIN CONTAINER -->
+                <div class="page-container">
+                    <!-- BEGIN CONTENT -->
+                    <div class="page-content-wrapper">
+                        <!-- BEGIN CONTENT BODY -->
+                        <!-- BEGIN PAGE HEAD-->
+                        <!-- END PAGE HEAD-->
+                        <!-- BEGIN PAGE CONTENT BODY -->
+                        <div class="page-content">
+                            <div class="container-fluid">
+                                <!-- BEGIN PAGE BREADCRUMBS -->
+                                <ul class="page-breadcrumb breadcrumb">
+                                    <li>
+                                        <a href="index.html">Home</a>
+                                        <i class="fa fa-circle"></i>
+                                    </li>
+                                </ul>
+                                <!-- END PAGE BREADCRUMBS -->
+                                <!-- BEGIN PAGE CONTENT INNER -->
+                                <div class="page-content-inner">
+                                    @RenderBody()
+                                </div>
+                                <!-- END PAGE CONTENT INNER -->
+                            </div>
+                        </div>
+                        <!-- END PAGE CONTENT BODY -->
+                        <!-- END CONTENT BODY -->
+                    </div>
+                    <!-- END CONTENT -->
+                    <!-- BEGIN QUICK SIDEBAR -->
+                    <!-- END QUICK SIDEBAR -->
+                </div>
+                <!-- END CONTAINER -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿@{
+    Layout = null;
+    var selected = "selected";
+}
+        <div class="control-group">
+            <label class="control-label">Quốc gia *</label>
+            <div class="controls">
+                <select onchange="changeCountry(this)" id="listCountry" name="Country" class="span10">
+                    @foreach (var item in ViewBag.listCountry)
+                    {
+                        <option @if (item.CountryID == ViewBag.country) { @selected}  value="@item.CountryID">@item.CountryName</option>
+                    }
+
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Tỉnh thành</label>
+            <div class="controls">
+                <select onchange="changeCountry(this)" id="listCity" name="Province" class="span10">
+                    @if (ViewBag.listCity != null)
+                    {
+                        foreach (var item in ViewBag.listCity)
+                        {
+                            <option @if (item.CityID == ViewBag.city) { @selected } value="@item.CityID">@item.CityName</option>
+                        }
+                    }
+
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Quận / Huyện</label>
+            <div class="controls">
+                <select onchange="changeCountry(this)" id="listDictrict" name="District" class="span10">
+                    @if (ViewBag.listDistrict != null)
+                    {
+                        foreach (var item in ViewBag.listDistrict)
+                        {
+                            <option @if (item.DistrictID == ViewBag.district){ @selected}  value="@item.DistrictID">@item.DistrictName</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Phường / Xã</label>
+
+            <div class="controls">
+                <select id="listWards" class="span10" name="Wards">
+                    @if (ViewBag.listWards != null)
+                    {
+                        foreach (var item in ViewBag.listWards)
+                        {
+                            <option value="@item.WardsID">@item.WardsName</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+    

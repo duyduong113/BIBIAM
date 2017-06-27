@@ -1,0 +1,499 @@
+﻿<style>
+    .minus-group-channel, #add-group-channel {
+        background-color: #fff !important;
+        border: none;
+        color: #928A8A !important;
+    }
+
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+    }d
+
+    .help-inline {
+        font-size: 11px !important;
+    }
+    .k-selectable {
+        height: 200px !important;
+        overflow: auto;
+    }
+</style>
+<fieldset class="row-fluid">
+    <form action="@Url.Content("~/CRM_CustomerProfile/UpdateProfile")" method="post" enctype="multipart/form-data" id="profile-form" class="form-horizontal" style="margin:0px">
+        <div class="row-fluid">
+            <fieldset class="span6">
+                <div class="row-fluid">
+                    <h4 style="text-align:left">Thông tin khách hàng</h4>
+                </div>
+                <div class="span3" style="float:left">
+                    <div style="text-align:left">
+                        <img id="image-avatar" src="@Url.Content("~/Images/CustomerProfile/" + Model.CustomerID + "/" + Model.Avatar)" />
+                        <br />
+                        <input type="file" id="file" name="file" />
+                    </div>
+                </div>
+                <div class="span7" style="float:right">
+                    <label style="float:left">Tên khách hàng</label>
+                    <div class="control-group">
+                        <div class="controls" style="margin-left: 140px;">
+                            <input type="hidden" id="ID" name="ID" value="@Model.ID" />
+                            <input type="hidden" id="CustomerID" name="CustomerID" value="@Model.CustomerID" />
+                            <input class="input-xs" type="text" id="CustomerName" name="CustomerName" value="@Model.CustomerName">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label style="float:left">Ngành nghề kinh doanh</label>
+                        <div class="controls" style="margin-left: 140px;">
+                            <input class="input-xs" type="text" id="BusinessCategoryID" name="BusinessCategoryID" value="@Model.BusinessCategoryID">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label style="float:left">Thời gian thành lập</label>
+                        <div class="controls" style="margin-left: 140px;">
+                            @(Html.Kendo().DatePicker()
+                                        .Name("FoundedDate")
+                                        .Value(Model.FoundedDate)
+                                    //.HtmlAttributes(new { @class = "span12" })
+                            )
+                            @*<input class="span10" type="text" id="FoundedDate" name="FoundedDate">*@
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label style="float:left">Địa chỉ</label>
+                        <div class="controls" style="margin-left: 140px;">
+                            <textarea class="input-xs" style="float: left; min-height: 55px" id="Address" name="Address"> @Model.Address.Trim()</textarea>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label style="float:left">Điện thoại</label>
+                        <div class="controls" style="margin-left: 140px;">
+                            <input class="input-xs" type="text" id="Phone" name="Phone" value="@Model.Phone">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label style="float:left">Website</label>
+                        <div class="controls" style="margin-left: 140px;">
+                            <input class="input-xs" type="text" id="Website" name="Website" value="@Model.Website">
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="span6">
+                <div class="span12">
+                    <h4 style="text-align:left">Các loại hình quảng cáo đã - đang - sắp thực hiện</h4>
+                </div>
+                <div id="list-group-type">
+                    <input type="hidden" id="AdOnlineType" name="AdOnlineType" />
+                    @foreach (var item in ViewBag.listTypeQC)
+                    {
+                        <div class="span5" style="margin-bottom:2px">
+                            <div class="row-fluid list-type">
+                                @{
+                        var type = Json.Decode(Model.AdOnlineType);
+                        var hasValue = false; var value = "";
+                                }
+
+                                @for (var i = 0; i < type.list.Length; i++)
+                                {
+                                    if (item.ParamID == type.list[i].name)
+                                    {
+                                        hasValue = true;
+                                        value = type.list[i].value;
+                                        break;
+                                    }
+                                }
+
+                                @if (hasValue)
+                                {
+                                    <div class="span5">
+                                        @if (value == "")
+                                        {
+                                            <input type="checkbox" class="checkbox" data-name="@item.ParamID" /><font>@item.Value</font>
+                                        }
+                                        else
+                                        {
+                                            <input type="checkbox" class="checkbox" data-name="@item.ParamID" checked /> @item.Value
+                                        }
+                                    </div>
+                                    <div class="span4">
+                                        <input type="number" class="input-mini" style="float:left" id="@item.ParamID-value" value="@value" min="1" max="100000" />
+                                    </div>
+                                    <div class="span2">
+                                        <span class="help-inline"><font>tỷ/năm</font></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="span5">
+                                        <input type="checkbox" class="checkbox" data-name="@item.ParamID" /> @item.Value
+                                    </div>
+                                    <div class="span4">
+                                        <input type="number" class="input-mini" style="float:left" id="@item.ParamID-value" value="@value" min="1" max="100000" />
+                                    </div>
+                                    <div class="span2">
+                                        <span class="help-inline"><font>tỷ/năm</font></span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </fieldset>
+            <fieldset class="span6 pull-right">
+                <h4 style="text-align:left">Các kênh online, loại hình đã và đang quảng cáo</h4>
+                <div id="list-group-channel">
+                    <input type="hidden" id="AdOnlineChannel" name="AdOnlineChannel" />
+                    <ul>
+                        <li style="list-style:none">
+                            <div class="span3">
+                                <label>Kênh online</label>
+                            </div>
+                            <div class="span3">
+                                <label>Loại hình</label>
+                            </div>
+                            <div class="span3">
+                                <label>Ngân sách/năm</label>
+                            </div>
+                            <div class="clearfix"></div>
+                        </li>
+                        @try
+                        {
+                            var channel = Json.Decode(Model.AdOnlineChannel);
+                            for (var i = 0; i < channel.item.Length; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    <li class="group-channel" style="list-style:none">
+                                        @for (int j = 0; j < 3; j++)
+                                        {
+                                            <div class="span3">
+                                                <input type="text" class="input-small channedl" data-type="@channel.item[i][j].name" value="@channel.item[i][j].value" placeholder="..." />
+                                            </div>
+                                        }
+
+                                        <div class="span1"><a id="add-group-channel" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                        <div class="clearfix"></div>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="group-channel" style="list-style:none;margin-top:3px">
+                                        @for (int j = 0; j < 3; j++)
+                                        {
+                                            <div class="span3">
+                                                <input type="text" class="input-small channedl" data-type="@channel.item[i][j].name" value="@channel.item[i][j].value" placeholder="..." />
+                                            </div>
+                                        }
+                                        <div class="span1"><a class="btn btn-small minus-group-channel" onclick="minusGroup(this)"><i class="icon-minus-sign"></i> </a></div>
+                                        <div class="clearfix"></div>
+                                    </li>
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            <li class="group-channel" style="list-style:none">
+                                <div class="span3">
+                                    <div class="control-group">
+                                        @*<label class="span12">Kênh online</label>*@
+                                        <div class="span10">
+                                            <input type="text" class="span10" data-type="Kênh online" placeholder="..." />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="control-group">
+                                        @*<label class="span12">Loại hình</label>*@
+                                        <div class="span10">
+                                            <input type="text" class="span10" data-type="Loại hình" placeholder="..." />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="control-group">
+                                        @*<label class="span12">Ngân sách/năm</label>*@
+                                        <div class="span10">
+                                            <input type="text" class="span10" data-type="Ngân sách/năm" placeholder="..." />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span1"><a id="add-group-channel" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                <div class="clearfix"></div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row-fluid">
+            <fieldset class="span6">
+                <div class="row-fluid">
+                    <h4 style="text-align:left">Giới thiệu về công ty</h4>
+                </div>
+                <div class="row-fluid">
+                    @(Html.Kendo().Editor()
+                              .Name("DescriptionCompany")
+                              .HtmlAttributes(new { style = "height:200px" })
+                              .Encode(false)
+
+                              .ImageBrowser(imageBrowser => imageBrowser
+                                  .Image("~/Content/UserFiles/Images/{0}")
+                                  .Read("Read", "ImageBrowser")
+                                  .Create("Create", "ImageBrowser")
+                                  .Destroy("Destroy", "ImageBrowser")
+                                  .Upload("Upload", "ImageBrowser")
+                                  .Thumbnail("Thumbnail", "ImageBrowser")
+                              )
+                              .Value(@<text>
+                            </text>)
+                    )
+                </div>
+            </fieldset>
+            <fieldset class="span6" style="float:right">
+                <div class="row-fluid">
+                    <h4 style="text-align:left">Tham khảo</h4>
+                </div>
+                <div class="row-fluid">
+                    @(Html.Kendo().Editor()
+                                          .Name("Refer")
+                                          .HtmlAttributes(new { style = "height:200px" })
+                                          .Encode(false)
+                                          .ImageBrowser(imageBrowser => imageBrowser
+                                                .Image("~/Content/UserFiles/Images/{0}")
+                                                .Read("Read", "ImageBrowser")
+                                                .Create("Create", "ImageBrowser")
+                                                .Destroy("Destroy", "ImageBrowser")
+                                                .Upload("Upload", "ImageBrowser")
+                                                .Thumbnail("Thumbnail", "ImageBrowser")
+                                            )
+                                            .Value(@<text>
+                                            </text>)
+                    )
+                </div>
+            </fieldset>
+        </div>
+        <div class="row-fluid">
+            <fieldset class="form-footer-custom" style="margin: 0px;margin-top:15px;">
+                <div class="pull-right">
+                    <button type="button" onclick="onSubmitForm()" class="btn btn-small btn-success">
+                        Lưu
+                    </button>
+                    <button type="reset" class="btn btn-small btn-default">
+                        Hủy bỏ
+                    </button>
+                    <a href="~/CRM_CustomerProfile/Index" class="btn btn-small btn-grey">
+                        Quay lại
+                    </a>
+                </div>
+            </fieldset>
+        </div>
+    </form>
+
+</fieldset>
+
+<script>
+    $(document).ready(function () {
+        $("#FoundedDate").kendoDatePicker({
+            // display month and year in the input
+            format: "dd/MM/yyyy",
+        });
+        $('.k-datepicker').css('width', '220px');
+        $('.k-input').css('padding', '0px');
+
+        $('#DescriptionCompany').val(htmlDecode('@Model.DescriptionCompany'));
+        $('#Refer').val(htmlDecode('@Model.DescriptionCompany'));
+    })
+    $("#profile-form").validate({
+        // Rules for form validation
+        rules: {
+            CustomerName: {
+                required: true,
+            },
+            Address: {
+                required: true,
+            },
+            Phone: {
+                required: true,
+            },
+            BusinessCategoryID: {
+                required: true,
+            },
+            Website: {
+                required: true,
+            }
+        },
+
+        // Messages for form validation
+        messages: {
+            CustomerName: {
+                required: "Thông tin bắt buộc"
+            },
+            Address: {
+                required: "Thông tin bắt buộc"
+            },
+            Phone: {
+                required: "Thông tin bắt buộc"
+            },
+            BusinessCategoryID: {
+                required: "Thông tin bắt buộc"
+            },
+            Website: {
+                required: "Thông tin bắt buộc"
+            }
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+
+        submitHandler: function (form) {
+            ParseAdOnlineChannel();
+            ParseAdOnlineType();
+            var formContent = new FormData($("#profile-form")[0]);
+            //var formContent = $("#profile-form").serialize();
+            var url = $("#profile-form")[0].action;
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formContent,
+                mimeType: "multipart/form-data",
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function (data, textStatus, jqXHR) {
+                    $.gritter.add({
+                        text: 'Cập nhật thành công !',
+                        class_name: 'gritter-success'
+                    });
+                    // $("#profile-form")[0].reset();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    });
+
+    function ParseAdOnlineChannel() {
+        var arr_ad_online_type_doing = {};
+        var ad = {};
+        var arr_list = [];
+        var list = $("#list-group-channel li.group-channel");
+        list.each(function (i) {
+            var arr_input = [];
+            $(this).find("input").each(function (index) {
+                var ob = {};
+                ob.name = $(this).attr('data-type');
+                ob.value = $(this).val();
+                arr_input[index] = ob;
+            })
+            arr_list[i] = arr_input;
+            ad.item = arr_list;
+            //arr_ad_online_type_doing.list = ad;
+        })
+        var json_doing = JSON.stringify(ad);
+        $("#AdOnlineChannel").val(json_doing);
+
+    }
+
+    function ParseAdOnlineType() {
+        var arr_ad_online_type = {}; var arr_input = [];
+        var list_type = $('#list-group-type .list-type');
+        list_type.each(function (i) {
+            var ob = {};
+            input = $(this).find('input');
+            if ($(input[0]).prop('checked') == true) {
+                ob.name = $(input[0]).attr('data-name')
+                ob.value = $(input[1]).val()
+            }
+            else {
+                ob.name = $(input[0]).attr('data-name')
+                ob.value = ''
+            }
+            arr_input[i] = ob;
+        })
+        arr_ad_online_type.list = arr_input;
+        var json_type = JSON.stringify(arr_ad_online_type);
+        $("#AdOnlineType").val(json_type);
+    }
+
+    function onSubmitForm() {
+        if (ValidateAdOnlineType() == true) {
+            $("#profile-form").submit();
+        }
+    }
+
+    function ValidateAdOnlineType() {
+        var rsCheck = true;
+        var list_type = $('#list-group-type .list-type');
+        list_type.each(function (i) {
+            input = $(this).find('input');
+            if ($(input[0]).prop('checked') == true) {
+                if ($(input[1]).val() == '') {
+                    $.gritter.add({
+                        text: 'Vui lòng nhập số tiền loại quảng cáo được chọn',
+                        class_name: 'gritter-error'
+                    });
+                    $(input[1]).focus();
+                    rsCheck = false;
+                }
+            }
+        })
+        return rsCheck;
+    }
+    $("#add-group-channel").click(function () {
+        var html = '';
+        html += '         <li class="group-channel" style="list-style:none; margin-top:3px"> '
+        html += '                            <div class="span3">'
+        html += '                                 <input type="text" class="input-small channel"  data-type="Kênh online" placeholder="..." />'
+        html += '                            </div>'
+        html += '                           <div class="span3">'
+        html += '                                  <input type="text" class="input-small type" data-type="Loại hình" placeholder="..." />'
+        html += '                            </div>'
+        html += '                            <div class="span3">'
+        html += '                                   <input type="text" class="input-small budget" data-type="Ngân sách/năm" placeholder="..." />'
+        html += '                            </div>'
+        html += '                            <div class="span1"><a class="minus-group-channel btn btn-small" onclick="minusGroup(this)"><i class="icon-minus-sign"></i> </a></div>'
+        html += '                            <div class="clearfix"></div>'
+        html += '       </li>'
+        $("#list-group-channel ul").append(html);
+    })
+    function minusGroup(e) {
+        $(e).parent().parent().remove();
+    }
+
+    function htmlDecode(value) {
+        if (value) {
+            return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+        } else {
+            return "";
+        }
+    }
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#image-avatar').attr('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $("#file").change(function () {
+        readURL(this);
+    });
+</script>

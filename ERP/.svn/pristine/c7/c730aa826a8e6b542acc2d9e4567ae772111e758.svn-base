@@ -1,0 +1,344 @@
+﻿@{ 
+    var listDay = new List<int>();
+    for (int i = 1; i <= 31; i++)
+    {
+        listDay.Add(i);
+    }
+    var listMonth = new List<int>();
+    for (int i = 1; i <= 12; i++)
+    {
+        listMonth.Add(i);
+    }
+    var listYear = new List<int>();
+    for (int i = DateTime.Now.Year; i > DateTime.Now.Year - 200; i--)
+    {
+        listYear.Add(i);
+    }
+}
+<style>
+    .minus-phone, #add-phone {
+        background-color: #fff !important;
+        border: none;
+        color: #928A8A !important;
+    }
+
+    .phone-txt {
+        margin-bottom: 5px;
+    }
+</style>
+<div id="detail-prensenter-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thêm mới</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow">
+        <form data-action="" action="@Url.Content("~/CustomerPresenter/CustomerPresenter_Create")" method="post" id="formPopup" class="form-inline">
+            <div class="row-fluid">
+                <fieldset>
+                    <div class="form-horizontal">
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Họ tên</label>
+                            <div class="controls">
+                                <input type="hidden" name="Id" id="Id" />
+                                <input id="FirstName" class="span2" name="FirstName" type="text" placeholder="Họ" />
+                                <input id="MiddleName" name="MiddleName" class="span3" type="text" placeholder="Tên đệm" />
+                                <input id="LastName" name="LastName" class="span3" type="text" placeholder="Tên" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Nhân xưng</label>
+                            <div class="controls">
+                                @Html.DropDownList("Personal", new SelectList(ViewBag.listGender, "ParamID", "Value", 1), "-Chọn-", new { @style = "width: 80px;height: 30px;" })
+                                @*<input id="personal" name="personal"  class="span6" type="text" placeholder="Nhân xưng" />*@
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Ngày sinh</label>
+                            <div class="controls">
+                                <select id="DayOfBirth" style="width: 80px; height: 30px;" name="DayOfBirth" data-placeholder="Chọn ngày">
+                                    <option disabled selected> Ngày</option>
+                                    @foreach (var item in listDay)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                                <select id="MonthOfBirth" style="width: 77px; height: 30px;" name="MonthOfBirth">
+                                    <option disabled selected> Tháng</option>
+                                    @foreach (var item in listMonth)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+
+                                <select id="YearOfBirth" name="YearOfBirth" style="width:90px; height: 30px;" data-placeholder="Chọn năm">
+                                    <option disabled selected> Năm</option>
+                                    @foreach (var item in listYear)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div id="listPhone" class="control-group">
+                            <label class="control-label">Điện thoại bàn LH</label>
+                            @{
+                                try
+                                {
+                                    var phone = Json.Decode(ViewBag.detailCustomer.Phone);
+                                    for (var i = 0; i < phone.Length; i++)
+                                    {
+                                        if (i == 0)
+                                        {
+                                            <div class="controls">
+                                                <div class="span9 phone-txt"><input class="span12" value="@phone[i]" type="text" placeholder="Số điện thoại" /> </div>
+                                                <div class="span3"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="controls">
+                                                <div class="span9 web-txt"><input class="span12" value="@phone[i]" type="text" placeholder="Số điện thoại" /></div>
+                                                <div class="span3"><a class="btn btn-small minus-phone" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></a></div>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    <div class="controls">
+                                        <div class="span9 phone-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>
+                                        <div class="span3"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <input name="Phone" type="hidden" id="Phone" />
+                        @*<div class="control-group">
+                            <label class="control-label">Điện thoại</label>
+                            <div class="controls">
+                                <input name="Phone" id="Phone" class="span8" type="text" placeholder="Nhập số điện thoại" />
+                            </div>
+                        </div>*@
+                        <div class="control-group">
+                            <label class="control-label">Email</label>
+                            <div class="controls">
+                                <input class="span8" id="Email" name="Email" type="text" placeholder="Nhập Email" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Chức vụ</label>
+                            <div class="controls">
+                                <input class="span8" type="text" id="Position" name="Position" placeholder="Nhập chức vụ" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Công ty</label>
+                            <div class="controls">
+                                <input class="span8" type="text" id="Company" name="Company" placeholder="Nhập công ty" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-5">Khách hàng</label>
+                            <div class="controls">
+                                <select id="CustomerID" class="span5" name="customerArray[]" style="width: 290px; " data-placeholder="Chọn khách hàng" multiple>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listCustomer)
+                                    {
+                                        <option value="@item.CustomerID">@item.CustomerName</option>
+                                    }
+                                </select>
+                                @*<input class="span6" type="text" id="CustomerID" name="CustomerID" value="#=CustomerID#" placeholder="Nhập khách hàng" />*@
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-6">Ghi chú</label>
+                            <div class="controls">
+                                @*<textarea id="Note" name="Note" value="#=Note#" class="autosize-transition span12" style="overflow: hidden; word-wrap: break-word; height: 50px;"></textarea>*@
+                                <input class="span8" type="text" id="Note" name="Note" placeholder="Ghi chú" />
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </div>
+        </form>
+        <div class="form-footer-custom">
+            <div class="pull-right" style="padding-right:15px">
+                <a  class="btn btn-info btn-small " onclick="btnSubmit()">
+                   Lưu
+                </a>
+                <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+
+            </div>
+        </div>
+    </div>
+   
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#formPopup").validate({
+            // Rules for form validation
+            rules: {
+                FirstName: { required: true },
+                MiddleName: { required: true },
+                LastName: { required: true },
+                DayOfBirth: { required: true, },
+                MonthOfBirth: { required: true, },
+                YearOfBirth: { required: true, },
+                Personal: { required: true, },
+                Phone: { required: true, },
+                Email: { required: true, email: true, },
+                Position: { required: true, },
+                Company: { required: true, },
+            },
+            // Messages for form validation
+            messages: {
+                FirstName: { required: "Thông tin bắt buộc" },
+                MiddleName: { required: "Thông tin bắt buộc" },
+                LastName: { required: "Thông tin bắt buộc" },
+                DayOfBirth: { required: "Thông tin bắt buộc" },
+                MonthOfBirth: { required: "Thông tin bắt buộc" },
+                YearOfBirth: { required: "Thông tin bắt buộc" },
+                Personal: { required: "Thông tin bắt buộc" },
+                Phone: { required: "Thông tin bắt buộc" },
+                Email: { required: "Thông tin bắt buộc", email: "Sai định dạng email", },
+                Position: { required: "Thông tin bắt buộc" },
+                Company: { required: "Thông tin bắt buộc" },
+            },
+            // Do not change code below
+            errorPlacement: function (error, element) {
+                //error.insertAfter(element);
+            },
+            submitHandler: function (form) {
+                var arr_phone = [];
+                for (var i = 0; i < $("#listPhone input").length; i++) {
+
+                    arr_phone[i] = $("#listPhone input")[i].value;
+                }
+                var json_phone = JSON.stringify(arr_phone);
+                $("#Phone").val(json_phone);
+
+                $(form).ajaxSubmit({
+                    //clearForm: true,//To clear form after ajax submitting
+                    beforeSend: function () { // Xử lý trước khi submit
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            $("#Grid").data("kendoGrid").dataSource.read();
+                            $.gritter.add({
+                                title: '@Resources.Multi.Success',
+                                text: "Lưu thành công!",
+                                class_name: 'gritter-success'
+                            });
+                        }
+                        else {
+                            $.gritter.add({
+                                title: '@Resources.Multi.Error',
+                                text: "Báo lỗi" + data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    })
+    function showFormPresenter(key, obj) {
+        $("#formPopup")[0].reset();
+        if (key == 0) {     // Create
+            $('#detail-prensenter-pp').modal('show');
+
+        }
+        else {// Update
+
+            var currentRow = $(obj).closest("tr");
+            var dataItem = $("#Grid").data("kendoGrid").dataItem(currentRow);
+            onBindDataToForm(dataItem);
+            var checkDecided = dataItem.Decided == 1 ? true : false;
+            var checkStatus = dataItem.Status == "HOAT_DONG" ? true : false;
+
+            //$("#CustomerID").val(dataItem.CustomerID).trigger("chosen:updated");
+
+            try {
+                var listdataPhone = jQuery.parseJSON(dataItem.Phone);
+                debugger
+                if (typeof listdataPhone == 'object') {
+                    $("#listPhone").find('div.controls').html('');
+                    var html = '';
+                    $.each(listdataPhone, function (index, value) {
+                        if (index == 0) {
+                            var html = '<div class="controls">';
+                            html += '<div class="span9 phone-txt"><input class="span12" value="' + value + '" type="text" placeholder="Số điện thoại" /> </div>';
+                            html += '<div class="span3"><a id="add-phone" class="btn btn-small" onclick="pushPhone()"><i class="icon-plus"></i></a></div>';
+                            html += '</div>';
+
+                        }
+                        else {
+                            var html = '<div class="controls">';
+                            html += '<div class="span9 phone-txt"><input class="span12" value="' + value + '" type="text" placeholder="Số điện thoại" /> </div>';
+                            html += '<div class="span3"><button class="btn btn-small minus-phone" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></button></div>';
+                            html += '</div>';
+                        }
+
+                        $("#listPhone").append(html);
+
+                    })
+
+                }
+            } catch (e) {
+                // It not JSON
+                $("#listPhone").find('div.controls').html('');
+                var html = '<div class="controls">';
+                html += '<div class="span9 phone-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>';
+                html += '<div class="span3"><a id="add-phone" class="btn btn-small" onclick="pushPhone()"><i class="icon-plus"></i></a></div>';
+                html += '</div>';
+                $("#listPhone").append(html);
+            }
+          
+            $('#detail-prensenter-pp').modal('show');
+        }
+    }
+
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem) {
+        $("#formPopup")[0].reset();
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+    }
+    function btnSubmit() {
+        $("#formPopup").submit();
+    }
+
+    $("#add-phone").click(function () {
+        var html = '<div class="controls">';
+        html += '<div class="span9 phone-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>';
+        html += '<div class="span3"><button class="btn btn-small minus-phone" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listPhone").append(html);
+    })
+
+    function pushPhone() {
+        var html = '<div class="controls">';
+        html += '<div class="span9 phone-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>';
+        html += '<div class="span3"><button class="btn btn-small minus-phone" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listPhone").append(html);
+    }
+
+    function minusPhone(e) {
+        $(e).parent().parent().remove();
+    }
+</script>

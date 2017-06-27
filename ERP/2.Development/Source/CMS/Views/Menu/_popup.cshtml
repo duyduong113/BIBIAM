@@ -1,0 +1,68 @@
+﻿<div id="popup-confirm" class="modal fade" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="javascript:;" class="close" data-dismiss="modal" aria-hidden="true"></a>
+                <h4 class="modal-title">@Html.Raw(Resources.Global._notification)</h4>
+            </div>
+            <div class="modal-body">
+                <span id="txtcontent"></span>
+            </div>
+            <div class="modal-footer">
+
+                <a href="javascript:;" class="btn grey-salsa btn-outline" data-dismiss="modal">Close</a>
+                <a href="javascript:;" class="btn green" onclick="onChangeStatus(1)">
+                    <i class="fa fa-check"></i> @Html.Raw(Resources.Global._agree)
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (e == 1) { // Send
+                $('#popup-confirm').modal('show');
+                $('#txtcontent').text("@Html.Raw(Resources.Global._are_you_sure)");
+            }
+        }
+        else {
+            toastr.error('', '@Html.Raw(Resources.Global._please_select_data)');
+        }
+    }
+    function onChangeStatus(type) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            $.post(r + "/Menu/Delete", { data: listrowid }, function (data) {
+                if (data.success) {
+                    toastr.success("", "@Resources.Global._delete @Resources.Global._update_successfully");
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    onCloseForm();
+                }
+                else {
+                    toastr.error('', data.alert);
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    onCloseForm();
+                }
+            });
+        }
+    }
+    function onCloseForm() {
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

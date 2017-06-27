@@ -1,0 +1,289 @@
+﻿@model ERPAPD.Models.Deca_RT_Ticket
+@{
+    ViewBag.Title = "AddNew";
+    var isDevice = Request.Browser.IsMobileDevice;
+    var isTablet = Request.UserAgent.Contains("Android") && !isDevice;
+
+    var listPriority = new List<Object>();
+    listPriority.Add(new { Value = "TPRI002", Name = "Medium" });
+    listPriority.Add(new { Value = "TPRI003", Name = "High" });
+    listPriority.Add(new { Value = "TPRI001", Name = "Urgent" });
+    ViewBag.listPriority = listPriority;
+
+    var listImpact = new List<Object>();
+    listImpact.Add(new { Value = "TIMP001", Name = "Low" });
+    listImpact.Add(new { Value = "TIMP002", Name = "Medium" });
+    listImpact.Add(new { Value = "TIMP003", Name = "High" });
+    ViewBag.listImpact = listImpact;
+
+}
+@( Html.Kendo().Window().Name("CreateTicketWindow")
+      .Title("Gửi Ticket")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+      .Width(700)
+)
+
+
+<script type="text/x-kendo-template" id="CreateTicketFormTemplate">
+    @using (Html.BeginForm("Ticket_CreateFromTelesales", "Ticket", FormMethod.Post, new { @class = "form-horizontal", id = "CreateTicketForm", style = "margin:0;" }))
+    {
+        <div class="row-fluid">
+            <div class="span6">
+                <div class="row-fluid">
+                    <label for="Title">Tiêu đề</label>
+                    <input placeholder="Tiêu đề của yêu cầu(tối đa 100 ký tự)" class="span12" id="Title" name="Title" type="text" value="">
+                </div>
+                <div class="row-fluid">
+                    <label for="Detail">Mô tả</label>
+                    <textarea placeholder="Mô tả nội dung yêu cầu(tối đa 500 ký tự)" class="span12" cols="3" id="Detail" name="Detail"></textarea>
+                </div>
+                <div class="row-fluid">
+                    <label for="Category">Nhóm yêu cầu</label>
+                    @(Html.Kendo().DropDownList().Name("Category")
+                                                        .HtmlAttributes(new { @style = "width:100%" })
+                                                        .OptionLabel("Nhóm yêu cầu...")
+                                                        .DataTextField("Name")
+                                                        .AutoBind(false)
+                                                        .DataValueField("CategoryID")
+                                                        .DataSource(dataSource =>
+                                                        {
+                                                            dataSource.Read(read => read.Action("GetListCategoryForTelesales", "Ticket"))
+                                                            .ServerFiltering(true);
+                                                        }).ToClientTemplate()
+                    )
+                </div>
+                <div class="row-fluid" style="margin-top:3px;">
+                    <label for="TypeID">TypeID</label>
+                    @(Html.Kendo().DropDownList().Name("TypeID")
+                                                        .AutoBind(false)
+                                                        .HtmlAttributes(new { @style = "width:100%" })
+                                                        .OptionLabel("Chọn loại...")
+                                                        .DataTextField("Name")
+                                                        .DataValueField("TypeID")
+                                                        .DataSource(dataSource =>
+                                                        {
+                                                            dataSource.Read(read => read.Action("GetListTypeForTelesales", "Ticket").Data("filterCategoryTicket"))
+                                                            .ServerFiltering(true);
+                                                        })
+                                                                .CascadeFrom("Category").ToClientTemplate()
+                    )
+                </div>
+
+                <input type="hidden" name="CustomerID" value="#=PhysicalID#" />
+                <input type="hidden" name="CustomerName" value="#=Fullname#" />
+                <div class="row-fluid">
+                    <label for="OrderID">@Resources.Multi.OrderCode</label>
+                    @(Html.Kendo().AutoComplete()
+                              .Name("OrderID")
+                                .DataTextField("OrderID")
+                                  .DataSource(source =>
+                                  {
+                                      source.Read(read =>
+                                      {
+                                          read.Action("LoadOrderIDSuggestForSendTicket", "Telesale").Data("onAdditionalDataOrder");
+                                      }).ServerFiltering(true);
+                                  })
+                                   .HtmlAttributes(new { style = "font-size:13px;width:100%;" })
+                           .Events(e => e.Select("loadOrderDetailTicketPopup"))
+                                  .Filter("containts")
+                                  .MinLength(2)
+                                  .Height(370)
+                              .Placeholder("Mã đơn hàng")
+                              .Template("\\#=OrderID\\# - \\#=kendo.toString(Amount,'N0')\\# - \\#=kendo.toString(kendo.parseDate(OrderDate),'HH:mm dd/MM/yyyy')\\#")
+                              .ToClientTemplate()
+                    )
+                </div>
+
+                <div class="row-fluid">
+                    <label for="Priority">Độ ưu tiên</label>
+                    <select data-placeholder="Độ ưu tiên" id="Priority" class="span12" name="Priority">
+                        @foreach (var item in ViewBag.listPriority)
+                        {
+                            <option value="@item.Value">@item.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row-fluid">
+                    <label for="Impact">Mức độ ảnh hưởng</label>
+                    <select data-placeholder="Mức độ ảnh hưởng" class="span12" id="Impact" name="Impact">
+                        @foreach (var item in ViewBag.listImpact)
+                        {
+                            <option value="@item.Value">@item.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row-fluid" id="divpreAssignee" style="display:none">
+                    <label for="Assignee">Phân công cho</label>
+                    <select id="preAssignee" name="preAssignee" class="span12" data-placeholder="Chọn người xử lý yêu cầu"> </select>
+                </div>
+
+                <div class="row-fluid">
+                    <label for="Follower">Follower(s)</label>
+                    @(
+ Html.Kendo().MultiSelectFor(model => model.Follower)
+                     .DataValueField("UserName")
+                     .DataTextField("UserName")
+                        .Placeholder("Thêm người theo dõi yêu cầu này")
+                     .BindTo(ERPAPD.Models.Deca_RT_Follower.GetListUser())
+                     .HtmlAttributes(new { @class = "chosen-container chosen-container-multi", @style = "width:100%" })
+                    .ToClientTemplate()
+                    )
+                </div>
+            </div>
+            <div class="span6" style="padding-left:5px;">
+                <div class="row-fluid">
+                    <address style="margin-bottom:5px">
+                        <h4 style="color:\\#808080">Thông tin khách hàng</h4>
+                        <div style="font-size: 14px;color:\\#2283c5; margin-top:5px; margin-bottom: 5px">
+                            #if(CustomerID==null || typeof CustomerID == "undefined"){#
+                            <span style="color:red">[Chưa có thẻ]</span> -
+                            #}else{#
+                            #:CustomerID# -
+                            #}#
+                            #:Fullname#
+                        </div>
+                        <div>
+                            <span style="color:\\#999">Giới tính:</span>  #:Gender# |
+                            <span style="color:\\#999">Sinh ngày:</span> #: kendo.toString(kendo.parseDate(Birthday),"dd/MM/yyyy")#
+                            <br />
+                            <span style="color:\\#999">CMND:</span> #:PhysicalID# |
+                            <span style="color:\\#999">Tỉnh:</span> #:HomeTownDescription#
+                            <br />
+                            <span style="color:\\#999"> Điện thoại:</span> #:Phone# |
+                            <span style="color:\\#999">Email: </span> #:Email#
+                            <br />
+                            <span style="color:\\#999">Địa chỉ:</span> #:Address#
+                        </div>
+                    </address>
+                </div>
+                <div class="row-fluid" id="OrderDetailTicketPopup">
+                </div>
+            </div>
+
+        </div>
+        <div class="form-actions">
+            <button type="submit" id="btnSendTicket" class="btn btn-mini btn-success pull-right" style="margin-left:5px;">@Resources.Multi.Add</button>
+            <a class="btn btn-mini btn-grey pull-right" onclick="$('\\#CreateTicketWindow').data('kendoWindow').close();">@Resources.Multi.Cancel</a>
+        </div>
+    }
+
+</script>
+
+
+<script type="text/x-kendo-template" id="OrderDetailTicketPopupTemplate">
+    <address style="margin-bottom:5px">
+        <h4 style="color:\\#808080">Thông tin đơn hàng</h4>
+        <div style="font-size: 14px;color:\\#2283c5; margin-top:5px; margin-bottom: 5px">
+            #:OrderID#
+        </div>
+        <div>
+            <span style="color:\\#999">Ngày đơn hàng:</span>  #:kendo.toString(kendo.parseDate(OrderDate),'HH:mm dd/MM/yyyy')#
+            <br />
+            <span style="color:\\#999">Sản phẩm:</span> #: TransactionInfo#
+            <br />
+            <span style="color:\\#999">Giá trị:</span> #:kendo.toString(Amount,'N0')# |
+            <span style="color:\\#999">Trả góp:</span> #:Installment# tháng
+            <br />
+            <span style="color:\\#999"> Nhân viên bán hàng:</span> #:SaleMan#
+            <br />
+            <span style="color:\\#999">@Resources.Multi.Status:</span> <strong> #:Status#</strong>
+            #if(CancelReason != ""){#
+            <br />
+            <span style="color:\\#999">Lý do:</span> #:CancelReason#
+            #}#
+        </div>
+    </address>
+</script>
+<script type="text/javascript">
+    var OrderDetailTicketPopupTemplate = kendo.template($("#OrderDetailTicketPopupTemplate").html());
+
+    function onAdditionalDataOrder() {
+        return {
+            OrderID: $("#OrderID").val(),
+            PhysicalID: $("#CreateTicketForm input[name='CustomerID']").val(),
+        };
+    }
+    function filterCategoryTicket() {
+        var selectedCategory = $("#Category").val();
+        return {
+            GroupID: selectedCategory
+        };
+    }
+
+    function onAdditionalData() {
+        return {
+            Phone: $("#CustomerIDTicket").val(),
+        };
+    }
+    var CreateTicketFormTemplate = kendo.template($("#CreateTicketFormTemplate").html());
+    function OpenCreateTicketPopup(customer) {
+        var wnd = $("#CreateTicketWindow").data("kendoWindow");
+        wnd.content(CreateTicketFormTemplate(customer));
+        wnd.center().open();
+        $("#CreateTicketForm").validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        $("#btnSendTicket").attr("disabled", "disabled");
+                    },
+                    success: function (data) {
+                        if (!data.error) {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Success",
+                                text: "Gửi ticket thành công!",
+                                class_name: 'gritter-success',
+                            });
+                            $('#CreateTicketWindow').data('kendoWindow').close();
+                            $("#GridActionHistory").data("kendoGrid").dataSource.read();
+                        }
+                        else {
+                            $.gritter.add({
+                                title: "@Resources.Multi.Error",
+                                text: data.message,
+                                class_name: 'gritter-error',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#btnSendTicket").removeAttr("disabled");
+                    }
+                });
+                return false;
+            }
+        });
+
+        //  $("#TypeID").html($("#listTypedata").html());
+        //$("#Priority").html($("#listPrioritydata").html());
+        //$("#Impact").html($("#listImpactdata").html());
+        //$("#preAssignee").html($("#listAssigneedata").html());
+        $("#Impact").val('TIMP002');
+        $("#Priority").val('TPRI002');
+        // $("#preAssignee").val(currentuser);
+
+        // $("#preAssignee").chosen();
+        $("#CreateTicketWindow").closest(".k-window").css("top", "50px");
+        // $(".k-popup-edit-form").css("overflow", "inherit");
+
+    }
+    function loadOrderDetailTicketPopup(e) {
+        var dataItem = this.dataItem(e.item.index());
+        debugger;
+        $.post(r + "/telesale/LoadOrderDetailForTicket/", { OrderID: dataItem.OrderID }, function (data) {
+            if (data.success) {
+                $("#OrderDetailTicketPopup").html(OrderDetailTicketPopupTemplate(data.data));
+            }
+            else {
+                $.gritter.add({
+                    title: "@Resources.Multi.Error",
+                    text: data.message,
+                    class_name: 'gritter-error',
+                });
+            }
+        })
+    }
+</script>

@@ -1,0 +1,400 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = @Html.Raw(Resources.Global._merchant_mngmt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var newData = new Merchant_Info();
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        width: 300px;
+        height: 300px;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .image-product {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-product img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-product .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-product:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            color: #ff7d5e;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+<div class="row">
+    <div class="col-md-5">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=trang_thai_duyet == '@AllConstant.trang_thai_duyet.DA_DUYET' ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-3" style="padding-left: 0; text-align: center;">
+                    <img src="#=logo_gian_hang ? logo_gian_hang : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#" class="img-responsive" style="display:inline">
+                </div>
+                <div class="col-md-8" style="padding-left:0;">
+                    
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=ten_gian_hang# #=ten_viet_tat? '-' + ten_viet_tat:''#
+                        
+                        
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #if(trang_thai_duyet=='@AllConstant.trang_thai_duyet.DA_DUYET'){#
+                        <span class="text-success">@Html.Raw(@Resources.Global._approved)</span>
+                        #}else{#
+                        <span class="text-danger">@Html.Raw(@Resources.Global._unapproved)</span>
+                        #}#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #if(trang_thai_xac_thuc=='@AllConstant.trang_thai_xac_thuc.DA_XAC_THUC'){#
+                        <span class="text-success">@Html.Raw(@Resources.Global._authenticated)</span>
+                        #}else{#
+                        <span class="text-danger">@Html.Raw(@Resources.Global._unauthenticated)</span>
+                        #}# 
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(@Resources.Global._website) :
+                        <a href="#=website#" target="newwindow">#=website#</a>
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(@Resources.Global._phone) : #=dien_thoai ? dien_thoai : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(@Resources.Global._email) : #=email ? email : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(@Resources.Global._address) : #=dia_chi_tru_so ? dia_chi_tru_so : ''#
+                    </div>
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(@Resources.Global._merchant_list)</span>
+                </div>
+
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_Info>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "MerchantManagement"));
+                                //dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit"></div>
+</div>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) Banner @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+@Html.Partial("_Form_MerchantInfo_Detail")
+<script>
+    $(document).ready(function () {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+        Search();
+        function ValidURL(str) {
+            // ....
+            return true;
+        }
+        $.validator.addMethod("valURL", function (value, element) {
+            if (ValidURL(value)) {
+                return true;
+            }
+            return false;
+        }, "@Html.Raw(@Resources.Global._error_web_format)");
+        $.validator.addMethod("city", function (value, element) {
+            if (value != '') {
+                return true;
+            }
+            return false;
+        }, "@Html.Raw(@Resources.Global._choose_city_province)");
+        $.validator.addMethod("isPhone", function (value, element) {
+            var val = value.replace(/[+()-]/g, "");
+            var phone_pattern = /([0-9]{9})/;
+            return phone_pattern.test(val);
+        }, "@Html.Raw(@Resources.Global._error_phone_number)");
+    });
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+
+        gridSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function filterDistrict() {
+        return {
+            ma_thanh_pho: $("#ma_tinh_tp").val()
+        };
+    }
+    function changeCity(e) {
+        holdCity = $("#ma_tinh_tp").val();
+    };
+    function changeDistrict(e) {
+        holdDistrict = $("#ma_quan_huyen").val();
+    };
+    function gridSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function clearForm() { }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    function Duyet(ma_gian_hang)
+    {
+        var type = "duyet";
+        ChangeStatus(type,ma_gian_hang);
+    }
+    function Xacthuc(ma_gian_hang) {
+        var type = "xacthuc";
+        ChangeStatus(type,ma_gian_hang);
+    }
+    function ChangeStatus(type,ma_gian_hang) {
+        $.ajax({
+            type: "POST",
+            async: true,
+            url: r + "/MerchantManagement/ChangeStatus",
+            data: {ma_gian_hang:ma_gian_hang, type: type },
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+
+        function successFunc(data) {
+            if (data.success) {
+                $("#listView").data("kendoListView").dataSource.read();
+                loadForm(data.data);
+                toastr.clear();
+                toastr.success('', '@Html.Raw(@Resources.Global._success)');
+            }
+            else {
+                toastr.clear();
+                toastr.error('', data.error);
+            }
+        }
+
+        function errorFunc() {
+            toastr.clear();
+            toastr.error('', '@Html.Raw(@Resources.Global._error_message)');
+        }
+    };
+    function loadValidate(currentData) {
+        var e = $("#GeneralForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_gian_hang: { minlength: 4, maxlength: 50, required: true },
+                        ten_viet_tat: { minlength: 2, maxlength: 20, required: true },
+                        ten_tieng_anh: { minlength: 2, maxlength: 20, required: true },
+                        website: { minlength: 4, required: true, valURL: true },
+                        dien_thoai: { required: true, isPhone: true, maxlength: 15 },
+                        fax: { required: true, isPhone: true, maxlength: 15 },
+                        email: { required: true, email: true, maxlength: 30 },
+                        tai_khoan_thanh_toan: { minlength: 9, maxlength: 30, required: true },
+                        dia_chi_tru_so: { required: true, minlength: 4, maxlength: 100 },
+                        ma_tinh_tp: { required: true, city: true },
+                        ma_quan_huyen: { required: true, city: true }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(@Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(@Resources.Global._save_successfully)')
+                                loadForm(data.data);
+                                $("#listView").data("kendoListView").dataSource.read();
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "ma_gian_hang", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ten_gian_hang", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "dien_thoai", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "email", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "trang_thai_duyet", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function onDatabound() {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+</script>
+

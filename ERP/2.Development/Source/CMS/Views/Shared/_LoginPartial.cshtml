@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right", @style = "display:none;" }))
+    {
+        @Html.AntiForgeryToken()
+    }
+    <li class="dropdown dropdown-user">
+        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+            <img alt="" class="img-circle" src="@ViewBag.userImage" />
+            <span class="username username-hide-on-mobile">@Resources.Global._hello, @User.Identity.GetUserName() </span>
+            <i class="fa fa-angle-down"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-default">
+            <li>
+                <a href="@Url.Content("~/UserProfile")">
+                    <i class="icon-user"></i> @Resources.Global._my_profile
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Content("~/ChangePassword")">
+                    <i class="icon-key"></i> @Resources.Global._change_password
+                </a>
+            </li>
+            <li class="divider"> </li>
+            <li>
+                <a onclick="logOut()">
+                    <i class="icon-logout"></i> @Resources.Global._logout
+                </a>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="dropdown dropdown-user">
+        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+            <img alt="" class="img-circle" src="@Url.Content("~/Content/assets/layouts/layout/img/avatar3_small.jpg")" />
+            <span class="username username-hide-on-mobile"> Anonymous </span>
+            <i class="fa fa-angle-down"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-default">
+            <li>
+                <a onclick="logOut()">
+                    <i class="icon-logout"></i> @Resources.Global._logout
+                </a>
+            </li>
+        </ul>
+    </li>
+}
+
+<script>
+    function logOut() {
+        bootbox.dialog({
+            closeButton: false,
+            message: "@Resources.Global._are_your_sure", title: "@Resources.Global._logout",
+            buttons:
+                {
+                    danger: {
+                        label: "@Resources.Global._close", className: "btn default btn-circle btn-sm",
+                        callback: function () {
+                        }
+                    },
+                    main: { label: "@Html.Raw(Resources.Global._confirm)", className: "btn green btn-circle btn-sm", callback: function () { document.getElementById('logoutForm').submit(); } }
+                }
+        });
+    }
+</script>
+
+
+
+

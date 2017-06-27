@@ -1,0 +1,79 @@
+﻿@model ERPAPD.Models.DC_Telesale_ReportKPI
+
+@if (Model == null)
+{
+     <div>
+        <label>Chưa Plan KIP cho Agent này</label>
+    </div>
+}
+else
+{
+    <div>
+        <span>Trong ngày: </span> còn <b>@Model.Remain</b>% nữa đạt yêu cầu.
+    </div>
+    @*Revenue*@
+    <div class="infobox infobox-red infobox-small infobox-dark">
+        <div class="infobox-progress">
+            <div class="easy-pie-chart percentage easyPieChart" data-percent="61" data-size="39" style="width: 39px; height: 39px; line-height: 39px;">
+                <span class="percent">@String.Format("{0:0.00}", Model.PercentRevenue)</span>%
+            </div>
+        </div>
+        <div class="infobox-data">
+            <label class="t-head">Doanh số</label>
+            <label class="actual" style=" font-size: 12px; font-weight: bold; ">@String.Format("{0:0,0}", Model.ActualRevenue)</label>
+            <span class="kpi">KPI: @String.Format("{0:0,0}", Model.KpiRevenue)</span>
+        </div>
+    </div>
+
+    <div class="infobox infobox-red infobox-small infobox-dark">
+        <div class="infobox-progress">
+            <div class="easy-pie-chart percentage easyPieChart" data-percent="61" data-size="39" style="width: 39px; height: 39px; line-height: 39px;">
+                <span class="percent">@String.Format("{0:0.00}", Model.PercentOrder)</span>%
+            </div>
+        </div>
+        <div class="infobox-data">
+            <label class="t-head">Đơn hàng</label>
+            <label class="actual" style=" font-size: 12px; font-weight: bold; ">@String.Format("{0:0}", Model.ActualOrder)</label>
+            <span class="kpi">KPI: @String.Format("{0:0}", Model.KpiOrder)</span>
+        </div>
+    </div>
+
+    <div class="infobox infobox-red infobox-small infobox-dark">
+        <div class="infobox-progress">
+            <div class="easy-pie-chart percentage easyPieChart" data-percent="61" data-size="39" style="width: 39px; height: 39px; line-height: 39px;">
+                <span class="percent">@String.Format("{0:0.00}", Model.PercentCall)</span>%
+            </div>
+        </div>
+        <div class="infobox-data">
+            <label class="t-head">Cuộc gọi</label>
+            <label class="actual" style=" font-size: 12px; font-weight: bold; ">@String.Format("{0:0}", Model.ActualCall)</label>
+            <span class="kpi">KPI: @String.Format("{0:0}", Model.KpiCall)</span>
+        </div>
+    </div>
+
+    <div class="infobox infobox-red infobox-small infobox-dark">
+        <div class="infobox-progress">
+            <div class="easy-pie-chart percentage easyPieChart" data-percent="61" data-size="39" style="width: 39px; height: 39px; line-height: 39px;">
+                <span class="percent">@String.Format("{0:0.00}", Model.PercentCustomer)</span>%
+            </div>
+        </div>
+        <div class="infobox-data">
+            <label class="t-head">Khách hàng</label>
+            <label class="actual" style=" font-size: 12px; font-weight: bold; ">@String.Format("{0:0}", Model.ActualCustomer)</label>
+            <span class="kpi">KPI: @String.Format("{0:0}", Model.KpiCustomer)</span>
+        </div>
+    </div>
+
+    <div class="infobox infobox-red infobox-small infobox-dark">
+        <div class="infobox-progress">
+            <div class="easy-pie-chart percentage easyPieChart" data-percent="61" data-size="39" style="width: 39px; height: 39px; line-height: 39px;">
+                <span class="percent">@String.Format("{0:0.00}", Model.PercentTalkTime)</span>%
+            </div>
+        </div>
+        <div class="infobox-data">
+            <label class="t-head">Thời lượng</label>
+            <label class="actual" style=" font-size: 12px; font-weight: bold; ">@String.Format("{0:0}", Model.ActualTalkTime)</label>
+            <span class="kpi">KPI: @String.Format("{0:0}", Model.KpiTalkTime)</span>
+        </div>
+    </div>
+}

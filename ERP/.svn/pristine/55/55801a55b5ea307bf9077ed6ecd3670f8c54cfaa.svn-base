@@ -1,0 +1,486 @@
+﻿@using BIBIAM.Core.Entities;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = "Sản phẩm gian hàng";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var data = ViewBag.data == null ? new Merchant_Product() : ViewBag.data;
+}
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 formEdit">
+    </div>
+    @Html.Partial("_popup_Product_Info")
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Merchant_Product/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase">Chỉnh sửa thông tin sản phẩm</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="tabbable-line">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="col-md-6 form-group">
+                                        <label>Mã sản phẩm<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ma_san_pham" value="#=ma_san_pham!=null ? ma_san_pham : ''#" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Tên sản phẩm<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ten_san_pham" value="#=ten_san_pham!=null ? ten_san_pham : ''#">
+                                        </div>
+                                    </div>
+                                    @*<div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._showroom_representative)</label>
+                                            @(Html.Kendo().DropDownList()
+                                          .Name("representative")
+                                          .HtmlAttributes(new { style = "width:100%" })
+                                          .OptionLabel(Html.Raw(Resources.Global._showroom_representative) + "...")
+                                          .DataTextField("name")
+                                          .DataValueField("id")
+                                          .Value("#=representative#")
+                                          .Filter("contains")
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetUser", "CustomData");
+                                              }).ServerFiltering(true);
+                                          }).ToClientTemplate()
+                                            )
+                                        </div>*@
+                                    @*<div class="col-md-6 form-group">
+                                        <label>Trạng thái</label>
+                                        @(Html.Kendo().DropDownList()
+                                            .Name("trang_thai")
+                                            .HtmlAttributes(new { style = "width:100%" })
+                                            .OptionLabel("Trạng thái" + "...")
+                                            .DataTextField("Name")
+                                            .DataValueField("Value")
+                                            .Value("#=trang_thai!= null ? trang_thai:''#")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetCodeMaster", "CustomData", new { type = "CRMTitle" });
+                                                });
+                                            }).ToClientTemplate()
+                                        )
+                                        </div>
+                                    *@
+                                    <div class="col-md-6 form-group">
+                                        <label>Mã loại sản phẩm<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm mask_phone max100" name="ma_loai_san_pham" value="#=ma_loai_san_pham!=null ? ma_loai_san_pham : ''#" />
+                                        </div>
+                                    </div>
+                                    @*<div class="col-md-6 form-group">
+                                            <label>Mã gian hàng<span class="required"> * </span></label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" name="ma_gian_hang" class="form-control input-sm max100" value="#=ma_gian_hang!=null ? ma_gian_hang : ''#" readonly>
+                                            </div>
+                                        </div>*@
+                                    <div class="col-md-6 form-group">
+                                        <label>Trạng thái</label>
+                                        <input type="text" name="trang_thai" class="form-control input-sm max100" value="#=trang_thai!=null ? trang_thai : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Trọng số</label>
+                                        <input type="text" name="trong_so" class="form-control input-sm max100" value="#=trong_so!=null ? trong_so : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Từ khóa</label>
+                                        <input type="text" name="tu_khoa" class="form-control input-sm max100" value="#=tu_khoa!=null ? tu_khoa : ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Mô tả</label>
+                                        <input type="text" name="mo_ta" class="form-control input-sm max100" style="height:67px" value="#=mo_ta!=null ? mo_ta : ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Trạng thái</label>
+                                        <input type="text" name="trang_thai" class="form-control input-sm max100" value="#=trang_thai!=null ? trang_thai : ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tag</label>
+                                        <input type="text" name="tag" class="form-control input-sm max100" value="#=tag!=null ? tag : ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Slug</label>
+                                        <input type="text" name="slug" class="form-control input-sm max100" value="#=slug!=null ? slug : ''#">
+                                    </div>
+                                    @*<div class="col-md-6 form-group">
+                                            <label>Trạng thái</label>
+                                            <div class="input-icon right">
+                                                <select style="height:32px; max-width: 100%; width: 100%;" name="trang_thai">
+                                                    <option value="">-- Trạng thái --</option>
+                                                    #if(trang_thai=='Active'){#
+                                                    <option value="Active" selected>Hoạt động</option>
+                                                    <option value="InActive">Ngừng hoạt động</option>
+                                                    #}else if(trang_thai=='Inactive'){#
+                                                    <option value="Active">Hoạt động</option>
+                                                    <option value="InActive" selected>Ngừng hoạt động</option>
+                                                    #}else{#
+                                                    <option value="Active">Hoạt động</option>
+                                                    <option value="InActive">Ngừng hoạt động</option>
+                                                    #}#
+                                                </select>
+                                            </div>
+                                        </div>*@
+
+                                    @*<div class="form-group" style="margin-top:25px;">
+                                            <label>@Html.Raw(Resources.Global._showroom_parent)</label>
+
+                                            @(Html.Kendo().DropDownList()
+                                          .Name("showroomParent")
+                                          .HtmlAttributes(new { style = "width:100%" })
+                                          .OptionLabel(Html.Raw(Resources.Global._showroom_parent) + "...")
+                                          .DataTextField("name")
+                                          .DataValueField("id")
+                                          .Value("#=showroomParent#")
+                                          .Filter("contains")
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetShowroom", "CustomData");
+                                              }).ServerFiltering(true);
+                                          }).ToClientTemplate()
+                                            )
+                                        </div>*@
+
+                                    @*<div class="form-group" style="margin-top:35px;">
+                                                <div class="clearfix">
+                                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                        <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                                            #if(active==false){#
+                                                            <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._showroom_inactive)
+                                                            #}else{#
+                                                            <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._showroom_inactive)
+                                                            #}#
+                                                        </label>
+                                                        <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                                            #if(active==true){#
+                                                            <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._showroom_active)
+                                                            #}else{#
+                                                            <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._showroom_active)
+                                                            #}#
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                            <label>Ảnh sản phẩm</label>
+                                            <div class="clearfix">
+                                                <div class="input-group">
+                                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                        <div class="fileinput-new thumbnail" style="width: 280px; margin-bottom: 10px">
+                                                            <img src="#=url ? url : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" />
+                                                        </div>
+                                                        <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 300px; "> </div>
+                                                        <div>
+                                                            <span class="btn default btn-file btn-sm btn-circle pull-right">
+                                                                <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                                <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                                <input type="file" name="file">
+                                                            </span>
+                                                            <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Ngày cập nhật</label>
+                                        <input type="text" name="ngay_cap_nhat" class="form-control input-sm max100 date-picker" value="#=ngay_cap_nhat!=null ? ngay_cap_nhat : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Người cập nhật</label>
+                                        <input type="text" name="nguoi_cap_nhat" class="form-control input-sm max100" value="#=nguoi_cap_nhat!=null ? nguoi_cap_nhat : ''#">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <div class="col-md-6 form-group">
+                                        <label>Trạng thái duyệt</label>
+                                        <input type="text" name="trang_thai_duyet" class="form-control input-sm max100" value="#=trang_thai_duyet!=null ? trang_thai_duyet : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Trạng thái xuất bản</label>
+                                        <input type="text" name="trang_thai_xuat_ban" class="form-control input-sm max100" value="#=trang_thai_xuat_ban!=null ? trang_thai_xuat_ban : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Ngày duyệt</label>
+                                        <input type="text" name="ngay_duyet" class="form-control input-sm max100 date-picker" value="#=ngay_duyet!=null ? ngay_duyet : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Ngày xuất bản</label>
+                                        <input name="ngay_xuat_ban" class="form-control input-sm max100 date-picker" value="#=ngay_xuat_ban!=null ? ngay_xuat_ban : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Người duyệt</label>
+                                        <input type="text" name="nguoi_duyet" class="form-control input-sm max100" value="#=nguoi_duyet!=null ? nguoi_duyet : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Người xuất bản</label>
+                                        <input type="text" name="nguoi_xuat_ban" class="form-control input-sm max100" value="#=nguoi_xuat_ban!=null ? nguoi_xuat_ban : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Ngày tạo</label>
+                                        <input name="ngay_tao" class="form-control input-sm max100 date-picker" value="#=ngay_tao!=null ? ngay_tao : ''#">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Người tạo</label>
+                                        <input type="text" name="nguoi_tao" class="form-control input-sm max100" value="#=nguoi_tao!=null ? nguoi_tao : ''#">
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </form>
+</script>
+<script>
+
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    });
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+    }
+
+    function loadForm(data) {
+        debugger
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        shortlyName: { minlength: 5, required: !0 },
+                        name: { minlength: 5, required: !0 },
+                        //size: { required: !0, number: !0 },
+                        email: { required: !0, email: !0 },
+                        phone: { required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+                                } else {
+                                    if (currentData.id == 0) {
+                                    }
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function Search(e) {
+        debugger;
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (typeof seachText != 'undefined') {
+            if (seachText.length) {
+                filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "ma_san_pham", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "mo_ta", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "tag", operator: "contains", value: seachText });
+                filter.filters.push(filterDesc);
+            }
+        }
+
+        listView.dataSource.filter(filter);
+    }
+
+    function onDatabound(e) {
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+
+    function pick(e) {
+        debugger;
+        $.post(r + "/Merchant_Product/CreateFromProdInfo/", { id: $("#id_confirm").val(), ma_san_pham: $("#ma_san_pham_confirm").val() }, function (data) {
+            if (data.success) {
+                toastr.success('', 'Thành công');
+            }
+            else {
+                toastr.error('', 'Lỗi');
+            }
+            onCloseForm();
+        });
+        $(".todo-tasklist-item").removeClass("selected");
+        setTimeout(function () {
+            //waiting for sql to do its job
+        }, 400);
+        Search();
+    }
+</script>

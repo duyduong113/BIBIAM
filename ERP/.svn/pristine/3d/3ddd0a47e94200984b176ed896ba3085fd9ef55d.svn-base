@@ -1,0 +1,184 @@
+﻿<div style="height:420px;" id="popup-add-remind-debt" class="modal hide contract-view-popup">
+    <form data-code="@ViewBag.CustomerCode" id="RemindDebtForm" action=@Url.Action("RemindDebt_Save", "CRMMnDebt")>
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title" id="lbltitle">Nhắc nợ khách hàng</span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div style="min-height: 200px; background-color: #fff; " class="modal-body overflow-visible">
+
+            <div class="profile-user-info profile-user-info-striped">
+                <div class="profile-info-row">
+                    <div class="profile-info-name">Ngày nhắc</div>
+                    <div class="profile-info-value input-append">
+                        <input name="CustomerCode" type="hidden" value="@ViewBag.CustomerCode"/>
+                        <input name="Type" type="hidden" id="type-remind" />
+                        <input name="StrRemindDate" placeholder="Nhập ngày nhắc" style="width:200px;height:20px" type="text" class="date-picker" />
+                        <span class="add-on">
+                            <i class="icon-calendar"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="profile-info-row">
+                    <div class="profile-info-name">Nội dung</div>
+                    <div class="profile-info-value">
+                        <textarea name="Content" placeholder="Nhập nội dung" style="height:200px" class="span12 limited" maxlength="1000"></textarea>
+                    </div>
+                </div>
+
+                <div id="fied-of-customer" class="profile-info-row">
+                    <div class="profile-info-name"> Ngày dự kiến thanh toán </div>
+
+                    <div class="profile-info-value input-append">
+                        <input id="payment-date-payment" name="StrPaymentDate" placeholder="Nhập ngày dự kiến" style="width:200px;height:20px" type="text" class="date-picker" />
+                        <span class="add-on">
+                            <i class="icon-calendar"></i>
+                        </span>
+                    </div>
+                </div>
+                <div id="fied-of-staff" class="profile-info-row">
+                    <div class="profile-info-name"> NVKD </div>
+
+                    <div class="profile-info-value">
+                        <input name="StaffID" type="hidden" id="staff-id-remind" />
+                        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName")
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:214px", @class = "txt-name-employer" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataName");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItem");
+                                    })
+                        )
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info btn-small"> Lưu </button>
+            <a class="btn btn-default btn-small" data-dismiss="modal">Hủy bỏ</a>
+        </div>
+    </form>
+</div>
+<script>
+    var typePopupRemind = "";
+    function openPopupRemind(type, CustomerCode) {
+        $("#popup-add-remind-debt").modal("show");
+        $("form#RemindDebtForm")[0].reset();
+        $("#type-remind").val(type);
+        if (CustomerCode) {
+            $('[name=CustomerCode]').val(CustomerCode);
+        }
+        typePopupRemind = type;
+        if (type == "CUSTOMER") {
+            $("#fied-of-staff").hide();
+            $("#fied-of-customer").show();
+        } else if (type == "STAFF") {
+            $("#fied-of-customer").hide();
+            $("#fied-of-staff").show();
+        }
+    }
+    function alertMessage(mess, type) {
+        $.gritter.add({
+            text: mess,
+            class_name: 'gritter-' + type
+        });
+    }
+    function resizePopup() {
+        var popupHeight = $(".modal-backdrop").height();
+        $('.contract-view-popup').css("height", popupHeight - 100);
+        $('.contract-view-popup .modal-body-content').css("height", popupHeight - 200);
+    }
+    resizePopup();
+    function onAdditionalDataName() {
+        return {
+            text: $("#txt-FullName").val()
+        };
+    }
+    function onSelectItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#staff-id-remind").val(dataItem.RefStaffId);
+        
+    }
+    $("form#RemindDebtForm").validate({
+        rules: {
+            //StrRemindDate: { required: true },
+            //Content: { required: true },
+        },
+        messages: {
+            //StrRemindDate: { required: "Thông tin bắt buộc" },
+            //Content: { required: "Thông tin bắt buộc" },
+        },
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+        submitHandler: function (form) {
+            if ($("input[name='StrRemindDate']").val() == '') {
+                alertMessage('Chưa nhập ngày nhắc !', 'error');
+                return;
+            }
+            if ($("textarea[name='Content']").val() == '') {
+                alertMessage('Chưa nhập nội dung nhắc !', 'error');
+                return;
+            }
+            if (typePopupRemind == "CUSTOMER" && $("#payment-date-payment").val() == '') {
+                alertMessage('Chưa nhập ngày dự kiến thanh toán !', 'error');
+                return;
+            }
+            if (typePopupRemind == "STAFF" && $("#staff-id-remind").val() == '') {
+                alertMessage('Chưa nhập nhân viên kinh doanh !', 'error');
+                return;
+            }
+            var _url = $('form#RemindDebtForm')[0].action;
+            $("form#RemindDebtForm").find("input[name=StrRemindDate]").val(convertDate($("form#RemindDebtForm").find("input[name=StrRemindDate]").val()));
+            $("form#RemindDebtForm").find("input[name=StrPaymentDate]").val(convertDate($("form#RemindDebtForm").find("input[name=StrPaymentDate]").val()));
+            $.ajax({
+                url: _url,
+                type: 'POST',
+                async: false,
+                data: $('form#RemindDebtForm').serialize(),
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        alertMessage("Nhắc nợ thành công !", 'success');
+                        $("#popup-add-remind-debt").modal("hide");
+                        if ($("#GridHistoryCus").data("kendoGrid")) {
+                            $("#GridHistoryCus").data("kendoGrid").dataSource.read();
+                        }
+                        if ($("#GridHistoryStaff").data("kendoGrid")) {
+                            $("#GridHistoryStaff").data("kendoGrid").dataSource.read();
+                        }
+                        if ($("#Grid").data("kendoGrid")) {
+                            $("#Grid").data("kendoGrid").dataSource.read();
+                        }
+                    }
+                    else {
+                        alertMessage(data.message, 'error');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alertMessage('Lỗi Cập nhật !','error');
+                }
+            });
+
+            return false;
+        }
+    });
+</script>

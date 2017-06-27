@@ -1,0 +1,324 @@
+﻿@{
+    ViewBag.Title = "Bảng khuyến mãi";
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<script src="@Url.Content("~/Scripts/jquery.maskMoney.js")" type="text/javascript"></script>
+<link href="~/Scripts/css/custom.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row-fluid listview-left">
+        <div>
+            @*@<div onclick='edit(this)' class="span4">
+                #if(url==''){#
+                <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-border-box">
+                #} else {#
+                <img src="@Url.Content("~/Images/Product_Promotion/")#:url#" class="img-border-box">
+                #}#
+            </div>*@
+        </div>
+        <div>
+            <div onclick='edit(this)' class="span6">
+                #:ma_km# - #:ma_gia_san_pham#<br>                                
+                #:loai_km# - #:tien_km#<br>
+                #:phan_tram_km# - #:gia_sau_km# - #:so_ngay_km#<br>
+                #if(trang_thai == 'Active'){#
+                Trạng thái:  <span>Hoạt động</span><br>
+                #}else{#
+                Trạng thái:  <span>Ngừng hoạt động</span><br>
+                #}#
+                #if(trang_thai_duyet == 'New'){#
+                Trạng thái duyệt:  <span>Chờ duyệt</span><br>
+                #}else if(trang_thai_duyet == 'Approved'){#
+                Trạng thái duyệt:  <span>Đã duyệt</span><br>
+                #}else{#
+                Trạng thái duyệt:  <span>Từ chối duyệt</span><br>
+                #}#
+                #if(trang_thai_xuat_ban == 'CHUA_XUAT_BAN'){#
+                Trạng thái xuất bản:  <span>Chưa xuất bản</span><br>
+                #}else{#
+                Trạng thái xuất bản:  <span>Đã xuất bản</span><br>
+                #}#<br>
+            </div>
+        </div>
+    </div>
+</script>
+<div class="row-fluid">
+    <div class="span4">
+        <div class="row-fluid">
+            <div class="box-search">
+                <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;">Sản phẩm</h4>
+                <div class="input-search">
+                    <span class="icon-in-search"><i class="fa fa-search"></i></span>
+                    <input class="pull-right" style="border-radius: 25px!important;margin-bottom: 15px!important;" id="txtProdInfoName"
+                           type="text" onkeyup="Search(this)" placeholder="Search...">
+
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Product_Promotion>()
+            .Name("Grid")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Product_Promotion"));
+                dataSource.PageSize(4);
+
+            })
+             .Events(events => { events.DataBound("dataBound"); })
+            .Pageable()
+            )
+        </div>
+    </div>
+    <div class="span7">
+        @Html.Partial("info")
+    </div>
+</div>
+@Html.Partial("_popup")
+<script>
+    var idSelected = 0;
+    function itemSelected(e) {
+        $(".listview-left").removeClass("selected");
+        $(e).closest(".listview-left").addClass("selected");
+    }
+    $(document).ready(function () {
+        $(".currency").maskMoney();
+        $("#trang_thai option[value='Active']").prop("selected", true);
+        $("#trang_thai_duyet option[value='New']").prop("selected", true);
+        $("#trang_thai_xuat_ban option[value='CHUA_XUAT_BAN']").prop("selected", true);
+        $("#trang_thai_xuat_ban").prop("disabled", "disabled");
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        //$("#trang_thai, #trang_thai_duyet, #trang_thai_xuat_ban").chosen();
+        $("#frm").validate({
+             //Rules for form validation
+            rules: {
+                ma_gia_san_pham: {
+                    required: true
+                },
+                loai_km: {
+                    required: true
+                },
+                tien_km: {
+                    required: true
+                },
+                phan_tram_km: {
+                    required: true
+                },
+                gia_sau_khuyen_mai: {
+                    required: true
+                },
+                so_ngay_km: {
+                    required: true
+                }
+            },
+             //Messages for form validation
+            messages: {
+                ma_gia_san_pham: {
+                    required: "Thông tin bắt buộc"
+                },
+                loai_km: {
+                    required: "Thông tin bắt buộc"
+                },
+                tien_km: {
+                    required: "Thông tin bắt buộc"
+                },
+                phan_tram_km: {
+                    required: "Thông tin bắt buộc"
+                },
+                gia_sau_khuyen_mai: {
+                    required: "Thông tin bắt buộc"
+                },
+                so_ngay_km: {
+                    required: "Thông tin bắt buộc"
+                }
+            },
+            // Do not change code below
+            errorPlacement: function (error, element) {
+                if (element.is(":hidden")) {
+                    element.next().parent().append(error);
+                }
+                else {
+                    error.insertAfter(element);
+                }
+
+            },
+
+            submitHandler: function (form) {
+                debugger
+                $("#ngay_bat_dau").val(convertDate($("#ngay_bat_dau").val()));
+                $("#ngay_ket_thuc").val(convertDate($("#ngay_ket_thuc").val()));
+                $("#ngay_cap_nhat").val(convertDate($("#ngay_cap_nhat").val()));
+                $("#ngay_tao").val(convertDate($("#ngay_tao").val()));
+                $("#ngay_duyet").val(convertDate($("#ngay_duyet").val()));
+                $("#ngay_xuat_ban").val(convertDate($("#ngay_xuat_ban").val()));
+                $("#trang_thai_duyet").removeAttr('disabled');
+                $("#trang_thai_xuat_ban").removeAttr('disabled');
+                $("#tien_km").val(currencyToNumber($("#tien_km").val()));
+                $("#gia_sau_km").val(currencyToNumber($("#gia_sau_km").val()));
+                var formData = new FormData($("#frm")[0]);
+                //var formContent = $("#formCreateCustomer").serialize();
+                var url = $("#frm")[0].action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    mimeType: "multipart/form-data",
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function (data, textStatus, jqXHR) {
+                        var rs = JSON.parse(data);
+
+                        if (rs.success == true) {
+                            var thongbao = '';
+                            if (rs.type == 0) {
+                                thongbao = 'Tạo thành công !'
+                            }
+                            else {
+                                thongbao = 'Cập nhật thành công !'
+                            }
+                            $.gritter.add({
+                                text: thongbao,
+                                class_name: 'gritter-success'
+                            });
+                            $('#frm input[type=file]').ace_file_input('reset_input');
+                            Search();
+                            
+                            //resetForm();
+                        }
+                        else {
+                            $.gritter.add({
+                                text: 'Lỗi !',
+                                title: data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $.gritter.add({
+                            text: 'Lỗi Cập nhật !',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+                $("#trang_thai_duyet").prop('disabled', 'disabled');
+                $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+            }
+        });
+        Search();
+    });
+    function Search(e) {
+        listView = $("#Grid").data("kendoListView");
+        var seachText = $(e).val();
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        if (seachText) {
+            filterDesc.filters.push({ field: "ma_san_pham", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function Create() {
+        $("#frm")[0].reset();
+        $("#id").val(0);
+        $('#frm input[type=file]').ace_file_input('reset_input');
+        $("#trang_thai option[value='Active']").prop("selected", true);
+        $("#trang_thai_duyet option[value='New']").prop("selected", true);
+        $("#trang_thai_xuat_ban option[value='CHUA_XUAT_BAN']").prop("selected", true);
+    }
+    function Update() {
+        $("#frm").submit();            
+    }
+    function dataBound(e) {
+        var grid = $("#Grid").data("kendoListView");
+        var gridData = grid.dataSource.view();
+        if (gridData.length > 0) {
+            if (idSelected == 0) {
+                onBindDataToForm(gridData[0]);
+            }
+            else {
+                for (var i = 0; i < gridData.length; i++) {
+                    var currentUid = gridData[i].uid;
+                    if (gridData[i].id == idSelected) {
+                        onBindDataToForm(gridData[i]);
+                    }
+                }
+            }
+        }
+    }
+    function onBindDataToForm(dataItem) {
+        $("#frm")[0].reset();
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+        if (dataItem.trang_thai == "InActive" || dataItem.trang_thai_duyet == "Approved" || dataItem.trang_thai_duyet == "Rejected") {
+            $("#trang_thai_duyet").prop('disabled', 'disabled');
+        } else {
+            $("#trang_thai_duyet").removeAttr('disabled');
+        }
+
+        if (dataItem.trang_thai == "InActive" || dataItem.trang_thai_duyet == "Rejected" || dataItem.trang_thai_xuat_ban == "DA_XUAT_BAN") {
+            $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+
+        } else {
+            $("#trang_thai_xuat_ban").removeAttr('disabled');
+        }
+        //$("#trang_thai").val(dataItem.trang_thai).trigger('chosen:updated');
+        $("#trang_thai_duyet").val(dataItem.trang_thai_duyet).trigger('change');
+        //$("#trang_thai_xuat_ban").val(dataItem.trang_thai_xuat_ban).trigger('chosen:updated');
+    }
+    function edit(obj) {
+        idSelected = 0;
+        var dataItem = $("#Grid").data("kendoListView").dataItem($(obj).closest(".listview-left"));
+        $('#frm input[type=file]').ace_file_input('reset_input');
+        onBindDataToForm(dataItem);
+        //$("#trang_thai").val(dataItem.trang_thai).trigger('chosen:updated');
+        //$("#trang_thai_duyet").val(dataItem.trang_thai_duyet).trigger('chosen:updated');
+        //$("#trang_thai_xuat_ban").val(dataItem.trang_thai_xuat_ban).trigger('chosen:updated');
+        itemSelected(obj);
+        idSelected = dataItem.id;
+    }
+
+    $('#trang_thai_duyet').on('change', function () {
+        $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+        if ($('#trang_thai_duyet').val() == 'Approved' && $('#trang_thai_xuat_ban').val() != 'DA_XUAT_BAN') {
+            $("#trang_thai_xuat_ban").removeAttr('disabled');
+        }
+    });
+
+    $("#ngay_ket_thuc").change(function (e) {
+        var DateRange = getDateRange($("#ngay_bat_dau").val(), $("#ngay_ket_thuc").val());
+        if (DateRange)
+            $("#so_ngay_km").val(DateRange);
+        else
+        {
+            $("#so_ngay_km").val(0);
+            $("#ngay_ket_thuc").val('');
+        }
+    });
+    $("#so_ngay_km").keyup(function () {
+        if ($("#so_ngay_km").val() != '')
+        {
+            if ($("#ngay_bat_dau").val() == '')
+                return;
+            var splitDate = $("#ngay_bat_dau").val().split('/');
+            var nkt = new Date(splitDate[2], splitDate[1] - 1, splitDate[0]);
+            nkt.setDate(nkt.getDate() + parseInt($("#so_ngay_km").val()) - 1);
+            var d = kendo.toString(kendo.parseDate(nkt), 'dd/MM/yyyy')
+            $("#ngay_ket_thuc").val(d);
+        }
+        else
+            $("#ngay_ket_thuc").val($("#ngay_bat_dau").val());
+    });
+</script>

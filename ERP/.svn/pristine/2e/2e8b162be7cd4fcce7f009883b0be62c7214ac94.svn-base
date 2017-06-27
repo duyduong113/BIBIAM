@@ -1,0 +1,21 @@
+﻿<div id="comfirm" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Thông báo</h4>
+            </div>
+            <div class="modal-body">
+               <div>
+                   <span id="content"></span>
+               </div> 
+            </div>
+            <div class="modal-footer">
+                <input id="id_confirm" type="hidden" />
+                <input id="ma_san_pham_confirm" type="hidden" />
+                <a class="btn btn-circle btn-default btn-sm" data-dismiss="modal" aria-label="Cancel">OK</a>
+                @*<a class="btn btn-circle btn-default btn-sm" onclick="pick()">Đồng ý</a>*@
+            </div>
+        </div>
+    </div>
+</div>

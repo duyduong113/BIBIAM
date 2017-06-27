@@ -1,0 +1,187 @@
+﻿@model ERPAPD.Models.ConfigDefaultSystems
+
+@{
+    ViewBag.Title = "Cấu hình hệ thống";
+    var DateTimeFM = new List<Object>();
+    DateTimeFM.Add(new { ID = "0", Name = "dd/MM/yyyy" });
+    DateTimeFM.Add(new { ID = "1", Name = "dd/MM/yyyy HH:mm" });
+    DateTimeFM.Add(new { ID = "2", Name = "MM/dd/yyyy" });
+    DateTimeFM.Add(new { ID = "3", Name = "MM/dd/yyyy HH:mm" });
+    ViewBag.listDateTime = DateTimeFM;
+
+    var listCulture = new List<Object>();
+    listCulture.Add(new { ID = "vi", Name = "VN" });
+    listCulture.Add(new { ID = "en", Name = "EN" });
+    ViewBag.listCulture = listCulture;
+}
+<div class="row-fluid">
+    <div class="span12">
+        <form id="createform" action="@Url.Action("SetDefault","ConfigurationSystem")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+            <fieldset style="width:35%; float:left; padding-left:150px;">
+                @Html.Hidden("ID")
+                <input type="text" value="/ConfigurationSystem" id="returnurl" name="returnurl" style="display:none" />
+                <input type="text" id="Culture" name="Culture" style="display:none" />
+                <input type="text" id="LanguageID" name="LanguageID" style="display:none" />
+                <input type="text" id="DateTimeFormatID" name="DateTimeFormatID" style="display:none" />
+                <input type="text" id="DateTimeFormatDisplay" name="DateTimeFormatDisplay" style="display:none" />
+                <input type="text" id="TimeZoneDisplayName" name="TimeZoneDisplayName" style="display:none" />
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Time Zone</label>
+                    <div class="controls">
+                        <select id="TimeZoneID" name="TimeZoneID" class="chosen-select" data-placeholder="Chọn mã ngôn ngữ">
+                            @foreach (var item in ViewBag.ListTimeZone)
+                            {
+                                <option value="@item.Id">@item.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Ngôn ngữ</label>
+                    <div class="controls">
+                        <select id="ListCulture" name="ListCulture" class="chosen-select" data-placeholder="Chọn mã ngôn ngữ">
+                            @foreach (var item in ViewBag.listCulture)
+                            {
+                                <option value="@item.ID">@item.ID - @item.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group" id="divListDatetime">
+                    <label class="control-label" for="form-field-1">Ngày giờ </label>
+                    <div class="controls">
+                        <select id="ListDatetime" name="ListDatetime" class="chosen-select" data-placeholder="Chọn mã ngôn ngữ">
+                            @foreach (var item in ViewBag.listDateTime)
+                            {
+                                <option value="@item.ID">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="control-group">
+                    <button type="button" id="btnSubmit" onclick="CallSubmit()" class="btn btn-success btn-small">@Resources.Multi.btnSave</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+<script>
+    $("#ListCulture").chosen();
+    $("#ListDatetime").chosen();
+    $("#TimeZoneID").chosen();
+    $(document).ready(function () {
+        //debugger;
+        $('#ListCulture').val('@ViewBag.Item.Culture').trigger('chosen:updated');
+        $('#ListDatetime').val('@ViewBag.Item.DateTimeFormatID').trigger('chosen:updated');
+        $('#TimeZoneID').val('@ViewBag.Item.TimeZoneID').trigger('chosen:updated');
+    });
+
+    $("#createform").validate({
+        // Rules for form validation
+        rules: {
+            UserName: {
+                TimeZoneID: true
+            },
+        },
+        // Messages for form validation
+        messages: {
+            UserName: {
+                TimeZoneID: "Vui lòng nhập tên "
+            },
+        },
+        //Do not change code below
+        errorPlacement: function (error, element) {
+            /// error.insertAfter(element.parent());
+        },
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                //beforeSend: function () {
+
+                //},
+                success: function (data) {
+                    //setInterval(function () { $.unblockUI; }, 200);
+                    if (!data.error) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () { window.location = r + "/ConfigurationSystem"; }, 200);
+                        //setTimeout(function () { window.location = r + "/Employee"; }, 200);
+                    } else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+            });
+        }
+    });
+    function CallSubmit() {
+       // debugger;
+        $('#Culture').val($('#ListCulture').val());
+        var res = $('#ListCulture option:selected').text().substring(5, 7);
+        $('#LanguageID').val(res);
+        $('#DateTimeFormatID').val($('#ListDatetime').val());
+        $('#DateTimeFormatDisplay').val($("#ListDatetime option:selected").text());
+        $('#TimeZoneDisplayName').val($('#TimeZoneID option:selected').text());
+        $('#createform').submit();
+    }
+    //$('#ListCulture').on('change', function () {
+    //    $('#Culture').val($('#ListCulture').val());
+    //    $('#LanguageID').val($('#ListCulture option:selected').text());
+    //});
+
+</script>
+<style>
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+    }
+
+    .form-horizontal .control-label {
+        float: left;
+        width: auto;
+        padding-top: 5px;
+        text-align: left;
+    }
+
+    .form-horizontal .control-group {
+        margin-bottom: 10px;
+    }
+
+    .form-horizontal .controls {
+        margin-left: 80px;
+    }
+
+    .table.k-editor {
+    }
+
+    .controls textarea {
+        height: 60px;
+        width: 56%;
+    }
+
+    span.k-datepicker, span.k-timepicker, span.k-datetimepicker, span.k-colorpicker, span.k-numerictextbox, span.k-combobox, span.k-dropdown {
+        background-image: none;
+        background-color: white;
+        width: 150px;
+    }
+
+    .k-autocomplete.k-state-default, .k-picker-wrap.k-state-default, .k-numeric-wrap.k-state-default, .k-dropdown-wrap.k-state-default {
+        height: 25px;
+    }
+
+    .control-group select, .control-group input[type="text"], .control-group input[type="password"], .control-group input[type="datetime"], .control-group input[type="datetime-local"], .control-group input[type="date"], .control-group input[type="month"], .control-group input[type="time"], .control-group input[type="week"], .control-group input[type="number"], .control-group input[type="email"], .control-group input[type="url"], .control-group input[type="search"], .control-group input[type="tel"], .control-group input[type="color"] {
+        height: 21px;
+    }
+</style>

@@ -1,0 +1,299 @@
+﻿@model CRM24H.Models.CRM24H_Employee
+
+@{
+    ViewBag.Title = Resources.Multi.Add + " nhân viên kinh doanh" ;
+}
+<div class="row-fluid">
+    <div class="span12">
+        <form id="createform" action="@Url.Content("~/Employee/Create")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+            @Html.ValidationSummary(true)
+            <fieldset style="width:35%; float:left; padding-left:150px;">
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Mã nhân viên</label>
+                    <div class="controls" >
+                        @Html.TextBoxFor(m => m.UserName)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Họ & Tên (*)</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.Name)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Miền(*)</label>
+                    <div class="controls">
+                        @Html.DropDownList("Region", new SelectList(ViewBag.listRegion, "HierarchyID", "Value"), "--Chọn--", new { onChange="GetUnit()"})                    
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1"> Phòng ban (*)</label>
+                    <div class="controls">
+                        @Html.DropDownList("FKUnit", new SelectList(ViewBag.listUnit, "HierarchyID", "Value"), "--Chọn--")
+                       
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Địa chỉ (*)</label>
+                    <div class="controls">
+                        @Html.TextAreaFor(m => m.Address)
+                        @* @Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Email (*)</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.Email)
+                        @* @Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+                <div class="control-group">
+                </div>
+                
+            </fieldset>
+            <fieldset style="float: left; width: 50%">
+                <div class="control-group">
+                    <div style="float:left;">
+                        <label class="control-label" for="form-field-1">Ngày sinh</label>
+                        <div class="controls">
+                            @(Html.Kendo().DatePickerFor(m => m.BirthDay)
+                        .Format("dd/MM/yyyy")
+                              .HtmlAttributes(new { style = "width:90px;" })
+                            )
+                        </div>
+                    </div>
+                    <div style="margin-left:auto;">
+                        <label class="control-label" for="form-field-1" style=" margin-left: 15px; margin-right: 8px;">Giới tính</label>
+                        <div class="controls" style=" margin-top:-1px;">
+                            <select id ="Sex" name="Sex" class='span2' style="width: 65px; float: left; margin-left: 15px; margin-top: -5px;">
+                                <option value="">Chọn</option>
+                                <option value="1">Nam</option>
+                                <option value="0">Nữ</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">ĐT nội bộ</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.TelLocal)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">ĐT di động</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.TelePhone)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">ĐT nhà</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.TelHome)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Số Fax</label>
+                    <div class="controls">
+                        @Html.TextBoxFor(m => m.Fax)
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="form-field-1">Liên kết (*)</label>
+                    <div class="controls">
+                        @Html.DropDownList("EmployeeLink", new SelectList(ViewBag.listEmployee, "PKEmployeeID", "Name"), "--Chọn--")                     
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div style="float:left;">
+                        <label class="control-label" for="form-field-1">Ngày vào làm</label>
+                        <div class="controls">
+                            @(Html.Kendo().DatePickerFor(m => m.StartWorkDate)
+                        .Format("dd/MM/yyyy")
+                                .HtmlAttributes(new { style = "width:90px;" })
+                            )
+                        </div>
+                    </div>
+                    <div style="float: left; margin-left: 27px;">
+                        <label class="control-label" for="form-field-1">@Resources.Multi.Status</label>
+                        <div class="controls">
+                            @Html.CheckBoxFor(m => m.IsActive, new { @checked = "true" })
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="Status" id="Status" value="1"/>
+                <input type="hidden" name="task" id="task" value="" />
+            </fieldset>
+            <fieldset>
+            <div class="control-group">
+                <button  type="submit" class="btn btn-success btn-small">@Resources.Multi.Add</button>
+                @* <button class="btn btn-primary btn-small" type="submit" >Save</button>
+                    <button class="btn btn-primary btn-small" >Save & Close</button>*@
+                <a class="btn btn-grey btn-small" href="@Url.Content("~/Employee")">@Resources.Multi.btnBack</a>
+            </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+<script>
+    $("#EmployeeLink").chosen();
+    $("#FKUnit").chosen();
+    $("#Region").chosen();
+    $("#Sex").chosen();
+    $("#FKUnit").prop("disabled", true);
+    
+    $("#createform").validate({
+        // Rules for form validation
+        rules: {
+            UserName: {
+                required: true
+            },
+            Name: {
+                required: true
+            },
+            StartWorkDate: {
+                required: true
+            },
+            TelePhone: {
+                required: true
+            },
+            Sex: {
+                required: true
+            },
+            BirthDay: {
+                required: true,
+            },
+            //DepositAmount
+            Email: {
+                required: true,
+                email:true,               
+            },
+            Address: {
+                required: true,
+            },
+            
+        },
+        // Messages for form validation
+        messages: {
+            UserName: {
+                required: "Vui lòng nhập tên "
+            },
+            Name: {
+                required: "Vui lòng nhập tên đầy đủ"
+            },
+            StartWorkDate: {
+                required: "Vui lòng nhập ngày vào làm"
+            },
+            TelePhone: {
+                required: "Vui lòng nhập số điện thoại"
+            },
+            Sex: {
+                required: "Vui lòng chọn giới tính"
+            },
+            BirthDay: {
+                required: "Vui lòng chọn ngày sinh",
+            },
+            Email: {
+                required: "Vui lòng nhập email",
+                email: "Email không hợp lệ"
+            },
+            Address: {
+                required: "Vui lòng địa chỉ",   
+            },          
+        },
+        //Do not change code below
+        errorPlacement: function (error, element) {
+           /// error.insertAfter(element.parent());
+        },
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                beforeSend: function () {
+                   $('#Status').val(1);
+                },
+                success: function (data) {
+                    //setInterval(function () { $.unblockUI; }, 200);
+                    if (!data.error) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () { window.location = r + "/Employee"; }, 200);
+                        //setTimeout(function () { window.location = r + "/Employee"; }, 200);
+                    } else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+            });
+        }
+    });
+    function GetUnit() {
+        debugger;
+        var id = '';
+        $.post(r + "/Employee/GetUnitByRegion", { id: $('#Region').val() }, function (data) {
+            if (data.data.success) {
+                debugger;
+                $("#FKUnit").removeAttr("disabled");
+                $("#FKUnit").html('');
+                var html = "<option value =''>--Chọn--</option>";
+                for (var i = 0; i < data.data.length ; i++) {
+                    html += "<option value ='" + data.data[i].HierarchyID + "'>" + data.data[i].Value + "</option>";
+                }
+                //$("#FKUnit").trigger('update');
+            }
+        });
+    }
+</script>
+<style>
+    
+
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+        
+    }
+    .form-horizontal .control-label {
+        float: left;
+        width: auto;
+        padding-top: 5px;
+        text-align: left;
+    }
+
+    .form-horizontal .control-group {
+        margin-bottom: 10px;
+    }
+
+    .form-horizontal .controls {
+        margin-left: 80px;
+    }
+
+    .table.k-editor {
+    }
+
+    .controls textarea {
+        height: 60px;
+        width: 56%;
+    }
+
+    span.k-datepicker, span.k-timepicker, span.k-datetimepicker, span.k-colorpicker, span.k-numerictextbox, span.k-combobox, span.k-dropdown {
+        background-image: none;
+        background-color:white;
+        width: 150px;
+    }
+
+    .k-autocomplete.k-state-default, .k-picker-wrap.k-state-default, .k-numeric-wrap.k-state-default, .k-dropdown-wrap.k-state-default {
+        height: 25px;
+    }
+
+    .control-group select, .control-group input[type="text"], .control-group input[type="password"], .control-group input[type="datetime"], .control-group input[type="datetime-local"], .control-group input[type="date"], .control-group input[type="month"], .control-group input[type="time"], .control-group input[type="week"], .control-group input[type="number"], .control-group input[type="email"], .control-group input[type="url"], .control-group input[type="search"], .control-group input[type="tel"], .control-group input[type="color"] {
+        height: 21px;
+    }
+</style>

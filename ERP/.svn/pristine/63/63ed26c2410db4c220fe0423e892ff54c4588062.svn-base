@@ -1,0 +1,1745 @@
+﻿<div class="row-fluid">
+    <div class="span12">
+        <div class="tabbable" style="margin-top: 10px;">
+            <ul class="nav nav-tabs" id="myTab" style="font-size:10px !important;">
+                <li class="active">
+                    <a data-toggle="tab" href="#TransactionPopupForTeleSale" id="DefaultTab">
+                        Physical Goods
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#AirTimeHis">
+                        AirTime
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#CashAdvance">
+                        Cash Advance
+                    </a>
+                </li>
+                
+                <li>
+                    <a data-toggle="tab" href="#Deposit">
+                        Deposit
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#Repayment">
+                        Payment
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#SettlementForTeleSale">
+                        Settlement
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#CreditRequestXXX">
+                        Credit
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#TicketRequest">
+                        Ticket
+                    </a>
+                </li>
+
+                <li class="">
+                    <a data-toggle="tab" href="#CreationRequest">
+                        Creation
+                    </a>
+                </li>
+
+                <li class="">
+                    <a data-toggle="tab" href="#Potential">
+                        Potential
+                    </a>
+                </li>
+                
+                <li>
+                    <a data-toggle="tab" href="#TrackingOrder">
+                        Tracking Order
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#INForTeleSale">
+                        SMS-IN
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#OUTForTeleSale">
+                        SMS-OUT
+                    </a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#CallLogCS">
+                        Call Log
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content" style="overflow: hidden;">
+                <div id="TransactionPopupForTeleSale" class="tab-pane active">
+                    @(Html.Kendo()
+            .Grid<ERPAPD.Models.DW_DC_Order>()
+              .Name("GridTransactionPopupForTeleSale")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll2'  onClick='checkAll2(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id= '#=ID#' />").Width(25).Filterable(false).Sortable(false);
+                  columns.Bound(p => p.CreatedAt).Title("Created On").Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Width(110);
+                  columns.Bound(p => p.ModifiedAt).Title(Resources.Multi.UpdatedAt).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Width(110);
+                  columns.Bound(p => p.ShippingType).Title("Type").Width(80);
+                  columns.Bound(p => p.OrderID).Title("OrderID").Width(65);
+                  columns.Bound(p => p.Amount).Title("Amount").Width(65).Format("{0:N0}");
+                  columns.Bound(o => o.Status).Title("Status").Width(80);
+                  columns.Bound(p => p.ItemName).Title("ItemName").Width(220).ClientTemplate("#=MSIN# : #=ItemName#");
+              })
+              .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+              .Scrollable(scrollable => scrollable.Virtual(false))
+              .Sortable()
+                .Pageable(pager => pager
+                                        .PageSizes(new[] { 20, 100, 200, 300 }))
+                                                .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+              .Scrollable()
+              .AutoBind(false)
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .PageSize(100)))
+                </div>
+
+                <div id="AirTimeHis" class="tab-pane">
+                     @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DW_DC_Order>()
+                    .Name("GridTeleSale_AirTime")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.Type).Title("Type").Width(80);
+                        columns.Bound(o => o.XTxnID).Title("XTxnID").Width(100);
+                        columns.Bound(o => o.XAccountID).Title("XAccountID").Width(100);
+                        columns.Bound(o => o.Amount).Title("Amount").Format("{0:N0}").Title("Amount").Width(100);
+                        columns.Bound(o => o.Description).Width(180);
+                        columns.Bound(o => o.Status).Title("Status").Width(80);
+                        columns.Bound(o => o.CreatedAt).Title("CreatedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(o => o.ModifiedAt).Title("ModifiedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("AirtimeCustomer_Read", "Customer")))
+                </div>
+
+                <div id="CashAdvance" class="tab-pane">
+                                        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DW_DC_Order>()
+                    .Name("GridTeleSale_CashAdvance")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.Type).Title("Type").Width(80);
+                        columns.Bound(o => o.XTxnID).Title("XTxnID").Width(100);
+                        columns.Bound(o => o.XAccountID).Title("XAccountID").Width(100);
+                        columns.Bound(o => o.Amount).Title("Amount").Format("{0:N0}").Title("Amount").Width(100);
+                        columns.Bound(o => o.Description).Width(180);
+                        columns.Bound(o => o.Status).Title("Status").Width(80);
+                        columns.Bound(o => o.CreatedAt).Title("CreatedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(o => o.ModifiedAt).Title("ModifiedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("CashAdvanceCustomer_Read", "Customer")))
+                </div>
+
+                <div id="Deposit" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DW_DC_Order>()
+                    .Name("GridTeleSale_Deposit")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.Type).Title("Type").Width(80);
+                        columns.Bound(o => o.XTxnID).Title("XTxnID").Width(100);
+                        columns.Bound(o => o.XAccountID).Title("XAccountID").Width(100);
+                        columns.Bound(o => o.Amount).Title("Amount").Format("{0:N0}").Title("Amount").Width(100);
+                        columns.Bound(o => o.Description).Width(180);
+                        columns.Bound(o => o.Status).Title("Status").Width(80);
+                        columns.Bound(o => o.CreatedAt).Title("CreatedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(o => o.ModifiedAt).Title("ModifiedAt").Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("DepositCustomer_Read", "Customer")))
+                </div>
+
+                <div id="Repayment" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Customer_Resigned>()
+                    .Name("CustomerResignRepay")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.CustomerID).Width(60).Hidden();
+                        columns.Bound(o => o.RepaidDate).Width(40).Format("{0:MM/dd/yyyy HH:mm:ss}");
+                        columns.Bound(o => o.Amount).Format("{0:N0}").Width(40);
+                        columns.Bound(o => o.RepayNote).Width(100);
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("CustomerRepaymentHistory_Read", "CustomerResigned")))
+                </div>
+
+                <div id="SettlementForTeleSale" class="tab-pane">
+                    @(Html.Kendo()
+                .Grid<ERPAPD.Models.DW_DC_Order>()
+                        .Name("GridSettlementForTeleSale")
+                .Columns(columns =>
+                {
+                    columns.Bound(o => o.PeriodID).Title("PeriodID").Width(60);
+                    columns.Bound(o => o.SettlementDate).Title("SettlementDate").Width(90).Format("{0:" + Resources.Multi.DateFormat + "}");
+                    columns.Bound(o => o.ActualSettlementDate).Title("ActualSettlementDate").Width(125).Format("{0:" + Resources.Multi.DateFormat + "}");
+                    columns.Bound(o => o.SettlementAmount).Title("SettlementAmount").Format("{0:N0}").Title("SettlementAmount").Width(100);
+                    columns.Bound(o => o.ConfirmAmount).Title("ConfirmAmount").Format("{0:N0}").Width(110);
+                    columns.Bound(o => o.OrgPaymentDate).Title("OrgPaymentDate").Width(100).Format("{0:" + Resources.Multi.DateFormat + "}");
+                    columns.Bound(o => o.PaymentDate).Title("PaymentDate").Width(80).Format("{0:" + Resources.Multi.DateFormat + "}");
+                    columns.Bound(o => o.PayInPlan).Title("PayInPlan").Width(100).Format("{0:N0}");
+                    columns.Bound(o => o.PayOutPlan).Title("PayOutPlan").Width(100).Format("{0:N0}");
+                    columns.Bound(o => o.RepayNote).Title("RepayNote").Width(100);
+                    columns.Bound(o => o.OPSNote).Title("OPSNote").Width(80);
+                    columns.Bound(o => o.ORGCollection).Title("ORGCollection").Width(80);
+                    columns.Bound(o => o.SendSMS).Title("SendSMS").Width(80);
+                    columns.Bound(o => o.BankToolID).Title("BankToolID").Width(80);
+                })
+                        .Pageable(pager => pager
+                                                      .PageSizes(new[] { 20, 100, 200, 300 }))
+                      .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                      .Scrollable(scrollable => scrollable.Virtual(false))
+                      .Sortable()
+                      .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                      .Scrollable()
+                      .AutoBind(false)
+                      .Resizable(resize => resize.Columns(true))
+                .DataSource(dataSource => dataSource
+                                            .Ajax()
+                                            .PageSize(20)))
+                </div>
+
+                <div id="CreditRequestXXX" class="tab-pane">
+                    @(Html.Kendo()
+                        .Grid<ERPAPD.Models.DC_RequestCredit>()
+                        .Name("GridCreditRequest")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.Credit).Width(90).Format("{0:N0}").Title("Old Limit").HtmlAttributes(new { style = "#=ColorDay#" });
+                            columns.Bound(p => p.SysnCredit).Width(90).Format("{0:N0}").Title("Current Limit").HtmlAttributes(new { style = "#=ColorDay#" });
+                            columns.Bound(p => p.RCLStatus).Width(130).Format("{0:N0}").Title("RCLStatus").HtmlAttributes(new { style = "#=RCLStatusColor#" });
+                            columns.Bound(p => p.Type).Width(170).Title("Type");
+                            columns.Bound(p => p.Note).Width(160).Title("Note");
+                            columns.Bound(p => p.RowCreatedUser).Title("Requested by").Width(90);
+                            columns.Bound(p => p.RowCreatedTime).Title("Requested on").Format("{0:dd/MM/yyyy HH:mm}").Width(110);
+                            columns.Bound(p => p.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(80);
+                            columns.Bound(p => p.RowLastUpdatedTime).Title(Resources.Multi.UpdatedAt).Format("{0:dd/MM/yyyy HH:mm}").Width(110);
+                            columns.Bound(p => p.RollbackBy).Title("Rollback by").Width(90);
+                            columns.Bound(p => p.RollbackAt).Title("Rollback on").Format("{0:dd/MM/yyyy HH:mm}").Width(110);
+                        })
+                        .Pageable(pager => pager
+                                                      .PageSizes(new[] { 20, 100, 200, 300 }))
+                      .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                      .Scrollable(scrollable => scrollable.Virtual(false))
+                      .Sortable()
+                      .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                      .Scrollable()
+                      .AutoBind(false)
+                      .Resizable(resize => resize.Columns(true))
+                .DataSource(dataSource => dataSource
+                                            .Ajax()
+                                            .PageSize(20)))
+                </div>
+
+                <div id="TicketRequest" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_TeleSale_WaitingList>()
+                    .Name("GridTeleSale_TicketList")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.TicketID).Width(140);
+                        columns.Bound(p => p.CustomerID).Width(140);
+                        columns.Bound(p => p.LastActivities).Width(150);
+                        columns.Bound(p => p.Title).Width(150);
+                        columns.Bound(p => p.Detail).Width(400);
+                        columns.Bound(p => p.Description).Width(380).Title("Type");
+                        columns.Bound(p => p.ResolveBy).Width(120);
+                        columns.Bound(p => p.ResolveTime).Width(140).Title("Time").Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").ClientTemplate("#if(kendo.toString(ResolveTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(ResolveTime,'dd/MM/yyyy HH:mm') #" + "#}#");
+                        columns.Bound(p => p.RowCreatedUser).Width(120).Title("Requestor");
+                        columns.Bound(p => p.RowCreatedTime).Width(140).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("SaleTicketRequest_Read", "TelesalePluginCode")))
+                </div>
+
+                <div id="TrackingOrder" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Tracking_Order>()
+                    .Name("GridTeleSale_TrackingOrder")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Status).Width(70);
+                        columns.Bound(p => p.RowCreatedUser).Width(90).Title("Request On");
+                        columns.Bound(p => p.RowCreatedTime).Width(130).Title("Time").Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(p => p.Reason).Width(100);
+                        columns.Bound(p => p.Department).Width(100);
+                        columns.Bound(p => p.OrderID).Width(80).Title("OrderID");
+                        columns.Bound(p => p.MSIN).Width(140);
+                        columns.Bound(p => p.ItemName).Width(200);
+                        columns.Bound(p => p.LastActivities).Width(100);
+                        columns.Bound(p => p.Note).Width(400);
+                    })
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Pageable(pager => pager
+                            .PageSizes(new[] { 20, 100, 200, 300 }))
+                    .Scrollable()
+                    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                    .AutoBind(false)
+                    .Resizable(resize => resize.Columns(true))
+                    .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Read("SaleTicketRequest_Read", "TelesalePluginCode")))
+                </div>
+
+                <div id="INForTeleSale" class="tab-pane">
+                    @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_SMSForTeleSale>()
+                      .Name("GridINForTeleSale")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.RequestTime).Width(100).Width(100).Format("{0:dd/MM/yyyy HH:mm}");
+                  columns.Bound(p => p.CommandCode).Width(90);
+                  columns.Bound(p => p.Message).Width(300);
+              })
+                      .Pageable(pager => pager
+                                              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+              .Scrollable(scrollable => scrollable.Virtual(false))
+              .Sortable()
+              .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+              .Scrollable()
+              .AutoBind(false)
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .PageSize(100)))
+                </div>
+
+                <div id="OUTForTeleSale" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_SMSForTeleSale>()
+                    .Name("GridOUTForTeleSale")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.CommandCode).Width(100);
+                        columns.Bound(p => p.SendTime).Width(140).Width(100).Format("{0:dd/MM/yyyy HH:mm}");
+                        columns.Bound(p => p.Message).Width(300);
+                        columns.Bound(p => p.Status).Width(55).HtmlAttributes(new { style = "#=StatusColor#;" }); ;
+                        columns.Bound(p => p.SendBy).Width(100).Title("SendBy");
+                    })
+                      .Pageable(pager => pager
+                                              .PageSizes(new[] { 20, 100, 200, 300 }))
+                      .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                      .Scrollable(scrollable => scrollable.Virtual(false))
+                      .Sortable()
+                      .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                      .Scrollable()
+                      .AutoBind(false)
+                      .Resizable(resize => resize.Columns(true))
+                      .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                .PageSize(100)))
+                </div>
+
+                <div id="CreationRequest" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Customer_Creation_Request>()
+                    .Name("GridCreationRequest")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.EmployeeID).Width(80);
+                        columns.Bound(p => p.FullName).Width(140);
+                        columns.Bound(p => p.IndentityNumber).Width(100);
+                        columns.Bound(p => p.Phone).Width(80);
+                        columns.Bound(p => p.Salary).Width(80).Format("{0:N0}");
+                        columns.Bound(p => p.Title).Width(100);
+                        columns.Bound(p => p.Department).Width(100);
+                        columns.Bound(p => p.StartWorkDate).Width(140).Width(100).Format("{0:dd/MM/yyyy HH:mm}").ClientTemplate("#if(kendo.toString(StartWorkDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(StartWorkDate,'dd/MM/yyyy HH:mm') #" + "#}#");
+                        columns.Bound(p => p.RowCreatedUser).Width(120).Title("Requestor");
+                        columns.Bound(p => p.RowCreatedTime).Width(140).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(p => p.RowLastUpdatedUser).Width(120).Title(Resources.Multi.UpdatedBy);
+                        columns.Bound(p => p.RowLastUpdatedTime).Width(140).Title(Resources.Multi.UpdatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                    })
+                      .Pageable(pager => pager
+                                              .PageSizes(new[] { 20, 100, 200, 300 }))
+                      .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                      .Scrollable(scrollable => scrollable.Virtual(false))
+                      .Sortable()
+                      .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                      .Scrollable()
+                      .AutoBind(false)
+                      .Resizable(resize => resize.Columns(true))
+                      .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                .PageSize(100)))
+                </div>
+
+                <div id="Potential" class="tab-pane">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_Potential_Customer>()
+                    .Name("GridPotential")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.EmployeeID).Width(80);
+                        columns.Bound(p => p.FullName).Width(140);
+                        columns.Bound(p => p.IndentityNumber).Width(100);
+                        columns.Bound(p => p.Phone).Width(80);
+                        columns.Bound(p => p.Salary).Width(80).Format("{0:N0}");
+                        columns.Bound(p => p.Title).Width(100);
+                        columns.Bound(p => p.Department).Width(100);
+                        columns.Bound(p => p.Address).Width(100);
+                        columns.Bound(p => p.PlaceOfIssuance).Width(100);
+                        columns.Bound(p => p.StartWorkDate).Width(140).Width(100).Format("{0:dd/MM/yyyy HH:mm}").ClientTemplate("#if(kendo.toString(StartWorkDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(StartWorkDate,'dd/MM/yyyy HH:mm') #" + "#}#");
+                        columns.Bound(p => p.DateOfIssuance).Width(140).Width(100).Format("{0:dd/MM/yyyy HH:mm}").ClientTemplate("#if(kendo.toString(DateOfIssuance,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(DateOfIssuance,'dd/MM/yyyy HH:mm') #" + "#}#");
+                        columns.Bound(p => p.Birthday).Width(140).Width(100).Format("{0:dd/MM/yyyy HH:mm}").ClientTemplate("#if(kendo.toString(Birthday,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(Birthday,'dd/MM/yyyy HH:mm') #" + "#}#");
+                    })
+                      .Pageable(pager => pager
+                                    .PageSizes(new[] { 20, 100, 200, 300 }))
+                      .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                      .Scrollable(scrollable => scrollable.Virtual(false))
+                      .Sortable()
+                      .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+                      .Scrollable()
+                      .AutoBind(false)
+                      .Resizable(resize => resize.Columns(true))
+                      .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                .PageSize(100)))
+                </div>
+
+                <div id="CallLogCS" class="tab-pane">
+                    @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_CS_CallHistory>()
+              .Name("GridCallLogCS")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.OrganizationID).Width(120);
+                  columns.Bound(p => p.CustomerID).Width(140);
+                  columns.Bound(p => p.ResultID).Width(150);
+                  columns.Bound(p => p.SubResultID).Width(180);
+                  columns.Bound(p => p.OrderID).Width(90);
+                  columns.Bound(p => p.CallType).Width(90);
+                  columns.Bound(p => p.Note).Width(200);
+                  columns.Bound(p => p.RowCreatedUser).Width(100).Title("Created On");
+                  columns.Bound(p => p.RowCreatedTime).Width(120).Width(100).Format("{0:dd/MM/yyyy HH:mm}").Title(Resources.Multi.CreatedAt);
+              })
+                      .Pageable(pager => pager
+                                              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+              .Scrollable(scrollable => scrollable.Virtual(false))
+              .Sortable()
+              .HtmlAttributes(new { @style = "height:237px;min-height:237px;" })
+              .Scrollable()
+              .AutoBind(false)
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .PageSize(100)))
+                </div>
+            </div>
+        </div>
+        <input type="text" id="CurrentCustomerIDForPopup" value="" style="display:none;" />
+    </div>
+</div>
+
+@(Html.Kendo().Window().Name("DetailsOtherInfoForTeleSale").Title("Promotion Detail").Content(
+@<text>
+<div id="ArticalIDPromotion"></div>
+</text>)
+.Visible(false)
+.Modal(true)
+.Draggable(true)
+.Width(800)
+)
+
+@(Html.Kendo()
+      .Window()
+      .Name("window")
+      .Title("Send text message")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div>
+                <div class="control-group">
+                    <label class="control-label" for="MessageContent">
+                        Template: <select name="Template" id="Template" style="width: 271px;" onchange="changeTemplate()">
+                            <option value="">Please choosen template</option>
+                            @foreach (var item1 in ViewBag.ListTemplate)
+                            {
+                                <option value="@item1.SmsTempID">@item1.Title</option>
+                            }
+                            <option style="" value="FreeText">FreeText</option>
+                        </select>
+                    </label>
+
+                    <style>
+                        .control-label span {
+                            width: 120px;
+                            float: left;
+                            padding-top: 15px;
+                        }
+                    </style>
+                    <label class="control-label" for="IdMess">Message</label>
+                    <div class="controls">
+                        <textarea onkeyup="countChar(this)" id="IdMess" style="width: 450px; height: 60px; margin-top: 10px;" readonly></textarea>
+                        <div id="charNum" style="color: red;">0/0 message</div>
+                    </div>
+                    <div class="controls">
+                        <label class="control-label" for="Review">Review Message</label>
+                        <div id="returnmess" style="margin-top:5px;margin-bottom:5px;font-weight:bold;"></div>
+                    </div>
+                    <label class="control-label" for="CustomerName">
+                        <span>  Phone Number: </span>   <input maxlength="11" id="PhoneNum" readonly style="width: 330px; left: 40px; margin-top: 10px; " type="text" />
+                    </label>
+
+                    <label class="control-label" for="CustomerName">  <span>  [CustomerName]: </span><input maxlength="20" id="CustomerName" style="width: 330px; left: 40px; margin-top: 10px; " type="text" /></label>
+
+                    <label class="control-label" for="TelesalesName"><span>[TelesalesName]:</span> <input maxlength="20" id="TelesalesName" style="width: 330px; left: 40px; margin-top: 10px; " type="text" /></label>
+
+                    <label class="control-label" for="TelesalesPhone"><span>[TelesalesPhone]: </span><input maxlength="11" id="TelesalesPhone" style="width: 330px; left: 40px; margin-top: 10px; " type="text" /></label>
+
+                    <label class="control-label" for="Other"><span>[Other]:</span> <input id="Other" maxlength="10" style="width: 330px; margin-top: 10px; left: 40px;" type="text" /></label>
+
+                    <div class="control-group" style="width: 465px;display:none;" id="ReloadIT">
+                    </div>
+                    <div class="control-group" style="display:none;">
+                        <label class="control-label" for="MessageContent">Message</label>
+                        <div class="controls">
+                            <textarea class="span12" id="MessageContent" name="MessageContent" onkeyup="countChar(this)" rows="3" placeholder="Lưu ý: tin nhắn không dấu!" maxlength="459"></textarea>
+                            <div id="1" style="color: red;"></div>
+                        </div>
+                    </div>
+                    <div class="control-group" id="gridResult" style="display: none;">
+                        <label class="control-label">Send result</label>
+                        <div class="controls">
+                            <input id="resendData" type="text" style="display: none" />
+                            @(Html.Kendo()
+                            .Grid<ERPAPD.Models.DW_SMSMT>()
+                            .Name("gridImportOrganization")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(p => p.UserID).Width(100).Title("Phone");
+                                columns.Bound(p => p.ImportNote).Width(100).Title("Note").HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+                            })
+                            .Sortable()
+                            .ColumnMenu()
+                            .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                            .Scrollable()
+                            .Filterable()
+                            .Navigatable()
+                            .Resizable(resize => resize.Columns(true))
+                            .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button id="btnSendBack" class="btn btn-small btn-info">
+                        <i class="icon-envelope"></i>Send
+                    </button>
+                    <button id="btnCancel" onclick="CancelPopupSMS()" class="btn btn-small btn-danger">
+                        <i class="icon-reply"></i>Cancel
+                    </button>
+                    <button id="btnResend" class="btn btn-small btn-danger" style="display: none;">
+                        Resend
+                    </button>
+                </div>
+            </div>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(500)
+      .HtmlAttributes(new { @style = "z-index: 10000;" })
+      .Actions(actions => actions.Close())
+)
+<select id="listReasondata" style="display: none;">
+    @foreach (var x in ViewBag.listOrderReason)
+    {
+        <option value="@x.CodeID" receive="@x.ReceiveCheck" printinvoice="@x.PrintInvoice" department="@x.Department">@x.Description</option>
+    }
+</select>
+
+@(Html.Kendo()
+      .Window()
+      .Name("window1")
+      .Title("Add order to tracking")
+      .Content(@<text>
+        <table>
+            <tr>
+                <td style="width: 80px;">Department : </td>
+                <td>
+                    <select id="listDepartment" style="width: 600px;" onchange="changedepartment(event)">
+                        <option value="" selected>Please Select Department</option>
+                        @foreach (var x in ViewBag.listDepartment)
+                        {
+                            <option value="@x.DepartmentID">@x.Department</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Reason :</td>
+                <td>
+                    <select id="listReason" style="width: 600px;" onchange="showcheckboxreceive(event)">
+                        <option value="" selected>Please Select Department First</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <div id="divcheckreceive" style="display: none">
+                        <input type="checkbox" id="checkreceive" style="margin-bottom: 5px;" onchange="changecheckboxreceive(event)" />
+                        <b>Have Received Item (Checked to Print Receipt if you received Product)</b>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <textarea id="txtnote" placeholder="Note...(Require)" style="width: 587px; height: 150px;"></textarea>
+
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <div id="divWH" style="display: none; margin-top: 5px; margin-bottom: 5px;">
+                        WareHouse
+                        <select id="listWH" style="width: 200px;" onchange="changeWH()">
+                            @foreach (var x in ViewBag.listWH)
+                            {
+                                <option value="@x.WareHouseID">@x.Name</option>
+                            }
+                        </select>
+                        WareHouse Location
+                        <select id="listWHLocation" style="width: 200px;"></select>
+                    </div>
+                    <button type="button" id="btnshowwindowinvoice" class="btn btn-purple btn-small" onclick="show2()" style="width: 240px; display: none">Add Order & Print Receipt</button>
+                    <button type="button" id="btnaddtracking" class="btn btn-primary btn-small" onclick="addtracking()" style="width: 70px;">Add</button>
+                    <button type="button" id="btnclosewindow1" class="btn btn-danger btn-small" style="width: 70px;" onclick="closewindow1()">Cancel</button>
+                </td>
+            </tr>
+        </table>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Width(720)
+    .Height(310)
+    .Actions(actions => actions.Close())
+)
+
+<input id="userName" style="display:none;" value="@ViewBag.UserName" />
+<input id="PhoneUser" style="display:none;" value="@ViewBag.PhoneUser" />
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowPreOrder")
+    .Title("Submit Pre-Order")
+    .Content(@<text>
+        <table style="" class="colorBlack">
+            <tr>
+                <td style="height: 20px;">Request(*):</td>
+                <td>
+                    <textarea id="txtRequest" style="width: 250px; color: #444;" placeholder="Ex:Request"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>MSIN: </td>
+                <td>
+                    @(Html.Kendo()
+            .AutoComplete()
+            .Name("ListMSIN")
+            .DataTextField("Name")
+                    .HtmlAttributes(new { @style = "width:262px;" })
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetMSINAuto", "AddPreOrder").Data("onAdditionalData");
+                }).ServerFiltering(true);
+            })
+            .Placeholder("")
+            .Filter("startswith")
+            .MinLength(1)
+            .Height(370)
+            .Template("<span class=\"k-state-default\"><b>#: data.Name #</b></span>")
+                    )
+                </td>
+            </tr>
+            <tr>
+                <td>Quantity:</td>
+                <td>
+                    <input class="colorBlack" type="text" id="txtQuantity" placeholder="" style="width:100px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px;">Shipping Address:</td>
+                <td>
+                    <textarea id="txtShippingAddrees" style="width: 250px; color: #444;" placeholder="Ex:Giao hàng tại công ty"></textarea>
+                    <input id="txtId" type="text" style="display: none;" />
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button id="btnSaveSubmit" class="btn btn-purple btn-small">
+                        Submit
+                    </button>
+                    <button id="btnCancelPreOrder" class="btn btn-danger btn-small">
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+
+        </table>
+
+        <div class="clear-fix"></div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(400)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+)
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#CustomerName').on('keypress', function (e) {
+            Keypess_text();
+        });
+        $('#CustomerName').on('keyup', function (e) {
+            Keypess_text();
+        });
+
+        $('#TelesalesName').on('keypress', function (e) {
+            Keypess_text();
+        });
+        $('#TelesalesName').on('keyup', function (e) {
+            Keypess_text();
+        });
+
+        $('#TelesalesPhone').on('keypress', function (e) {
+            Keypess_text();
+        });
+        $('#TelesalesPhone').on('keyup', function (e) {
+            Keypess_text();
+        });
+
+        $('#Other').on('keypress', function (e) {
+            Keypess_text();
+        });
+        $('#Other').on('keyup', function (e) {
+            Keypess_text();
+        });
+    });
+
+    var clickhTicketRequest = "";
+    var clickhTransactionPopupForTeleSale = "";
+    var clickhSMSIN = "";
+    var clickhSMSOUT = "";
+    var clickhSettlement = "";
+    var clickhTrackingOrder = "";
+    var clickhAirtime = "";
+    var clickhCashAdvance = "";
+    var clickhDeposit = "";
+    var clickhRepayment = "";
+    var clickhCreditRequestxxx = "";
+    var clickhCallLog = "";
+
+    var checkclick = "";
+    var checkorther = "";
+    var checkCreationRequest = "";
+    var checkPotential = "";
+
+
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href");
+        var customeridxxx = $("#CurrentCustomerIDForPopup").val();
+        if (target == '#OtherInfoTab' && checkorther != customeridxxx) {
+            checkorther = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            grid = $("#GridProductList_DetailForCustomer").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/TelesalePluginCode/ProductList_Detail_ReadForCustomer?CustomerID=" + listValues;
+                $("#GridProductList_DetailForCustomer").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == "#CreditRequestXXX" && clickhCreditRequestxxx != customeridxxx) {
+            clickhCreditRequestxxx = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            if (listValues.length > 0) {
+                $("#GridCreditRequest").data("kendoGrid").dataSource.transport.options.read.url = r + "/CSInfoCustomer/TrackingRequestByCustomer?CustomerID=" + listValues;
+                $("#GridCreditRequest").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == "#CreationRequest" && checkCreationRequest != customeridxxx) {
+            checkCreationRequest = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            if (listValues.length > 0) {
+                $("#GridCreationRequest").data("kendoGrid").dataSource.transport.options.read.url = r + "/CSInfoCustomer/Customer_Creation_Request_Read?CustomerID=" + listValues;
+                $("#GridCreationRequest").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == "#Potential" && checkPotential != customeridxxx) {
+            checkPotential = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            if (listValues.length > 0) {
+                $("#GridPotential").data("kendoGrid").dataSource.transport.options.read.url = r + "/CSInfoCustomer/Potential_Customer_Read?CustomerID=" + listValues;
+                $("#GridPotential").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#TicketRequest' && clickhTicketRequest != customeridxxx) {
+            clickhTicketRequest = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            grid = $("#GridTeleSale_TicketList").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/CSInfoCustomer/SaleTicketRequest_Read?customerID=" + listValues;
+                $("#GridTeleSale_TicketList").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#AirTimeHis' && clickhAirtime != customeridxxx) {
+            clickhAirtime = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            grid = $("#GridTeleSale_AirTime").data("kendoGrid");
+            if (listValues.length > 0) {
+                $("#GridTeleSale_AirTime").data("kendoGrid").dataSource.transport.options.read.url = r + "/Customer/AirtimeCustomer_Read?customerID=" + listValues;
+                $("#GridTeleSale_AirTime").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#CashAdvance' && clickhCashAdvance != customeridxxx) {
+            clickhCashAdvance = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            grid = $("#GridTeleSale_CashAdvance").data("kendoGrid");
+            if (listValues.length > 0) {
+                $("#GridTeleSale_CashAdvance").data("kendoGrid").dataSource.transport.options.read.url = r + "/Customer/CashAdvanceCustomer_Read?customerID=" + listValues;
+                $("#GridTeleSale_CashAdvance").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#Repayment' && clickhRepayment != customeridxxx) {
+            clickhRepayment = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            if (listValues.length > 0) {
+                $("#CustomerResignRepay").data("kendoGrid").dataSource.transport.options.read.url = r + "/CustomerResigned/CustomerRepaymentHistory_Read?cusID=" + listValues;
+                $("#CustomerResignRepay").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#Deposit' && clickhDeposit != customeridxxx) {
+            clickhDeposit = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            grid = $("#GridTeleSale_Deposit").data("kendoGrid");
+            if (listValues.length > 0) {
+                $("#GridTeleSale_Deposit").data("kendoGrid").dataSource.transport.options.read.url = r + "/Customer/DepositCustomer_Read?customerID=" + listValues;
+                $("#GridTeleSale_Deposit").data("kendoGrid").dataSource.read();
+            }
+        }
+        
+        else if (target == '#INForTeleSale' && clickhSMSIN != customeridxxx) {
+            clickhSMSIN = customeridxxx;
+            var listValues = $("#Cus_Phone").text();
+            checkclick = customeridxxx;
+            grid = $("#GridINForTeleSale").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/TelesalePluginCode/DC_Telesalesv2_SMSMO_Customer?Phone=" + listValues;
+                $("#GridINForTeleSale").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#OUTForTeleSale' && clickhSMSOUT != customeridxxx) {
+            clickhSMSOUT = customeridxxx;
+            var listValues = $("#Cus_Phone").text();
+            checkclick = customeridxxx;
+            grid = $("#GridOUTForTeleSale").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/TelesalePluginCode/DC_Telesalesv2_SMSMT_Customer?Phone=" + listValues;
+                $("#GridOUTForTeleSale").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#SettlementForTeleSale' && clickhSettlement != customeridxxx) {
+            clickhSettlement = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            checkclick = customeridxxx;
+            grid = $("#GridSettlementForTeleSale").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/TelesalePluginCode/SettlementCustomer_Read?customerID=" + listValues;
+                $("#GridSettlementForTeleSale").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#TrackingOrder' && clickhTrackingOrder != customeridxxx) {
+            clickhTrackingOrder = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            checkclick = customeridxxx;
+            grid = $("#GridTeleSale_TrackingOrder").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/CSInfoCustomer/TrackingOrder_Read?customerID=" + listValues;
+                $("#GridTeleSale_TrackingOrder").data("kendoGrid").dataSource.read();
+            }
+        }
+        else if (target == '#CallLogCS' && clickhCallLog != customeridxxx) {
+            clickhCallLog = customeridxxx;
+            var listValues = $("#CurrentCustomerIDForPopup").val();
+            checkclick = customeridxxx;
+            grid = $("#GridCallLogCS").data("kendoGrid");
+            if (listValues.length > 0) {
+                grid.dataSource.transport.options.read.url = r + "/CSInfoCustomer/CallLog_Read?CustomerID=" + listValues;
+                $("#GridCallLogCS").data("kendoGrid").dataSource.read();
+            }
+        }
+    });
+
+    function showDetailsPromotionForTelesale(obj) {
+        var wnd = $("#DetailsOtherInfoForTeleSale").data("kendoWindow");
+        wnd.center().open();
+        //var row = $(obj).closest('tr');
+        //var ArticleID1 = $(row).find("td:eq(0)").text();
+        $.post(r + "/TelesalePluginCode/ReadByID", { ArticleID: obj }, function (data) {
+            if (data != null) {
+                $("#ArticalIDPromotion").html(data.Description)
+            }
+        });
+    }
+
+    function dataBoundPromotionForTeleSale() {
+        $('[data-rel=popover2]').popover({ container: '#GridPromotionTeleSale' });
+        //load selected
+        var gridDataSource = $("#GridPromotionTeleSale").data("kendoGrid").dataSource;
+        var $Grid = $("#GridPromotionTeleSale");
+
+        $('#GridPromotionTeleSale').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-kendoGrid-rowid', data_entry.ArticleID);
+        });
+    }
+
+    //Start Tracking Order----------------------------------------------------------------------------------------------------------------------   
+    function changedepartment(e) {
+        var department = $(e.target).val();
+        var html = '<option value="" selected>Please Select Reason</option>';
+        $('#listReasondata option').each(function () {
+            if ($(this).attr('department') == department) {
+                html += $(this).prop("outerHTML");
+            }
+        });
+        $('#listReason').html(html);
+    }
+
+    function showcheckboxreceive(e) {
+        if ($(e.target).find("option:selected").attr("receive") == "receive") {
+            $("#divcheckreceive").css("display", "inline");
+        }
+        else {
+            $("#divcheckreceive").css("display", "none");
+        }
+    }
+
+    function changecheckboxreceive(e) {
+        var check = $(e.target).prop('checked');
+        if (check == true) {
+            $("#btnshowwindowinvoice").css("display", "inline-block");
+            $("#divWH").css("display", "inline-block");
+            $("#btnaddtracking").css("display", "none");
+            $('#txtnote').css('height', '110px');
+        }
+        else {
+            $("#btnshowwindowinvoice").css("display", "none");
+            $("#divWH").css("display", "none");
+            $("#btnaddtracking").css("display", "inline-block");
+            $('#txtnote').css('height', '150px');
+        }
+    }
+
+    function changeWH() {
+        var WHID = $('#listWH').val();
+        var html = '<option value="" selected>Please Select WHLocation</option>';
+        $('#listWHLocationData option').each(function () {
+            if ($(this).attr('WareHouseID') == WHID) {
+                html += $(this).prop("outerHTML");
+            }
+        });
+        $('#listWHLocation').html(html);
+    }
+
+    var WH = "";
+    var WHL = "";
+    var hmleader = "@Html.Raw(ViewBag.HMLeader)";
+    function show2() {
+        var reason = $("#listReason").val();
+        var note = $("#txtnote").val();
+        if (reason == null || note == null || reason == '' || note == '') {
+            $.gritter.add({
+                title: '',
+                text: 'Please insert Reason and Note',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        var WH = $("#listWH").val();
+        var WHL = $("#listWHLocation").val();
+        if (WH == null || WHL == null || WH == '' || WHL == '') {
+            $.gritter.add({
+                title: '',
+                text: 'Please select Warehouse and WarehouseLocation',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+        var rowid = '';
+        $('#Grid2').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                rowid = $(this).attr("id");
+            }
+        });
+        $.post(r + "/AddTrackingToOrder/GetPrintData", { data: rowid }, function (data) {
+            if (data.success) {
+                $("#window2").kendoWindow({
+                    actions: {}, /*from Vlad's answer*/
+                    draggable: true,
+                    modal: true,
+                    resizable: false,
+                    visible: false /*don't show it yet*/
+                }).data("kendoWindow").center().open();
+                $("#window2").closest(".k-window").css({
+                    top: 5,
+                });
+                $("#window2").find('input').val('');
+                $("#window2").find('label').text('');
+                $("#window2").find('textarea').val('');
+                $("#window2").find('.PCheck').removeAttr('checked');
+                $('#WHhidden').val(WH);
+                $('#WHLhidden').val(WHL);
+                $('#PUserName').text(data.result.RowCreatedUserName);
+                $('#PCustomerName').text(data.result.CustomerName);
+                $('#PAddress').val(data.result.Address);
+                $('#PServiceAddress').val(data.result.Address);
+                $('#PMobilePhone').val(data.result.MobilePhone);
+                $('#PEmail').val(data.result.Email);
+                $('#POrderID').text(data.result.OrderID);
+                $('#POrderCreatedAt').text(kendo.toString(kendo.parseDate(data.result.OrderCreatedAt), 'dd/MM/yyyy'));
+                $('#PCategory').text(data.result.Category);
+                $('#PItemName').text(data.result.ItemName);
+                $('#PIMEI').text(data.result.IMEI);
+                $('#PID').val(rowid);
+                $('#PRequestorName').val(data.result.CustomerName);
+                $('#PUserName2').text(data.result.RowCreatedUserName);
+                $('#PLeaderName').val(decodeURI(hmleader));
+                $('#PQuantity').val("1");
+
+            } else {
+                $.gritter.add({
+                    title: '',
+                    text: data.error,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function addtracking() {
+        var reason = $("#listReason").val();
+        var note = $("#txtnote").val();
+        var checkreceive = $("#checkreceive").prop("checked");
+
+        if (reason == null || note == null || reason == '' || note == '') {
+
+            $.gritter.add({
+                title: '',
+                text: 'Please insert Reason and Note',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+            var listrowid = '';
+            $('#GridTransactionPopupForTeleSale').find(".k-grid-content .checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + ';;';
+                }
+            });
+            if (listrowid != "" && listrowid != null) {
+                if (listrowid.split(',').length > 2) {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Can only chose one order',
+                        class_name: 'gritter-error'
+                    });
+                    return;
+                }
+                else {
+                    $.post(r + "/AddTrackingToOrder/AddTracking", { data: listrowid, reason: reason, note: note, checkreceive: checkreceive, WHID: $("#listWH").val(), WHLID: $("#listWHLocation").val() }, function (data) {
+
+                        if (data.error > 0) {
+                            $.gritter.add({
+                                title: '',
+                                text: 'Has ' + data.error + ' data error when saving !',
+                                class_name: 'gritter-error'
+                            });
+                        }
+
+                        if (data.success > 0) {
+                            $.gritter.add({
+                                title: '',
+                                text: 'Add sucesssfully ' + data.success + ' order to tracking',
+                                class_name: 'gritter-success'
+                            });
+                            $('#checkboxcheckAll2').prop('checked', false);
+
+                        }
+                        if (data.sendemail >= 0) {
+                            $.gritter.add({
+                                title: '',
+                                text: 'Send Email successfull',
+                                class_name: 'gritter-success'
+                            });
+                        }
+                        else {
+                            $.gritter.add({
+                                title: '',
+                                text: 'Send Email fail',
+                                class_name: 'gritter-error'
+                            });
+                        }
+
+                        $("#window1").data("kendoWindow").close();
+                    });
+                }
+            }
+        }
+    }
+
+    function show1() {
+        var listrowid = "";
+        $('#GridTransactionPopupForTeleSale').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ',';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (listrowid.split(',').length > 2) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Can only chose one order',
+                    class_name: 'gritter-error'
+                });
+                return;
+            }
+            else {
+                $("#window1").kendoWindow({
+                    actions: {}, /*from Vlad's answer*/
+                    draggable: true,
+                    modal: true,
+                    resizable: false,
+                    visible: false /*don't show it yet*/
+                }).data("kendoWindow").center().open();
+                $("#btnshowwindowinvoice").css("display", "none");
+                $("#btnaddtracking").css("display", "inline-block");
+                $("#listReason").html("<option value='' selected>Please Select Department First</option>");
+                $("#txtnote").val("");
+                $("#listDepartment").val("");
+                $("#checkreceive").removeAttr("checked");
+                $("#divcheckreceive").css("display", "none");
+                $("#divWH").css("display", "none");
+                $('#listWH').val('WH2');
+                changeWH();
+                $('#txtnote').css('height', '150px');
+                // $("#btnprintinvoice").css("display", "none");
+            }
+        }
+        else {
+            $.gritter.add({
+
+                title: '',
+                text: 'No Order was chosen',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function closewindow1() {
+        $("#window1").data("kendoWindow").close();
+    }
+
+    function checkAll2(e) {
+        var x = $(e).prop('checked');
+        $('#Grid2').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+
+        });
+    }
+    //END Tracking Order----------------------------------------------------------------------------------------------------------------------   
+
+
+    //Start Submit PreOrder----------------------------------------------------------------------------------------------------------------------   
+
+    $('#btnSaveSubmit').bind('click', function () {
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        $.post(r + "/AddPreOrder/Save_SubmitPreOrder", {
+            OrgID: $("#Org_OrgID").text(), Phone: $("#Cus_Phone").text(), Request: $("#txtRequest").val(), Quantity: $("#txtQuantity").val()
+            , ShippingAddrees: $("#txtShippingAddrees").val(), MSIN: $("#ListMSIN").val(), Id: $("#txtId").val()
+        }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: "save successfully",
+                    class_name: 'gritter-success'
+                });
+                ClearData();
+                $("#windowPreOrder").data("kendoWindow").close();
+            }
+            else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: data.error,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    });
+
+    $('#btnAddPreOrder').bind('click', function () {
+        ClearData();
+        $("#DrCreatedBy, #DrFSale").chosen();
+        $("#btnSave").show();
+        $("#btnUpdate").hide();
+        $("#txtQuantity").autoNumeric('init', {
+            aPad: false
+        });
+        $("#txtQuantity").val(1);
+        $("#windowPreOrder").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        $('#DrMSIN').chosen();
+
+        $('#btnCancelPreOrder').bind('click', function () {
+            ClearData();
+            $("#windowPreOrder").data("kendoWindow").close();
+        });
+    });
+
+    function onAdditionalData() {
+        return {
+            MSINName: $("#ListMSIN").val(),
+        };
+    }
+
+    function ClearData() {
+        $('#txtRequest').val("");
+        $('#txtQuantity').val("");
+        $('#txtShippingAddrees').val("");
+        $('#DrMSIN').val("");
+        $('#DrMSIN').val("").trigger('chosen:updated');
+        $('#').val("@DateTime.Now.ToString("MM/dd/yyyy HH:mm")");
+        $("#ListMSIN").val("");
+    };
+
+    //END Submit PreOrder------------------------------------------------------------------------------------------------------------------------   
+
+    //Start SEND SMS-----------------------------------------------------------------------------------------------------------------------------   
+    function showpopup() {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/,
+            open: function (e) {
+                this.wrapper.css({ top: 10 });
+            }
+        }).data("kendoWindow")
+            .center()
+            .open();
+        $('#window').parent().css('top', '25px');
+        resetForm();
+        FormClear();
+        getvalueInTextbox();
+    }
+
+    function resetForm() {
+        document.getElementById('ReloadIT').innerHTML = " <label class='control-label' for='PhoneNumber'>Phone Number</label>"
+         + "<div class='controls'>"
+            + "<input id='PhoneNumber' name='PhoneNumber' placeholder='Phone' style='width: 500px' />"
+            + " </div>";
+        var tag_input = $('#PhoneNumber');
+        // $('.tags').attr('style', 'width: 97%;');
+        if (!(/msie\s*(8|7|6)/.test(navigator.userAgent.toLowerCase()))) {
+            tag_input.tag(
+              {
+                  placeholder: tag_input.attr('placeholder'),
+                  //enable typeahead by specifying the source array
+              }
+            );
+        }
+        else {
+            //display a textarea for old IE, because it doesn't support this plugin or another one I tried!
+            tag_input.after('<textarea id="' + tag_input.attr('id') + '" name="' + tag_input.attr('name') + '" rows="8">' + tag_input.val() + '</textarea>').remove();
+            //$('#form-field-tags').autosize({append: "\n"});
+        }
+        var myElements = document.querySelectorAll(".tags");
+        for (var i = 0; i < myElements.length; i++) {
+            myElements[i].style.width = "97%";
+        }
+        $('#PhoneNumber').val("");
+        $(".tags> span").remove();
+        $('#MessageContent').val("");
+        $('#btnResend').hide();
+        $('#resendData').val("");
+        $('#gridResult').hide();
+        $('#charNum').text("");
+        $('#PhoneNumber').text("");
+    }
+
+    function FormClear() {
+        $('#IdMess').val('');
+        $('#CustomerName').val('');
+        $('#TelesalesName').val('');
+        $('#TelesalesPhone').val('');
+        $('#Other').val('');
+        $('#Template').val('');
+        $('#returnmess').html('');
+    }
+
+    function getvalueInTextbox() {
+        var cusName = $("#Cus_FullName").text().trim().split(" ");
+        cusName = cusName[cusName.length - 1];
+        cusName = locdau(cusName);
+        cusName = cusName.substring(0, 1).toUpperCase() + cusName.substring(1);
+        $('#CustomerName').val(cusName);
+
+        var PhoneUser = $("#PhoneUser").val()
+        $('#TelesalesPhone').val(PhoneUser);
+
+        var userName = $('#userName').val().trim().split(" ");
+        userName = userName[userName.length - 1];
+        userName = locdau(userName);
+        userName = userName.substring(0, 1).toUpperCase() + userName.substring(1);
+        $('#TelesalesName').val(userName);
+
+        $('#Other').val('Anh/chi');
+
+        var Phone = $("#Cus_Phone").text().trim();
+        $('#PhoneNum').val(Phone);
+    }
+
+    function changeTemplate() {
+        var tempID = $('#Template').val();
+        var idtem = $('#Template option:selected').val();
+        //alert(idtem);
+
+        if (idtem.toString() != "" && idtem.toString() != null && idtem.toString() != "FreeText".toString()) {
+            $.ajax({
+                url: r + '/TelesalePluginCode/GetTemplateID',
+                data: { SmsTempID: idtem },
+                type: 'GET',
+                success: function (data) {
+                    if (data != null) {
+                        $('#IdMess').val(data);
+                        $('#IdMess').attr('readonly', true);
+                        $('#CustomerName').attr('readonly', false);
+                        $('#TelesalesName').attr('readonly', false);
+                        $('#TelesalesPhone').attr('readonly', false);
+                        $('#Other').attr('readonly', false);
+                        $('#returnmess').html(data);
+
+                        var cusName = $("#Cus_FullName").text().trim().split(" ");
+                        cusName = cusName[cusName.length - 1];
+                        cusName = locdau(cusName);
+                        cusName = cusName.substring(0, 1).toUpperCase() + cusName.substring(1);
+                        $('#CustomerName').val(cusName);
+                        Keypess_text();
+
+                        getvalueInTextbox();
+
+                        var cus = '[CustomerName]'.length; var telename = '[TelesalesName]'.length;
+                        var letephone = '[TelesalesPhone]'.length; var other = '[Other]'.length;
+
+                        var _cus = $('#CustomerName').val().length; var _telename = $('#TelesalesName').val().length;
+                        var _letephone = $('#TelesalesPhone').val().length; var _other = $('#Other').val().length;
+
+                        var _textmess = data;
+                        var len = _textmess.length;
+                        len = len - (cus + telename + letephone + other);
+                        len = len + (_cus + _telename + _letephone + _other);
+                        if (len > 0) {
+                            if (len <= 160) {
+                                $('#charNum').text(len + "/1 message");
+                            } else if (len <= 306) {
+                                $('#charNum').text(len + "/2 messages");
+                            } else if (len <= 459) {
+                                $('#charNum').text(len + "/3 messages");
+                            }
+                        }
+                    }
+                    else {
+                        $('#IdMess').val('');
+                    }
+                }
+            });
+        }
+        else {
+            var _cus = $('#CustomerName').val(''); var _telename = $('#TelesalesName').val('');
+            var _letephone = $('#TelesalesPhone').val(''); var _other = $('#Other').val('');
+            $('#IdMess').val(''); $('#returnmess').html('');
+            $('#IdMess').attr('readonly', false);
+            $('#CustomerName').attr('readonly', true);
+            $('#TelesalesName').attr('readonly', true);
+            $('#TelesalesPhone').attr('readonly', true);
+            $('#Other').attr('readonly', true);
+            $('#charNum').text("0" + "/1 message");
+        };
+    }
+
+    function Keypess_text() {
+        var data = $('#IdMess').val().length;
+        var cus = '[CustomerName]'.length; var telename = '[TelesalesName]'.length;
+        var letephone = '[TelesalesPhone]'.length; var other = '[Other]'.length;
+
+        var _cus = $('#CustomerName').val().length; var _telename = $('#TelesalesName').val().length;
+        var _letephone = $('#TelesalesPhone').val().length; var _other = $('#Other').val().length;
+
+        var len = data;
+        len = len - (cus + telename + letephone + other);
+        len = len + (_cus + _telename + _letephone + _other);
+        if (len > 0) {
+            if (len <= 160) {
+                $('#charNum').text(len + "/1 message");
+            } else if (len <= 306) {
+                $('#charNum').text(len + "/2 messages");
+            } else if (len <= 459) {
+                $('#charNum').text(len + "/3 messages");
+            }
+        }
+        var datasex = $('#IdMess').val();
+        var _cus_ = $('#CustomerName').val(); var _telename_ = $('#TelesalesName').val();
+        var _letephone_ = $('#TelesalesPhone').val(); var _other_ = $('#Other').val();
+        ReplaceMessage(_cus_, _telename_, _letephone_, _other_, datasex);
+    }
+
+    function ReplaceMessage(_cus, _telename, _letephone, _other, Mess) {
+        var sb = new StringBuilder(Mess);
+        sb.replace("[CustomerName]", _cus);
+        sb.replace("[Other]", _other);
+        sb.replace("[TelesalesName]", _telename);
+        sb.replace("[TelesalesPhone]", _letephone);
+        $('#returnmess').html(sb.toString());
+    }
+
+    var StringBuilder = function (string) {
+        var _str = (string == null) ? '' : string;
+        // Appends a string to the stringbuilders internal string.
+        this.append = function (string) {
+            _str += string;
+        };
+        // Appends a formatted string to the stringbuilders internal string.
+        this.appendFormat = function (string, array) {
+            for (var i = 0; i < array.length; i++) {
+                string = string.replace('{' + i + '}', array[i]);
+            }
+            _str += string;
+        };
+        // Inserts a string at a specified position inside a stringbuilders internal string.
+        this.insert = function (string, position) {
+            _str = _str.slice(0, position) + string + _str.slice(position, _str.length);
+        };
+        // Removes a substring of the stringbuilders internal string.
+        this.remove = function (start, end) {
+            _str = _str.slice(0, start) + _str.slice(end, _str.length);
+        };
+        // Replaces any substring inside the stringbuilders internal string.
+        // Replaces any substring inside the stringbuilders internal string with ''.
+        this.replace = function (oldValue, newValue) {
+            newValue = (newValue == null) ? '' : newValue;
+            while (_str.indexOf(oldValue) > -1) {
+                _str = _str.replace(oldValue, newValue);
+            }
+        };
+        // Returns the strinbuilders internal string.
+        this.toString = function () {
+            return _str;
+        };
+    };
+
+    function getvalueInTextbox() {
+        var cusName = $("#Cus_FullName").text().trim().split(" ");
+        cusName = cusName[cusName.length - 1];
+        cusName = locdau(cusName);
+        cusName = cusName.substring(0, 1).toUpperCase() + cusName.substring(1);
+        $('#CustomerName').val(cusName);
+
+        var PhoneUser = $("#PhoneUser").val()
+        $('#TelesalesPhone').val(PhoneUser);
+
+        var userName = $('#userName').val().trim().split(" ");
+        userName = userName[userName.length - 1];
+        userName = locdau(userName);
+        userName = userName.substring(0, 1).toUpperCase() + userName.substring(1);
+        $('#TelesalesName').val(userName);
+
+        $('#Other').val('Anh/chi');
+
+        var Phone = $("#Cus_Phone").text().trim();
+        $('#PhoneNum').val(Phone);
+    }
+
+    function locdau(str1) {
+        //code by Minit - www.canthoit.info - 13-05-2009
+        var str = str1;
+        str = str.toLowerCase();
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+        str = str.replace(/đ/g, "d");
+        str = str.replace(/!|@@|\$|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\'| |\"|\&|\#|\[|\]|~/g, "-");
+        str = str.replace(/-+-/g, "-"); //thay thế 2- thành 1-
+        str = str.replace(/^\-+|\-+$/g, "");//cắt bỏ ký tự - ở đầu và cuối chuỗi
+        return str;
+    }
+
+    $('#btnSendBack').bind('click', function () {
+        var phoneNumber = $('#PhoneNum').val();
+        var message = $('#IdMess').val();
+        var _cus = $('#CustomerName').val(); var _telename = $('#TelesalesName').val();
+        var _letephone = $('#TelesalesPhone').val(); var _other = $('#Other').val();
+        var templateid = $('#Template option:selected').val();
+        var cusID = $("#Cus_EmployeeID").text();
+
+        //Neu teamplateid = Freetext -> chi kiem tra #Mess. Con khoong thi kiem tra tat ca cac truong
+        if (templateid == "FreeText" || templateid.toString() == "FreeText") {
+            if (phoneNumber != "" && phoneNumber != null && message != "" && message != null) {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                $.post(r + "/CSInfoCustomer/SendMessage", { phoneNumber: phoneNumber, message: message, issend: 'true', _cus: _cus, _telename: _telename, _letephone: _letephone, _other: _other, templateid: templateid, cusID: cusID }, function (data) {
+                    //resetPhoneTag();
+                    if (data.success > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Send success ' + data.success + ' message!',
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (data.data.length > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+
+                            text: 'Send has some error!' + data.data,
+                            class_name: 'gritter-error'
+                        });
+                        $("#window").data("kendoWindow").center().open();
+                        $("#gridResult").show();
+                        var ds = new kendo.data.DataSource();
+                        ds.data(data.data);
+                        $("#gridImportOrganization").data("kendoGrid").setDataSource(ds);
+                        if (data.resend != "") {
+                            $('#btnResend').css('display', 'inline-block');
+                            $('#resendData').val(data.resend);
+                        }
+                    }
+                    else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Send success!',
+                            class_name: 'gritter-success'
+                        });
+                        $("#window").data("kendoWindow").close();
+                    }
+                })
+            }
+            else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: 'Please insert message',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+        else {
+            if (phoneNumber != "" && phoneNumber != null && message != "" && message != null && _cus != "" && _cus != null && _telename != "" && _telename != null && _letephone != "" && _letephone != null && _other != "" && _other != null) {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                $.post(r + "/CSInfoCustomer/SendMessage", { phoneNumber: phoneNumber, message: message, issend: 'true', _cus: _cus, _telename: _telename, _letephone: _letephone, _other: _other, templateid: templateid, cusID: cusID }, function (data) {
+                    //resetPhoneTag();
+                    if (data.success > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Send success ' + data.success + ' message!',
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (data.data.length > 0) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+
+                            text: 'Send has some error!' + data.data,
+                            class_name: 'gritter-error'
+                        });
+                        $("#window").data("kendoWindow").center().open();
+                        $("#gridResult").show();
+                        var ds = new kendo.data.DataSource();
+                        ds.data(data.data);
+                        $("#gridImportOrganization").data("kendoGrid").setDataSource(ds);
+                        if (data.resend != "") {
+                            $('#btnResend').css('display', 'inline-block');
+                            $('#resendData').val(data.resend);
+                        }
+                    }
+                    else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Send success!',
+                            class_name: 'gritter-success'
+                        });
+                        $("#window").data("kendoWindow").close();
+                    }
+                })
+                //FormClear();
+            }
+            else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: 'Please insert Phone number & insert message & CustomerName & TelesalesName & TelesalesPhone & Other',
+                    class_name: 'gritter-error'
+                });
+            }
+        }
+    });
+
+    function CancelPopupSMS() {
+        //alert(curcustomerid);
+
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/,
+            open: function (e) {
+                this.wrapper.css({ top: 10 });
+            }
+        }).data("kendoWindow")
+            .center()
+            .close();
+        CleartextForm();
+    }
+
+    function CleartextForm() {
+        $('#IdMess').val('');
+        $('#CustomerName').val('');
+        $('#TelesalesName').val('');
+        $('#TelesalesPhone').val('');
+        $('#Other').val('');
+    }
+
+    function countChar(val) {
+        var len = val.value.length;
+        if (len > 0) {
+            if (len <= 160) {
+                $('#charNum').text(len + "/1 message");
+            } else if (len <= 306) {
+                $('#charNum').text(len + "/2 messages");
+            } else if (len <= 459) {
+                $('#charNum').text(len + "/3 messages");
+            }
+        }
+    };
+    //END SEND SMS-----------------------------------------------------------------------------------------------------------------------------
+</script>

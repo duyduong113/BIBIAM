@@ -1,0 +1,456 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@using MCC.Models;
+@{
+	ViewBag.Title = @Html.Raw(Resources.Global._merchant_promotion_ralated);
+	bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+	bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+	bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+	bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+	bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+	bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+	bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+	var newData = new Merchant_Product_Related();
+	//newData.active = true;
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+	.fileinput i {
+		visibility: hidden;
+	}
+
+	.fileinput .thumbnail:hover i {
+		visibility: visible;
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		color: #ff7d5e;
+	}
+
+	.fileinput-preview.fileinput-exists.thumbnail img {
+		width: 300px;
+		height: 300px;
+	}
+
+	.flex {
+		display: flex;
+	}
+
+	.image-product {
+		float: left;
+		position: relative;
+		margin: 0 5px 5px 0;
+		padding: 0;
+		border: 1px;
+		width: 50px;
+		height: 50px;
+	}
+
+		.image-product img {
+			border: 1px solid #938888;
+			width: 50px;
+			height: 50px;
+		}
+
+		.image-product .fa.fa-times {
+			visibility: hidden;
+		}
+
+		.image-product:hover .fa.fa-times {
+			visibility: visible;
+			position: absolute;
+			right: 0;
+			color: #ff7d5e;
+		}
+
+	.wrapper:after {
+		content: ".";
+		display: block;
+		height: 0;
+		clear: both;
+		visibility: hidden;
+	}
+
+	.k-pager-wrap {
+		background: none;
+		border: none;
+		box-shadow: none;
+		padding-top: 10px;
+	}
+
+	.todo-tasklist-item.selected {
+		background-color: #D2EDF3;
+	}
+
+	.bootstrap-tagsinput {
+		width: 100%;
+	}
+
+	.AccessRightsMobileBootbox .modal-dialog {
+		width: 90%;
+	}
+
+	.max100 {
+		max-width: 100%;
+	}
+</style>
+<div class="col-md-12">
+	<div class="tabbable-line">
+		<ul class="nav nav-tabs">
+			<li class="active">
+				<a href="\\#tab_1" data-toggle="tab">Danh sách sản phẩm</a>
+			</li>
+			<li>
+				<a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Danh sách gợi ý</a>
+			</li>
+		</ul>
+
+		<div class="tab-content">
+			<div class="tab-pane in active" id="tab_1">
+	
+					<form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+						<div class="row">
+							@if (isAdmin)
+							{
+								<div class="col-md-2">
+									<div class="form-group">
+										@(Html.Kendo().DropDownList()
+									  .Name("ListMerchant")
+									  .HtmlAttributes(new { style = "width:100%" })
+									  .OptionLabel(Html.Raw(Resources.Global._merchant) + "...")
+									  .DataTextField("name")
+									  .DataValueField("id")
+									  .Events(e => e.Change("filter"))
+									  .Filter("contains")
+									  .MinLength(2)
+									  .DataSource(source =>
+									  {
+										  source.Read(read =>
+										  {
+											  read.Action("GetMerchantInfo", "CustomData");
+										  }).ServerFiltering(false);
+									  })
+
+										)
+									</div>
+								</div>
+							}
+							<div class="col-md-2">
+								<div class="form-group">
+									@(Html.Kendo().DropDownList()
+									  .Name("ListBrand")
+									  .HtmlAttributes(new { style = "width:100%" })
+									  .OptionLabel("Thương hiệu...")
+									  .DataTextField("name")
+									  .DataValueField("id")
+									  .Events(e => e.Change("filter"))
+									  .Filter("contains")
+									  .MinLength(2)
+									  .DataSource(source =>
+									  {
+										  source.Read(read =>
+										  {
+											  read.Action("GetBrandInfo", "BrandManagement");
+										  }).ServerFiltering(false);
+									  })
+
+									)
+								</div>
+							</div>
+							<div class="col-md-2">
+								<div class="form-group">
+									@(Html.Kendo().DropDownList()
+									  .Name("ListHierarchy")
+									  .HtmlAttributes(new { style = "width:100%" })
+									  .OptionLabel("Ngành hàng...")
+									  .DataTextField("name")
+									  .DataValueField("id")
+									  .Events(e => e.Change("filter"))
+									  .Filter("contains")
+									  .MinLength(2)
+									  .DataSource(source =>
+									  {
+										  source.Read(read =>
+										  {
+											  read.Action("GetHierarchyInfo", "Hierarchy");
+										  }).ServerFiltering(false);
+									  })
+
+									)
+								</div>
+							</div>
+							<div class="col-md-2">
+                                <div class="form-group">
+                                    <div class="input-icon right">
+                                        <div class="input-group-btn input-icon right">
+                                            <i class="icon-magnifier" onclick="filter()"></i>
+                                            <input type="text" class="form-control form-control-solid" id="txtSearch" name="txtSearch" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                                        </div>
+                                    </div>
+
+                                </div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-2">
+								<div class="form-group">
+									@(Html.Kendo().DropDownList()
+										.Name("trang_thai")
+										.DataTextField("Text")
+										.DataValueField("Value")
+										.Events(e => e.Change("filter"))
+										.OptionLabel("TRẠNG THÁI")
+										.BindTo(new List<SelectListItem>() {
+										  new SelectListItem() {
+											  Text = "ĐANG SỬ DỤNG",
+											  Value = AllConstant.trang_thai.DANG_SU_DUNG
+										  },
+										  new SelectListItem() {
+											  Text = "KHÔNG SỬ DỤNG",
+
+											  Value = AllConstant.trang_thai.KHONG_SU_DUNG
+										  }
+									})
+									.HtmlAttributes(new { style = "width: 100%" })
+									)
+								</div>
+							</div>
+							<div class="col-md-2">
+								<div class="form-group">
+									@(Html.Kendo().DropDownList()
+										.Name("trang_thai_duyet")
+										.DataTextField("Text")
+										.DataValueField("Value")
+										.Events(e => e.Change("filter"))
+										.OptionLabel("TRẠNG THÁI DUYỆT")
+										.BindTo(new List<SelectListItem>() {
+										  new SelectListItem() {
+											  Text = "CHƯA DUYỆT",
+
+											  Value = AllConstant.trang_thai_duyet.CHUA_DUYET
+										  },
+										  new SelectListItem() {
+											  Text = "ĐÃ DUYỆT",
+
+											  Value = AllConstant.trang_thai_duyet.DA_DUYET
+										  },
+										  new SelectListItem() {
+											  Text = "TỪ CHỐI DUYỆT",
+											  Value = AllConstant.trang_thai_duyet.TU_CHOI
+
+										  }
+									})
+									.HtmlAttributes(new { style = "width: 100%" })
+									)
+								</div>
+							</div>
+							<div class="col-md-2">
+								<div class="form-group">
+									@(Html.Kendo().DropDownList()
+										.Name("trang_thai_xuat_ban")
+										.DataTextField("Text")
+										.DataValueField("Value")
+										.Events(e => e.Change("filter"))
+										.OptionLabel("TRẠNG THÁI XUẤT BẢN")
+										.BindTo(new List<SelectListItem>() {
+										  new SelectListItem() {
+											  Text = "CHƯA XUẤT BẢN",
+
+											  Value = AllConstant.trang_thai_xuat_ban.CHUA_XUAT_BAN
+										  },
+										  new SelectListItem() {
+											  Text = "ĐÃ XUẤT BẢN",
+
+											  Value = AllConstant.trang_thai_xuat_ban.DA_XUAT_BAN
+										  }
+									})
+									.HtmlAttributes(new { style = "width: 100%" })
+									)
+								</div>
+							</div>
+						</div>
+					</form>
+
+
+				<div class="row-fluid">
+
+					@(Html.Kendo().Grid<BIBIAM.Core.Entities.Product_Info>()
+					.Name("kendoGrid")
+					.HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+					.Columns(columns =>
+					{
+						columns.Template(@<text></text>).ClientTemplate(
+						"<a class='btn btn-xs btn-success' onClick='editproduct(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+						columns.Bound(p => p.ma_san_pham).Filterable(false).Width("90").Title("Mã sản phẩm");
+
+						columns.Bound(p => p.ten_san_pham).Width("90").Title("Tên sản phẩm");
+						columns.Template(@<text></text>).Width(400).Title("Thông tin sản phẩm")
+						.ClientTemplate("<div class='col-md-3' style='padding-left: 0; text-align: center;'><img src='#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#' class='img-responsive' style='display:inline'></div>"
+						+ "<div class='col-md-8' style='padding-left:0;'" +
+						"</br><span class='info-title'>Tên sản phẩm :</span><span> #=ten_san_pham ? ten_san_pham : ''#</span></br>" +
+						"<span class='info-title'>Part No:</span><span>  #=part_no ? part_no : ''#</span></br>" +
+						"<span class='info-title'>Model:</span><span>  #=model ? model : ''#</span></br>"
+						+ "<span class='info-title'>Xuất xứ:</span><span>  #=xuat_xu ? xuat_xu : ''#</span></br>"
+						+ "<span class='info-title'>Thương hiệu: </span><span> #=ten_thuong_hieu ? ten_thuong_hieu : ''#</span></br>"
+						+ "</div>");
+
+					columns.Template(@<text></text>).Width(150).Title("Thông tin giá")
+						.ClientTemplate(
+						"<span class='info-title'>Khối lượng : </span><span> #=khoi_luong ? khoi_luong : ''# (Kg)</span></br>"
+						+ "<span class='info-title'>Minium Order:</span><span>  #=minimum_order ? minimum_order : ''# (cái)</span></br>"
+						+ "<span class='info-title'>Đơn giá:</span><span>  #=don_gia ? kendo.format('{0:N0}',don_gia) : ''#Đ</span></br>"
+						+ "<span class='info-title'>Giá sỉ:</span><span>  #=gia_si ? kendo.format('{0:N0}',gia_si) : ''#Đ</span></br>"
+						);
+					columns.Template(@<text></text>).Width(210).Title("Trạng thái sử dụng")
+						.ClientTemplate(
+						"#if(trang_thai=='" + AllConstant.trang_thai.DANG_SU_DUNG + "'){#"
+						+ "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đang sử dụng</label>"
+						+ "#}else{#"
+						+ "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Không sử dụng</label>"
+						+ "#}#"
+						+ "</br><span class='info-title'>Người cập nhật :</span><span> #=nguoi_cap_nhat ? nguoi_cap_nhat : ''#</span></br>"
+						+ "<span class='info-title'>Ngày cập nhật:</span><span> #=kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy') : ''#</span></br>"
+						+ "</br><span class='info-title'>Người tạo :</span><span> #=nguoi_tao ? nguoi_tao : ''#</span></br>"
+						+ "<span class='info-title'>Ngày tạo:</span><span> #=kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') != '01/01/1900' ? kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy') : ''#</span></br>"
+						);
+					})
+					.DataSource(dataSource => dataSource
+					.Ajax()
+					.PageSize(8)
+					.Read(read => read.Action("Read", "Merchant_Product"))
+					)
+					//.Events(events => { events.DataBound("onDatabound"); })
+					.Pageable()
+					.Sortable()
+					.Scrollable()
+					.HtmlAttributes(new { @style = "height:500px" })
+					)
+				</div>
+			</div>
+
+
+			<div class="tab-pane" id="tab_2">
+				<div class="col-md-12">
+					<div class="text-center text-uppercase bold text-primary">
+
+					</div>
+
+				</div>
+				<div class="col-md-12 formEdit">
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div>
+@Html.Partial("_Form_Order_Detail")
+@Html.Partial("_Order_Grid_Partial")
+<script>
+	$(document).ready(function () {
+		loadForm(@Html.Raw(Json.Encode(newData)));
+        Search();
+	});
+
+	function editproduct(e) {
+		
+		var product = $('#kendoGrid').data('kendoGrid').dataItem($(e).closest('tr'))
+		loadForm(product);
+		$("#tab_2_click").trigger("click");
+
+	}
+	function filter() {
+		grid = $("#kendoGrid").data("kendoGrid");
+		var filter = { logic: "and", filters: [] };
+		var filterDesc = { logic: "or", filters: [] };
+
+		var noi_dung = $("#txtSearch").val();
+		if (noi_dung != null && noi_dung != "") {
+			var filterOr = { logic: "or", filters: [] };
+			filterOr.filters.push({ field: "ten_san_pham", operator: "contains", value: noi_dung });
+			//filterDesc.filters.push({ field: "ten_gian_hang", operator: "contains", value: noi_dung });
+			// filterDesc.filters.push({ field: "nganh_hang", operator: "contains", value: noi_dung });
+			// filterDesc.filters.push({ field: "ten_thuong_hieu", operator: "contains", value: noi_dung });
+			//filterOr.filters.push({ field: "ten_thuong_hieu", operator: "contains", value: noi_dung });
+			filterOr.filters.push({ field: "part_no", operator: "contains", value: noi_dung });
+			filterOr.filters.push({ field: "mo_ta", operator: "contains", value: noi_dung });
+			//filterDesc.filters.push({ field: "trang_thai", operator: "contains", value: noi_dung });
+			filter.filters.push(filterOr);
+		}
+		//
+		var ListMerchant = $('#ListMerchant').val();
+		if (ListMerchant != null && ListMerchant != "") {
+			filter.filters.push({ field: "ma_gian_hang", operator: "eq", value: ListMerchant });
+		}
+		var ListBrand = $('#ListBrand').val();
+		if (ListBrand != null && ListBrand != "") {
+			filter.filters.push({ field: "thuong_hieu", operator: "eq", value: ListBrand });
+		}
+		var ListHierarchy = $('#ListHierarchy').val();
+		if (ListHierarchy != null && ListHierarchy != "") {
+			filter.filters.push({ field: "ma_loai_san_pham", operator: "eq", value: ListHierarchy });
+		}
+		var trang_thai = $('#trang_thai').val();
+		if (trang_thai != null && trang_thai != "") {
+			filter.filters.push({ field: "trang_thai", operator: "eq", value: trang_thai });
+		}
+		var trang_thai_duyet = $('#trang_thai_duyet').val();
+		if (trang_thai_duyet != null && trang_thai_duyet != "") {
+			filter.filters.push({ field: "trang_thai_duyet", operator: "eq", value: trang_thai_duyet });
+		}
+		var trang_thai_xuat_ban = $('#trang_thai_xuat_ban').val();
+		if (trang_thai_xuat_ban != null && trang_thai_xuat_ban != "") {
+			filter.filters.push({ field: "trang_thai_xuat_ban", operator: "eq", value: trang_thai_xuat_ban });
+		}
+		grid.dataSource.filter(filter);
+	}
+	function Search() {
+	}
+	function popup_onAdditionalData() {
+		return {
+			ma_san_pham: $("#ma_san_pham").val()
+		}
+	}
+	function loadForm(data) {
+		var EditTemplate = kendo.template($("#EditTemplate").html());
+		$(".formEdit").html(EditTemplate(data));
+		var RelatedGridTemplated = kendo.template($("#RelatedGridTemplated").html());
+		$("#gridTemplate").html(RelatedGridTemplated(data));
+	}
+	function onDataBound() {
+
+	}
+	function resizeGrid(gridname) {
+	}
+
+	function dataBoundgrid(e) {
+		resizeGrid('Grid');
+	}
+	function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+            toastr.error(message)
+        }
+    }
+    function onRequestEnd(e) {
+        if ((e.type == "create") && !e.response.Errors) {
+            ;
+            if (e.response.success)
+                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+        }
+        else
+            if ((e.type == "update") && !e.response.Errors) {
+                if (e.response.success)
+                    toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+
+            }
+    }
+</script>

@@ -1,0 +1,28 @@
+﻿@{
+    Layout = null;
+}
+<label class="control-label">Currency Name (*)</label>
+<div class="controls">
+    <select name="CurrencyName" id="ten_tien_te" class='chosen-select' data-placeholder="Chọn mã tiền tệ ">
+        <option value="">--Chọn mã tiền tệ--</option>
+        @foreach (var iteam in ViewBag.listAllCurrencies)
+        {
+            <option value="@iteam.ma_tien_te">@iteam.ten_tien_te</option>
+        }
+    </select>
+</div>
+<script type="text/javascript">
+    $(".chosen-select").chosen();
+    $("#ten_tien_te").change(function () {
+        $.post(r + "/Currencies/GetCurrency", { CurrencyCode: $("#ten_tien_te").val() }, function (data) {
+            if (data.success) {
+                $("#ma_tien_te").val(data.data[0].ma_tien_te);
+                $("#CurrencyCode1").val(data.data[0].ma_tien_te);
+            }
+            else {
+                $("#ma_tien_te").val('');
+                $("#CurrencyCode1").val('');
+            }
+        });
+    });
+</script>

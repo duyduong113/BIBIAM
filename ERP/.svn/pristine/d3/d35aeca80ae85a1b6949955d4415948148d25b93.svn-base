@@ -1,0 +1,194 @@
+﻿@using BIBIAM.Core;
+<script type="text/x-kendo-template" id="EditTemplate">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._merchant_info)</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <form action="@Url.Content("~/MerchantManagement/Update")" method="post" id="GeneralForm" enctype="multipart/form-data">
+                <div class="row">
+                   
+                    <div class="col-md-6">
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._mer_name)</label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="BIBIAM E-commerce for industry" name="ten_gian_hang" value="#=ten_gian_hang?ten_gian_hang:''#" readonly />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._short_name)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ten_viet_tat" value="#=ten_viet_tat?ten_viet_tat:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label>@Html.Raw(Resources.Global._english_name)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="BIBIAM" name="ten_tieng_anh" value="#=ten_tieng_anh?ten_tieng_anh:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._website)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="www.bibiam.com" name="website" value="#=website?website:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._telephone)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="+84-8-62838100" name="dien_thoai" value="#=dien_thoai?website:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._fax)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="+84-8-62838100" name="fax" value="#=fax?fax:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._email)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="hai@bibiam.com" name="email" value="#=email?email:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label >@Html.Raw(Resources.Global._credit_card)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" placeholder="1022200122124" name="tai_khoan_thanh_toan" value="#=tai_khoan_thanh_toan?tai_khoan_thanh_toan:''#" />
+                            </div>
+                        </div>
+                        
+                        
+                    </div>
+                    <div class="col-md-6">
+                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                            <label>@Html.Raw(Resources.Global._logo)</label>
+                            <div class="clearfix">
+                                <div class="input-group">
+                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                        <div class="fileinput-new thumbnail" style="width: 280px; ">
+                                            <img src="#=logo_gian_hang ? logo_gian_hang : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" />
+                                        </div>
+                                        <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 300px; "> </div>
+                                        <div>
+                                            <span class="btn default btn-file btn-sm btn-circle">
+                                                <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                <input type="file" name="file">
+                                            </span>
+                                            <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label>@Html.Raw(Resources.Global._office_address)<span class="text-danger"> * </span></label>
+                            <div class="input-icon right ">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100 " placeholder="80/15A, Street 4, Tam Phu ward, Thu Duc dist., HCM city, Vietnam" name="dia_chi_tru_so" value="#=dia_chi_tru_so?dia_chi_tru_so:''#" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label>@Html.Raw(Resources.Global._city_province)</label>
+                            @(Html.Kendo().DropDownList()
+                                                  .Name("ma_tinh_tp")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .Filter("contains")
+                                                  .OptionLabel(@Html.Raw(@Resources.Global._city_province))
+                                                  .DataTextField("ten_thanh_pho")
+                                                  .DataValueField("ma_thanh_pho")
+                                                  .Events(e => e.Change("changeCity"))
+                                                  .Value("#=ma_tinh_tp?ma_tinh_tp:''#")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("GetCity", "Merchant_Order");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                            )
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label>@Html.Raw(Resources.Global._district)</label>
+                            @(Html.Kendo().DropDownList()
+                                                  .Name("ma_quan_huyen")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel(@Html.Raw(@Resources.Global._ward))
+                                                  .DataTextField("ten_quan_huyen")
+                                                  .DataValueField("ma_quan_huyen")
+                                                  .Filter("contains")
+                                                  .Events(e => e.Change("changeDistrict"))
+                                                  .Value("#=ma_quan_huyen?ma_quan_huyen:''#")
+                                                  .Enable(false)
+                                                  .AutoBind(false)
+                                                  .CascadeFrom("ma_tinh_tp")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("GetDistrict", "Merchant_Order").Data("filterDistrict");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                            )
+                        </div>
+
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label>@Html.Raw(Resources.Global._description)<span class="text-danger"> * </span></label>
+                        <div class="clearfix">
+                            @(Html.Kendo().Editor().Name("mo_ta")
+                                        .Encode(false)
+                                        .Value("#=mo_ta?mo_ta:''#")
+                                        .HtmlAttributes(new { style = "height:450px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                                        .Tools(tools => tools
+                                        .Clear()
+                                        .Bold().Italic().Underline().Strikethrough()
+                                        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                        .InsertUnorderedList().InsertOrderedList()
+                                        .Outdent()
+                                        .Indent()
+                                        .CreateLink().Unlink()
+                                        .InsertImage()
+                                        .InsertFile()
+                                        .SubScript()
+                                        .SuperScript()
+                                        .TableEditing()
+                                        .ViewHtml()
+                                        .Formatting()
+                                        .CleanFormatting()
+                                        .FontColor()
+                                        .BackColor()
+                                        .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a><a id='lastDescription' class='k-button' onclick='lastDescription(this)'>Mô tả cũ</a>")))
+                                        .Messages(m => m
+                                                    .ImageWebAddress(@Resources.Global._select_image)
+                                                    .DialogCancel(@Resources.Global._cancel)
+                                                    .DialogInsert(@Resources.Global._add)
+                                        ).ToClientTemplate()
+                            )
+                        </div>
+                    </div>
+                    <div class="actions col-md-12">
+                        #if(id>0){#
+                        <button type="submit" class="btn blue btn-circle pull-right" style="margin-right:15px;">@Html.Raw(Resources.Global._save)</button>
+                        #}#
+                    </div>
+                </div>
+                <input type="text" class="hidden" name="id" value="#=id?id:0#" />
+                <input type="text" class="hidden" name="ma_gian_hang" value="#=ma_gian_hang?ma_gian_hang:''#" />
+            </form>
+        </div>
+    </div>
+</script>
+

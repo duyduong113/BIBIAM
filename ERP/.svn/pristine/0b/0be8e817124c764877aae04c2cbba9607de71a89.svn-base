@@ -1,0 +1,51 @@
+﻿@{
+    Layout = null;
+    int global = ViewBag.countID;
+}
+<tr class="group-staff-revenue">
+    <td>
+        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName-" + global)
+                                    .DataTextField("FullName")
+                                    //.Value(Html.Raw(item.FullName))
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-employer", @onfocus = "setGlobal(" + global + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataName");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItem");
+                                    })
+        )
+        
+        @{ global++;}
+    </td>
+    <td>
+        <input type="hidden" name="PKStaff" value=""/>
+        <input type="hidden" name="StaffId" value=""/>
+        <input type="hidden" name="UnitId" value=""/>
+        <input type="hidden" name="GroupId" value=""/>
+        <input class="staff-revenue-region" value="" type="text" disabled />
+    </td>
+    <td><input class="staff-revenue-group" value="" type="text" disabled /></td>
+    <td><input style="width:80%" name="Percent" onchange="changePercent(true,false)" class="staff-revenue-proportion" value="" type="number" /></td>
+    <td><input onchange="changePercent(false, false)" name="Money" class="staff-revenue-revenue-up currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>
+    <td><input name="MoneyInYear" class="staff-revenue-implementation currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>
+    <td style="display:none"><input name="MoneyNextYear" class="staff-revenue-next-year currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" /></td>
+    <td style="display:none"><input name="MoneyNextYear2" class="staff-revenue-other currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" /></td>
+    <td>
+        <input name="Charge" type="checkbox" class="staff-revenue-presenter">
+    </td>
+    <td>
+        <button  data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRevenueStaff(this)"><i class="icon-minus"></i></button>
+    </td>
+</tr>

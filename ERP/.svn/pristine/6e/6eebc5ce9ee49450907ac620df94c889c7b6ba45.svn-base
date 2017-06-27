@@ -1,0 +1,408 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Dapper;
+using MCC.Controllers;
+using MCC.Helpers;
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System.Data;
+using MCC;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data;
+using BIBIAM.Core;
+
+namespace RealEstate.Controllers
+{
+    [Authorize]
+    public class CustomDataController : CustomController
+    {
+        //
+        // GET: /CustomData/
+        public ActionResult Index()
+        {
+            return View();
+        }
+        //PA add
+        public ActionResult ReadHierarchy()
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+            {
+                var loai_phan_cap = dbConn.FirstOrDefault<Code_Master>(s => s.Name == "Product" && s.Type == "HierarchyType");
+                var data = dbConn.Select<Hierarchy>(s => s.trang_thai == AllConstant.trang_thai.DANG_SU_DUNG && s.loai_phan_cap == loai_phan_cap.Value).OrderBy(s => s.ten_phan_cap);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+        //BaoHV add
+        public ActionResult GetMerchant()
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<tw_ShowroomBranch_Json1>();
+                data = dbConn.GetDictionary<Int64, string>("SELECT id,name FROM tw_ShowroomBranch WHERE active = 1").Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //Get list of user
+        public ActionResult GetUser(string text)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = new List<tw_ShowroomBranch_Json1>();
+                data = dbConn.GetDictionary<Int64, string>("SELECT id, name + '-' + fullName + ' ('+ phone +')' as name FROM tw_User WHERE active = 1 AND name + '-' + fullName + ' ('+ phone +')' like '%" + text + "%'").Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetUserByGroup(int groupId)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = new List<tw_ShowroomBranch_Json1>();
+                data = dbConn.GetDictionary<Int64, string>("SELECT u.id, u.name + '-' + u.fullName + ' ('+ u.phone +')' as name FROM tw_User u, tw_UserInShowroom us, tw_BusinessGroup bg WHERE u.id = us.userId AND us.showroomId = bg.showroomId AND bg.id = " + groupId).Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetFolder()
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = new List<DropDownJsonString>();
+                if (isAdmin)
+                    data = dbConn.GetDictionary<string, string>("SELECT distinct ten_thu_muc as id, ten_thu_muc as name FROM Merchant_Folder_Info").Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                else
+                    data = dbConn.GetDictionary<string, string>("SELECT distinct ten_thu_muc as id, ten_thu_muc as name FROM Merchant_Folder_Info WHERE ma_gian_hang = {0}".Params(currentUser.ma_gian_hang)).Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetFolderBy(string ma_gian_hang)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = new List<DropDownJsonString>();
+                if (isAdmin)
+                    data = dbConn.GetDictionary<string, string>("SELECT distinct ten_thu_muc as id, ten_thu_muc as name FROM Merchant_Folder_Info where ma_gian_hang = '"+ma_gian_hang+"' ").Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                else
+                    data = dbConn.GetDictionary<string, string>("SELECT distinct ten_thu_muc as id, ten_thu_muc as name FROM Merchant_Folder_Info WHERE ma_gian_hang = {0}".Params(currentUser.ma_gian_hang)).Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetMerchantInfo()
+        {
+            using (var dbConn = OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+            {
+                var data = new List<DropDownJsonString>();
+                if (isAdmin == true)
+                {
+                    data = dbConn.GetDictionary<string, string>("SELECT ma_gian_hang as id, isnull(ten_gian_hang,'') as name FROM Merchant_Info").Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                }
+                else
+                {
+                    data = dbConn.GetDictionary<string, string>("SELECT ma_gian_hang as id,ten_gian_hang as name FROM Merchant_Info WHERE ma_gian_hang = '" + currentUser.ma_gian_hang + "'").Select(s => new DropDownJsonString { id = s.Key, name = s.Value }).ToList();
+                }
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //public ActionResult GetUserByGroup(int groupId)
+        //{
+        //    using (var dbConn = OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_ShowroomBranch_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT u.id, u.name + '-' + u.fullName + ' ('+ u.phone +')' as name FROM tw_User u, tw_UserInShowroom us WHERE u.id = us.userId AND us.showroomId = " + showroomId).Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult GetUserDetailByShowroom([DataSourceRequest]DataSourceRequest request, int showroomId)
+        //{
+        //    using (var dbConn = OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_BusinessRole>("SELECT br.* FROM tw_User u, tw_BusinessRole br WHERE u.id = br.userId AND br.groupId = " + groupId);
+        //        return Json(data.ToDataSourceResult(request));
+        //    }
+        //}    
+
+        //public ActionResult GetUserDetailByGroup([DataSourceRequest]DataSourceRequest request, int groupId)
+        //{
+        //    using (var dbConn = OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_BusinessRole>("SELECT br.* FROM tw_User u, tw_BusinessRole br WHERE u.id = br.userId AND br.groupId = " + groupId);
+        //        return Json(data.ToDataSourceResult(request));
+        //    }
+        //}
+
+        [HttpPost]
+        public ActionResult GetUserDetail(int leaderId)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<tw_User>("SELECT * FROM tw_User WHERE Active = 1 AND Id = " + leaderId);
+                return Json(new { success = true, data = data });
+            }
+        }
+
+        //[HttpPost]
+        //public ActionResult GetOldCar(int carId)
+        //{
+        //    using (var dbConn = OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_Car>("SELECT * FROM tw_Car WHERE Id = " + carId);
+        //        return Json(new { success = true, data = data });
+        //    }
+        //}
+
+        //[HttpPost]
+        //public ActionResult GetShowroomDetail(int groupId)
+        //{
+        //    using (var dbConn = OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_BusinessGroup>("SELECT showroomId FROM tw_BusinessGroup WHERE Active = 1 AND id = " + groupId);
+        //        return Json(new { success = true, data = data });
+        //    }
+        //}
+
+        public ActionResult GetCodeMaster(string type)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                var data = dbConn.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = '" + type + "' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetCodeMasterName(string type)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = dbConn.GetDictionary<string, string>("SELECT Value, Name FROM Code_Master WHERE Type = '" + type + "' Order By order_Num").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //public ActionResult getCarSerial(Int64 typeCode)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_Car_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id, name FROM tw_CarSerial WHERE active = 1 AND typeCode = " + typeCode + " ORDER BY name").Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult getCarColor(Int64 serialId)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_Car_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id, name + ' - ' + description as name FROM tw_CarSerialColor WHERE active = 1 AND serialId = " + serialId).Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        public ActionResult GetShowroom()
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<tw_ShowroomBranch_Json1>();
+                data = dbConn.GetDictionary<Int64, string>("SELECT id,name FROM tw_ShowroomBranch WHERE active = 1").Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetShowroomByLeader(Int64 leader)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<tw_ShowroomBranch_Json1>();
+                data = dbConn.GetDictionary<Int64, string>("SELECT showroomId, sb.name FROM tw_UserInShowroom us, tw_ShowroomBranch sb WHERE sb.id = us.showroomId AND userId = " + leader).Select(s => new tw_ShowroomBranch_Json1 { id = s.Key, name = s.Value }).ToList();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //public ActionResult GetGroup()
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_BusinessGroup_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id,groupcode + '-' + name as name FROM tw_BusinessGroup WHERE active = 1").Select(s => new tw_BusinessGroup_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult getCarType()
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_CarSerial_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id,name FROM tw_CarType WHERE active = 1 AND branch = 'Ford' ORDER BY name").Select(s => new tw_CarSerial_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult getCarTypeBranch()
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_Car_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id, branch + ' - ' + name AS name FROM tw_CarType WHERE active = 1 AND branch = 'Ford' ORDER BY name").Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult getCarByType(int typeId)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_Car_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id, name FROM tw_Car WHERE active = 1 AND typeId = " + typeId).Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult getCarByTypeAndSerial(int typeId, int serialId)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = new List<tw_Car_Json1>();
+        //        data = dbConn.GetDictionary<Int64, string>("SELECT id, name FROM tw_Car WHERE active = 1 AND typeId = " + typeId + " and serialId = " + serialId).Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        [OutputCache(CacheProfile = "Cache1Hour")]
+        public ActionResult GetCountry(string text)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<Territory>("Level='country' AND Name like N'%" + text + "%'").OrderBy(s => s.Id);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [OutputCache(CacheProfile = "Cache1Hour")]
+        public ActionResult GetCity(int? Id)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<Territory>("Level='province' AND ParentId={0}", Id).OrderBy(s => s.Id);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [OutputCache(CacheProfile = "Cache1Hour")]
+        public ActionResult GetCityS(string text)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<Territory>("Level='province' AND Name like N'%" + text + "%'").OrderBy(s => s.Id);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [OutputCache(CacheProfile = "Cache1Hour")]
+        public ActionResult GetDistrict(int? Id)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<Territory>("Level='district' AND ParentId={0}", Id).OrderBy(s => s.Id);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [OutputCache(CacheProfile = "Cache1Hour")]
+        public ActionResult GetDistrictN(string Name)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = dbConn.Select<Territory>("Level='district' AND ParentId= ISNULL((SELECT TOP 1 Id FROM Territory WHERE Name = N'" + Name + "'),0)").OrderBy(s => s.Id);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //public ActionResult GetVIN(string VIN)
+        //{
+        //    using (var dbConn = CRM.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_VINManagement>("VIN={0}",VIN);
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult GetVINByCarId(int carId)
+        //{
+        //    using (var dbConn = CRM.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        //var data = new List<tw_Car_Json1>();
+        //        //data = dbConn.GetDictionary<int, string>("SELECT carId, VIN FROM tw_VINManagement WHERE carId=" + carId + " AND status = 'FordCRMVINStatus0002'").Select(s => new tw_Car_Json1 { id = s.Key, name = s.Value }).ToList();
+        //        //return Json(data, JsonRequestBehavior.AllowGet);
+        //        var data = dbConn.Select<tw_PO_Get>("select v.warehouseId, p.* from tw_PO p, tw_VINManagement v where p.VIN = v.VIN AND v.carId = {0} AND v.status = 'FordCRMVINStatus0002'", carId);
+        //        //var data = dbConn.Select<tw_VINManagement>("carId={0} AND status = 'FordCRMVINStatus0002'", carId);
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult GetProductCar(int carId, int contractId)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_Contract_Product_Meta>("SELECT * FROM tw_Contract_Product_Meta WHERE carId = {0} AND contractid = {1}", carId, contractId);
+
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        //public ActionResult GetByVIN(string VIN)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.SingleOrDefault<tw_PO_Get>(@"
+        //            SELECT 
+        //                v.warehouseId, p.*, i.inventoryDate FROM tw_PO  p 
+        //            LEFT JOIN 
+        //                tw_VINManagement  v ON p.VIN = v.VIN
+        //            LEFT JOIN 
+        //                tw_Inventory i on i.VIN = p.VIN  
+        //             WHERE v.VIN = '" + VIN + @"'
+        //            ");
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        //public ActionResult GetVIN(string VIN)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_VINManagement>("VIN={0}", VIN);
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        public ActionResult GetVINList(string carId)
+        {
+            using (var dbConn = OrmliteConnection.openConn())
+            {
+                var data = dbConn.GetDictionary<string, string>("SELECT VIN, VIN FROM tw_VINManagement WHERE status = 'FordCRMVINStatus0002' AND carId = " + carId).Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //public ActionResult GetContract(string contractid)
+        //{
+        //    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //    {
+        //        var data = dbConn.Select<tw_Contract_Product_Meta>("contractid={0}", contractid);
+        //        return Json(data, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+    }
+}

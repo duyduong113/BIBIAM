@@ -1,0 +1,209 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core
+@{
+    ViewBag.Title = "Quản lý phiếu xuất nhập kho";
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">Quản lý phiếu xuất nhập kho</span>
+                </div>
+                
+                <div class="inputs" style="margin-right:10px;">
+                    <a href="@Url.Content("~/Merchant_StockIn/Create")" target='_blank' class="btn btn-default btn-circle btn-outline btn-sm"> Tạo phiếu nhập kho <i class="fa fa-arrow-right"></i></a>
+                    <a href="@Url.Content("~/Merchant_StockOut/Create")" target='_blank' class="btn btn-default btn-circle btn-outline btn-sm"> Tạo phiếu xuất kho <i class="fa fa-arrow-right"></i></a>
+                </div>
+                <div class="inputs" style="margin-right:10px;">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div>
+                    <a class="btn btn-success btn-circle btn-outline btn-sm" onclick="refresh()"><i class="fa fa-refresh"></i> @Html.Raw(Resources.Global._refresh) </a>
+                </div>
+                <div class="todo-tasklist">
+                    @(Html.Kendo().Grid<Merchant_Stock_ViewModel>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                        columns.Template(@<text></text>).Width(50)
+                            .ClientTemplate("<a class='btn btn-sm fa fa-#=trang_thai!='@AllConstant.trang_thai.DANG_SU_DUNG'?'edit btn-success':'eye btn-warning'#' target='_blank' href='/Merchant_Stock#=ma_phieu.startsWith('GRN')?'In':'Out'#/Detail/#=ma_phieu#'></a>");
+                        columns.Bound(p => p.ma_phieu).Title(@Html.Raw("Mã phiếu").ToString().ToUpper()).Width(150).HtmlAttributes(new { @class = "editable" }).Filterable(false);
+                        columns.Bound(p => p.loai_phieu).Title(@Html.Raw("Loại phiếu").ToString().ToUpper()).Width(150).HtmlAttributes(new { @class = "editable" }).Filterable(false);
+                        columns.Bound(p => p.ma_don_hang).Title(@Html.Raw(Resources.Global._po_po).ToString().ToUpper()).Width(150).HtmlAttributes(new { @class = "editable" }).Sortable(false).Filterable(false);
+                        columns.Bound(p => p.ten_kho).Title(@Html.Raw(Resources.Global._ware_house).ToString().ToUpper()).Width(150).HtmlAttributes(new { @class = "editable" }).Sortable(false).Filterable(false);
+                        columns.Bound(p => p.nguoi_giao_nhan).Title(@Html.Raw("Người giao/nhận").ToString().ToUpper()).Width(200).HtmlAttributes(new { @class = "editable" }).Sortable(false).Filterable(false);
+                        columns.Bound(p => p.ngay_nhap_xuat).Title(@Html.Raw("Ngày nhập/xuất kho").ToString().ToUpper()).Format("{0:dd/MM/yyyy}").Width(200).HtmlAttributes(new { @class = "text-center" });
+                        columns.Bound(p => p.ngay_tao).Title(@Html.Raw("Ngày tạo").ToString().ToUpper()).Format("{0:dd/MM/yyyy HH:mm}").Width(150).HtmlAttributes(new { @class = "editable" }).Sortable(false).Filterable(false);
+                        columns.Bound(p => p.trang_thai).Title(@Html.Raw(Resources.Global._status).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "text-center" })
+                            .ClientTemplate("<span class='col-md-10 col-xs-10 label #=trang_thai=='@AllConstant.trang_thai.DANG_SU_DUNG'?'label-success':'label-default'#'> #=trang_thai# </span>").Sortable(false);
+                        columns.Bound(p => p.nguoi_kiem_tra).Title(@Html.Raw("Người kiểm tra").ToString().ToUpper()).Width(200).HtmlAttributes(new { @class = "editable" }).Sortable(false).Filterable(false);
+                        columns.Bound(p => p.ghi_chu).Title(@Html.Raw(Resources.Global._note).ToString().ToUpper()).Width(250).HtmlAttributes(new { @class = "editable" }).Filterable(false);
+                    })
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 40, 60, 80 }))
+                    .Scrollable()
+                    .Navigatable()
+                            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    ))
+                )  
+                    .Sortable()
+                    .Resizable(resizable => resizable.Columns(true))
+                    .Pageable(x => x.PageSizes(new int[] { 20, 40, 60, 80 }))
+                    .Events(events => { events.DataBound("onDatabound"); })
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Events(events => { events.Error("error_handler"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.ma_phieu);
+                        })
+                        .Read(c => c.Action("ReadStockIn", "Merchant_Warehouse"))
+                        )  
+                )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit">
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._car_lower) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+
+<script>
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    function Search(e) {
+        grid = $("#Grid").data("kendoGrid");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "loai_phieu", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ma_don_hang", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ten_kho", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "nguoi_giao_nhan", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ma_phieu", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        grid.dataSource.filter(filter);
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content, .k-grid-content-locked"),
+        otherElements = gridElement.children().not(".k-grid-content, .k-grid-content-locked"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+    function onDatabound(e) {
+        resizeGrid();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the grid's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the grid's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the grid's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+    }
+    
+    function refresh(e) {
+        $("#Grid").data("kendoGrid").dataSource.read();
+    }
+    function error_handler(e) {
+        if (e.status == "error") {
+            toastr.error('@Resources.Global._500_error_title', '@Resources.Global._error_message');
+        }
+    }
+</script>

@@ -1,0 +1,328 @@
+﻿<style>
+    .txt-hidden, #CustomerType, #newWeb, #newPhone {
+        display: none;
+    }
+
+    .editable {
+        border-bottom: 1px dotted #93B6D1;
+    }
+
+    #StatusType select, #CustomerType select {
+        height: 22px;
+        width: 100%;
+    }
+
+    #StatusType, #CustomerType {
+        position: absolute;
+    }
+
+    .txt-val {
+        height: 22px;
+        min-height: 22px !important;
+    }
+
+    #formCreateCustomer .info-cus {
+        min-height: 210px;
+    }
+
+    .info-cus ul {
+        margin: 0;
+    }
+
+    .list-item li {
+        display: inline-flex;
+        margin-right: 5px;
+    }
+
+    .minus-wed i.icon-minus {
+        background: #D15B47;
+        color: #fff;
+        padding: 2px;
+        border-radius: 7px;
+        margin: 2px;
+        cursor: pointer;
+    }
+
+    .hr-cuss {
+        border-bottom: 1px dotted #CCC;
+        padding-bottom: 5px;
+    }
+
+    .profile-info-row {
+        min-height: 30px;
+    }
+</style>
+<p class="hr-cuss">
+    <button class="btn btn-small btn-success"><i class="icon-phone"></i> Gọi</button>
+    <a href="#appointment-form" id="" class="btn btn-small btn-warning" data-toggle="modal">Đặt lịch hẹn</a>
+    <button class="btn btn-small btn-primary" onclick="startSurvey(obj)">Đánh giá khách hàng</button>
+    <button class="btn btn-small btn-default" onclick="startFAQ()">FAQs</button>
+</p>
+<div class="span12 profile-user-info profile-user-info-striped info-cus">
+    @using (Html.BeginForm("Customer_Update", "MnDetailEmployer", FormMethod.Post, new { @class = "span12 form-horizontal", id = "formCreateCustomer", enctype = "multipart/form-data", style = "margin:0" }))
+    {
+        <div class="profile-info-row">
+            <div class="profile-info-name"> CustomerID </div>
+
+            <div class="profile-info-value">
+                <span class="" id="username">@ViewBag.detailCustomer.CustomerID</span>
+                <input  type="hidden" name="CustomerID" value="@ViewBag.detailCustomer.CustomerID" />
+
+            </div>
+        </div>
+
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Tên khách hàng</div>
+
+            <div class="profile-info-value">
+                <span class="editable editable-click" id="city">@ViewBag.detailCustomer.CustomerName</span>
+                <span class="txt-hidden"><input onkeypress="submitChange(event)" class="span8 txt-val" name="CustomerName" value="@ViewBag.detailCustomer.CustomerName" /></span>
+
+            </div>
+        </div>
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Trạng thái</div>
+
+            <div class="profile-info-value">
+                @if (ViewBag.detailCustomer.Status != "")
+                {
+                    foreach (var item in ViewBag.listStatus)
+                    {
+                        if (item.ParamID == ViewBag.detailCustomer.Status)
+                        {
+                            <span class="editable editable-click" id="age">@item.Value</span>
+                        }
+                    }
+                }
+                <div class="txt-hidden" id="StatusType">
+                    <select name="Status" id="StatusType-select" class="" data-placeholder="Chọn loại khách hàng">
+                        @foreach (var item in ViewBag.listStatus)
+                        {
+                            <option value="@item.ParamID">@item.Value</option>
+                        }
+                    </select>
+                </div>
+
+            </div>
+        </div>
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Loại khách hàng </div>
+
+            <div style="position:relative" class="profile-info-value">
+                @if (ViewBag.detailCustomer.CustomerType != "Agency Basic")
+                {
+                    foreach (var item in ViewBag.listCustomerType)
+                    {
+                        if (item.Code == ViewBag.detailCustomer.CustomerType)
+                        {
+                            <span class="editable editable-click" id="age">@item.Value</span>
+                        }
+                    }
+                }
+                <div class="txt-hidden" id="CustomerType">
+                    <select name="CustomerType" id="customerType-select" class="" data-placeholder="Chọn loại khách hàng">
+                        @foreach (var item in ViewBag.listCustomerType)
+                        {
+                            <option value="@item.Code">@item.Value</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Địa chỉ </div>
+
+            <div class="profile-info-value">
+                <span class="editable editable-click">@ViewBag.detailCustomer.Address</span>
+                <span class="txt-hidden"><input onkeypress="submitChange(event)" class="span9 txt-val" name="Address" value="@ViewBag.detailCustomer.Address" /></span>
+            </div>
+        </div>
+
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Website </div>
+
+            <div class="profile-info-value">
+                <span class="tooltip-success" data-rel="tooltip" data-placement="top" data-original-title="Thêm" onclick="addNewItem(this)"><a class="btn btn-minier btn-success"><i class="icon-plus"></i></a></span>
+                <input onkeypress="handle(event)" id="newWeb" class="span5 txt-val" value="http://" />
+                <input class="txt-json" id="website" type="hidden" name="Website" value="@ViewBag.detailCustomer.Website">
+                <div class="group-item" id="web-group">
+                    <ul id="listWebsite" class="list-item">
+                        @try
+                {
+                    var websites = Json.Decode(ViewBag.detailCustomer.Website);
+                    for (var i = 0; i < websites.Length; i++)
+                    {
+                                <li><a target="_blank" href="@websites[i]" class="">@websites[i]</a><span onclick="minusWeb(this)" class="minus-wed"><i class="icon-minus"></i></span></li>
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            <li><a target="_blank" href="@ViewBag.detailCustomer.Website" class="">@ViewBag.detailCustomer.Website</a><span onclick="minusWeb(this)" class="minus-wed"><i class="icon-minus"></i></span></li>
+                        }
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-info-row">
+            <div class="profile-info-name"> Điện thoại </div>
+
+            <div class="profile-info-value">
+                <span class="tooltip-success" data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" onclick="addNewItem(this)"><a class="btn btn-minier btn-success"><i class="icon-plus"></i></a></span>
+                <input type="number" onkeypress="handle(event)" id="newPhone" class="span4 txt-val" value="" placeholder="Nhập số điện thoại" />
+                <input class="txt-json" id="phones-json" type="hidden" name="Phone" value="@ViewBag.detailCustomer.Phone">
+                <div class="group-item">
+                    <ul id="listPhone" class="list-item">
+                        @try
+                {
+                    var phones = Json.Decode(ViewBag.detailCustomer.Phone);
+                    for (var i = 0; i < phones.Length; i++)
+                    {
+                                <li><a href="@phones[i]" class="">@phones[i]</a><span onclick="minusWeb(this)" class="minus-wed"><i class="icon-minus"></i></span></li>
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            <li><a href="@ViewBag.detailCustomer.Phone" class="">@ViewBag.detailCustomer.Phone</a><span onclick="minusWeb(this)" class="minus-wed"><i class="icon-minus"></i></span></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<script type="text/javascript">
+    var form_data = $('#formCreateCustomer').serialize();
+    $(".editable").click(function () {
+        $(this).hide();
+        $(this).parent().find(".txt-hidden").show();
+        $(this).parent().find(".txt-hidden input").focus().val($(this).parent().find(".txt-hidden input").val());
+    })
+    $(".info-cus").dblclick(function () {
+        $(".txt-hidden").hide();
+        $("#newWeb,#newPhone").hide();
+        $(".editable").show();
+        $('#formCreateCustomer').submit();
+    })
+    $("#formCreateCustomer").validate({
+        rules: {
+            Address: {
+                required: true,
+            },
+            Phone: {
+                required: true,
+            },
+        },
+        messages: {
+            Phone: {
+                required: "Thông tin bắt buộc"
+            },
+            Address: {
+                required: "Thông tin bắt buộc"
+            }
+        },
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+        beforeSend: function () {
+            alert("a");
+        },
+        submitHandler: function (form) {
+            if (form_data != $('#formCreateCustomer').serialize()) {
+                form_data = $('#formCreateCustomer').serialize();
+                console.log("change");
+            } else {
+                console.log("no change");
+                return false;
+            }
+            $(form).ajaxSubmit({
+                //clearForm: true,
+                success: function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: 'Cập nhật thành công !',
+                            class_name: 'gritter-success'
+                        });
+                        $(".info-cus").find(".txt-hidden input.txt-val").each(function () {
+                            $(this).parents(".profile-info-value").find(".editable").text($(this).val());
+                        })
+                        $("#customerType-select").parents(".profile-info-value").find(".editable").text($('#customerType-select option:selected').text());
+                        $("#StatusType-select").parents(".profile-info-value").find(".editable").text($('#StatusType-select option:selected').text());
+                        $("#newWeb").val('http://').hide();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+            return false;
+        }
+    });
+    function addNewItem(e) {
+        $(e).parent().find(".txt-val").show();
+    }
+    function minusWeb(e) {
+        var parent = $(e).parents(".profile-info-value");
+        var index = parent.find(".list-item li").index($(e).parent());
+        var arr_web = JSON.parse(parent.find(".txt-json").val());
+        arr_web.splice(index, 1);
+        //parent.find(".txt-json").val(JSON.stringify(arr_web));
+        $(e).parent().remove();
+        parent.find(".txt-json").val(JSON.stringify(arr_web));
+        $('#formCreateCustomer').submit();
+        if (parent.find(".list-item li").length == 0) {
+            parent.find(".group-item").hide();
+        }
+    }
+    function handle(e) {
+        if (e.keyCode === 13) {
+            var parent = $(e.target).parents(".profile-info-value");
+            var arr_web = [];
+            if (parent.find(".txt-val").val() != '') {
+                try {
+                    arr_web = JSON.parse(parent.find(".txt-json").val());
+                }
+                catch (err) {
+                    arr_web[0] = parent.find(".txt-json").val();
+                    console.log(err);
+                }
+                arr_web.push(parent.find(".txt-val").val());
+                parent.find(".txt-json").val(JSON.stringify(arr_web));
+                parent.find(".list-item").append('<li><a target="_blank" href="' + parent.find(".txt-val").val() + '" class="">' + parent.find(".txt-val").val() + '</a><span onclick="minusWeb(this)" class="minus-wed"><i class="icon-minus"></i></span></li>');
+            }
+            $('#formCreateCustomer').submit();
+            parent.find(".txt-val").hide();
+            $(".txt-hidden").hide();
+            $(".editable").show();
+            if (parent.find(".list-item li").length == 0) {
+                parent.find(".group-item").hide();
+            }
+            return false;
+        }
+    }
+    function submitChange(e) {
+        if (e.keyCode === 13) {
+            $('#formCreateCustomer').submit();
+            $(".txt-hidden").hide();
+            $(".editable").show();
+        }
+    }
+    $("#customerType-select,#StatusType-select").change(function () {
+        $('#formCreateCustomer').submit();
+        $(".txt-hidden").hide();
+        $(".editable").show();
+        return false;
+    })
+
+</script>

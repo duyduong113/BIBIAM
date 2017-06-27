@@ -1,0 +1,128 @@
+﻿using System;
+using System.IO;
+using System.Drawing;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using BIBIAM.Core.Entities;
+using MCC.Models;
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using BIBIAM.Core.Data.DataObject;
+using CloudinaryDotNet;
+using System.Web;
+using Newtonsoft.Json;
+using System.Data;
+using System.Data.SqlClient;
+using MCC.Helpers;
+using MCC.Filters;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class BannerController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                ViewBag.isAdmin = isAdmin;
+                if (isAdmin)
+                {
+                    string culture = Request.Cookies["_culture"] != null ? Request.Cookies["_culture"].Value : "vi";
+                    using (var db = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                    {
+                        ViewBag.ma_phan_cap_banner = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'HierarchyBanner' ").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                        ViewBag.vi_tri_Banner = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'BannerPosition' ").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                        ViewBag.loai_Banner = db.GetDictionary<string, string>("SELECT Value, " + (culture == "vi" ? "Name_Vi" : "Name") + " FROM Code_Master WHERE Type = 'BannerType' ").Select(s => new Code_Master_Json { Value = s.Key, Name = s.Value });
+                    }
+                }
+                return View();
+            }
+            else return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = KendoApplyFilter.KendoData<Banner>(request);
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        [HttpPost]
+        [ValidateInput(false)]
+        public ActionResult CreateUpdateBanner(Banner banner, HttpPostedFileBase fileBanner)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]))
+            {
+                if (banner.id == 0 && fileBanner == null)
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn hình ảnh" });
+                }
+
+                banner.image = "";
+                if (fileBanner != null)
+                {
+
+                    banner.image_link = UploadBannerToAzure(fileBanner);
+                    banner.image = fileBanner.FileName;
+                }
+                banner.ngay_tao = DateTime.Now;
+                banner.nguoi_tao = currentUser.name;
+                banner.ngay_cap_nhat = DateTime.Now;
+                banner.nguoi_cap_nhat = currentUser.name;
+                string rs = new Banner_DAO().CreateUpdate(banner, currentUser.name, AppConfigs.MCCConnectionString);
+                if (!string.IsNullOrEmpty(rs))
+                {
+                    string[] StringSplit = new string[] { "@@" };
+                    if (rs.Split(StringSplit, StringSplitOptions.None)[0] == "false")
+                        return Json(new { success = false, message = rs.Split(StringSplit, StringSplitOptions.None)[1] });
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        var data = dbConn.FirstOrDefault<Banner>("ma_banner={0}".Params(rs.Split(StringSplit, StringSplitOptions.None)[1]));
+                        return Json(new { success = true, data = data });
+                    }
+                }
+
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public string UploadBannerToAzure(HttpPostedFileBase file)
+        {
+
+            Merchant_Folder_Info item = new Merchant_Folder_Info();
+            item.ma_gian_hang = currentUser.ma_gian_hang;
+            item.ten_thu_muc = AllConstant.FoldderName_Banner;
+            item.nguoi_tao = currentUser.name;
+            item.nguoi_cap_nhat = currentUser.name;
+            string a = new Merchant_Folder_Info_DAO().Insert(item, AppConfigs.MCCConnectionString);
+            string idref = currentUser.name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
+            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            var img = Image.FromStream(file.InputStream, true, true);
+            var refix = idref;
+            if (img == null)
+                return "Không tìm thấy cấu hình";
+            string FolderPath = System.Web.HttpContext.Current.Server.MapPath("~/Images/Merchant_Image_Info/" + currentUser.ma_gian_hang + "/" + AllConstant.FoldderName_Banner + "/");
+            var destinationPath = Path.Combine(FolderPath, refix);
+            if (!Directory.Exists(FolderPath))
+            {
+                Directory.CreateDirectory(FolderPath);
+            }
+            var lastRefix = "_" + img.Width.ToString() + "x" + img.Height.ToString();
+            string extension = ".jpg";
+            destinationPath += lastRefix + extension;
+            img.Save(destinationPath);
+            return new AzureHelper().UploadFile(currentUser.ma_gian_hang, refix + lastRefix + extension, destinationPath);
+        }
+
+
+    }
+}

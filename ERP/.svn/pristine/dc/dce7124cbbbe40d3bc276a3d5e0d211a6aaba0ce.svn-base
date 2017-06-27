@@ -1,0 +1,306 @@
+﻿@{
+    ViewBag.Title = "Hình ảnh";
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<link href="~/Scripts/css/custom.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script type="text/x-kendo-template" id="template">
+    <div class="image_info slider-picture" onclick="show_popup_details(this)">
+        <img src="@Url.Content("~/Images/Image_Info/")#:url#" alt="#: ten_anh # image" />
+    </div>
+</script>
+<style>
+
+    .image_info {
+        border: 1px solid rgba(0, 0, 0, .1);
+        float: left;
+        width: 204px;
+        height: 204px;
+        margin: 0;
+        padding: 5px;
+        cursor: pointer;
+    }
+
+        .image_info img {
+            float: left;
+            width: 204px;
+            height: 204px;
+        }
+
+    .demo-section .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .product {
+        float: left;
+        position: relative;
+        margin: 0 10px 10px 0;
+        padding: 0;
+    }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+    .k-window-titlebar {
+        background-color: #2283c5;
+        color: white;
+        font-weight: bold;
+    } 
+       
+</style>
+
+<div class="row-fluid span11">
+    <div class="span12">
+    </div>
+    <div class="span12">
+        <div class="row-fluid span4">
+            <span id="undo" class="k-button hide-on-narrow">Thêm ảnh</span>
+            <select id="loai_anh" name="loai_anh" style="margin-left:10px;" class="span3">
+                <option value="1">Ảnh nhỏ</option>
+                <option value="2">Ảnh lớn</option>                
+                <option value="-1">Tất cả</option>
+            </select>
+        </div>
+        <div class="row-fluid span7">
+            <div class="box-search">
+                <div class="input-search pull-right">
+                    <input class="pull-right" style="border-radius: 25px!important;margin-bottom: 15px!important;" id="txtProdInfoName"
+                           type="text" onkeyup="Search(this)" placeholder=" Tìm kiếm...">
+                    <span class="icon-in-search pull-right"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Image_Info>()
+            .Name("Grid")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Image_Info").Data("onAdditionalData"));
+                dataSource.PageSize(17);
+            })
+            .Events(events => { events.DataBound("dataBound"); })
+            .Pageable()
+            )
+        </div>
+    </div>
+    <div>
+        @(Html.Kendo().Window()
+        .Name("window_them_anh")
+        .Title("Thêm ảnh")
+        .Content(@<text>
+            @*<span class="span1"> Loại ảnh </span>
+            <select id="loai_anh" name="loai_anh" class="span3">
+                <option value="0">Ảnh lớn</option>
+                <option value="1">Ảnh nhỏ</option>
+            </select>*@
+            <div class="demo-section k-content wide">
+                <div class="wrapper">
+                    <div id="products"></div>
+                    <div class="dropZoneElement">
+                    </div>
+                </div>
+                <div class="thong-tin-anh">
+
+                </div>
+            </div>
+            <script type="text/x-kendo-template" id="template">
+                <div class="product">
+                </div>
+            </script>
+            @(Html.Kendo().Upload()
+                .Name("files")
+                .Async(a => a
+                    .Save("Save", "Image_Info")
+                    .Remove("Remove", "Upload")
+                    .AutoUpload(false)
+                )
+                .HtmlAttributes(new { accept = "image/*" })
+                .Events(e => e.Select("onSelect").Upload("onUpload").Success("onSuccess").Remove("onRemove"))
+                .ShowFileList(true)
+            )
+        </text>)
+        .Draggable()
+        .Visible(false)
+        .Resizable()
+        .Animation(false)                                
+        .Width(800)
+        .Actions(actions => actions.Pin().Minimize().Maximize().Close())
+        .Events(ev => ev.Close("onClose"))
+        )
+    </div>
+    @Html.Partial("_popup")
+    @Html.Partial("_popupCloseWindow")
+</div>
+<script>
+    var upload = $("#files").data("kendoUpload");
+    function onAdditionalData()
+    {
+        return {
+            loai: $("#loai_anh").val()
+        }
+    }
+    function onClose(e) {
+        if (!flag && $(".k-upload-files.k-reset").find("li").length!=0) {            
+            e.preventDefault();
+            showPopupCloseWindow(e);            
+        }        
+        flag = false;
+        
+    }
+    function getFileInfo(e) {
+        return $.map(e.files, function (file) {
+            var info = file.name;
+            if (file.size > 0) {
+                info += " (" + Math.ceil(file.size / 1024) + " KB)";
+            }
+            return info;
+        }).join(", ");
+    }
+    function onSelect(e) {
+
+        if (e.files.length + $(".k-upload-files.k-reset").find("li").length > 12)
+        {
+            e.preventDefault();
+            $.gritter.add({
+                title: 'Thông báo',
+                text: 'Số ảnh tối đa 1 lần up là 12!',
+                class_name: 'gritter-info'
+            });
+        }            
+        else {
+            var formatIMG = [".JPG", ".JPEG", ".PNG"];
+            for (var i = 0; i < e.files.length; i++)
+            {
+                var check = false;
+                for (var k = 0; k < formatIMG.length; k++)
+                    if (e.files[i].extension.toUpperCase() == formatIMG[k]) {
+                        {
+                            check = true;
+                            break;
+                        }
+                    }
+                if (!check)
+                {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: 'Định dạng hình ảnh không đúng!',
+                        class_name: 'gritter-error'
+                    });
+                    e.preventDefault();
+                    return;
+                }
+            }                       
+            for (var i = 0; i < e.files.length; i++) {
+                var file = e.files[i].rawFile;
+                if (file) {
+                    var reader = new FileReader();
+                    
+                    reader.onloadend = (function (file) {
+                        return function(e)
+                        {
+                            $("<div class='product' id =" + file.name.replace(/ |[. ]/g,"_") + "><img src=" + this.result + " /></div>").appendTo($("#products"));
+                        }
+                        
+                    })(file);
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+    }
+    function onRemove(e)
+    {
+        var ele = document.getElementById(e.files[0].name.replace(/ |[. ]/g, "_"));
+        if (ele != null)
+            ele.remove();
+    }
+    function onUpload(e) {
+        //e.data = { loai: $("#loai_anh").val() };
+    }
+    function onSuccess(e) {
+        $('.k-upload-files.k-reset').find('.k-file.k-file-success').remove();
+        if (e.response.success == true) {
+            flag = true;
+            if ($(".k-upload-files.k-reset").find("li").length == 0) {
+                $("#window_them_anh").data("kendoWindow").close();
+                $.gritter.add({
+                    title: 'Thông báo',
+                    text: 'Upload ảnh ' + e.files[0].name + " " + e.response.message,
+                    class_name: 'gritter-success'
+                });
+                $("#Grid").data("kendoListView").dataSource.read();
+            }            
+        }
+        else {
+            $('.k-upload-files.k-reset').find('li').remove();
+            $.gritter.add({
+                title: 'Thông báo',
+                text: e.response.message,
+                class_name: 'gritter-error'
+            });                        
+        }
+        var myNode = document.getElementById("products");
+        myNode.innerHTML = '';
+    }
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $("#undo").bind("click", function () {
+            $("#window_them_anh").data("kendoWindow").open();
+        });
+    });
+    var idSelected = 0;
+    function onAdditionalData() {
+        return {
+            loai: $("#loai_anh").val()
+        }
+    }
+
+    $("#loai_anh").change(function () {
+        $("#Grid").data("kendoListView").dataSource.read();
+    });
+
+    function dataBound(e) {
+
+    }    
+
+    function onBindDataToForm(dataItem) {
+        $("#frm")[0].reset();
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+        if (dataItem.loai == 2)
+            $("#loai").val("Ảnh lớn");
+        else
+            $("#loai").val("Ảnh nhỏ");
+        if (dataItem.url != '')
+            $("#img-url").attr("src", '@Url.Content("~/Images/Image_Info/")' + dataItem.url);
+        else
+            $("#img-url").attr("src", 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image');
+        $("#kich_thuoc").val(dataItem.chieu_rong + "x" + dataItem.chieu_cao);
+    }
+</script>
+

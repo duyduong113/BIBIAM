@@ -1,0 +1,507 @@
+﻿@using BIBIAM.Core.Entities;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = "Danh sách giá sản phẩm gian hàng";
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new Merchant_Product_Price();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-5">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item" style="cursor:default;">
+                <div class="col-md-4" style="padding-left: 0; text-align: left;">
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        <t>STT: #=id#<br>
+                        Sản phẩm gian hàng: #=fk_san_pham_gian_hang#<br>
+
+                        </t>
+                    </div>
+                </div>
+                <div class="col-md-7" style="padding-left:0;">
+                        
+                        <span class="item-status pull-right">
+                            <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                        </span>
+                        <div class="todo-tasklist-item-text">
+                            Đơn giá: #=don_gia#
+                        </div>
+                        <div class="todo-tasklist-item-text">
+                            Tồn kho: #=ton_kho#
+                        </div>
+                        <div class="todo-tasklist-item-text">
+                            Trạng thái khuyến mãi: #=trang_thai_khuyen_mai#
+                        </div>
+
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">Giá sản phẩm gian hàng</span>
+                </div>
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+                <div class="inputs" style="margin-right:10px;">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<Merchant_Product_Price>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Merchant_Product_Price"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit">
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="EditTemplate">
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase"> Thêm / Sửa giá sản phẩm gian hàng </span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <div class="tabbable-line">
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="\\#tab_1_1" data-toggle="tab"> @Html.Raw(Resources.Global._general_info) </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane in active" id="tab_1_1">
+                        <form action="@Url.Content("~/Merchant_Product_Price/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+                            <input type="hidden" name="id" value="#=id#" />
+                            <div class="actions" style="float: right; padding-bottom: 20px;">
+                                @if (all || create || update)
+                                {
+                                    <a onclick="clearForm()" class="btn btn-sm default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                                }
+                                #if(id>0){#
+                                @if (all || delete)
+                                {
+                                    <a onclick="removeItem('#=id#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                                }
+                                #}#
+                                @if (all || create || update)
+                                {
+                                    <button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                    <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                                        <a onclick="saveAndHold()" class="btn btn-sm yellow btn-circle">@Html.Raw(Resources.Global._save_hold)</a>
+                                }
+                            </div>
+
+
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="input-icon right">
+                                            <label>STT: #=id!=null ? id : ''#</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Sản phẩm gian hàng</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="fk_san_pham_gian_hang" placeholder="Sản phẩm gian hàng" value="#=fk_san_pham_gian_hang!=null ? fk_san_pham_gian_hang : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>pk_gia</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="pk_gia" placeholder="pk_gia" value="#=pk_gia!=null ? pk_gia : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>don_gia</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="don_gia" placeholder="don_gia" value="#=don_gia!=null ? don_gia : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tồn kho:</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ton_kho" placeholder="Tồn kho" value="#=ton_kho!=null ? ton_kho : ''#">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>ngay_tao</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="date"  class="form-control input-sm max100" name="ngay_tao" placeholder="ngay_tao" value="#=ngay_tao!=null ? kendo.toString(kendo.parseDate(ngay_tao),'yyyy-MM-dd'): '' #">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>nguoi_tao</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="nguoi_tao" placeholder="nguoi_tao" value="#=nguoi_tao!=null ? nguoi_tao : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ngay_cap_nhat</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="date" class="form-control input-sm max100" name="ngay_cap_nhat" placeholder="ngay_cap_nhat" value="#=ngay_tao!=null ? kendo.toString(kendo.parseDate(ngay_cap_nhat),'yyyy-MM-dd'): '' #">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>nguoi_cap_nhat</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="nguoi_cap_nhat" placeholder="nguoi_cap_nhat" value="#=nguoi_cap_nhat!=null ? nguoi_cap_nhat : ''#">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>don_gia_khuyen_mai</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="don_gia_khuyen_mai" placeholder="don_gia_khuyen_mai" value="#=don_gia_khuyen_mai!=null ? don_gia_khuyen_mai : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>trang_thai_khuyen_mai</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="trang_thai_khuyen_mai" placeholder="trang_thai_khuyen_mai" value="#=trang_thai_khuyen_mai!=null ? trang_thai_khuyen_mai : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>trang_thai_khuyen_mai_tang_qua</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="trang_thai_khuyen_mai_tang_qua" placeholder="trang_thai_khuyen_mai_tang_qua" value="#=trang_thai_khuyen_mai_tang_qua!=null ? trang_thai_khuyen_mai_tang_qua : ''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>phan_tram_khuyen_mai</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="phan_tram_khuyen_mai" placeholder="phan_tram_khuyen_mai" value="#=phan_tram_khuyen_mai!=null ? phan_tram_khuyen_mai : ''#">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <div class="form-actions right">
+                            @if (all || create || update)
+                            {
+                                <a onclick="clearForm()" class="btn btn-sm default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                            }
+                            #if(id>0){#
+                            @if (all || delete)
+                            {
+                                <a onclick="removeItem('#=id#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                            }
+                            #}#
+                            @if (all || create || update)
+                            {
+                                <button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                                    <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                                                            <a onclick="saveAndHold()" class="btn btn-sm yellow btn-circle">@Html.Raw(Resources.Global._save_hold)</a>
+                            }
+                        </div>
+                    </div>
+                </form>
+             </div>
+
+                    @*#if(id>0){#
+                        @if (all)
+                        {
+                            <div class="tab-pane" id="tab_1_2">
+                                @Html.Partial("_Color")
+                            </div>
+                        }
+                        #}#*@
+                </div>
+            </div>
+
+        </div>
+    </div>
+</script>
+
+
+
+@*<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">Chưa có sản phẩm gian hàng nào :( </div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>*@
+
+<script>
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeItem(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa Merchant Product Price",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Product_Price/deleteItem", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Xóa thành công');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+
+    function saveAndHold() {
+        $("input[name=id]").val(0);
+        $('#EditForm').submit();
+    }
+
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        cardSelected(e);
+        //clearFormColor(data.id);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        //don_gia: { minlength: 4, required: !0 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    if (currentData.id == 0) {
+                                        loadForm(data.data);
+                                    }
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "carCode", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "carColor", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "name", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "productionYear", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+
+
+
+
+    function onDatabound(e) {
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+
+
+
+</script>

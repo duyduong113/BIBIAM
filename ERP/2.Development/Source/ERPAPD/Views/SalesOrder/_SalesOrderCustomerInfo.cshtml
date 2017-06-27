@@ -1,0 +1,123 @@
+﻿<style>
+    .info-name {
+        color: #8C8787;
+        font-size: 11px;
+    }
+
+    .para-info {
+        margin-bottom: 0px;
+        line-height: 23px;
+    }
+
+    .info-value {
+        font-size: 12px;
+        font-weight: bold;
+    }
+</style>
+<script type="text/x-kendo-template" id="CustomerInfoTemplate">
+    <input type="hidden" name="CustomerId" value="#=Id#" />
+    <div class="row-fluid" id="divCustomerInfo">
+        <div class="span12">
+            <div class="para-info" style="color:\\#0082C1;">
+                <span class="info-value"> #=CustomerId#: #=FirstName# #=LastName#</span>
+            </div>
+            #if(Id!=3){#
+            <div class="para-info">
+                <span class="info-name">Loại:  </span>
+                <span class="info-value">Khách hàng #=Type#</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Doanh số: </span>
+                <span class="info-value"> #=kendo.toString(IncomePoint,'n0')# vnđ</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Điểm tích lũy: </span>
+                <span class="info-value"> #=kendo.toString(ICPoint - UsedPoint,'n0')# điểm <span class="info-name" style="font-weight: normal;"> - Tương ứng: </span> #=kendo.toString((ICPoint - UsedPoint)*1000,'n0')# vnđ</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Ngày sinh: </span>
+                <span class="info-value"> #=kendo.toString(kendo.parseDate(Birthday),'dd/MM/yyyy')#</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Số điện thoại: </span>
+                <span class="info-value"> #=Phone#</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Email: </span>
+                <span class="info-value"> #=Email#</span>
+            </div>
+            <div class="para-info">
+                <span class="info-name">Địa chỉ: </span>
+                <span class="info-value"> #=Address#</span>
+            </div>
+            #}#
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="divTabHistoryTemplate">
+    <div class="row-fluid">
+        <div class="tabbable">
+            <ul class="nav nav-tabs tab-color-blue" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="\\#tabOrderHistory">
+                        <i class="icon-calendar"></i>
+                        Lịch sử giao dịch
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content" style="padding: 0 0px 0px 0px;">
+                <div id="tabOrderHistory" class="tab-pane active">
+                    @(Html.Kendo()
+                        .Grid<DecaPay.Models.Sales_Order_Header>()
+                        .Name("GridOrderHistory")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.SalesOrderId).Title("Mã đơn hàng").Width(100);
+                            //columns.Bound(p => p.CustomerId).Title("Khách hàng").Width(100);
+                            columns.Bound(p => p.OrderDate).Title("Ngày GD").Width(120).Format("{0:dd/MM/yyyy}");
+                            columns.Bound(p => p.Amount).Title("Tổng tiền").Width(120).Format("{0:n0}");
+                            columns.Bound(p => p.CreatedAt).Title("Tạo lúc").Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.CreatedBy).Title("Tạo bởi").Width(100);
+                        })
+                        .Scrollable()
+                        .Events(e => e.DataBound("ResizeOrderHistoryGrid"))
+                        .Pageable(pageable => pageable.ButtonCount(5))
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(20)
+                        .Sort(sort => sort.Add(a => a.CreatedAt).Descending())
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                        }).Read(read => read
+                        .Action("OrderHistoryRead", "SalesOrder", new { CustomerId = "#=CustomerId#" })
+                        )).ToClientTemplate()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script>
+    function ResizeOrderHistoryGrid() {
+        var offsetbottom;
+        //check tab nào đang hiển thị
+        if (parseInt($('#GridOrderHistory').offset().top) > 0) {
+            //tab thông báo đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#GridOrderHistory').offset().top);
+            var gridElement = $("#GridOrderHistory");
+            dataArea = gridElement.find(".k-grid-content"),
+      otherElements = gridElement.children().not(".k-grid-content"),
+      otherElementsHeight = 0;
+            otherElements.each(function () {
+                otherElementsHeight += $(this).outerHeight();
+            });
+            $("#GridOrderHistory .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+            $("#GridTicketHistory .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+            $("#GridSendSMS .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+        }
+    }
+</script>

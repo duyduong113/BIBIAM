@@ -1,0 +1,92 @@
+﻿@using BIBIAM.Core
+@using BIBIAM.Core.Entities
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.report_price);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+}
+<script type="text/x-kendo-template" id="ReportPriceHeader">
+    <form action="@Url.Content("~/Merchant_ReportPrice/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="row">
+            <div class="toolbar col-md-12">
+                @if (all || create || update)
+                {
+                    <button type="button" onclick="clearForm()" class="btn btn-default btn-circle"><i class="fa fa-ban" aria-hidden="true"></i> Hủy</button>
+                    <button type="button" onclick="Save()" class="btn blue btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> Lưu</button>
+                }
+                #if(id>0&&ma_bao_gia!=null){#
+                @if (all || create || update)
+                {
+                    <button type="button" onclick="SaveAs()" class="btn btn-primary btn-circle"><i class="fa fa-floppy-o" aria-hidden="true"></i> Lưu Mới</button>
+                    <a class="btn btn-sm blue" href="javascript:void(0)" onclick="review()"><i class="fa fa-download" aria-hidden="true"></i> In báo giá </a>
+                }
+                #}#
+            </div>
+
+                <div class="form-group col-md-12">
+                    <div class="row">
+                        <input type="text" class="hidden" name="id" value="#=id?id:0#" id="id"/>
+                        <input type="text" class="hidden" name="ma_bao_gia" value="#=ma_bao_gia?ma_bao_gia:''#" id="ma_bao_gia" />
+                        <div class="col-md-3">
+                            <label>Tên khách hàng</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" name="ten_khach_hang" id="ten_khach_hang" value="#=ten_khach_hang?ten_khach_hang:''#">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label>Email</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" name="email" id="email" value="#=email?email:''#">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Số điện thoại</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" name="so_dien_thoai" id="so_dien_thoai" value="#=so_dien_thoai?so_dien_thoai:''#">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Người báo giá</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" name="nguoi_bao_gia" id="nguoi_bao_gia" value="#=nguoi_bao_gia?nguoi_bao_gia:''#">
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <label>Địa chỉ</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <input type="text" class="form-control input-sm max100" name="dia_chi" id="dia_chi" value="#=dia_chi?dia_chi:''#">
+                            </div>
+                        </div>
+                        #if(id>0){#
+                        <div class="col-md-3">
+                            <label>Ngày báo giá</label>
+                            <input type="text" class="form-control input-sm max100" value="#=ngay_bao_gia?kendo.toString(kendo.parseDate(ngay_bao_gia),'dd/MM/yyyy'):''#" readonly>
+                        </div>
+                        #}#
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Ghi chú</label>
+                            <div class="input-icon right">
+                                <i class="fa"></i>
+                                <textarea rows="2" class="form-control input-sm max100" name="ghi_chu" id="ghi_chu"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 gridDetail">
+                </div>
+            </div>
+    </form>
+</script>

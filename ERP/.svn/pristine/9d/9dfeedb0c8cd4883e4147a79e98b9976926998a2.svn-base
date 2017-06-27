@@ -1,0 +1,399 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using MCC.Controllers;
+using MCC.Filters;
+using MCC.Helpers;
+using Kendo.Mvc.Extensions;
+using System.Text.RegularExpressions;
+using System.Text;
+using BIBIAM.Core.Entities;
+using BIBIAM.Core.Data.DataObject;
+using BIBIAM.Core;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export")]
+    public class Merchant_OrderController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                ViewBag.isAdmin = isAdmin;
+                return View();
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = new DataSourceResult();
+                    if (isAdmin)
+                        data = KendoApplyFilter.KendoDataByQuery<Merchant_OrderHeader>(request, "select a.*,b.ten_quan_huyen as ten_quan_huyen,c.ten_thanh_pho as ten_tinh_thanh from Merchant_OrderHeader as a left join location_district as b on a.quan_huyen_giao=b.ma_quan_huyen left join location_city as c on a.tinh_thanh_giao=c.ma_thanh_pho","");
+                    else
+                        data = KendoApplyFilter.KendoDataByQuery<Merchant_OrderHeader>(request, "select a.*,b.ten_quan_huyen as ten_quan_huyen,c.ten_thanh_pho as ten_tinh_thanh from Merchant_OrderHeader as a left join location_district as b on a.quan_huyen_giao=b.ma_quan_huyen left join location_city as c on a.tinh_thanh_giao=c.ma_thanh_pho","ma_gian_hang={0}".Params(currentUser.ma_gian_hang));
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+        public ActionResult ChangeStatus(string ma_don_hang, string trang_thai_don_hang)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"] || accessDetail.access["edit"]))
+            {
+                string rs = new Merchant_Order_DAO().ChangeStatus(ma_don_hang, trang_thai_don_hang, currentUser.name, AppConfigs.MCCConnectionString);
+                if (!string.IsNullOrEmpty(rs))
+                {
+                    string[] StringSplit = new string[] { "@@" };
+                    if (rs.Split(StringSplit, StringSplitOptions.None)[0] == "false")
+                        return Json(new { success = false, error = rs.Split(StringSplit, StringSplitOptions.None)[1] });
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        var data = dbConn.FirstOrDefault<Merchant_OrderHeader>("select a.*,b.ten_quan_huyen as ten_quan_huyen,c.ten_thanh_pho as ten_tinh_thanh from Merchant_OrderHeader as a left join location_district as b on a.quan_huyen_giao=b.ma_quan_huyen left join location_city as c on a.tinh_thanh_giao=c.ma_thanh_pho where ma_don_hang={0}".Params(ma_don_hang));
+                        return Json(new { success = true, data = data });
+                    }
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Không có quyền" });
+            }
+            return Json(new { success = true });
+        }
+        public ActionResult Cancel(string ma_don_hang, string ly_do_huy)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"] || accessDetail.access["edit"]))
+            {
+                string rs = new Merchant_Order_DAO().Cancel(ma_don_hang, ly_do_huy, currentUser.name, AppConfigs.MCCConnectionString);
+                if (!string.IsNullOrEmpty(rs))
+                {
+                    string[] StringSplit = new string[] { "@@" };
+                    if (rs.Split(StringSplit, StringSplitOptions.None)[0] == "false")
+                        return Json(new { success = false, error = rs.Split(StringSplit, StringSplitOptions.None)[1] });
+                    using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+                    {
+                        var data = dbConn.FirstOrDefault<Merchant_OrderHeader>("ma_don_hang={0}".Params(ma_don_hang));
+                        return Json(new { success = true, data = data });
+                    }
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Không có quyền" });
+            }
+            return Json(new { success = true });
+        }
+        public ActionResult CreateUpdate(Merchant_OrderHeader data, List<Merchant_OrderDetail> details)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                    try
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || (accessDetail.access["create"] && accessDetail.access["update"])))
+                        {
+                            if (details == null)
+                            {
+                                return Json(new { success = false, error = "Vui lòng chọn sản phẩm!" });
+                            }
+                            Customer custom = dbConn.FirstOrDefault<Customer>("ma_khach_hang={0}".Params(data.ma_khach_hang));
+                            if(data.id>0 || data.ma_don_hang==null)
+                            {
+                                Merchant_OrderHeader exist = dbConn.FirstOrDefault<Merchant_OrderHeader>("ma_don_hang={0}".Params(data.ma_don_hang));
+                                
+                                if(exist!=null)
+                                {
+                                    if (exist.trang_thai_don_hang != AllConstant.trang_thai_don_hang.NEW)
+                                    {
+                                        return Json(new { success = false, error = "Đơn hàng này đã được xác nhận, không được phép chình sửa!" });
+                                    }
+                                    
+                                    exist.hinh_thuc_thanh_toan = data.hinh_thuc_thanh_toan;
+                                    exist.ngay_cap_nhat = DateTime.Now;
+                                    exist.nguoi_cap_nhat = currentUser.name;
+                                    exist.quan_huyen_giao = data.quan_huyen_giao;
+                                    exist.tinh_thanh_giao = data.tinh_thanh_giao;
+                                    exist.so_dien_thoai_giao = data.so_dien_thoai_giao;
+                                    exist.dia_chi_giao_hang = data.dia_chi_giao_hang;
+                                    dbConn.UpdateOnly(exist,
+                                        onlyFields: p =>
+                                        new
+                                        {
+                                            p.hinh_thuc_thanh_toan,
+                                            p.ngay_cap_nhat,
+                                            p.nguoi_cap_nhat,
+                                            p.quan_huyen_giao,
+                                            p.tinh_thanh_giao,
+                                            p.so_dien_thoai_giao,
+                                            p.dia_chi_giao_hang,
+                                        },
+                                         where: p => p.ma_don_hang == exist.ma_don_hang);
+                                }
+                                data = exist;
+                            }
+                            else
+                            {
+                                
+                                //Tạo OrderHeader
+                                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                                var beginString = new char[3];
+                                var lastString = new char[3];
+                                var random = new Random();
+
+                                for (int i = 0; i < beginString.Length; i++)
+                                {
+                                    beginString[i] = chars[random.Next(chars.Length)];
+                                }
+                                for (int i = 0; i < lastString.Length; i++)
+                                {
+                                    lastString[i] = chars[random.Next(chars.Length)];
+                                }
+                                data.ma_don_hang = string.Join("", beginString) + DateTime.Now.ToString("yyyyMMddHHmm") + string.Join("", lastString);
+                                data.quan_huyen_giao = data.quan_huyen_giao;
+                                data.tinh_thanh_giao = data.tinh_thanh_giao;
+                                data.ma_gian_hang = currentUser.ma_gian_hang;
+                                data.hoten = custom.hoten;
+                                data.trang_thai_don_hang = AllConstant.trang_thai_don_hang.NEW;
+                                data.ngay_tao = DateTime.Now;
+                                data.ngay_cap_nhat = DateTime.Now;
+                                data.ngay_lay_hang = DateTime.Now;
+                                data.ngay_giao_hang = DateTime.Now;
+                                data.ngay_xac_nhan = DateTime.Now;
+                                data.ngay_hen_giao_hang = DateTime.Now;
+                                data.nguoi_tao = User.Identity.Name;
+                                dbConn.Insert(data);
+                                int Id = (int)dbConn.GetLastInsertId();
+                                data.id = Id;
+                                
+                            }
+                            
+                            //Xóa tất các các OrderDetail đã có của đơn hàng này
+                            dbConn.Delete<Merchant_OrderDetail>("ma_don_hang={0}".Params(data.ma_don_hang));
+                            //Tạo OrderDetail mới
+                            Merchant_Product productinfo = new Merchant_Product();
+                            Merchant_OrderDetail existdetail = new Merchant_OrderDetail();
+                            foreach (Merchant_OrderDetail item in details)
+                            {
+                                if (item.ma_san_pham != null)
+                                {
+                                    productinfo = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0} and ma_gian_hang={1}", item.ma_san_pham, data.ma_gian_hang);
+                                    existdetail = dbConn.FirstOrDefault<Merchant_OrderDetail>("ma_don_hang={0} and ma_san_pham={1}".Params(data.ma_don_hang, item.ma_san_pham));
+                                    if (existdetail != null)
+                                    {
+                                        existdetail.so_luong = existdetail.so_luong + item.so_luong;
+                                        dbConn.UpdateOnly(existdetail,
+                                        onlyFields: p =>
+                                        new
+                                        {
+                                            p.so_luong,
+                                        },
+                                         where: p => p.ma_don_hang == existdetail.ma_don_hang && p.ma_san_pham == existdetail.ma_san_pham);
+                                    }
+                                    else
+                                    {
+                                        item.ma_don_hang = data.ma_don_hang;
+                                        item.ma_gian_hang = data.ma_gian_hang;
+                                        item.ten_san_pham = productinfo.ten_san_pham;
+                                        item.don_gia = productinfo.don_gia;
+                                        item.thanh_tien = item.so_luong * productinfo.don_gia;
+                                        item.ngay_tao = DateTime.Now;
+                                        item.ngay_cap_nhat = DateTime.Now;
+                                        item.nguoi_tao = User.Identity.Name;
+                                        dbConn.Insert(item);
+                                    }
+                                }
+
+                            }
+                            return Json(new { success = true, data = data });
+
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Không có quyền tạo" });
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        return Json(new { success = false, error = "Lỗi" });
+                    }
+            }
+            
+        }
+
+        public ActionResult ReadOrderDetail([DataSourceRequest]DataSourceRequest request, string ma_don_hang,string ma_gian_hang)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || (accessDetail.access["view"] && accessDetail.access["create"] && accessDetail.access["update"])))
+            {
+                using (var dbConn = MCC.Helpers.OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    var data = new DataSourceResult();
+                    data = KendoApplyFilter.KendoDataByQuery<Merchant_OrderDetail>(request, "select a.*,ISNULL(b.book_available,0) as book_available from Merchant_OrderDetail a left join Merchant_Product_Warehouse b on a.ma_san_pham=b.ma_san_pham and a.ma_gian_hang=b.ma_gian_hang where a.ma_don_hang={0} and a.ma_gian_hang={1}".Params(ma_don_hang, ma_gian_hang),"");
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult GetProductInfo(string ma_san_pham)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new Merchant_Product();
+                if (isAdmin)
+                    data = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham = {0}", ma_san_pham);
+                else
+                    data = dbConn.FirstOrDefault<Merchant_Product>("ma_gian_hang ={0} and ma_san_pham = {1}", currentUser.ma_gian_hang, ma_san_pham);
+                if (data != null)
+                {
+                    return Json(new { success = true, data = data, JsonRequestBehavior.AllowGet });
+                }
+                return Json(new { success = false, error = "Sản phẩm không tồn tại!", JsonRequestBehavior.AllowGet });
+            }
+        }
+        public ActionResult GetBookAvailable(string ma_san_pham)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new Merchant_Product_Warehouse();
+                if (isAdmin)
+                    data = dbConn.FirstOrDefault<Merchant_Product_Warehouse>("ma_san_pham = {0}", ma_san_pham);
+                else
+                    data = dbConn.FirstOrDefault<Merchant_Product_Warehouse>("ma_gian_hang ={0} and ma_san_pham = {1}", currentUser.ma_gian_hang, ma_san_pham);
+                if (data != null)
+                {
+                    return Json(new { success = true, data = data.book_available, JsonRequestBehavior.AllowGet });
+                }
+                return Json(new { success = false, error = "Sản phẩm không tồn tại!", JsonRequestBehavior.AllowGet });
+            }
+        }
+        public ActionResult GetCustomer([DataSourceRequest]DataSourceRequest request, string text)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["read"]))
+                {
+                    var data = new List<CustomerModelView>();
+                    if (isAdmin)
+                    {
+                        data = dbConn.Select<CustomerModelView>("select ma_khach_hang,hoten from Customer");
+                    }
+                    else
+                    {
+                        data = dbConn.Select<CustomerModelView>("select b.ma_khach_hang,b.hoten from Merchant_Customer a left join Customer b on a.ma_khach_hang=b.ma_khach_hang where a.ma_gian_hang={0}".Params(currentUser.ma_gian_hang));
+                    }
+
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+                return Json(new { message = "Không có quyền!" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult GetCustomerInfo(string ma_khach_hang)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["read"]))
+                {
+                    var data = new Customer();
+                    data = dbConn.FirstOrDefault<Customer>("ma_khach_hang={0}".Params(ma_khach_hang));
+                    return Json(new { success = true, data = data, JsonRequestBehavior.AllowGet });
+                }
+                return Json(new { success = false, error = "Lỗi", JsonRequestBehavior.AllowGet });
+            }
+        }
+        public ActionResult GetCity()
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<location_city>();
+                data = dbConn.Select<location_city>();
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult GetDistrict(string ma_thanh_pho)
+        {
+            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+            {
+                var data = new List<location_district>();
+                data = dbConn.Select<location_district>("ma_thanh_pho={0}".Params(ma_thanh_pho));
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+        //public ActionResult Confirm(string ma_don_hang,List<Merchant_OrderDetail> listproduct)
+        //{
+        //    if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"] || accessDetail.access["edit"]))
+        //    {
+        //        try
+        //        {
+        //            using (var dbConn = MCC.Helpers.OrmliteConnection.openConn())
+        //            {
+        //                //Xóa toàn bộ sản phẩm lúc chưa xác nhận
+        //                dbConn.Delete<Merchant_OrderDetail>("ma_don_hang={0} and ma_gian_hang={1}".Params(ma_don_hang, currentUser.ma_gian_hang));
+        //                //Insert các sản phẩm đã xác nhận vào đơn hàng.
+        //                Merchant_OrderDetail data = new Merchant_OrderDetail();
+        //                Merchant_Product product = new Merchant_Product();
+        //                Merchant_OrderHeader header = new Merchant_OrderHeader();
+        //                Merchant_Product_Warehouse check_book = new Merchant_Product_Warehouse();
+        //                foreach (var item in listproduct)
+        //                {
+        //                    product = dbConn.FirstOrDefault<Merchant_Product>("ma_san_pham={0} and ma_gian_hang={1}".Params(item.ma_don_hang, currentUser.ma_gian_hang));
+        //                    if (product == null)
+        //                    {
+        //                        continue;
+        //                    }
+        //                    check_book = dbConn.FirstOrDefault<Merchant_Product_Warehouse>("ma_san_pham={0} and ma_gian_hang={1}".Params(item.ma_san_pham, currentUser.ma_gian_hang));
+        //                    if(item.so_luong>check_book.book_available)
+        //                    {
+        //                        continue;
+        //                    }
+        //                    data.ma_don_hang = ma_don_hang;
+        //                    data.ma_gian_hang = currentUser.name;
+        //                    data.ma_san_pham = item.ma_san_pham;
+        //                    data.so_luong = item.so_luong;
+        //                    data.sp_khuyen_mai = item.sp_khuyen_mai;
+        //                    data.ten_san_pham = product.ten_san_pham;
+        //                    data.so_luong = item.so_luong;
+        //                    data.thanh_tien = item.so_luong * product.don_gia;
+        //                    data.don_gia = product.don_gia;
+        //                    dbConn.Insert(data);
+        //                    dbConn.Update<Merchant_Product_Warehouse>("update Merchant_Product_Warehouse set book_available=book_available-{0} where ma_san_pham={1} and ma_gian_hang={1}".Params(data.so_luong, data.ma_san_pham, currentUser.ma_gian_hang));
+        //                }
+        //                string trang_thai_don_hang="Confirm";
+        //                //Sync qua FE khi đơn hàng đã được xác nhận
+        //                //new Merchant_Order_DAO().SyncOrderToFE(data.ma_don_hang, data.ma_gian_hang, AppConfigs.MCCConnectionString);
+        //                ChangeStatus(ma_don_hang, trang_thai_don_hang);
+        //                header = dbConn.FirstOrDefault<Merchant_OrderHeader>("ma_don_hang={0} and ma_gian_hang={1}".Params(ma_don_hang, currentUser.ma_gian_hang));
+        //                return Json(new { success = true, data=header });
+        //            }
+                    
+        //        }
+        //        catch(Exception ex)
+        //        {
+        //            return Json(new { success = false, error = "Lỗi trong quá trình xác nhận!" });
+        //        }
+                
+        //    }
+        //    else
+        //    {
+        //        return Json(new { success = false, error = "Không có quyền" });
+        //    }
+        //}
+        
+    }
+}

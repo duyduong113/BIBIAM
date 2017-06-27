@@ -1,0 +1,260 @@
+﻿@model CRM24H.Models.CRM_Ticket
+@{
+    ViewBag.Title = "AddNew";
+    var isDevice = Request.Browser.IsMobileDevice;
+    var isTablet = Request.UserAgent.Contains("Android") && !isDevice;
+
+    var listPriority = new List<Object>();
+    listPriority.Add(new { Value = "TPRI002", Name = "Medium" });
+    listPriority.Add(new { Value = "TPRI003", Name = "High" });
+    listPriority.Add(new { Value = "TPRI001", Name = "Urgent" });
+    ViewBag.listPriority = listPriority;
+
+    var listImpact = new List<Object>();
+    listImpact.Add(new { Value = "TIMP001", Name = "Low" });
+    listImpact.Add(new { Value = "TIMP002", Name = "Medium" });
+    listImpact.Add(new { Value = "TIMP003", Name = "High" });
+    ViewBag.listImpact = listImpact;
+
+}
+@if (!isDevice)
+{
+    <style>
+        .editor-label {
+            padding: 0 0 0 !important;
+        }
+
+        .k-edit-form-container {
+            width: 500px;
+        }
+
+        .k-invalidx {
+            width: 80%;
+        }
+    </style>
+}
+else
+{
+    <style>
+        .editor-label {
+            padding: 0 0 0 !important;
+        }
+
+        .k-edit-form-container {
+            width: auto;
+        }
+
+        .k-invalidx {
+            width: 100%;
+        }
+    </style>
+}
+
+<div class="form-horizontal">
+    <div class="control-group">
+        <label class="control-label" for="Title">Tiêu đề</label>
+        <div class="controls">
+            <input class="k-invalidx" placeholder="Tiêu đề của yêu cầu(tối đa 100 ký tự)" data-val="true" data-val-required="The Title field is required." id="Title" name="Title" type="text" value="" data-bind="value:Title" aria-invalid="true">
+            <span class="field-validation-valid" data-valmsg-for="Title" data-valmsg-replace="true"></span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="Detail">Mô tả</label>
+        <div class="controls">
+            <textarea class="k-invalidx" placeholder="Mô tả nội dung yêu cầu(tối đa 500 ký tự)" style="height:100px;" data-val="true" data-val-required="The Detail field is required." id="Detail" name="Detail" type="text" value="" data-bind="value:Detail" aria-invalid="true"> </textarea>
+            <span class="field-validation-valid" data-valmsg-for="Detail" data-valmsg-replace="true"></span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="Category">Nhóm yêu cầu</label>
+        <div class="controls">
+            <select class="k-invalidx" data-placeholder="@Resources.Multi.Select @Resources.Multi.Group.ToLower() yêu cầu" id="Category" name="Category" onchange="getlisttype('')"> </select>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="TypeID">TypeID</label>
+        <div class="controls">
+            <select class="k-invalidx" style="" data-val="true" data-val-required="The TypeID field is required." id="TypeID" name="TypeID" data-bind="value:TypeID" aria-invalid="true" onchange="getlistassignee()">
+                <option selected value="">Vui lòng chọn nhóm yêu cầu trước</option>
+            </select>
+            <span class="field-validation-valid" data-valmsg-for="TypeID" data-valmsg-replace="true" style="display:inline"></span>
+        </div>
+    </div>
+
+    @*<div class="control-group">
+        <label class="control-label" for="Category">Nhóm yêu cầu</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList()
+              .Name("Category")
+              .HtmlAttributes(new { style = "width:85%" })
+              .Filter("contains")
+              .DataTextField("Name")
+              .DataValueField("CategoryID")
+              .BindTo(ViewBag.listCategory)
+            )
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="TypeID">TypeID</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList()
+              .Name("TypeID")
+              .HtmlAttributes(new { style = "width:85%" })
+              .DataTextField("Name")
+              .DataValueField("TypeID")
+              .DataSource(source =>
+              {
+                  source.Read(read =>
+                  {
+                      read.Action("GetListType", "CRMTicket")
+                          .Data("filterType");
+                  })
+                  .ServerFiltering(true);
+              })
+           
+              .CascadeFrom("Category")
+            )
+    
+          
+        </div>
+    </div>*@
+
+    @if (!isDevice)
+    {
+        <div class="control-group">
+            <label class="control-label" for="CustomerID">Khách hàng</label>
+            <div class="controls">
+                @(Html.Kendo().AutoComplete()
+                              .Name("CustomerID")
+                              .DataTextField("Phone")
+                                  .DataSource(source =>
+                                  {
+                                      source.Read(read =>
+                                      {
+                                          read.Action("GetSuggestCustomer", "Ticket").Data("onAdditionalData");
+                                      }).ServerFiltering(true);
+                                  })
+                                   .HtmlAttributes(new { @class = "k-invalidx", style = "font-size:13px;width:310px;" })
+                                  .Filter("containts")
+                                  .MinLength(4)
+                                  .Height(370)
+                                  .Placeholder("Địa chỉ email hoặc số điện thoại")
+                                  //.Events(e =>
+                                  //{
+                                  //    e.Select("AutoFillForm");
+                                  //})
+                                  .HeaderTemplate("<div class=\"dropdown-header\">" +
+                                                "<span class=\"k-widget k-header\">Tên</span>" +
+                                            "<span class=\"k-widget k-header\">Điện thoại</span>" +
+                                                "<span class=\"k-widget k-header\">Email</span>" +
+                                            "</div>")
+                                                    .Template("<span class=\"k-state-default\"><p>#: data.CustomerName #</p></span>" +
+                                                            "<span class=\"k-state-default\"><p>#: data.Phone #</p></span>" +
+                                                            "<span class=\"k-state-default\"><p>#: data.Email #</p></span>"
+                                                            )
+                )
+                @*<input class=" k-invalidx" placeholder="Địa chỉ email hoặc số điện thoại" id="CustomerID" name="CustomerID" type="text" value="" data-bind="value:CustomerID" />*@
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="control-group">
+            <label class="control-label" for="CustomerID">Khách hàng</label>
+            <div class="controls">
+                
+                <input class=" k-invalidx" placeholder="Địa chỉ email hoặc số điện thoại" id="CustomerID" name="CustomerID" type="text" value="" data-bind="value:CustomerID" />
+            </div>
+        </div>
+    }
+
+    @if (!isDevice)
+    {
+        <div class="control-group">
+            <label class="control-label" for="OrderID">@Resources.Multi.OrderCode</label>
+            <div class="controls" id="divOrderID">
+                <input class=" k-invalidx" placeholder="@Resources.Multi.OrderCode" id="OrderID" name="OrderID" type="text" value="" data-bind="value:OrderID" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="control-group">
+            <label class="control-label" for="OrderID">@Resources.Multi.OrderCode</label>
+            <div class="controls" id="divOrderID">
+                <input class=" k-invalidx" placeholder="@Resources.Multi.OrderCode" id="OrderID" name="OrderID" type="text" value="" data-bind="value:OrderID" />
+            </div>
+        </div>
+    }
+    <div class="control-group">
+        <label class="control-label" for="Priority">Độ ưu tiên</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList()
+                          .Name("Priority")
+                          .DataTextField("Name")
+                          .DataValueField("Value")
+                          .HtmlAttributes(new { style = "width:85%" })
+                          .Filter("contains")
+                          .BindTo(listPriority)
+            )
+           
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="Impact">Mức độ ảnh hưởng</label>
+        <div class="controls">
+            @(Html.Kendo().DropDownList()
+                          .Name("Impact")
+                          .DataTextField("Name")
+                          .DataValueField("Value")
+                          .HtmlAttributes(new { style = "width:85%" })
+                          .Filter("contains")
+                          .BindTo(listImpact)
+            )
+            @*<select class="k-invalidx" data-val="true" data-placeholder="Mức độ ảnh hưởng" data-val-required="The Impact field is required." id="Impact" name="Impact" data-bind="value:Impact" aria-invalid="true">
+                @foreach (var item in ViewBag.listImpact)
+                {
+                    <option value="@item.Value">@item.Name</option>
+                }
+            </select>
+            <span class="field-validation-valid" data-valmsg-for="Impact" data-valmsg-replace="true" style="display:inline"></span>*@
+        </div>
+    </div>
+
+
+    @if (!isDevice)
+    {
+
+        <div class="control-group" id="divpreAssignee" style="display:none">
+            <label for="Assignee" class="control-label">Phân công cho</label>
+            <div class="controls">
+                <select id="preAssignee" name="preAssignee" data-bind="value:preAssignee" class="k-invalidx" data-placeholder="Chọn người xử lý yêu cầu"> </select>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="control-group" id="divpreAssignee" style="display:none">
+            <label for="Assignee" class="control-label">Phân công cho</label>
+            <div class="controls">
+                <select id="preAssignee" name="preAssignee" data-bind="value:preAssignee" class='k-invalidx chosen-select span2' data-placeholder="Chọn người xử lý yêu cầu"> </select>
+            </div>
+        </div>
+    }
+
+    <div class="control-group">
+        <label for="Follower" class="control-label">Follower(s)</label>
+        <div class="controls">
+            @{
+                Html.Kendo().MultiSelectFor(model => model.Follower)
+                    .DataValueField("UserName")
+                    .DataTextField("UserName")
+                    .BindTo(CRM24H.Models.CRM_Ticket_Follower.GetListUser())
+                    .HtmlAttributes(new { @class = "chosen-container chosen-container-multi", placeholder = "Thêm người theo dõi yêu cầu này", style = "width:84%;" })
+                    .Render();
+                Html.HiddenFor(model => model.Follower);
+            }
+        </div>
+    </div>
+</div>

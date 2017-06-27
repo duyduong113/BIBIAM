@@ -1,0 +1,450 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listAccountStatus = new List<Object>();
+    listAccountStatus.Add(new { Code = "KT_CHUA_XAC_NHAN", Name = "Thường" });
+    listAccountStatus.Add(new { Code = "HAI_CHIEU", Name = "Hai chiều" });
+    ViewBag.listAccountStatus = listAccountStatus;
+}
+@Html.Partial("popup")
+<div class="row-fluid">
+    <div class="span12">
+        <div class="span2">
+            <div class="controls">
+                <select id="listWebsite" class="select" data-placeholder="Website" style="width:100%" onchange="changeWebsite()">
+                    <option value="">-- Chọn Website--</option>
+                    @foreach (var item in ViewBag.listWebsite)
+                    {
+                    <option value="@item.Code">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <select id="listCategory" class="select" data-placeholder="Chuyên mục" style="width:100%">
+                    <option value="">-- Chọn chuyên mục--</option>
+
+                </select>
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <select id="listLocation" class="select" data-placeholder="Vị trí" style="width:100%">
+                    <option value="">-- Chọn vị trí--</option>
+                    @foreach (var item in ViewBag.listLocation)
+                    {
+                    <option value="@item.Code">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <select id="listTeam" class="select" data-placeholder="Nhóm" style="width:100%" onchange="changeTeam()">
+                    <option value="">-- Chọn nhóm--</option>
+                    @foreach (var item in ViewBag.listTeam)
+                    {
+                    <option value="@item.Code">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <select id="listStaff" class="select" data-placeholder="Nhân viên" style="width:100%">
+                    <option value="">-- Chọn nhân viên--</option>
+                    @foreach (var item in ViewBag.listStaff)
+                        {
+                            <option value="@item.Code">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="row-fluid" style="margin-bottom:5px">
+    <div class="span12">
+        <div class="span4">
+            <div class="controls">
+                @(Html.Kendo().AutoComplete()
+                              .Name("txt-CustomerID")
+                              .DataTextField("CustomerName")
+                              .Animation(true)
+                              .Placeholder("Nhập tên khách hàng")
+                              .Filter("contains")
+                              .MinLength(1)
+                              .HtmlAttributes(new { style = "width:100%", @class = "input-medium" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("CustomerRead", "CRM_CustomerSupport")
+                                          .Data("onAdditionalData");
+                                  })
+                                  .ServerFiltering(true);
+                              })
+                             .Events(e =>
+                             {
+                                 e.Select("onSelectCustomer");
+                                 e.Change("onChange");
+                                 //e.Filtering("onFilter");
+                             })
+                             .Template("<span>#=CustomerCode# - #=CustomerName#</span>")
+                )
+                <input type="hidden" class="span12" id="customer-id" placeholder="Khách hàng" />
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <input type="text" class="input-xs" id="bookcode" placeholder="Mã book" />
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <input type="text" class="input-xs" id="brand" placeholder="Nhãn hàng" />
+            </div>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <input type="text" class="input-xs" id="range-date" placeholder="Từ ngày - Đến ngày" />
+            </div>
+        </div>
+
+        <div class="span2">
+            <div class="controls">
+                <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none;" onclick="filter()">Tìm kiếm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+              .Grid<ERPAPD.Models.BookLocationViewModel>()
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#' IDBookLocation='#=IDBookLocation#'  />").Width(30).Filterable(false).Sortable(false);
+                  columns.Bound(p => p.id).Title("ID").Width(50).ClientTemplate("<a href='" + Url.Action("BookLocationEdit", "CRM_BookingLocation") + "/#=BookCode#'>#=id#</a>");
+                  columns.Bound(p => p.c_code).Title("Mã book").Width(70);
+                  columns.Bound(p => p.InputDate)
+                         .Title("Ngày book")
+                         .Width(80).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(InputDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(InputDate,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+                  columns.Bound(p => p.CustomerName).Title("Khách hàng").Width(200);
+                  columns.Bound(p => p.c_labels).Title("Nhãn hàng").Width(100);
+                  columns.ForeignKey(p => p.Website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name")
+                         .Title("Website")
+                         .Width(100)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name")
+                         .Title("Chuyên mục")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Location, (System.Collections.IEnumerable)ViewBag.listLocation, "Code", "Name")
+                         .Title("Vị trí")
+                         .Width(150)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Nature, (System.Collections.IEnumerable)ViewBag.listNature, "Code", "Name")
+                         .Title("Tính chất")
+                         .Width(80)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.Bound(p => p.NgayLen)
+                         .Title("Ngày lên")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayLen,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayLen,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+                  columns.Bound(p => p.NgayXuong)
+                         .Title("Ngày xuống")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayXuong,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayXuong,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+
+                  columns.ForeignKey(p => p.c_group_id, (System.Collections.IEnumerable)ViewBag.listTeam, "Code", "Name")
+                          .Title("Nhóm")
+                          .Width(110)
+                          .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.c_staff_id, (System.Collections.IEnumerable)ViewBag.listStaff, "Code", "Name")
+                         .Title("Nhân viên")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.Bound(p => p.AccountStatus)
+                         .Title("Trạng thái")
+                         .Width(70)
+                         .ClientTemplate("#if(AccountStatus == 'KT_CHUA_XAC_NHAN'){#<b><font color='FFD700,' size='1'>Thường</font><br>#}#"
+                                        + "#if(AccountStatus == 'HAI_CHIEU'){# <b><font color='0x4169E1' size='1'>Hai chiều</font></b>#}#"
+                         );
+                  columns.Bound(p => p.IDBookLocation).Hidden();
+                  columns.Bound(p => p.c_customer_code).Hidden();
+              })
+              .Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .Navigatable()
+              //.Editable(editable => editable.Mode(GridEditMode.InCell))
+              .Events(events => { events.DataBound("dataBound"); })
+              .ToolBar(toolbar =>
+              {
+              toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-success btn-small" href="~/CRM_BookingLocation/BookLocationNew" id="btnCreate">
+                        Book mới
+                    </a>
+                   
+                    <a class="btn btn-success btn-small" href="javascript:void(0)" onclick="showConfirmPopup('XOA')">
+                        Hủy book
+                    </a>
+                    <a class="btn btn-success btn-small" href="javascript:void(0)">
+                        Gộp
+                    </a>
+                    <a class="btn btn-success btn-small" href="javascript:void(0)">
+                        Book HĐ
+                    </a>
+                }
+            </div>
+            </text>);
+              })
+            .Navigatable()
+            .Sortable()
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Sortable()
+            .Resizable(resize => resize.Columns(true))
+            .DataSource(dataSource => dataSource.Ajax()
+                                        .Batch(true)
+                                        .Sort(x => x.Add("id").Descending())
+                                        .PageSize(50)
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.id);
+                                        })
+                                        .Read("BookPRLocation_Read", "CRM_BookingLocation"))
+
+        )
+    </div>
+
+</div>
+
+<script>
+    $('.select').chosen();
+    $('#range-date').daterangepicker({
+        ranges: {
+            'Hôm nay': [moment(), moment()],
+            'Hôm qua': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            '7 ngày trước': [moment().subtract('days', 6), moment()],
+            '30 ngày trước': [moment().subtract('days', 29), moment()],
+            'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+            'Tháng trươc': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        },
+        format: 'YYYY/MM/DD',
+        locale: {
+            applyLabel: 'Xác nhận',
+            cancelLabel: 'Đóng lại',
+            fromLabel: 'Từ',
+            toLabel: 'Đến',
+            customRangeLabel: 'Tuỳ chọn',
+            daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+            monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            firstDay: 1,
+        }
+    });
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function dataBound() {
+        resizeGrid();
+        //load selected
+        var gridDataSource = $("#Grid").data("kendoGrid").dataSource;
+        var $Grid = $("#Grid");
+        $('#Grid').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-KendoGrid-rowid', data_entry.ArticleId);
+        });
+        //Mark any selected rows as selected (persists selections from page to page)
+        var selectedRowIds = $Grid.attr('data-KendoGrid-selected');
+        if (selectedRowIds != null) {
+            var selectedRowIdArray = selectedRowIds.split(',');
+            var visibleRows = $Grid.find('.kendo-data-row');
+            $(visibleRows).each(function () {
+                $row = $(this);
+                var rowID = $row.attr('data-KendoGrid-rowid');
+                if (_.contains(selectedRowIdArray, rowID)) {
+                    //$row.addClass('k-state-selected');
+                    $row.find('.checkItem').attr('checked', 'checked');
+                }
+            });
+            var totalview = $("#Grid").data("kendoGrid").dataSource.view().length;
+            var totalchecked = $('.checkItem:checked').length;
+            if (totalview != totalchecked) {
+                $('#checkAll').removeAttr("checked");
+            }
+            else {
+                $('#checkAll').attr("checked", "checked");
+            }
+        }
+    }
+    function onAdditionalData() {
+        return {
+            text: $("#txt-CustomerID").val()
+        };
+    }
+    function onSelectCustomer(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#customer-id").val(dataItem.CustomerCode);
+        filter();
+    }
+    function onChange(e) {
+        $("#customer-id").val('');
+    }
+    function onFilter(e) {
+        $("#customer-id").val('');
+        filter();
+    }
+    function changeWebsite() {
+        var web = $('#listWebsite').val();
+        if (web != "") {
+            $.post(r + "/CRM_BookingLocation/GetListCategory", { web: web }, function (data) {
+                if (data.success) {
+                    // append data
+                    console.log(data.listCategory)
+                    var strOption = '<option value = ""> -- Chuyên mục --  </option>';
+                    $.each(data.listCategory, function (i, v) {
+                        strOption += "<option value = '" + v.Code + "'> " + v.Name + "</option>";
+                    })
+                    $('#listCategory').chosen('destroy');
+                    $('#listCategory').html(strOption);
+                    $('#listCategory').chosen();
+                }
+            })
+        }
+    }
+    function changeTeam() {
+        var team = $('#listTeam').val();
+        if (team != "") {
+            $.post(r + "/CRM_BookingLocation/GetListStaff", { team: team }, function (data) {
+                if (data.success) {
+                    // append data
+                    console.log(data.listStaff)
+                    var strOption = '<option value = ""> -- Nhân viên --  </option>';
+                    $.each(data.listStaff, function (i, v) {
+                        strOption += "<option value = '" + v.Code + "'> " + v.Name + "</option>";
+                    })
+                    $('#listStaff').chosen('destroy');
+                    $('#listStaff').html(strOption);
+                    $('#listStaff').chosen();
+                }
+            })
+        }
+    }
+    $('.select').change(function () {
+        filter();
+    })
+    function filter() {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        var filterCustomer = { logic: "or", filters: [] };
+        var fillterBookCode = { logic: "or", filters: [] };
+        var fillterBrand = { logic: "or", filters: [] };
+        var fillterWebsite = { logic: "or", filters: [] };
+        var fillterCategory = { logic: "or", filters: [] };
+        var fillterLocation = { logic: "or", filters: [] };
+        var fillterStaff = { logic: "or", filters: [] };
+        var fillterTeam = { logic: "or", filters: [] };
+
+        var customer = $("#customer-id").val();
+        if (customer) {
+            filterCustomer.filters.push({ field: "c_customer_code", operator: "eq", value: customer });
+            filter.filters.push(filterCustomer);
+        }
+        var bookcode = $("#bookcode").val();
+        if (bookcode) {
+            fillterBookCode.filters.push({ field: "c_code", operator: "eq", value: bookcode });
+            filter.filters.push(fillterBookCode);
+        }
+        var brand = $("#brand").val();
+        if (brand) {
+            fillterBrand.filters.push({ field: "c_labels", operator: "eq", value: brand });
+            filter.filters.push(fillterBrand);
+        }
+        var website = $("#listWebsite").val();
+        if (website) {
+            fillterWebsite.filters.push({ field: "Website", operator: "eq", value: website });
+            filter.filters.push(fillterWebsite);
+        }
+        var category = $("#listCategory").val();
+        if (category) {
+            fillterCategory.filters.push({ field: "Category", operator: "eq", value: category });
+            filter.filters.push(fillterCategory);
+        }
+        var location = $("#listLocation").val();
+        if (location) {
+            fillterLocation.filters.push({ field: "Location", operator: "eq", value: location });
+            filter.filters.push(fillterLocation);
+        }
+
+        var nature = $("#listNature").val();
+        if (nature) {
+            fillterNature.filters.push({ field: "Nature", operator: "eq", value: nature });
+            filter.filters.push(fillterNature);
+        }
+
+        var team = $("#listTeam").val();
+        if (team) {
+            fillterTeam.filters.push({ field: "c_group_id", operator: "eq", value: team });
+            filter.filters.push(fillterTeam);
+        }
+
+        var staff = $("#listStaff").val();
+        if (staff) {
+            fillterStaff.filters.push({ field: "c_staff_id", operator: "eq", value: staff });
+            filter.filters.push(fillterStaff);
+        }
+
+        var rangeDate = $('#range-date').val();
+        if (rangeDate) {
+            var startdate = rangeDate.split('-')[0].trim();
+            var enddate = rangeDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "NgayLen", operator: "gte", value: startdate });
+            filter.filters.push({ field: "NgayXuong", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+</script>

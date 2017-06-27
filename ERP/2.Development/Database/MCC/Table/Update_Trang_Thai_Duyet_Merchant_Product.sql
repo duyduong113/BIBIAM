@@ -1,0 +1,1 @@
+update Merchant_Product set trang_thai_duyet='DA_DUYET' where trang_thai_duyet='DUYET'

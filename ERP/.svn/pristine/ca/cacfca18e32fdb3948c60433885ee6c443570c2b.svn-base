@@ -1,0 +1,618 @@
+﻿@{
+    int glb_cpm = 0;
+    int glb_stt = 1;
+}
+<div class="row-fluid" id="cpm-wrapper">
+    <label>
+
+        @if (ViewBag.typeService != null && ViewBag.typeService == 4)
+        {
+            <input id="ckb-cpm" name="form-field-checkbox" type="checkbox" class="ace" checked="checked">
+        }
+        else
+        {
+            <input id="ckb-cpm" name="form-field-checkbox" type="checkbox" class="ace">
+        }
+        <span class="lbl" style="font-weight:bold"> Đăng CPM</span>
+    </label>
+
+    <div class="row-fluid" id="cpm-table" style="display:none">
+        <div class="span12">
+            <table class="table table-striped table-bordered table-hover" style="width:100%">
+                <thead style="background-color:#86DBF7; text-align:center">
+                    <tr>
+                        <td>#</td>
+                        <td>STT</td>
+                        <td>Kênh</td>
+                        <td>Chuyên mục</td>
+                        <td>Vị trí</td>
+                        <td>Ngày lên</td>
+                        <td>Ngày xuống</td>
+                        <td>SL CPM</td>
+                        <td>Đơn giá</td>
+                        <td>Ghi chú</td>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <td colspan="7" style="text-align:center">
+                            @*<input type="button" class="btn btn-small btn-primary" value="Lưu" onclick="SaveCPM()" />*@
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Thêm vị trí" onclick="plusCpm()" />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Nhân bản" onclick="CloneCpm()" />
+                            @*<input type="button" class="btn btn-small btn-success" value="Xuất CNPS " />
+                                <input type="button" class="btn btn-small btn-success" value="Tham khảo KPI " />*@
+                        </td>
+                        <td colspan="5">
+                           @if (ViewBag.listInfoOrders != null)
+                           {
+                                <p class="pull-left" style="font-size:15px;color:red"> Hạn mức cho phép xuất bản QC: <span id="dm_chophep_cpm">@ViewBag.listInfoOrders.c_han_muc_cpm.ToString("#,##0")</span>  </p>
+                            }
+                            else
+                            {
+                                <p class="pull-left" style="font-size:15px;color:red"> Hạn mức cho phép xuất bản QC: <span id="dm_chophep_cpm"></span>  </p>
+                            }
+
+                            <p class="pull-right" style="font-size:15px;color:red">Tông tiền đăng đợt này:<span id="tong_tien_dang_cpm"></span> </p>
+                        </td>
+                    </tr>
+                </tfoot>
+                @if (ViewBag.listCPM != null && ViewBag.listCPM.Count > 0)
+                {
+                    <tbody>
+                        @foreach (var item in ViewBag.listCPM)
+                        {
+
+                            <tr class="class-cpm" data-pkservice="@item.pk_services">
+                                <td><input type="checkbox"></td>
+                                <td>@glb_stt</td> @{glb_stt++;}
+                                <td>
+                                    <input type="hidden" class="input-mini  fk_adv" value="@item.fk_adv" />
+                                    <input type="hidden" class="input-mini  c_dot_order" value="@item.c_dot_order" />
+                                    <input type="hidden" class="input-mini  pk_services" value="@item.pk_services" />
+                                    <input type="hidden" class="input-mini  book-code" value="@item.c_book_code" />
+                                    <input class="input-value-suggess item-channel" type="hidden" value="@item.c_kenh_qc" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                        .DataTextField("Name")
+                                        .Placeholder("Website")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-channel-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestCategory", "CRM_ProposedAdvertisement", new { PKList = 83 })
+                                                    .Data("onDataCpm");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectCpmItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.c_kenh_qc)");
+                                    </script>
+                                    @{glb_cpm++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-category" type="hidden" value="@item.c_chuyen_muc_kenhqc" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                        .DataTextField("Name")
+                                        .Filter("contains")
+                                        .Placeholder("Chuyên mục")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestFromList", "CRM_ProposedAdvertisement", new { PKList = 22 })
+                                                    .Data("onDataCpm");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectCpmItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.c_chuyen_muc_kenhqc)");
+                                    </script>
+                                    @{glb_cpm++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-location" type="hidden" value="@item.c_vi_tri_kenhqc" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                        .DataTextField("Name")
+                                        .Placeholder("Vị trí")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestLocationChannel", "CRM_ProposedAdvertisement", new { PKList = 23 })
+                                                    .Data("onDataCpm");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectCpmItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.c_vi_tri_kenhqc)");
+                                    </script>
+                                    @{glb_cpm++;}
+                                </td>
+                                <td>
+                                    <input class="date-picker input-medium dateUp" style="width:100%" type="text" value="@item.c_ngay_len.ToString("dd/MM/yyyy")" placeholder="Ngày lên" />
+                                </td>
+                                <td>
+                                    <input class="date-picker input-medium dateDown" style="width:100%" type="text" value="@item.c_ngay_xuong.ToString("dd/MM/yyyy")" placeholder="Ngày xuống" />
+                                </td>
+                                <td>
+                                    <input onchange="SumMoneyServiceCPM()" class="input-medium qty" type="text" style="width:100%" value="@item.c_so_luong" placeholder="Số lượng">
+                                </td>
+                                <td>
+                                    <input onchange="SumMoneyServiceCPM()" class="input-medium currency moneyUnit" style="width:100%" value="@item.c_don_gia_sau_ck.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá">
+                                </td>
+                                <td>
+                                    <input class="input-medium note" type="text" style="width:100%" value="@item.c_note" placeholder="Ghi chú">
+                                </td>
+                                <td>
+                                    <button type="button" onclick="minusCpm(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+                                </td>
+                            </tr>
+
+                                        }
+                    </tbody>
+                                        }
+                                        else
+                                        {
+                                            if (ViewBag.listServices != null && ViewBag.listServices.Count > 0)
+                                            {
+                                                <tbody>
+                                                    @foreach (var item in ViewBag.listServices)
+                                                    {
+                                                        <tr class="class-cpm" data-pkservice="@item.pk_services">
+                                                            <td><input type="checkbox"></td>
+                                                            <td>@glb_stt</td> @{glb_stt++;}
+                                                            <td>
+                                                                <input class="input-value-suggess item-channel" type="hidden" value="@item.AdvChannel" />
+                                                                @(Html.Kendo().AutoComplete()
+                                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                                        .DataTextField("Name")
+                                                        .Placeholder("Website")
+                                                        .Filter("contains")
+                                                        .MinLength(1)
+                                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-channel-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                        .DataSource(source =>
+                                                        {
+                                                            source.Read(read =>
+                                                            {
+                                                                read.Action("SuggestChannel", "CRM_ProposedAdvertisement", new { PKList = 83 })
+                                                                    .Data("onDataCpm");
+                                                            })
+                                                            .ServerFiltering(true);
+                                                        })
+                                                        .Events(e =>
+                                                        {
+                                                            e.Select("onSelectCpmItem");
+                                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.AdvChannelName)");
+                                                                </script>
+                                                                @{glb_cpm++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-category" type="hidden" value="@item.Category" />
+                                                                @(Html.Kendo().AutoComplete()
+                                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                                        .DataTextField("Name")
+                                                        .Filter("contains")
+                                                        .Placeholder("Chuyên mục")
+                                                        .MinLength(1)
+                                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                        .DataSource(source =>
+                                                        {
+                                                            source.Read(read =>
+                                                            {
+                                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                    .Data("onDataCpm");
+                                                            })
+                                                            .ServerFiltering(true);
+                                                        })
+                                                        .Events(e =>
+                                                        {
+                                                            e.Select("onSelectCpmItem");
+                                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.CategoryName)");
+                                                                </script>
+                                                                @{glb_cpm++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-location" type="hidden" value="@item.Location" />
+                                                                @(Html.Kendo().AutoComplete()
+                                                        .Name("txt-Adv-CPM-" + glb_cpm)
+                                                        .DataTextField("Name")
+                                                        .Placeholder("Vị trí")
+                                                        .Filter("contains")
+                                                        .MinLength(1)
+                                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                        .DataSource(source =>
+                                                        {
+                                                            source.Read(read =>
+                                                            {
+                                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                    .Data("onDataCpm");
+                                                            })
+                                                            .ServerFiltering(true);
+                                                        })
+                                                        .Events(e =>
+                                                        {
+                                                            e.Select("onSelectCpmItem");
+                                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-CPM-@glb_cpm").val("@Html.Raw(item.LocationName)");
+                                                                </script>
+                                                                @{glb_cpm++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="date-picker input-medium dateUp" style="width:100%" type="text" value="@item.DateUp.ToString("dd/MM/yyyy")" placeholder="Ngày lên" />
+                                                            </td>
+                                                            <td>
+                                                                <input class="date-picker input-medium dateDown" style="width:100%" type="text" value="@item.DateDown.ToString("dd/MM/yyyy")" placeholder="Ngày xuống" />
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="SumMoneyServiceCPM()" class="input-medium qty" type="text" style="width:100%" value="@item.Quantity" placeholder="Số lượng">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="SumMoneyServiceCPM()" class="input-medium currency moneyUnit" style="width:100%" value="@item.UnitPrice.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá">
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-medium note" type="text" style="width:100%" value="" placeholder="Ghi chú">
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" onclick="minusCpm(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                                    }
+                                                </tbody>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <tbody>
+                                                                            <tr class="class-cpm">
+                                                                                <td><input type="checkbox"></td>
+                                                                                <td>@glb_stt</td> @{glb_stt++;}
+                                                                                <td>
+                                                                                    <input class="input-value-suggess item-channel" type="hidden" />
+                                                                                    @(Html.Kendo().AutoComplete()
+                                                    .Name("txt-Adv-CPM-" + glb_cpm)
+                                                    .DataTextField("Name")
+                                                    .Placeholder("Website")
+                                                    .Filter("contains")
+                                                    .MinLength(1)
+                                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-channel-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                .Data("onDataCpm");
+                                                        })
+                                                        .ServerFiltering(true);
+                                                    })
+                                                    .Events(e =>
+                                                    {
+                                                        e.Select("onSelectCpmItem");
+                                                    })
+                                                                                    )
+                                                                                    @{glb_cpm++;}
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input class="input-value-suggess item-category" type="hidden" />
+                                                                                    @(Html.Kendo().AutoComplete()
+                                                    .Name("txt-Adv-CPM-" + glb_cpm)
+                                                    .DataTextField("Name")
+                                                    .Filter("contains")
+                                                    .Placeholder("Chuyên mục")
+                                                    .MinLength(1)
+                                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                .Data("onDataCpm");
+                                                        })
+                                                        .ServerFiltering(true);
+                                                    })
+                                                    .Events(e =>
+                                                    {
+                                                        e.Select("onSelectCpmItem");
+                                                    })
+                                                                                    )
+                                                                                    @{glb_cpm++;}
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input class="input-value-suggess item-location" type="hidden" />
+                                                                                    @(Html.Kendo().AutoComplete()
+                                                    .Name("txt-Adv-CPM-" + glb_cpm)
+                                                    .DataTextField("Name")
+                                                    .Placeholder("Vị trí")
+                                                    .Filter("contains")
+                                                    .MinLength(1)
+                                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalCpm(" + glb_cpm + ")" })
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                .Data("onDataCpm");
+                                                        })
+                                                        .ServerFiltering(true);
+                                                    })
+                                                    .Events(e =>
+                                                    {
+                                                        e.Select("onSelectCpmItem");
+                                                    })
+                                                                                    )
+                                                                                    @{glb_cpm++;}
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input class="date-picker input-medium dateUp" style="width:100%" type="text" placeholder="Ngày lên" />
+                                                                                </td>
+
+                                                                                <td>
+                                                                                    <input class="date-picker input-medium dateDown" style="width:100%" type="text" placeholder="Ngày xuống" />
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input onchange="SumMoneyServiceCPM()" class="input-medium qty" type="text" style="width:100%" placeholder="Số lượng">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input onchange="SumMoneyServiceCPM()" class="input-medium currency moneyUnit" style="width:100%" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input class="input-medium note" type="text" style="width:100%" placeholder="Ghi chú">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <button type="button" onclick="minusCpm(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                                            }
+                                                                                        }
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        SumMoneyServiceCPM();
+    })
+    $('#ckb-cpm').change(function () {
+        SumMoneyServiceCPM();
+        if ($(this).is(":checked")) {
+            $('#cpm-table').css('display', 'inline')
+        } else {
+            $('#cpm-table').css('display', 'none')
+        }
+    })
+
+    function SumMoneyServiceCPM() {
+        var tong_tien_dang_dot_cpm = 0;
+        $("#cpm-table").find("table").find("tbody").find('tr').each(function (index) {
+            var totalRow = $(this).find('input.qty').val() * currencyToNumber($(this).find('input.moneyUnit').val());
+            tong_tien_dang_dot_cpm = tong_tien_dang_dot_cpm + totalRow;
+        })
+        $("#total-qc-this-publish").html(kendo.toString(tong_tien_dang_dot_cpm, "n0"));
+        $('#tong_tien_dang_cpm').html(kendo.toString(tong_tien_dang_dot_cpm, "n0"));
+        if (!checkGiaTri()) {
+            alertMessage('Lỗi', 'Tổng tiền đăng đợt này lớn hơn giá trị HD trừ đã đăng QC', false);
+        }
+        return tong_tien_dang_dot_cpm;
+    }
+    function SaveCPM(pkadv, tracking) {
+        // debugger;
+        var isValid = false;
+        var arr = [];
+        var loop = true;
+        var fail = false;
+        $("#cpm-table .class-cpm").each(function (i) {
+            var obj = {};
+            obj.pk_services = $(this).attr('data-pkservice');;
+            obj.fk_adv = pkadv; //$('#formAdv').attr('data-pkadv');
+            obj.c_type = 4; //Banner
+            obj.c_ngay_lenString = convertDate($(this).find(".dateUp").val());
+            obj.c_book_code = $(this).find(".book-code").val();
+            if (obj.c_ngay_lenString == "") {
+                alertMessage('', 'Ngày bắt đầu không được để trống !', false);
+                loop = false; fail = true;
+                return false;
+            }
+            obj.c_ngay_xuongString = convertDate($(this).find(".dateDown").val());
+            if (obj.c_ngay_xuongString == "") {
+                alertMessage('', 'Ngày kết thúc không được để trống!', false);
+                fail = false;
+                loop = false;
+                return false;
+            }
+            obj.c_chuyen_muc_kenhqc = $(this).find("input.item-category").val();
+            if (obj.c_chuyen_muc_kenhqc == "") {
+                alertMessage('', 'Tên chuyên mục không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_vi_tri_kenhqc = $(this).find("input.item-location").val();
+            if (obj.c_vi_tri_kenhqc == "") {
+                alertMessage('', 'Tên vị trí không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_kenh_qc = $(this).find("input.item-channel").val();
+            if (obj.c_kenh_qc == "") {
+                alertMessage('', 'Tên kênh không được để trống!', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_so_luong = $(this).find(".qty").val();
+            if (obj.c_so_luong == "") {
+                alertMessage('', 'Số lượng không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_don_gia_sau_ck = currencyToNumber($(this).find(".moneyUnit").val());
+            if (obj.c_don_gia_sau_ck == "") {
+                alertMessage('', 'Đơn giá không được để trống  !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_note = $(this).find(".note").val();
+            arr[i] = obj;
+            console.log(obj);
+        })
+        //if (!loop) {
+        //    return false;
+        //}
+        if (arr.length>0) {
+            if (!tracking) {
+                $.ajax({
+                    url: r + "/CRM_ProposedAdvertisement/SaveAdvService",
+                    type: 'POST',
+                    data: { avd: arr, c_dot_order: '@ViewBag.c_dot_order' },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.success) {
+                            $("#formAdv").attr("data-dot-order", data.c_dot_order);
+                            isValid = true;
+                            return true;
+                        }
+                        else {
+                            isValid = false;
+                            return false;
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alertMessage('Lỗi hệ thống', errorThrown, false);
+                        isValid = false;
+                        return false;
+                    }
+                });
+                return isValid;
+            }
+            else {
+                return fail;
+            }
+        }
+        else {
+             //  alertMessage('', 'Vui lòng chọn sản phẩm!', false);
+            return true;
+        }
+        
+    }
+    var chGlbCpm = 0;
+    var cpm = parseInt("@glb_cpm");
+    var cpmStt = parseInt("@glb_stt");
+    function setGlobalCpm(k) {
+        chGlbCpm = k;
+    }
+    function onDataCpm() {
+        return {
+            text: $("#txt-Adv-CPM-" + chGlbCpm).val()
+        };
+    }
+    function onSelectCpmItem(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents("td").find(".input-value-suggess").val(dataItem.Name);
+    }
+
+    function plusCpm() {
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Cpm/", { incree: parseInt(cpm), cpmStt: cpmStt }, function (data) {
+            $("#cpm-table").find("table").find("tbody").append(data);
+            cpm = cpm + 3;
+            cpmStt = cpmStt + 1;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+        })
+        return;
+    }
+    function minusCpm(e) {
+        var pk = $(e).closest('tr').attr("data-pkservice");
+        $.post(r + "/CRM_ProposedAdvertisement/DeleteService", { pkservice: pk, c_dot_order: '@ViewBag.c_dot_order' }, function (data) {
+            if (data.success) {
+                alertMessage('Thành công', 'Xóa dữ liệu thành công', true);
+            }
+            $(e).closest('tr').remove();
+
+        })
+
+    }
+
+    function CloneCpm() {
+        // check row is checked:
+        var isRowChecked = $("#cpm-table").find("table").find("tbody").find('tr').find('input:checked');
+        // only one row checked to clone
+        if (isRowChecked.length == 0) {
+            alertMessage('Lỗi', 'Chưa chọn sản phẩm để nhân bản', false);
+
+        }
+        else {
+            if (isRowChecked.length > 1) {
+                alertMessage('Lỗi', 'Chỉ được chọn 1 sản phẩm để nhân bản', false);
+            }
+            else {
+                var $tr = $(isRowChecked).closest('tr');
+                var obj = {};
+                obj.fk_adv = $tr.find(".fk_adv").val();
+                obj.c_kenh_qc = $tr.find("input.item-channel-name").val();
+                obj.c_chuyen_muc_kenhqc = $tr.find("input.item-category-name").val();
+                obj.c_vi_tri_kenhqc = $tr.find("input.item-location-name").val();
+                obj.c_dot_order = $tr.find(".c_dot_order").val();
+                obj.c_ngay_lenString = $tr.find(".dateUp").val();
+                obj.c_ngay_xuongString = $tr.find(".dateDown").val();
+                obj.c_so_luong = $tr.find(".qty").val();
+                obj.c_don_gia_sau_ck = currencyToNumber($tr.find(".moneyUnit").val());
+                obj.c_note = $tr.find(".note").val();
+                $.ajax({
+                    url: r + "/Ajax/DNDQC_CloneService_CPM",
+                    type: 'POST',
+                    data: { incree: parseInt(cpm), cpmStt: parseInt(cpmStt), service: obj },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        $("#cpm-table").find("table").find("tbody").append(data);
+                        cpm = cpm + 3;
+                        cpmStt = cpmStt + 1;
+                        $('.date-picker').datepicker();
+                        $('.currency').maskMoney();
+                        SumMoneyServiceCPM();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alertMessage('Lỗi hệ thống', errorThrown, true);
+
+                    }
+                });
+            }
+
+        }
+    }
+</script>

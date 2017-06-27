@@ -1,0 +1,724 @@
+﻿@{
+    ViewBag.Title = "Danh sách đơn hàng";
+    var listPaymentStatus = new List<Object>();
+    listPaymentStatus.Add(new { Value = "-1", Name = "Thanh toán thất bại" });
+    listPaymentStatus.Add(new { Value = "0", Name = "Chưa thanh toán" });
+    listPaymentStatus.Add(new { Value = "1", Name = "Đã thanh toán" });
+    ViewBag.listPaymentStatus = listPaymentStatus;
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm theo mã đơn hàng, tên khách hàng, CMND,điện thoại…" style="width:310px" />
+                            <input type="text" name="date-range-picker span2" id="CreatedAtDate" placeholder="Ngày đơn hàng(từ-đến)" style="width: 130px;height:20px;" />
+                            <select name="select" id="listStatus" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn trạng thái…" multiple>
+                                @foreach (var a in ViewBag.Status)
+                                {
+                                    <option value="@a.RefID">@a.Name</option>
+                                }
+                            </select>
+                            <select name="select" id="listAssignee" class='chosen-select span2' data-placeholder="Chọn trạng thái thanh toán…" multiple>
+                                @foreach (var a in ViewBag.listPaymentStatus)
+                                {
+                                    <option value="@a.Value">@a.Name</option>
+                                }
+                            </select>
+                            <select name="select" id="listBank" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn ngân hàng giải ngân…" multiple>
+                                @foreach (var a in ViewBag.Bank)
+                                {
+                                    <option value="@a.BankID">@a.BankName</option>
+                                }
+                            </select>
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_Order_Header>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#' data-physical='#=PhysicalID#'/>").Width(40).Filterable(false).Sortable(false);
+        columns.Bound(p => p.ID).Width(80).Filterable(false).Visible(false);
+        columns.Bound(p => p.OrderID).Width(100).Title(Resources.Multi.OrderCode);
+        columns.Bound(p => p.RefID).Width(120).Title("Mã ĐH-OCM");
+        columns.Bound(p => p.OrderDate).Width(120).Title("Ngày đơn hàng").Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.Amount).Format("{0:N0}").Width(90).Title("Giá trị");
+        columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.Status, "RefID", "Name").Width(110).Title(Resources.Multi.Status);
+        columns.ForeignKey(p => p.PaymentStatus, (System.Collections.IEnumerable)ViewBag.listPaymentStatus, "Value", "Name").Width(100).Title("Thanh toán");
+        columns.Bound(p => p.PaymentDate).Width(120).Title("Ngày thanh toán").Format("{0:dd/MM/yyyy HH:mm}");
+        columns.ForeignKey(p => p.ReasonID, (System.Collections.IEnumerable)ViewBag.ListReason, "CodeID", "Description").Width(110).Title("Lý do hủy");
+        columns.Bound(p => p.CancelReason).Width(110).Title("Nội dung hủy");
+        columns.Bound(p => p.CompletedDate).Width(120).Title("Ngày hoàn tất").ClientTemplate("#if(kendo.toString(CompletedDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(CompletedDate,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+        columns.Bound(p => p.CustomerID).Width(110).Title("Mã khách hàng");
+        columns.Bound(p => p.CustomerName).Width(130).Title(Resources.Multi.CustomerName);
+        columns.Bound(p => p.CompanyID).Width(110).Title("Mã công ty");
+        columns.Bound(p => p.EmployeeID).Width(110).Title("Mã nhân viên");
+        columns.Bound(p => p.PhysicalID).Width(90).Title("Số CMND");
+        columns.Bound(p => p.MobilePhone).Width(90).Title("Điện thoại");
+        columns.Bound(p => p.Email).Width(140).Title("Email");
+        columns.Bound(p => p.Note).Width(200).Title("Ghi chú đơn hàng");
+        columns.Bound(p => p.ShippingAddress).Width(200).Title("Địa chỉ giao hàng");
+        columns.ForeignKey(p => p.ShippingCity, (System.Collections.IEnumerable)ViewBag.City, "TerritoryID", "TerritoryName").Width(100).Title("Thành phố");
+        columns.ForeignKey(p => p.ShippingDistrict, (System.Collections.IEnumerable)ViewBag.District, "TerritoryID", "TerritoryName").Width(100).Title("Quận/huyện");
+        columns.Bound(p => p.Installment).Format("{0:N0}").Width(80).Title("Trả góp");
+        columns.Bound(p => p.PayPerMonth).Format("{0:N0}").Width(80).Title("Trả hàng tháng");
+        columns.Bound(p => p.BankFee).Format("{0:N0}").Width(110).Title("Phí chuyển đổi");
+        columns.Bound(p => p.TotalAmount).Format("{0:N0}").Width(110).Title("Tổng tiền");
+        columns.ForeignKey(p => p.Bank, (System.Collections.IEnumerable)ViewBag.Bank, "BankID", "BankName").Width(120).Title("Tên ngân hàng");
+        columns.Bound(p => p.IsLocked).Width(80).Title("Is Locked");
+        columns.ForeignKey(p => p.SaleMan, (System.Collections.IEnumerable)ViewBag.SaleMan, "UserName", "UserName").Width(100).Title("Saleman");
+        columns.Bound(p => p.ShopName).Width(100).Title("Tên NCC");
+        columns.Bound(p => p.CreatedAt).Title(Resources.Multi.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Title(Resources.Multi.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+        columns.Bound(p => p.Source).Title("Nguồn").Width(100);
+    })
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100 }))
+    .Sortable()
+    .Scrollable()
+    .Events(events => { events.DataBound("dataBound"); events.DetailExpand("detailExpand"); })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Custom()
+                .Text("Yêu cầu NH mở thẻ")
+               .HtmlAttributes(new { @class = "btn btn-pink", @Href = "javascript:RequestBank()" });
+                toolbar.Custom()
+               .Text("Tạo đơn hàng (OCM)")
+               .HtmlAttributes(new { @class = "btn btn-success", @Href = "javascript:CreateOCMOrder()" });
+                // toolbar.Custom()
+                //.Text("Chuyển cho Telesales")
+                //.HtmlAttributes(new { @class = "btn btn-warning" });
+                toolbar.Custom()
+               .Text("Hủy đơn đặt hàng")
+               .HtmlAttributes(new { @class = "btn btn-danger", @Href = "javascript:Cancel()" });
+                toolbar.Custom()
+                .Text(Resources.Multi.Export)
+                .HtmlAttributes(new { @class = "export btn btn-info" })
+                .Url(Url.Action("ExportData", "OrderHeader", new { filter = "~", sort = "~" }));
+            })
+    .Navigatable()
+    .Filterable()
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+    .DataSource(dataSource => dataSource
+
+    .Ajax()
+    .Batch(true)
+    .Sort(a => a.Add(b => b.OrderDate).Descending())
+    .Filter(f => { f.Add(a => a.Status).IsNotEqualTo("10"); })
+    .PageSize(20)
+    .Read(read => read.Action("Read", "OrderHeader")))
+        .ClientDetailTemplateId("orderDetail")
+        )
+    </div>
+</div>
+
+<script id="orderDetail" type="text/kendo-tmpl">
+    <div class="row-fluid">
+        <div style="width:1200px">
+            @(Html.Kendo()
+                .TabStrip()
+                .Name("tabStrip_#=OrderID#")
+                .SelectedIndex(0)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .Items(items =>
+                {
+                    items.Add().Text("Sản phẩm").Content(@<text>
+                        @(Html.Kendo()
+        .Grid<ERPAPD.Models.Deca_Order_Detail>()
+        .Name("grid2_#=OrderID#")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.OrderID).Title(Resources.Multi.OrderCode).Width(100);
+            columns.Bound(o => o.ProductID).Title("Mã sản phẩm").Width(100);
+            columns.Bound(o => o.ProductName).Title("Tên sản phẩm").Width(260);
+            columns.Bound(o => o.Quantity).Title("Số lượng").Width(60);
+            columns.Bound(o => o.UnitPrice).Title("Đơn giá").Width(80).Format("{0:N0}");
+            columns.Bound(o => o.LineAmount).Title("Thành tiền").Width(80).Format("{0:N0}");
+            columns.Bound(o => o.PriceID).Title("Mã giá").Width(80);
+            columns.Bound(o => o.SKUID).Title("Mã SKU").Width(140);
+            columns.Bound(p => p.UpdatedAt).Title(Resources.Multi.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+            columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+        })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(6)
+
+         .Read(read => read.Action("Detail_Read", "OrderHeader", new { OrderID = "#=OrderID#" }))
+        )
+        .Pageable(pager => pager
+        .PageSizes(new[] { 6, 10, 20, 100, 200, 300 }))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable()
+        .ToClientTemplate())
+                    </text>);
+                    items.Add().Text("Log").Content("Under Construction");
+                }).ToClientTemplate())
+        </div>
+    </div>
+</script>
+
+@( Html.Kendo().Window().Name("CancelOrderWindow")
+      .Title("Hủy đơn hàng")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script id="CancelOrderTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("Cancel", "OrderHeader", FormMethod.Post, new { id = "CancelOrderForm", @style = "margin:0;" }))
+    {
+        <input type="hidden" name="OrderID" value="CancelOrder" />
+        <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+        <div class="control-group">
+            <label class="control-label">Lý do</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownList().Name("ReasonID")
+                                                        .AutoBind(false)
+                                                        .OptionLabel("@Resources.Multi.Select @Resources.Multi.Group.ToLower() kết quả...")
+                                                        .HtmlAttributes(new { style = "width: 100%;" })
+                                                        .DataTextField("Description")
+                                                        .DataValueField("CodeID")
+                                                        .DataSource(dataSource =>
+                                                        {
+                                                            dataSource.Read(read => read.Action("GetListReason", "OrderHeader"))
+                                                            .ServerFiltering(true);
+                                                        }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">@Resources.Multi.Content</label>
+            <div class="controls">
+                <textarea cols="3" rows="3" name="Description"></textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-grey btn-mini" onclick="$('\\#CancelOrderWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+            <button type="submit" id="btnCancelOrder" class="btn btn-danger btn-mini">Hủy đơn hàng</button>
+        </div>
+    }
+</script>
+
+@*bankrequest*@
+@( Html.Kendo().Window().Name("RequestBankWindow")
+      .Title("Yêu cầu ngân hàng mở thẻ")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+        // .Width(800)
+)
+
+<script id="RequestBankTemplate" type="text/kendo-tmpl">
+    @using (Html.BeginForm("RequestBank", "OrderHeader", FormMethod.Post, new { id = "RequestBankForm", @style = "margin:0;" }))
+    {
+        <input type="hidden" name="listOrderID" value="#:listOrderID#" />
+        <div class="control-group">
+            <label class="control-label">Chọn ngân hàng</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownList().Name("BankID")
+                    .AutoBind(false)
+                    .OptionLabel("Chọn ngân hàng...")
+                    .HtmlAttributes(new { style = "width: 100%;" })
+                    .DataTextField("BankName")
+                    .DataValueField("BankID")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetListBank", "OrderHeader"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">@Resources.Multi.Content</label>
+            <div class="controls">
+                <textarea cols="3" rows="3" name="Description" placeholder="Nhập ghi chú cho ngân hàng"></textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-grey btn-mini" onclick="$('\\#RequestBankWindow').data('kendoWindow').close()">@Resources.Multi.Skip</a>
+            <button type="submit" id="btnRequestBank" class="btn btn-primary btn-mini">Yêu cầu mở thẻ</button>
+        </div>
+    }
+</script>
+
+
+<script>
+    var expandedRow;
+    var CancelOrderPopupTemplate = kendo.template($("#CancelOrderTemplate").html());
+    var RequestBankTemplate = kendo.template($("#RequestBankTemplate").html());
+
+    function detailExpand(e) {
+        // Only one open at a time
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    $(document).ready(function () {
+        $("#listBank").css('witdh', "30%");
+        $("#listBank").chosen();
+        $("#listBank").val(['']);
+        $('#CreatedAtDate').daterangepicker({
+            format: 'YYYY/MM/DD'
+        });
+
+        $("#listAssignee").css('witdh', "30%");
+        $("#listAssignee").chosen();
+        $("#listAssignee").val(['']);
+
+        $("#listStatus").css('witdh', "30%");
+        $("#listStatus").chosen();
+        $("#listStatus").val(['']);
+    })
+
+
+    function Cancel() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("id") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#CancelOrderWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(CancelOrderPopupTemplate(data));
+            wnd.center().open();
+            $("#CancelOrderForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnCancelOrder").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success > 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Hủy thành công " + data.success + " đơn hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Hủy thất bại " + data.fail + " đơn hàng. Các đơn hàng này không thể hủy!",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnCancelOrder").removeAttr("disabled");
+                                $('#CancelOrderWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnCancelOrder").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn đơn hàng để hủy.',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function RequestBank() {
+        var checkrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                checkrowid += $(this).attr("data-physical") + "@@@@";
+            }
+        });
+        if (checkrowid != null && checkrowid != "") {
+            var wnd = $("#RequestBankWindow").data("kendoWindow");
+            var data = {
+                listOrderID: checkrowid,
+            };
+            wnd.content(RequestBankTemplate(data));
+            wnd.center().open();
+            $("#RequestBankForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $("#btnRequestBank").attr("disabled", "disabled")
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                if (data.success >= 0) {
+                                    $.gritter.add({
+                                        title: "@Resources.Multi.Success",
+                                        text: "Gửi thành công " + data.success + " khách hàng!",
+                                        class_name: 'gritter-success',
+                                    });
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                                if (data.fail > 0) {
+                                    $.gritter.add({
+                                        title: "Thất bại",
+                                        text: "Gửi thất bại " + data.fail + " khách hàng.",
+                                        class_name: 'gritter-error',
+                                    });
+                                }
+                                $("#checkboxcheckAll").prop('checked', false);
+                                $("#btnRequestBank").removeAttr("disabled");
+                                $('#RequestBankWindow').data('kendoWindow').close()
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnRequestBank").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Chọn yêu cầu mở thẻ',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function CreateOCMOrder() {
+        var c = confirm("Bạn có muốn yêu cầu tạo đơn hàng lên OCM?");
+        if (c) {
+            $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false, css: {} })).ajaxStop($.unblockUI);
+            var checkrowid = "";
+            $("#grid").find(".checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    checkrowid += $(this).attr("id") + "@@@@";
+                }
+            });
+            if (checkrowid != null && checkrowid != "") {
+                $.post(r + "/OrderHeader/CreateOCMOrder", { data: checkrowid }, function (data) {
+                    $("#checkboxcheckAll").prop('checked', false);
+                    if (data.success) {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: "Save successfully",
+                            class_name: 'gritter-success'
+                        });
+                    } else {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            } else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: 'Chọn đơn hàng để tạo',
+                    class_name: 'gritter-error'
+                });
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var listBank = $("#listBank option:selected");
+        var listStatus = $("#listStatus option:selected");
+        var listCity = $('#listCity option:selected');
+        var listAssignee = $('#listAssignee option:selected');
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var fillterCompanyStatus = { logic: "or", filters: [] };
+        var fillterStatus = { logic: "or", filters: [] };
+        var fillterCity = { logic: "or", filters: [] }
+        var fillterAssignee = { logic: "or", filters: [] }
+        var CreatedAtDate = $('#CreatedAtDate').val();
+
+        var filtertext = { logic: "or", filters: [] };
+
+        if (CreatedAtDate) {
+            var startdate = CreatedAtDate.split('-')[0].trim();
+            var enddate = CreatedAtDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "OrderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "OrderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "Status", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "Status", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        if (listBank.length > 0) {
+            for (var i = 0; i < listBank.length; i++) {
+                var option = listBank[i].value;
+                if (option == '') {
+                    fillterCompanyStatus.filters.push({ field: "Bank", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCompanyStatus.filters.push({ field: "Bank", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCompanyStatus);
+        }
+
+        if (listAssignee.length > 0) {
+            for (var i = 0; i < listAssignee.length; i++) {
+                var option = listAssignee[i].value;
+                if (option == '') {
+                    fillterAssignee.filters.push({ field: "PaymentStatus", operator: "contains", value: '' });
+                }
+                else {
+                    fillterAssignee.filters.push({ field: "PaymentStatus", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterAssignee);
+        }
+        if (text) {
+            filtertext.filters.push({ field: "OrderID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "PhysicalID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "MobilePhone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function dataBound(e) {
+        resizeGrid();
+        drawcolor();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+    var columnstatus = 7;
+    var columnpaymentStatus = 8;
+    function drawcolor() {
+        $('.k-icon.k-edit').remove();
+        var data = $("#grid").data("kendoGrid").dataSource.data();
+        $("td").filter(function () {
+            return $(this).text() === "00:00 01/01/1900";
+        }).html('');
+        $("td").filter(function () {
+            return $(this).text() === "01/01/1900 00:00";
+        }).html('');
+        // $('td:contains("01/01/1900")').html('');
+        $.each(data, function (i, row) {
+            // $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columndetail + ')').text(row.Detail);
+            // to mau status
+            try {
+                if (row.Status == "0") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#EDEDED");
+                }
+                else if (row.Status == "1") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#EDEDED");
+                }
+                else if (row.Status == "2") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#EDEDED");
+                }
+                else if (row.Status == "3") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#EDEDED");
+                }
+                else if (row.Status == "4") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#E2EFDA");
+                }
+                else if (row.Status == "5") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#D5F3DB").css("color", "white");
+                }
+                else if (row.Status == "6") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#C6EFCE").css("color", "#126D24");
+                }
+                else if (row.Status == "7") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#FFF2CC");
+                }
+                else if (row.Status == "8") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#FFE699").css("color", "white");
+                }
+                else if (row.Status == "9") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#F8CBAD").css("color", "white");
+                }
+                else if (row.Status == "10") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnstatus + ')').css("background-color", "#FF7D7D").css("color", "white");
+                }
+            }
+            catch (err) {
+            }
+            try {
+                if (row.PaymentStatus == "0") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnpaymentStatus + ')').css("background-color", "#abbac3").css("color", "white");
+                }
+                else if (row.PaymentStatus == "1") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnpaymentStatus + ')').css("background-color", "#3DA7DC").css("color", "white");
+                }
+                else if (row.PaymentStatus == "-1") {
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(' + columnpaymentStatus + ')').css("background-color", "#FF7D7D").css("color", "white");
+                }
+            }
+            catch (err) {
+            }
+        });
+    }
+</script>

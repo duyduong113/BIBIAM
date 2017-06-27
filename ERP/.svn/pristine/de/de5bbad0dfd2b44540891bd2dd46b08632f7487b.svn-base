@@ -1,0 +1,324 @@
+﻿@{
+    int global = 0;
+}
+<div class="row-fluid">
+    <table id="list-staff-revenue" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:15%">Nhân viên</th>
+                <th style="width:15%">Miền</th>
+                <th style="width:15%">Nhóm</th>
+                <th style="width:5%">Tỷ lệ</th>
+                <th style="width:10%">Doanh số ký</th>
+                <th style="width:10%">Doanh số thực hiện</th>
+                <th style="width:10%">Chuyển năm sau</th>
+                <th style="width:5%">Đứng HĐ</th>
+                <th style="width:10%">DS khác</th>
+                <th style="width:5%">
+                    <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupRevenueStaff()"><i class="icon-plus"></i></button>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.listStaff != null && ViewBag.listStaff.Count > 0)
+            {
+
+                foreach (var item in ViewBag.listStaff)
+                {
+                    <tr class="group-staff-revenue">
+                        <td>
+                            @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName-" + global)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-employer", @onfocus = "setGlobal(" + global + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataName");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItem").Change("onChangeValueSuggest");
+                                    })
+                            )
+                            <input class="input-value-suggess" type="hidden" name="pk_staff" value="@item.pk_staff" />
+                            <input class="input-value-suggess" type="hidden" name="c_staff_id" value="@item.c_staff_id" />
+                            <input class="input-value-suggess" type="hidden" name="c_unit_id" value="@item.c_unit_id" /> @*Vung Mien*@
+                            <input class="input-value-suggess" type="hidden" name="c_group_id" value="@item.c_group_id" />
+                            <script>
+                                $("#txt-FullName-@global").val('@Html.Raw(item.FullName)');
+                            </script>
+                            @{global++;}
+                        </td>
+                        <td>
+                           
+                            <input style="width:100%" class="input-small staff-revenue-unit" value="@item.Province" type="text" disabled />
+                        </td>
+                        <td>
+                            <input style="width:100%" class="input-small staff-revenue-group" value="@item.TeamName" type="text" disabled />
+                        </td>
+                        <td>
+                            <input name="c_percent" onchange="changePercent(true,false)" class="input-small staff-revenue-proportion" value="@item.c_percent" type="number" />
+                        </td>
+                        <td>
+                            <input name="c_money" class="input-small staff-revenue-revenue-up currency" value="@item.c_money.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            <input name="c_money_in_year" class="input-small staff-revenue-implementation currency" value="@item.c_money_in_year.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            <input name="c_money_next_year" class="input-small staff-revenue-next-year currency" type="text" value="@item.c_money_next_year.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            @if (item.c_charge == "checked")
+                            {
+                                <input name="c_charge" type="checkbox" class="staff-revenue-presenter" checked>
+                            }
+                            else
+                            {
+                                <input name="c_charge" type="checkbox" class="staff-revenue-presenter">
+                            }
+                        </td>
+                        <td>
+                            <input name="c_money_web_other" class="input-small staff-revenue-other currency" type="text" value="@item.c_money_web_other.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        
+                        <td>
+                            <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRevenueStaff(this, '@item.pk_staff')"><i class="icon-minus"></i></button>
+                        </td>
+
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $('.currency').maskMoney();
+    })
+    var Snum = parseInt("@global");
+    var chGlobal;
+    function setGlobal(k) {
+        chGlobal = k;
+    }
+    function onSelectItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $(this.element).parents(".group-staff-revenue").find("input[name='c_staff_id']").val(dataItem.RefStaffId);
+        $(this.element).parents(".group-staff-revenue").find("input[name='c_unit_id']").val(dataItem.Region);
+        $(this.element).parents(".group-staff-revenue").find("input[name='c_group_id']").val(dataItem.Team);
+        $(this.element).parents(".group-staff-revenue").find(".staff-revenue-unit").val(dataItem.RegionName);
+        $(this.element).parents(".group-staff-revenue").find(".staff-revenue-group").val(dataItem.TeamName);
+    }
+    function onAdditionalDataName() {
+        return {
+            text: $("#txt-FullName-" + chGlobal).val()
+        };
+    }
+    
+    function saveListStaff(check) {
+        var arr = [];
+        var loop = true;
+        var sumPercent = 0;
+        var countcheck = 0;
+        var uncheckHD = 0;
+        var totalRow = 0;
+        $("#list-staff-revenue .group-staff-revenue").each(function (i) {
+            var ob = {};
+            //ob.fk_contract = $("#formContract").attr("data-contract");
+            ob.fk_contract = $("#formContract").attr("data-contract");
+            $(this).find("input").each(function () {
+                if ($(this).attr("name") == "pk_staff") {
+                    ob.pk_staff = $(this).val();
+                }   
+                //Bao dd
+                if ($(this).attr("name") == "c_charge") {
+                    totalRow = totalRow + 1;
+                    if (!$(this).prop('checked')) {
+                        uncheckHD = uncheckHD + 1;
+                    }
+                    else {
+                        countcheck = countcheck + 1;
+                    }
+                }
+                if ($(this).attr("name") == "c_staff_id") {
+                    if ($(this).val() == "") {
+                        alert("Tên nhân viên không được để trống !");
+                        loop = false;
+                        return false;
+                    }
+                    ob.c_staff_id = $(this).val();
+                }
+
+                if ($(this).attr("name") == "c_unit_id") {
+                    ob.c_unit_id = $(this).val();
+                }
+                if ($(this).attr("name") == "c_group_id") {
+                    ob.c_group_id = $(this).val();
+                }
+                if ($(this).attr("name") == "c_percent") {
+                    if ($(this).val() == "") {
+                        alert("Chưa nhập tỉ lệ !");
+                        loop = false;
+                        return false;
+                    }
+                    ob.c_percent = $(this).val();
+                    sumPercent += parseInt($(this).val());
+                }
+
+                if ($(this).attr("name") == "c_money") {
+                    if ($(this).val() == "") {
+                        alert("Doanh số ký không được để trống !");
+                        loop = false;
+                        return false;
+                    }
+                    ob.c_money = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "c_money_in_year") {
+                    ob.c_money_in_year = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "c_money_next_year") {
+                    ob.c_money_next_year = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "c_money_web_other") {
+                    ob.c_money_web_other = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "c_charge" && $(this).is(":checked")) {
+                    ob.c_charge = "checked";
+                }
+            })
+
+            arr[i] = ob;
+        })
+        if (totalRow == uncheckHD) {
+            $.gritter.add({
+                title: 'Lỗi: Chưa check đứng HĐ ',
+                text: 'Vui lòng chọn nhân viên đứng HĐ!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        if (countcheck > 1) {
+            $.gritter.add({
+                title: 'Lỗi: Chưa check đứng HĐ ',
+                text: 'Vui lòng chỉ chọn 1 nhân viên đứng HĐ!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        if (sumPercent > 100) {
+            alert("Tỷ lệ phân bổ > 100%");
+            return false;
+        }
+        if (sumPercent < 100) {
+            alert("Tỷ lệ phân bổ < 100%");
+            return false;
+        }
+        if(arr.length == 0){
+            alert("Chưa phân bổ doanh số cho nhân viên !");
+            return false;
+        }
+        if (!loop) {
+            return false;
+        }
+        console.log(arr);
+        if (check) {
+            return loop;
+        }
+        //return;
+        $.ajax({
+            url: r+"/CRMMnContract/Staff_Save",
+            type: 'POST',
+            data: { listStaff: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                    loop = false;
+                }
+
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    function plusGroupRevenueStaff() {
+        $.post(r + "/Ajax/GetInputSuggestStaff/", { incree: parseInt(Snum) }, function (data) {
+            $("#list-staff-revenue tbody").append(data);
+            Snum++;
+            addEventAfter();
+        })
+        return;
+    }
+
+    function minusGroupRevenueStaff(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("STAFF", pk);
+        }
+
+      
+    }
+
+    function changePercent(isP, isSubmit) {
+        var sumP = 0;
+        $("#list-staff-revenue .group-staff-revenue").each(function (i) {
+            if (isP) {
+                var per = $(this).find("input[name='c_percent']").val();
+                var money = moneyBeforeVat * parseInt(per) / 100;
+                if(!money){
+                    money = 0;
+                }
+                $(this).find("input[name='c_money']").val(numberToCurrency(money));
+            } else {
+                var money = currencyToNumber($(this).find("input[name='c_money']").val());
+                var per = money / moneyBeforeVat * 100;
+                $(this).find("input[name='c_percent']").val(parseFloat(per).toFixed(0));
+            }
+            sumP += parseInt(per);
+            if (!money) {
+                money = 0;
+            }
+            $(this).find("input[name='c_money_in_year']").val(numberToCurrency(money));
+        })
+        if (!isSubmit) {
+            if ($('#revenues-sum').val() != "0") {
+                if (sumP > 100) {
+                    alertMessage("Tỉ lệ không được hơn 100%");
+                    return false;
+                }
+                if (sumP < 100) {
+                    alertMessage("Tỉ lệ chưa đủ 100%");
+                    return false;
+                }
+            }    
+        }
+
+    }
+</script>

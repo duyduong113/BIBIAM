@@ -1,0 +1,416 @@
+﻿<style>
+    .label {
+        margin: 0px;
+    }
+
+    .profile-info-name {
+        text-align: left;
+    }
+</style>
+@{
+   int glb = 0;
+}
+<fieldset>
+    <b>Dịch vụ đăng ký</b>
+    <table id="list-cpm-service" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:15%">Tên kênh</th>
+                <th style="width:15%">Chuyên mục</th>
+                <th style="width:15%">Vị trí</th>
+                <th style="width:10%">Ngày bắt đầu</th>
+                <th style="width:10%">Ngày kết thúc</th>
+                <th style="width:10%">Đơn giá/CPM</th>
+                <th style="width:5%">Số lượng</th>
+                <th style="width:5%">Chiết khấu</th>
+                <th style="width:10%">Thành tiền</th>
+                <th style="width:5%"><button data-rel="tooltip" data-placement="right" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupCPM()"><i class="icon-plus"></i></button></th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.ProductCPM != null && ViewBag.ProductCPM.Count > 0)
+            {
+
+                foreach (var item in ViewBag.ProductCPM)
+                {
+                    <tr class="group-cpm-service">
+                       <td>
+                           <input type="hidden" class="cpm-PKCpm" value="@item.PKCpm" />
+                           @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên kênh")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-channel", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 83 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+                           )
+                           <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(@item.AdvChannel)');
+                           </script>
+                           @{glb++;}
+                       </td>
+                        <td>
+                            @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên chuyên mục")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-categories", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+                            )
+                            <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.Category)');
+                            </script>
+                            @{glb++;}
+                        </td>
+                        <td>
+                            @(Html.Kendo().AutoComplete()
+                            .Name("txt-AdvChannel-" + glb)
+                            .DataTextField("Name")
+                            .Placeholder("Nhập tên chuyên mục")
+                            .Filter("contains")
+                            .MinLength(1)
+                            .HtmlAttributes(new { style = "width:100%", @class = "input-small cpm-position", @onfocus = "setGlobalChannel(" + glb + ")" })
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                        .Data("onAdditionalDataChannel");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e =>
+                            {
+                                e.Select("onSelectChannelItem");
+                            })
+                            )
+                            <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.Category)');
+                            </script>
+                            @{glb++;}
+                        </td>
+                        <td>
+                            <input class="input-small date-picker cpm-start-date" type="text" value="@item.DateUp.ToString("dd/MM/yyyy")" style="text-align:right" />
+                        </td>
+                        <td>
+                            <input class="input-small date-picker cpm-end-date" type="text" value="@item.DateDown.ToString("dd/MM/yyyy")" style="text-align:right" />
+                        </td>
+                        <td>
+                            <input onchange="resetGroupProduct()" class="input-small cpm-unit currency" type="text" value="@item.UnitPrice.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+                        </td>
+                        <td>
+                            <input onchange="resetGroupProduct()" class="input-small cpm-qty currency" type="text" value="@item.Quantity.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+                        </td>
+                        <td>
+                            <input onchange="resetGroupProduct()" class="input-small cpm-discount currency" type="text" value="@item.Discount.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+                        </td>
+                        <td>
+                            <input class="input-small cpm-total currency" type="text" value="@item.TotalAmt.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" style="text-align:right" />
+                        </td>
+                        <td>
+                            <button data-rel="tooltip" data-placement="left" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupCPM(this,@item.PKCpm)"><i class="icon-minus"></i></button>
+                            <button data-rel="tooltip" data-placement="bottom" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRow(this)"><i class="fa fa-clone"></i></button>
+                        </td>
+                    </tr>
+                 }
+           }
+        </tbody>
+        <tbody>
+            <tr style="font-size:1.4em">
+                <td colspan="4"></td>
+                <td style="text-align:right" colspan="4"><b>Tổng cộng</b></td>
+                <td style="text-align:right"><b><span class="red" id="cpm-sum-money"></span></b></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</fieldset>
+@Html.Partial("_discount_infomation")
+<div class="row-fluid">
+    @if (ViewBag.itemdraff != null)
+    {
+        if (!string.IsNullOrEmpty(ViewBag.itemdraff.GhiChu))
+        {
+            <fieldset>
+                <b>Thông tin bổ sung</b>
+                <div class="row-fluid">
+                    @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(HttpUtility.HtmlDecode(ViewBag.itemdraff.GhiChu))
+                    )
+                </div>
+            </fieldset>
+        }
+        
+    }
+    else
+    {
+        foreach (var item in ViewBag.Terms)
+        {
+            if (item.NameID == "CPM_THONG_TIN_BO_SUNG")
+            {
+                <fieldset>
+                    <b>@item.Title</b>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+                        )
+                    </div>
+                </fieldset>
+            }
+            if (item.NameID == "PHIEUCPM_THONG_TIN_BO_SUNG")
+            {
+                <fieldset>
+                    <b>@item.Title</b>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+                        )
+                    </div>
+                </fieldset>
+            }
+        }
+    }
+</div>
+@*<button onclick="saveCpm()" type="button" class="btn btn-small">luu</button>*@
+<script>
+    $(document).ready(function () {
+        //resetGroupProduct();
+        formatDateDisplay();
+    })
+
+
+    function saveServiceSupport() {
+        var result = saveCpm();
+        return result;
+    }
+    var c = parseInt("@glb");
+    var chGlb = 0;
+    var sumMoneyProduct = 0;
+    function setGlobalChannel(k) {
+        chGlb = k;
+    }
+    function onSelectChannelItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+    }
+    function onAdditionalDataChannel() {
+        return {
+            text: $("#txt-AdvChannel-" + chGlb).val()
+        };
+    }
+
+    function saveCpm() {
+        var arr = [];
+        var loop = true;
+        $("#list-cpm-service .group-cpm-service").each(function (i) {
+            var obj = {};
+            obj.PKCpm = $(this).find(".cpm-PKCpm").val();
+            obj.FkContract = $("form#formContract").attr("data-contract");
+            obj.AdvChannel = $(this).find("input.cpm-channel").val();
+            if (obj.AdvChannel == "") {
+                alert("Tên kênh không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Category = $(this).find("input.cpm-categories").val();
+            if (obj.Category == "") {
+                alert("Tên chuyên mục không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Location = $(this).find("input.cpm-position").val();
+            if (obj.Location == "") {
+                alert("Tên vị trí không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.DateUpString = convertDate($(this).find(".cpm-start-date").val());
+            if (obj.DateUpString == "") {
+                alert("Ngày bắt đầu không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.DateDownString = convertDate($(this).find(".cpm-end-date").val());
+            if (obj.DateDownString == "") {
+                alert("Ngày kết thúc không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.UnitPrice = currencyToNumber($(this).find(".cpm-unit").val());
+            if (obj.UnitPrice == "") {
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Quantity = currencyToNumber($(this).find(".cpm-qty").val());
+            if (obj.Quantity == "") {
+                alert("Số lượng không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Discount = currencyToNumber($(this).find(".cpm-discount").val());
+            obj.TotalAmt = currencyToNumber($(this).find(".cpm-total").val());
+            arr[i] = obj;
+
+        })
+        if (!loop) {
+            return false;
+        }
+        $.ajax({
+            url: r + "/CRMContractList/ContractProductCPM_Save",
+            type: 'POST',
+            data: { listProductCPM: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    loop =  false;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi cập nhật nhật - Mã TC: CPM01 !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    //change $, so luong dich vu
+    function resetGroupProduct() {
+        var sum = 0;
+        $("#list-cpm-service .group-cpm-service").each(function (index) {
+            var unitPrice = currencyToNumber($(this).find(".cpm-unit").val());
+            var quantity = currencyToNumber($(this).find(".cpm-qty").val());
+            var discount = currencyToNumber($(this).find(".cpm-discount").val());
+            var totalAmt = (unitPrice * quantity) - (unitPrice * quantity * discount / 100);
+            sum = sum + totalAmt;
+            $(this).find(".cpm-total").val(numberToCurrency(totalAmt));
+        })
+        sumMoneyProduct = sum;
+        $("#cpm-sum-money").text(numberToCurrency(sum));
+        resetSum(true);
+    }
+
+    function minusGroupCPM(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("PDCPM", pk);
+        }
+        resetGroupProduct();
+    }
+    function plusGroupCPM() {
+        $.post(r + "/Ajax/GetInputSuggestService/", { incree: parseInt(c), Type: "DRAFF_CPM" }, function (data) {
+            $("#list-cpm-service tbody.list").append(data);
+            c = c + 3;
+            addEventAfter();
+        })
+        return;
+    }
+    function formatDateDisplay() {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    }
+    function cloneRow(btn) {
+        var e = $(btn).parents(".group-cpm-service");
+        var obj = {};
+        obj.AdvChannel = $(e).find("input.cpm-channel").val();
+        obj.Category = $(e).find("input.cpm-categories").val();
+        obj.Location = $(e).find("input.cpm-position").val();
+        obj.DateUpString = $(e).find(".cpm-start-date").val();
+        obj.DateDownString = $(e).find(".cpm-end-date").val();
+        obj.UnitPrice = currencyToNumber($(e).find(".cpm-unit").val());
+        obj.Quantity = currencyToNumber($(e).find(".cpm-qty").val());
+        obj.Discount = currencyToNumber($(e).find(".cpm-discount").val());
+        obj.TotalAmt = currencyToNumber($(e).find(".cpm-total").val());
+        console.log(obj);
+        $.ajax({
+            url: r + "/Ajax/CloneServiceCPM",
+            type: 'POST',
+            data: { incree: parseInt(c), cpm: obj },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                $("#list-cpm-service tbody.list").append(data);
+                c = c + 3;
+                resetGroupProduct();
+                addEventAfter();
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    //BaoHV add
+    function copyServices() {
+        $("#list-cpm-service .group-cpm-service").each(function (i) {
+            $(this).find(".cpm-PKCpm").val('');
+        });
+    }
+</script>

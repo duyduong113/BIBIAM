@@ -1,0 +1,320 @@
+﻿@{
+    int global2 = 0;
+}
+<fieldset>
+    <div class="row-fluid">
+        <table id="list-guarantee" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:10%">Người bảo lãnh</th>
+                    <th style="width:10%">Người ký BL</th>
+                    <th style="width:9%">Tiền BL</th>
+                    <th style="width:10%">Ngày BL</th>
+                    <th style="width:10%">Hạn trả nợ</th>
+                    <th style="width:9%">BL chưa TT</th>
+                    <th style="width:9%">BL đã TT</th>
+                    <th style="width:9%">Trừ lương</th>
+                    <th style="width:9%">Đã hoàn trả lương</th>
+                    <th style="width:10%">Ghi chú</th>
+                    <th style="width:5%">
+                        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupGuarantee()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.listBaoLanh != null && ViewBag.listBaoLanh.Count > 0)
+                {
+                    foreach (var item in ViewBag.listBaoLanh)
+                    {
+                      <tr class="group-guarantee">
+                          <td>
+                              <input type="hidden" name="pk_bao_lanh" value="@item.pk_bao_lanh" />
+                              <input type="hidden" name="c_nguoi_bao_lanh" value="@item.c_nguoi_bao_lanh" />
+                              @(Html.Kendo().AutoComplete()
+                                    .Name("txt-NguoiBaoLanh-" + global2)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên người bảo lãnh")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-guarantee", @onfocus = "setGlobalGuarantee(" + global2 + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalGuarantee");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectNguoiBaoLanh");
+                                    })
+                              )
+                              <script>
+                                    $("#txt-NguoiBaoLanh-@global2").val('@Html.Raw(item.NguoiBaoLanhName)');
+                              </script>
+                              @{global2++;}
+                          </td>
+                          <td>
+                              @(Html.Kendo().AutoComplete()
+                                    .Name("txt-NguoiKyBaoLanh-" + global2)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên người ký bảo lãnh")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-guarantee", @onfocus = "setGlobalGuarantee(" + global2 + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalGuarantee");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectNguoiKyBaoLanh");
+                                    })
+                              )
+                              <input type="hidden" name="c_nguoi_ky_bao_lanh" value="@item.c_nguoi_ky_bao_lanh" />
+                              <script>
+                                  $("#txt-NguoiKyBaoLanh-@global2").val('@Html.Raw(item.NguoiKyBaoLanhName)');
+                              </script>
+                              @{global2++;}
+                          </td>
+                          <td>
+                              <input name="c_tien_bao_lanh" onchange="changeTienBaoLanh('MONEY')" class="currency tienbaolanh" type="text" value="@item.c_tien_bao_lanh" data-thousands="," data-decimal="." data-precision="0" />
+                          </td>
+                          <td>
+                              <input name="c_ngay_bao_lanh" class="date-picker" type="text" value="@item.c_ngay_bao_lanh.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                          </td>
+                          <td>
+                              <input name="c_ngay_tra_no" class="date-picker" type="text" value="@item.c_ngay_tra_no.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                          </td>
+                          <td>
+                              <input onchange="changeTienBaoLanh()" name="c_tien_chua_thanh_toan" class="currency tienchuathanhtoan" type="text" value="@item.c_tien_chua_thanh_toan" readonly data-thousands="," data-decimal="." data-precision="0" />
+                          </td>
+                          <td>
+                              <input readonly onchange="changeTienBaoLanh()" name="c_tien_da_thanh_toan" class="currency tiendathanhtoan" type="text" value="@item.c_tien_da_thanh_toan" data-thousands="," data-decimal="." data-precision="0" />
+                          </td>
+                          <td>
+                              <input onchange="changeTienBaoLanh('TRU')" name="c_tru_luong" class="currency truluong" type="text" value="@item.c_tru_luong" data-thousands="," data-decimal="." data-precision="0" />
+                          </td>
+                          <td>
+                              <input onchange="changeTienBaoLanh('HOAN')" name="c_hoan_luong" class="currency hoanluong" type="text" value="@item.c_hoan_luong" data-thousands="," data-decimal="." data-precision="0" />
+                          </td>
+                           <td>
+                               <input type="text" name="c_ghi_chu" value="@item.c_ghi_chu" />
+                           </td>
+                          <td>
+                              <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupGuarantee(this, '@item.pk_bao_lanh')"><i class="icon-minus"></i></button>
+                          </td>
+                      </tr>
+                    }
+               }
+            </tbody>
+        </table>
+    </div>
+</fieldset>
+<script>
+    var Gnum = parseInt("@global2");
+    var chGlobal;
+    $(document).ready(function () {
+        changeTienBaoLanh();
+    })
+
+    function setGlobalGuarantee(k) {
+        chGlobal = k;
+    }
+    function onSelectNguoiBaoLanh(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $(this.element).parents(".group-guarantee").find("input[name='c_nguoi_bao_lanh']").val(dataItem.RefStaffId);
+    }
+    function onSelectNguoiKyBaoLanh(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $(this.element).parents(".group-guarantee").find("input[name='c_nguoi_ky_bao_lanh']").val(dataItem.RefStaffId);
+    }
+    function onAdditionalGuarantee() {
+        return {
+            text: $("#txt-guarantee-" + chGlobal).val()
+        };
+    }
+    function changeTienBaoLanh(type) {
+        var sum = 0;
+        $("#list-guarantee .group-guarantee").each(function (index) {
+            var chuathanhtoan = 0;
+            var tienbaolanh = currencyToNumber($(this).find(".tienbaolanh").val());
+            var truluong = currencyToNumber($(this).find(".truluong").val());
+            var hoanluong = currencyToNumber($(this).find(".hoanluong").val());
+            if (hoanluong > truluong) {
+                alertMessage("Tiền hoàn trả lương > trừ lương !");
+                hoanluong = truluong = 0;
+            }
+            chuathanhtoan = tienbaolanh - truluong + hoanluong;
+            dathanhtoan = truluong - hoanluong;
+            if (dathanhtoan > tienbaolanh || dathanhtoan < 0 || chuathanhtoan < 0) {
+                alertMessage("Số tiền nhập vào không đúng !");
+                hoanluong = truluong = chuathanhtoan = dathanhtoan = 0;
+            }
+            $(this).find(".tienbaolanh").val(numberToCurrency(tienbaolanh));
+            $(this).find(".tienchuathanhtoan").val(numberToCurrency(chuathanhtoan));
+            $(this).find(".tiendathanhtoan").val(numberToCurrency(dathanhtoan));
+            $(this).find(".truluong").val(numberToCurrency(truluong));
+            $(this).find(".hoanluong").val(numberToCurrency(hoanluong));
+        })
+    }
+    function plusGroupGuarantee() {
+        $.post(r + "/Ajax/GetInputSuggestGuarantee/", { incree: parseInt(Gnum) }, function (data) {
+            $("#list-guarantee tbody.list").append(data);
+            Gnum = Gnum + 3;
+            addEventAfter();
+        })
+        return;
+    }
+    function minusGroupGuarantee(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        if (pk) {
+            addTaskList("GUARANTEE", pk);
+        } 
+        $(e).closest('tr').remove();
+    }
+
+    function saveGuarantee(check) {
+        var arr = [];
+        var loop = true;
+        $("#list-guarantee .group-guarantee").each(function (i) {
+            var ob = {};
+            ob.fk_contract = $("#formContract").attr("data-contract");
+            $(this).find("input").each(function () {
+                if ($(this).attr("name") == "pk_bao_lanh") {
+                    ob.pk_bao_lanh = $(this).val();
+                }
+                if ($(this).attr("name") == "c_nguoi_bao_lanh") {
+                    if ($(this).val() == "") {
+                        alertMessage("Người bảo lãnh không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_nguoi_bao_lanh = $(this).val();
+                }
+                if ($(this).attr("name") == "c_nguoi_ky_bao_lanh") {
+                    if ($(this).val() == "") {
+                        alertMessage("Người ký bảo lãnh không được để trống !");
+                        loop = false;
+                        return false;
+                    }
+                    ob.c_nguoi_ky_bao_lanh = $(this).val();
+
+                }
+                if ($(this).attr("name") == "c_tien_bao_lanh") {
+                    if ($(this).val() == "") {
+                        alertMessage("Tiền bảo lãnh không được để trống !");
+                        loop = false;
+                        return false;
+                    }
+                    ob.c_tien_bao_lanh = currencyToNumber($(this).val());
+
+                }
+                if ($(this).attr("name") == "c_ngay_bao_lanh") {
+                    if ($(this).val() == "") {
+                        alertMessage("Ngày bảo lãnh không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_ngay_bao_lanh_string = $(this).val();
+
+                }
+                if ($(this).attr("name") == "c_ngay_tra_no") {
+                    if ($(this).val() == "") {
+                        alertMessage("Ngày trả nợ không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_ngay_tra_no_string = $(this).val();
+
+                }
+                if ($(this).attr("name") == "c_tien_chua_thanh_toan") {
+                    if ($(this).val() == "") {
+                        alertMessage("Tiền chưa thanh toán không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_tien_chua_thanh_toan = currencyToNumber($(this).val());
+
+                }
+                if ($(this).attr("name") == "c_tien_da_thanh_toan") {
+                    if ($(this).val() == "") {
+                        alertMessage("Tiền đã thanh toán không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_tien_da_thanh_toan = currencyToNumber($(this).val());
+
+                }
+                if ($(this).attr("name") == "c_tru_luong") {
+                    if ($(this).val() == "") {
+                        alertMessage("Trừ lương không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_tru_luong = currencyToNumber($(this).val());
+
+                }
+                if ($(this).attr("name") == "c_hoan_luong") {
+                    if ($(this).val() == "") {
+                        alertMessage("Tiền hoàn lương không được để trống !");
+                        loop = false;
+                        this.focus();
+                        return false;
+                    }
+                    ob.c_hoan_luong = currencyToNumber($(this).val());
+
+                }
+                if ($(this).attr("name") == "c_ghi_chu") {
+                    ob.c_ghi_chu = $(this).val();
+                }
+            })
+            arr[i] = ob;
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (check) {
+            return loop;
+        }
+        if(arr.length > 0){
+            $.ajax({
+                url: r + "/CRMMnContract/Guarantee_Save",
+                type: 'POST',
+                data: { listGuarantee: arr },
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        
+                        loop = true;
+                    }
+                    else {
+                        alertMessage(data.message);
+                        loop = false;
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alertMessage("'Lỗi Cập nhật !");
+                }
+            });
+        }
+        return loop;
+    }
+</script>

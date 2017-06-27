@@ -1,0 +1,101 @@
+﻿using CMS.Helpers;
+using ServiceStack.DataAnnotations;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Data;
+
+namespace CMS.Models
+{
+    public class cms_Footer
+    {
+        [AutoIncrement]
+        [PrimaryKey]
+        public int id { get; set; }
+
+        public string ma { get; set; }
+        public string ten_footer { get; set; }
+        public string url_link { get; set; }
+        public string image_link { get; set; }
+        public string noi_dung { get; set; }
+        public string loai { get; set; }
+        public string trang_thai { get; set; }
+        public DateTime? ngay_tao { get; set; }
+        public string nguoi_tao { get; set; }
+        public DateTime? ngay_cap_nhat { get; set; }
+        public string nguoi_cap_nhat { get; set; }
+        public int levels { get; set; }
+        public int orders { get; set; }
+        public bool hinh_anh{ get; set; }
+        public string website_id { get; set; }
+        public string slug { get; set; }
+        public string CreateUpdate(cms_Footer headerfooter, string Type, string UserName)
+        {
+            using (IDbConnection db = CMS.Helpers.OrmliteConnection.openConn())
+            {
+                try
+                {
+
+                    var checkID = db.SingleOrDefault<cms_Footer>("ma={0}", headerfooter.ma);
+                    if (checkID != null)
+                    {
+
+
+                        checkID.url_link = !string.IsNullOrEmpty(headerfooter.url_link) ? headerfooter.url_link : "";
+                        checkID.image_link = !string.IsNullOrEmpty(headerfooter.image_link) ? headerfooter.image_link : "";
+                        checkID.ten_footer = !string.IsNullOrEmpty(headerfooter.ten_footer) ? headerfooter.ten_footer : "";
+                        checkID.loai= !string.IsNullOrEmpty(headerfooter.loai) ? headerfooter.loai : "";
+                        checkID.levels = headerfooter.levels != 0 ? headerfooter.levels : 0;
+                        checkID.orders = headerfooter.orders != 0 ? headerfooter.orders : 0;
+                        checkID.hinh_anh = headerfooter.hinh_anh;
+                        checkID.noi_dung = (!string.IsNullOrEmpty(headerfooter.noi_dung) && checkID.noi_dung != headerfooter.noi_dung) ? headerfooter.noi_dung : checkID.noi_dung;
+                        checkID.trang_thai = !string.IsNullOrEmpty(headerfooter.trang_thai) ? headerfooter.trang_thai : "";
+                        checkID.website_id = !string.IsNullOrEmpty(headerfooter.website_id) ? headerfooter.website_id : "WEB001";
+                        checkID.slug = !string.IsNullOrEmpty(headerfooter.slug) ? headerfooter.slug : "";
+                        checkID.nguoi_cap_nhat = UserName;
+                        checkID.ngay_cap_nhat = DateTime.Now;
+                        db.Update(checkID);
+
+                    }
+                    else
+                    {
+                        var lastId = db.FirstOrDefault<cms_Footer>("SELECT TOP 1 * FROM cms_Footer ORDER BY id DESC");
+                        if (lastId != null)
+                        {
+                            var nextNo = Int32.Parse(lastId.ma.Substring(3, 10)) + 1;
+                            headerfooter.ma = Type == "header" ? headerfooter.ma = "HEA" + String.Format("{0:0000000000}", nextNo) : headerfooter.ma = "FOO" + String.Format("{0:0000000000}", nextNo);
+                        }
+                        else
+                        {
+                            headerfooter.ma = Type == "header" ? "HEA0000000001" : "FOO0000000001";
+                        }
+                        headerfooter.ten_footer = !string.IsNullOrEmpty(headerfooter.ten_footer) ? headerfooter.ten_footer : "";
+                        headerfooter.loai = !string.IsNullOrEmpty(headerfooter.loai) ? headerfooter.loai : "";
+                        headerfooter.url_link = !string.IsNullOrEmpty(headerfooter.url_link) ? headerfooter.url_link : "";
+                        headerfooter.image_link = !string.IsNullOrEmpty(headerfooter.image_link) ? headerfooter.image_link : "";
+                        headerfooter.noi_dung = (!string.IsNullOrEmpty(headerfooter.noi_dung) && headerfooter.noi_dung != headerfooter.noi_dung) ? headerfooter.noi_dung : headerfooter.noi_dung;
+                        headerfooter.trang_thai = !string.IsNullOrEmpty(headerfooter.trang_thai) ? headerfooter.trang_thai : "";
+                        headerfooter.website_id = !string.IsNullOrEmpty(headerfooter.website_id) ? headerfooter.website_id : "";
+                        headerfooter.levels = headerfooter.levels != 0 ? headerfooter.levels : 0;
+                        headerfooter.orders = headerfooter.orders != 0 ? headerfooter.orders : 0;
+                        headerfooter.hinh_anh = headerfooter.hinh_anh;
+                        headerfooter.nguoi_tao = UserName;
+                        headerfooter.ngay_tao = DateTime.Now;
+                        headerfooter.nguoi_cap_nhat = UserName;
+                        headerfooter.ngay_cap_nhat = DateTime.Now;
+                        db.Insert(headerfooter);
+                    }
+                    return "true@@"+headerfooter.ma;
+                }
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
+            }
+        }
+    }
+
+
+}

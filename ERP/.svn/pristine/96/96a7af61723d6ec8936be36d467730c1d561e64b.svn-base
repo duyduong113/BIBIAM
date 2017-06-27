@@ -1,0 +1,134 @@
+﻿@{
+    ViewBag.Title = Resources.Global._home_page;
+}
+
+<style>
+    .page-bar, .page-title {
+        display: none;
+    }
+
+    .icon-btn {
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        color: #3b5998;
+    }
+
+        .icon-btn > i {
+            font-size: 30px;
+        }
+
+        .icon-btn > .badge {
+            top: -10px;
+            right: 0px;
+            font-weight: normal;
+        }
+
+        .icon-btn > div {
+            font-weight: normal;
+        }
+
+    #listView_pager {
+        display: none;
+    }
+
+    .todo-tasklist-item-border-green {
+        border-left: none;
+        border-right: #3faba4 2px solid;
+    }
+</style>
+
+
+
+<div class="row">
+    <div class="col-md-7 formEdit" style="padding:0 20px; border-right: 1px dashed #E0E0E0;">
+
+    </div>
+    <div class="col-md-5">
+        <h4>Tin tức</h4>
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=active == true ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-3" style="padding-left: 0; text-align: center; padding-top:8px;">
+                    <a onclick="edit(this)"><img src="#=imagesPublicId ? imagesPublicId : 'http://www.placehold.it/150x150/EFEFEF/AAAAAA&amp;text=no+image'#" alt="" style="display: inline" class="img-responsive"></a>
+                </div>
+                <div class="col-md-8" style="padding-left:0;">
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        <a onclick="edit(this)">#=name#</a>
+                    </div>
+                    <div class="todo-tasklist-item-text" style="font-size:10px;">
+                        <b>#=type == 'news' ? '@Html.Raw(Resources.Global._news)' : '@Html.Raw(Resources.Global._policy)'#</b> - @Html.Raw(Resources.Global._created_by) #=createdBy# @Html.Raw(Resources.Global._at) #=kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm')#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #=description#
+                    </div>
+                </div>
+            </div>
+        </script>
+        @(Html.Kendo().ListView<MCC.Models.Article>()
+            .Name("listView")
+            .TagName("div")
+            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+            .ClientTemplateId("template")
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Home"));
+                dataSource.PageSize(100000).Sort(s => s.Add(a => a.id).Descending());
+            })
+            .Events(events => { events.DataBound("onDatabound"); })
+            .Pageable()
+        )
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="EditTemplate">
+    <div style="font-size:10px;"><b>#=type == 'news' ? '@Html.Raw(Resources.Global._news)' : '@Html.Raw(Resources.Global._policy)'#</b> - @Html.Raw(Resources.Global._created_by) #=createdBy# @Html.Raw(Resources.Global._at) #=kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm')#</div>
+    <div style="color:\\#000000; font-size: 20px; padding: 10px 0;">#=name#</div>
+    <div style="font-weight: bold; font-size: 13px; padding-bottom: 0px;">#=description#</div>
+    <div>#=htmlDecode(content)#</div>
+</script>
+<script>
+    function htmlDecode(value) {
+        if (value) {
+            return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+        } else {
+            return "";
+        }
+    }
+
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+    }
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+
+    function onDatabound(e) {
+        if (this.dataSource.total() > 0) {
+            var data = _.findWhere(this.dataSource._data, { isDefault: true });
+            if (data != null)
+                loadForm(data);
+        }
+    }
+</script>

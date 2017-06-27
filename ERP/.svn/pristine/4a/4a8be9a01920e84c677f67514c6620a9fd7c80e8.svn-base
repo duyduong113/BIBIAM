@@ -1,0 +1,162 @@
+﻿
+@{
+    Layout = null;
+    int glb = ViewBag.countID;
+}
+<tr class="group-hdt-service">
+    @*<td>
+        <input class="input-small item-chk" type="checkbox" />
+    </td>*@
+    <td>
+        <input type="hidden" class="item-PKContractProduct" value="" />
+        <input class="input-value-suggess item-web" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập tên Web")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "input-large", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+        )
+       
+        @{glb++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-type" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập loại SP")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "input-large", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 19 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+        )
+      
+        @{glb++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập chuyên mục")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+       
+        @{glb++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập vị trí")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+       
+        @{glb++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-nature" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập tính chất")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 25 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+      
+        @{glb++;}
+    </td>
+    <td>
+        <input onchange="resetValueGroup()" class="input-small item-qty" value="" type="number"/>
+    </td>
+    <td>
+        <input class="input-small item-price-public currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="resetValueGroup()" class="input-small item-price-tt currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="resetValueGroup('price')" class="input-small item-money-sum currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="resetValueGroup('price')" class="input-small item-switch currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input class="input-small item-km" type="text" value="" />
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroup(this)"><i class="icon-minus"></i></button>
+    </td>
+</tr>

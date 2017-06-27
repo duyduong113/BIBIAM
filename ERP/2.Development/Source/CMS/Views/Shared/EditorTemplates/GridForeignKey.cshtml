@@ -1,0 +1,9 @@
+﻿@model object
+           
+@(
+ Html.Kendo().DropDownListFor(m => m)
+        .OptionLabel("Select...")
+        .Filter("contains")     
+        .BindTo((SelectList)ViewData[ViewData.TemplateInfo.GetFullHtmlFieldName("") + "_Data"])
+        
+)

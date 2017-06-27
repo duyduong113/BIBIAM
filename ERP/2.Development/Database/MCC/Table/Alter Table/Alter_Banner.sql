@@ -1,0 +1,1 @@
+Alter table Banner add alt nvarchar(300)  

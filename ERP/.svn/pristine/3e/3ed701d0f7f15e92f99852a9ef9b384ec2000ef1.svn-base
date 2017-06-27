@@ -1,0 +1,8 @@
+﻿@model string
+
+@(Html.Kendo().AutoCompleteFor(m => m)
+          .DataTextField("Name")
+          .Filter(FilterType.StartsWith)
+          .Suggest(true)
+          .BindTo(ViewBag.listWebsite)
+)

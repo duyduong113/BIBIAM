@@ -1,0 +1,103 @@
+﻿@{
+    Layout = null;
+    string selected = "selected";
+    string check = "checked";
+}
+    <div class="span5">
+        <div class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label">Họ tên</label>
+                <div class="controls">
+                    <input class="span3" name="FirstName" type="text" value="@ViewBag.contact.FirstName" placeholder="Họ" />
+                    <input class="span5" name="MiddleName" type="text" value="@ViewBag.contact.MiddleName" placeholder="Tên đệm" />
+                    <input class="span4" name="LastName" type="text" value="@ViewBag.contact.LastName" placeholder="Tên" />
+                    <input type="hidden" name="PKContactID" value="@ViewBag.contact.PKContactID" />
+                    <input id="CustomerID" type="hidden" name="CustomerID" value="@ViewBag.contact.CustomerID" />
+
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Nhân xưng</label>
+                <div class="controls">
+                    <select name="Sex" id="listSex" class="span12">
+                        <option value="anh" selected>Anh</option>
+                        <option value="anh">Chị</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Ngày sinh</label>
+                <div class="controls">
+                    <input class="span3" name="DayOfBirth" type="text" value="@ViewBag.contact.DayOfBirth" placeholder="Ngày" />
+                    <input class="span5" name="MonthOfBirth" type="text" value="@ViewBag.contact.MonthOfBirth" placeholder="Tháng" />
+                    <input class="span4" name="YearOfBirth" type="text" value="@ViewBag.contact.YearOfBirth" placeholder="Năm" />
+
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-5">Ngành</label>
+                <div class="controls">
+                    <select name="Category" id="listCats" class="span12">
+                        <option disabled selected>Ngành hàng (s)</option>
+                        @foreach (var item in ViewBag.listCategory)
+                        {
+                            <option @if (item.CategoryID == ViewBag.contact.Category) { @selected } value="@item.CategoryID">@item.CategoryName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-5">Nhãn hàng</label>
+                <div class="controls">
+                    <select id="listBranch" class="span12">
+                        <option disabled selected>Nhãn hàng (s)</option>
+
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="span5">
+        <div class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label">Điện thoại</label>
+                <div class="controls">
+                    <input name="Mobile" class="span12" type="text" value="@ViewBag.contact.Mobile" placeholder="Nhập số điện thoại" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Email</label>
+                <div class="controls">
+                    <input name="Email" class="span12" type="text" value="@ViewBag.contact.Email" placeholder="Nhập Email" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Chức vụ</label>
+                <div class="controls">
+                    <input class="span12" type="text" value="" placeholder="Nhập chức vụ" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Người quyết định</label>
+                <div class="controls">
+                    <input onchange="onCheck(this)" @if(@ViewBag.contact.Decided == 1) { @check} value="@ViewBag.contact.Decided" name="Decided" class="span1" type="checkbox" />
+                    <input type="hidden" name="Status" value="HOAT_DONG" />
+                    
+                </div>
+            </div>
+
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-5">ghi chú</label>
+                <div class="controls">
+                    <textarea name="Notes" value="@ViewBag.contact.Notes" class="autosize-transition span12" style="overflow: hidden; resize: vertical; word-wrap: break-word; height: 50px;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>

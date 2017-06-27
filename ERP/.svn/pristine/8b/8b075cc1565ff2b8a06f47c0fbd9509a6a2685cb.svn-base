@@ -1,0 +1,692 @@
+﻿@using CMS.Models;
+@{
+    ViewBag.Title = Html.Raw(@Resources.Global._news_details);
+}
+@{
+    var newData = new cms_News();
+    var data = ViewBag.data == null ? newData : ViewBag.data;
+}
+
+<style>
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        width: 300px;
+        height: 300px;
+    }
+
+    .image-News {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-News img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-News .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-News:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            top:0;
+            color: #ff7d5e;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .displaynone {
+        display: none;
+    }
+
+    .displayblock {
+        display: block;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 formEdit">
+    </div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/NewsManage/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Resources.Global._post_update</span>
+                </div>
+                <div class="actions">
+                    #if(id>0){#
+                        
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                    #}
+                    else{#
+                        <a onclick="Refresh()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save)</a>
+                    #}#
+                    <a href="@Url.Action("Index","NewsManage")" class="btn red btn-circle">Danh sách tin tức</a>
+                </div>
+            </div>
+            <div class="form-body">
+                <input type="hidden" name="ma_bai_viet" value="#=ma_bai_viet#" />
+                @(Html.Kendo().PanelBar()
+                    .Name("PanelBar")
+                    .ExpandMode(PanelBarExpandMode.Multiple)
+                    .Events(events=>events.Expand("ExpandPanelBar"))
+                    .Items(items =>
+                    {
+                    items.Add()
+                    .Text(Resources.Global._basic_inf)
+                    .Selected(false)
+                    .Expanded(true)
+                    .Content(@<text>                
+                        <div class="col-sm-2">
+                            <label class="control-label">@Html.Raw(Resources.Global._code_Caps): <span class="text-danger"> * </span></label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-key"></i></span>
+                                <input readonly id="form-input-email" value="#=id?id:''#" name="id" type="text"  class="form-control"> 
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                            <label>Website: </label>
+                  
+                                @(Html.Kendo().DropDownList()
+                                    .Name("ma_website")
+                                    .Value("#=ma_website ? ma_website : ''#")
+                                    .Events(events => { events.Select("OnSelectWebsite").Change("OnChangeWebsite"); })
+                                    .DataTextField("Name")
+                                    .DataValueField("Value")
+                                    .Filter("contains")
+                                    .OptionLabel("--Website--")
+                                    .BindTo(ViewBag.listWebsites)
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                    .ToClientTemplate()
+                                )
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="form-group">
+                              <label>Chuyên mục: </label>
+                                  @(Html.Kendo().DropDownList()
+                                .Name("ma_chuyen_muc")
+                                .Value("#=ma_chuyen_muc ? ma_chuyen_muc : ''#")
+                                .Events(events => { events.Select("OnSelectionCategory"); })
+                                .DataTextField("Name")
+                                .DataValueField("Value")
+                                .Filter("contains")
+                                .OptionLabel("--Chuyên mục--")
+                                .BindTo(ViewBag.listCategorys)
+                                .HtmlAttributes(new { style = "width: 100%" })
+                                .ToClientTemplate()
+                                  )
+                          </div>
+                      </div> 
+                        <div class="col-sm-2">
+                           <div class="form-group">
+                               <label>Vị trí: </label>
+                                   @(Html.Kendo().DropDownList()
+                                        .Name("ma_vi_tri")
+                                        .DataTextField("Name")
+                                        .Value("#=ma_vi_tri ? ma_vi_tri : ''#")
+                                        .DataValueField("Value")
+                                        .Filter("contains")
+                                        .OptionLabel("--Vị trí--")
+                                        .BindTo(ViewBag.listPositions)
+                                        .HtmlAttributes(new { style = "width: 100%" })
+                                        .ToClientTemplate()
+                                   )
+                           </div>
+                       </div>
+                        <div class="col-sm-2">
+                            <div class="col-md-5">
+                                <label>@Html.Raw(Resources.Global._priority) </label>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="clearfix">
+                                    <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                        <label class="btn red btn-sm btn-outline #=trang_thai_tao=='0'?'active':''#">
+                                            <input type="radio" name="trang_thai_tao" value="0" class="toggle" #=trang_thai_tao =='0' ?'checked':''#> @Html.Raw(Resources.Global._no)
+                                        </label>
+                                        <label class="btn green btn-sm btn-outline #=trang_thai_tao=='1'?'active':''#">
+                                            <input type="radio" name="trang_thai_tao" value="1" class="toggle" #=trang_thai_tao =='1' ?'checked':''#> @Html.Raw(Resources.Global._yes)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="row">
+                         <div class="col-md-7">
+                            <div class="col-sm-12">
+                                <label class="control-label">@Html.Raw(@Resources.Global._title)</label>
+                                <div class="input-group">
+                                    <input value="#=tieu_de?tieu_de:''#" onkeyup="OnChangetieu_de()" name="tieu_de" type="text" class="form-control">
+                                    <label style="font-size: smaller;color:purple">@Resources.Global._des_title</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <label class="control-label">@Html.Raw(@Resources.Global._description)</label>
+                                <div class="input-group">
+                                    <textarea class="form-control" name="mo_ta" rows="4" cols="70" style="resize:both">#=mo_ta?mo_ta:''#</textarea>
+                                    <label style="font-size: smaller;color:purple">@Resources.Global._summary_content.</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="col-sm-12">
+                                <div class="fileinput fileinput-new" data-provides="fileinput">
+                                    <label>@Html.Raw(Resources.Global._avatar)</label>
+                                    <div class="clearfix">
+                                        <div class="input-group">
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                <div class="fileinput-new thumbnail" style="width: 255px; height:200px;">
+                                                    <img src="#=hinh_dai_dien ? hinh_dai_dien : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" style="width: 255px; height:200px;" alt="#=ma_hinh_goc#" />
+                                                </div>
+                                                <div class="fileinput-preview fileinput-exists thumbnail" style="width: 255px; height:200px;"> </div>
+                                                <div>
+                                                    <span id="SelectImage" class="btn default btn-file btn-sm btn-circle" onclick="show_popup_select_image_index()">Chọn ảnh từ thư viện</span>
+                                                    <span class="btn default btn-file btn-sm btn-circle">
+                                                        <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                        <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                        <input type="file" name="file">
+                                                    </span>
+                                                    <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wapper">
+                                    <div id="image-News">
+                                    </div>
+                                    <div id="image-content" style="display:none">
+                                    </div>
+                                </div>
+                                <label style="font-size: smaller;color:purple">@Html.Raw(Resources.Global._des_img).</label>
+                            </div>         
+                          </div>
+                          </div>
+
+                          <div class="row">
+                             <div class="col-md-4">
+                                 <div class="col-sm-12">
+                                   <label class="control-label">@Html.Raw(@Resources.Global._source)</label>
+                                   <div class="input-group">
+                                       <span class="input-group-addon"><i class="fa fa-feed"></i></span>
+                                       <input type="text" class="form-control input-sm" name="nguon_bai_viet" placeholder="@Resources.Global._des_src Thiết bị nhanh." value="#=nguon_bai_viet ? nguon_bai_viet : ''#">
+                                   </div>
+                               </div>
+                           </div>
+                             <div class="col-md-7">
+                               <div class="col-sm-12">
+                                   <label class="control-label">@Html.Raw(@Resources.Global._link)</label>
+                                   <div class="input-group">
+                                       <span class="input-group-addon"><i class="fa fa-external-link"></i></span>
+                                       <input type="text" class="form-control input-sm" name="link_nguon_bai_viet" placeholder="@Resources.Global._des_link VD: http://thietbinhanh.com." value="#=link_nguon_bai_viet ? link_nguon_bai_viet : ''#">
+                                   </div>
+                               </div>                      
+                           </div>
+                        </div>     
+                  <div style="padding-bottom:2%"></div>
+                </text>);
+                 items.Add()
+                .Text(@Resources.Global._details)
+                .Selected(false)
+                .Expanded(true)
+                .Content(@<text>
+                    <div class="form-group">
+                        <div class="clearfix">
+                            @(Html.Kendo().Editor().Name("noi_dung")
+                                        .Value("#=noi_dung ? noi_dung : ''#")
+                                        .Encode(false)
+                                        .HtmlAttributes(new { style = "height:650px;width:100%;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                                        .Tools(tools => tools
+                                        .Clear()
+                                        .Bold().Italic().Underline().Strikethrough()
+                                        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                        .InsertUnorderedList().InsertOrderedList()
+                                        .Outdent()
+                                        .Indent()
+                                        .CreateLink().Unlink()
+                                        .InsertFile()
+                                        .SubScript()
+                                        .SuperScript()
+                                        .TableEditing()
+                                        .ViewHtml()
+                                        .Formatting()
+                                        .CleanFormatting()
+                                        .FontColor()
+                                        .BackColor()
+                                        .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a><a class='k-button' onclick='show_popup_select_image_content(#=id#)'>" + Html.Raw(Resources.Global._select_image) + "</a>")))
+                                        .Messages(m => m
+                                            .ImageWebAddress("Đường dẫn ảnh")
+                                            .DialogCancel("Hủy")
+                                            .DialogInsert("Thêm")
+                                        )
+                                        .FileBrowser(fileBrowser => fileBrowser
+                                        .File(@HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + "/Content/Upload/docs/{0}")
+                                        .Read("Read", "FileBrowser")
+                                        .Create("Create", "FileBrowser")
+                                        .Destroy("Destroy", "FileBrowser")
+                                        .Upload("Upload", "FileBrowser")
+                                        ).ToClientTemplate()
+                            )
+                        </div>
+                    </div>
+            </text>);
+             items.Add()
+            .Text("SEO tag")
+            .Selected(false)
+            .Expanded(false)
+            .Content(@<text>
+                    <div class="form-group" style="padding:1%">
+                        <div class="col-sm-10">
+                            <label class="control-label">@Html.Raw(@Resources.Global._key)</label>
+                                @(Html.Kendo().MultiSelect()
+                                  .Name("tu_khoa")
+                                  .DataTextField("hashtagname")
+                                  .DataValueField("hashtagcode")
+                                  .AutoBind(true)
+                                  .Filter("contains")
+                                  .DataSource(source =>
+                                  {
+                                      source.Read(read =>
+                                      {
+                                          read.Action("GetHashtag", "NewsManage");
+                                      })
+
+                                      .ServerFiltering(false);
+                                  }).ToClientTemplate()
+                                )
+
+                            <div class="div-note">
+                                <label>- Nhập các từ khóa chính của bài viết này. Điều này sẽ giúp trang tin tức có vị trí tốt trên google.com.vn.</label><br />
+                                <label>- VD: bất động sản, bảng giá nhà đất HCM.</label><br />
+                                <label>- Phân cách các từ khóa bằng dấu phẩy. Nên sử dụng tiếng việt có dấu.</label>
+                            </div>
+                        </div> 
+                        <div class="clearfix"></div>
+                    </div>       
+                </text>);
+                items.Add()
+                .Text(@Resources.Global._other_inf)
+                .Selected(false)
+                .Expanded(false)
+                .Content(@<text>
+                <div class="clearfix" style="margin-top:2%"></div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="col-sm-12">
+                            <label class="control-label">@Html.Raw(@Resources.Global._poster)</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                                <input type="text" class="form-control input-sm" name="nguoi_viet_bai" value="#=nguoi_viet_bai ? nguoi_viet_bai : ''#">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="col-sm-12">
+                            <label class="control-label">@Html.Raw(@Resources.Global._date_time_post)</label>
+                                @(Html.Kendo().DateTimePicker()
+                                    .Name("ngay_viet_bai")
+                                    .HtmlAttributes(new { style = "width:100%;" })
+                                    .ToClientTemplate()
+                                )
+                         </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="col-sm-10">
+                            <label class="control-label">@Html.Raw(@Resources.Global._count_views)</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-eye"></i></span>
+                                <input type="text" class="form-control input-sm" name="luot_xem" value="#=luot_xem ? luot_xem : ''#">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="col-sm-11">
+                            <label class="control-label">Slug</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-chain"></i></span>
+                                <input type="text" class="form-control input-sm" name="slug" value="#=slug ? slug : ''#">
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                <div class="clearfix" style="margin-bottom:2%"></div>
+                </text>);
+                    }).ToClientTemplate()
+            )
+            </div>      
+        </div>
+    </form>     
+</script>
+
+@Html.Partial("_popup_select_image_content")
+@Html.Partial("_popup_select_image_index")
+
+<script>
+    var data_tukhoa='', data_ngayvietbai='';
+    $(document).ready(function () {
+
+    });
+
+    function htmlDecode(value) {
+        return $('<div/>').html(value).text();
+    }
+    function htmlEncode(value) {
+        return $('<div/>').text(value).html();
+    }
+    function htmlEscape(str) {
+        return String(str)
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+    }
+
+    function OnChangetieu_de(){
+        //$('#slug').text(slug($('#tieu_de').text()));
+        $('input[name=slug]').val(slug($('input[name=tieu_de]').val()));
+    }
+    var slug  = function to_slug(str)
+    {
+        // Chuyển hết sang chữ thường
+        str = str.toLowerCase();
+
+        // xóa dấu
+        str = str.replace(/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/g, 'a');
+        str = str.replace(/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/g, 'e');
+        str = str.replace(/(ì|í|ị|ỉ|ĩ)/g, 'i');
+        str = str.replace(/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/g, 'o');
+        str = str.replace(/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/g, 'u');
+        str = str.replace(/(ỳ|ý|ỵ|ỷ|ỹ)/g, 'y');
+        str = str.replace(/(đ)/g, 'd');
+
+        // Xóa ký tự đặc biệt
+        str = str.replace(/([^0-9a-z-\s])/g, '');
+
+        // Xóa khoảng trắng thay bằng ký tự -
+        str = str.replace(/(\s+)/g, '-');
+
+        // xóa phần dự - ở đầu
+        str = str.replace(/^-+/g, '');
+
+        // xóa phần dư - ở cuối
+        str = str.replace(/-+$/g, '');
+
+        // return
+        return str;
+    }
+
+    function ExpandPanelBar(e)
+    {
+        
+        var data = @Html.Raw(Json.Encode(data));
+        var item = $(e.item).find("> .k-link").text();
+        if(item == "@Html.Raw(Resources.Global._other_inf)" || item == "SEO tag")
+        {
+            if(data_ngayvietbai=='')
+            {
+                if(data.ngay_viet_bai!=null)
+                $("#ngay_viet_bai").data("kendoDateTimePicker").value(data.ngay_viet_bai.toString());
+            }
+            else
+            {
+                $("#ngay_viet_bai").data("kendoDateTimePicker").value(data_ngayvietbai.toString());
+            }
+            if(data_tukhoa == '')
+            {
+                if(data.tu_khoa!=null)
+                    $("#tu_khoa").data("kendoMultiSelect").value(data.tu_khoa.toString().split(';'));
+            }
+            else
+            {
+                $("#tu_khoa").data("kendoMultiSelect").value(data_tukhoa.toString().split(';'));
+            }
+        }
+    }
+
+    function OnSelectionCategory(e) {
+        if (e.item) {
+            var dataItem = this.dataItem(e.item);
+            $.post(r + "/NewsManage/getPositions", { chuyen_muc: dataItem.Value.toString() }, function (data) {
+                if (!data.Errors) {
+                    dataParent = data.data;
+                    $("#ma_vi_tri").data("kendoDropDownList").setDataSource(dataParent);
+                }
+            });
+        }
+    }
+    function OnChangeWebsite() {
+        $("#ma_vi_tri").data("kendoDropDownList").setDataSource([]);
+    }
+    function OnSelectWebsite(e) {
+        if (e.item) {
+
+            var dataItem = this.dataItem(e.item);
+            $.post(r + "/NewsManage/getCategorys", { website: dataItem.Value.toString() }, function (data) {
+                if (!data.Errors) {
+                    dataParent = data.data;
+                    $("#ma_chuyen_muc").data("kendoDropDownList").setDataSource(dataParent);
+                }
+            });
+        }
+    }
+    var reset = false;
+    function Refresh() {
+        clearForm();
+    }
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(@Html.Raw(Json.Encode(data)));
+    }
+
+    function loadForm(data) {
+        debugger
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+        $(".date-picker").datetimepicker({ rtl: App.isRTL(), /*orientation: "left",*/ autoclose: !0 })
+        $('.fileinput').fileinput().on('change.bs.fileinput', function(e, files){
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+        $('.fileinput .thumbnail').hover(function(e){
+            $(this).find('i').remove();
+            if(!$(".fileinput-preview.fileinput-exists.thumbnail img").length && $(".fileinput-new.thumbnail img").attr("src").indexOf("http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image") == 0)
+                return;
+            $(this).append('<i class="fa fa-times fa-4" onclick="dropImage(0)"></i>')
+        });
+
+    }
+
+    loadForm(@Html.Raw(Json.Encode(data)));
+    function loadValidate(currentData) {
+        debugger
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        tieu_de: { required: true },
+                        noi_dung:{required:true},
+                        luot_xem: {number: true}
+                    },
+                message:{
+                    tieu_de:{
+                        required: "Thông tin bắt buộc",
+                    },
+                    noi_dung:{
+                        required:"Thông tin bắt buộc",
+                    },
+                    luot_xem:{
+                        number: "Kiểu số nguyên",
+                    },
+
+                },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+
+                    var tu_khoas = $('#tu_khoa').val();
+                    var rs = getDataBeforeSubmit();
+                    var rscontent = getlistimagecontent();
+                    var imgurl=$(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url" value="'+imgurl+'"/>');
+                    $(e).ajaxSubmit({
+                        data: { listimage: rs.object.listimage, listimagecontent: rscontent.object.listimagecontent, tu_khoas:tu_khoas},
+                        dataType: "json",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            $("#EditForm").find("input[name='url']").remove();
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(Resources.Global._save_successfully)')
+                                $("#popup_Grid_content_lib").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    clearForm();
+                                }
+                                else {
+                                    loadForm(data.data);
+                                    data_tukhoa = data.data.tu_khoa;
+                                    data_ngayvietbai = data.data.ngay_viet_bai;
+                                }
+                                setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function getDataBeforeSubmit()
+    {
+
+        var object = [];
+        var listimage = [];
+        $("#image-News .image-News img").each(function(){
+            var mpi = @Html.Raw(Json.Encode(new Image_Info()));
+            var dataItems = $("#popup_Grid").data("kendoListView").dataSource.data();
+            for (var i = 0; i < dataItems.length; i++){
+                if (dataItems[i].duong_dan_day_du == $(this).attr('src')){
+                    mpi.duong_dan_day_du = dataItems[i].duong_dan_day_du;
+                    mpi.ma_anh_goc = dataItems[i].ma_anh_goc;
+                    listimage.push(mpi);
+                    break;
+                }
+            }
+        });
+        object.listimage = listimage;
+        return{
+            object : object
+        }
+    }
+    function getlistimagecontent()
+    {
+
+        var objectcontent = [];
+        var listimagecontent = [];
+        $("#image-content img").each(function(){
+            var mpi = @Html.Raw(Json.Encode(new Image_Info()));
+            var dataItems = $("#popup_Grid_content").data("kendoListView").dataSource.data();
+            for (var i = 0; i < dataItems.length; i++){
+                if (dataItems[i].duong_dan_day_du == $(this).attr('src')){
+                    mpi.duong_dan_day_du = dataItems[i].duong_dan_day_du;
+                    mpi.ma_anh_goc = dataItems[i].ma_anh_goc;
+                    listimagecontent.push(mpi);
+                    break;
+                }
+            }
+        });
+        objectcontent.listimagecontent = listimagecontent;
+        return{
+            object : objectcontent
+        }
+    }
+
+    function onFullScreen(e) {
+        var editor = $("#noi_dung").data("kendoEditor");
+        if ($(e).html() == "@Html.Raw(Resources.Global._full_screen)") {
+            $(e).html("@Html.Raw(Resources.Global._restore_down)");
+            editor.wrapper.css("height", $(window).height())
+            .css("width", "100%")
+            .css("position", 'fixed')
+            .css("top", 0)
+            .css("left", 0).css("z-index", 10000).css("overflow", "hidden");
+        } else {
+            $(e).html("@Html.Raw(Resources.Global._full_screen)");
+            editor.wrapper.css("height", "450px").css("position", 'relative').css("width", "100%").css("z-index", 10).css("overflow", "auto");
+        }
+    }
+</script>

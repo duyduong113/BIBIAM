@@ -1,0 +1,571 @@
+﻿@using CMS.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._banner_mgnt);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+}
+@{
+    var newData = new cms_Banner();
+    newData.trang_thai = "DANG_SU_DUNG";
+}
+<style>
+    .fileinput i {
+        visibility: hidden;
+    }
+
+    .fileinput .thumbnail:hover i {
+        visibility: visible;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #ff7d5e;
+    }
+
+    .fileinput-preview.fileinput-exists.thumbnail img {
+        width: 300px;
+        height: 300px;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .image-product {
+        float: left;
+        position: relative;
+        margin: 0 5px 5px 0;
+        padding: 0;
+        border: 1px;
+        width: 50px;
+        height: 50px;
+    }
+
+        .image-product img {
+            border: 1px solid #938888;
+            width: 50px;
+            height: 50px;
+        }
+
+        .image-product .fa.fa-times {
+            visibility: hidden;
+        }
+
+        .image-product:hover .fa.fa-times {
+            visibility: visible;
+            position: absolute;
+            right: 0;
+            color: #ff7d5e;
+        }
+
+    .wrapper:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-5">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=trang_thai == 'A' ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-3" style="padding-left: 0; text-align: center;">
+                    <img src="#=image_link ? image_link : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'#" class="img-responsive" style="display:inline">
+                </div>
+                <div class="col-md-8" style="padding-left:0;">
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=image#
+                        #if(trang_thai=='DANG_SU_DUNG'){#
+                        <span class="text-success">@Html.Raw(Resources.Global._use)</span>
+                        #}else{#
+                        <span class="text-danger">@Html.Raw(Resources.Global._not_use)</span>
+                        #}#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._category): #=ma_chuyen_muc ? ma_chuyen_muc : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._position): #=vi_tri ? vi_tri : ''#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._type): #=loai ? loai : ''#
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._banner_list)</span>
+                </div>
+
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle" onkeyup="Search(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+                <div class="inputs" style="margin-right:10px;">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create)</a>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<cms_Banner>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Banner"));
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit"></div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._edit_banner)</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">              
+                <div class="tab-content">
+                    <div class="tab-pane in active" id="tab_1_1">
+                        <form action="@Url.Content("~/Banner/CreateUpdateBanner")" method="post" id="EditForm" novalidate="novalidate">
+                            <input type="hidden" name="id" value="#=id#" />
+                            <div class="row">
+                                <div class="form-group col-md-12" style="margin-bottom:-5px;">
+                                    <div class="actions" style="float: right;">
+                                        @if (all || update)
+                                        {
+                                            <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                                        }
+                                        @if (all || update)
+                                        {
+                                            <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    #if(id>0){#
+                                    <div class="form-group">
+                                        <label>@Html.Raw(@Resources.Global._banner_id)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ma_banner" value="#=ma_banner?ma_banner:''#" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Image<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="image" value="#=image?image:''#" readonly>
+                                        </div>
+                                    </div>
+                                    #}#
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._name_Caps)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="ten_banner" value="#=ten_banner?ten_banner:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Website<span class="text-danger"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                    .Name("ma_website")
+                                    .Value("#=ma_website ? ma_website: ''#")
+                                    .Events(events => { events.Select("OnSelectWebsite").Change("OnChangeWebsite"); })
+                                    .DataTextField("Name")
+                                    .DataValueField("Value")
+                                    .Filter("contains")
+                                    .OptionLabel("--Website--")
+                                    .BindTo(ViewBag.website)
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                    .ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._category)<span class="text-danger"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                .Name("ma_chuyen_muc")
+                                .Value("#=ma_chuyen_muc ? ma_chuyen_muc : ''#")
+                                .Events(events => { events.Select("OnSelectionCategory"); })
+                                .DataTextField("Name")
+                                .DataValueField("Value")
+                                .Filter("contains")
+                                .OptionLabel("--Chuyên mục--")
+                                .BindTo(ViewBag.chuyen_muc)
+                                .CascadeFrom("ma_website")
+                                .HtmlAttributes(new { style = "width: 100%" })
+                                .ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._position)<span class="text-danger"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                .Name("vi_tri")
+                                .DataTextField("Name")
+                                .Value("#=vi_tri ? vi_tri : ''#")
+                                .DataValueField("Value")
+                                .Filter("contains")
+                                .OptionLabel("--Vị trí--")
+                                .CascadeFrom("ma_chuyen_muc")
+                                .BindTo(ViewBag.vi_tri_Banner)
+                                .HtmlAttributes(new { style = "width: 100%" })
+                                .ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._type)<span class="text-danger"> * </span></label>
+                                       @(Html.Kendo().DropDownList()
+                                .Name("loai")
+                                .DataTextField("Name")
+                                .Value("#=loai ? loai : ''#")
+                                .DataValueField("Value")
+                                .Filter("contains")
+                                .OptionLabel("--Loại--")
+                                .BindTo(ViewBag.loai_Banner)
+                                .HtmlAttributes(new { style = "width: 100%" })
+                                .ToClientTemplate()
+                                )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Url link</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="url_link" value="#=url_link?url_link:''#">
+                                        </div>
+                                    </div>
+                                   
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                            <label>Banner Image</label>
+                                            <div class="clearfix">
+                                                <div class="input-group">
+                                                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                        <div class="fileinput-new thumbnail" style="width: 255px; height:200px;">
+                                                            <img src="#=image_link ? image_link : 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&amp;text=no+image'#" style="width: 255px; height:200px;" alt="" />
+                                                        </div>
+                                                        <div class="fileinput-preview fileinput-exists thumbnail" style="width: 255px; height:200px;"> </div>
+                                                        <div>
+                                                            <span class="btn default btn-file btn-sm btn-circle">
+                                                                <span class="fileinput-new"> @Html.Raw(Resources.Global._select_image) </span>
+                                                                <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                                                <input type="hidden"><input type="file" name="fileBanner">
+                                                            </span>
+                                                            <a href="javascript:;" class="btn red fileinput-exists btn-sm btn-circle" data-dismiss="fileinput" onclick="resetDefaultFileInput()"> @Html.Raw(Resources.Global._remove) </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Alt</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" name="alt" value="#=alt?alt:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._status)</label>
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=trang_thai=='KHONG_SU_DUNG'?'active':''#">
+                                                    #if(trang_thai=='KHONG_SU_DUNG'){#
+                                                    <input type="radio" name="trang_thai" value="KHONG_SU_DUNG" class="toggle" checked> @Html.Raw(Resources.Global._inactive)
+                                                    #}else{#
+                                                    <input type="radio" name="trang_thai" value="KHONG_SU_DUNG" class="toggle"> @Html.Raw(Resources.Global._inactive)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=trang_thai=='DANG_SU_DUNG'?'active':''#">
+                                                    #if(trang_thai=='DANG_SU_DUNG'){#
+                                                    <input type="radio" name="trang_thai" value="DANG_SU_DUNG" class="toggle" checked> @Html.Raw(Resources.Global._active)
+                                                    #}else{#
+                                                    <input type="radio" name="trang_thai" value="DANG_SU_DUNG" class="toggle"> @Html.Raw(Resources.Global._active)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    #if(id>0){#
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._created_date) </label>
+                                        <div class="input-icon right">
+                                            <input type="text" class="form-control input-sm max100" value="#=ngay_tao?kendo.toString(kendo.parseDate(ngay_tao),'dd/MM/yyyy'):''#" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._date_update) </label>
+                                        <div class="input-icon right">
+                                            <input type="text" class="form-control input-sm max100" value="#=ngay_tao?kendo.toString(kendo.parseDate(ngay_cap_nhat),'dd/MM/yyyy'):''#" readonly>
+                                        </div>
+                                    </div>
+                                    #}#
+                                </div>
+                                <div id="add_form">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>           
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) Banner @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>
+    $(document).ready(function () {
+        loadForm(@Html.Raw(Json.Encode(newData)));
+    });
+    function OnSelectWebsite(e) {
+        if (e.item) {
+
+            var dataItem = this.dataItem(e.item);
+            $.post(r + "/Banner/getCategorys", { website: dataItem.Value.toString() }, function (data) {
+                if (!data.Errors) {
+                    dataParent = data.data;
+                    $("#ma_chuyen_muc").data("kendoDropDownList").setDataSource(dataParent);
+                }
+            });
+        }
+    }
+    function OnSelectionCategory(e) {
+        debugger
+        if (e.item) {
+            var dataItem = this.dataItem(e.item);
+            $.post(r + "/Banner/getPositions", { chuyen_muc: dataItem.Value.toString() }, function (data) {
+                if (!data.Errors) {
+                    dataParent = data.data;
+                    $("#vi_tri").data("kendoDropDownList").setDataSource(dataParent);
+                }
+            });
+        }
+    }
+    function OnChangeWebsite() {
+        //$("vi_tri").data("kendoDropDownList").setDataSource([]);
+    }
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);
+        $('.fileinput').fileinput().on('change.bs.fileinput', function (e, files) {
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+        });
+        $('.fileinput .thumbnail').hover(function (e) {
+            $(this).find('i').remove();
+            var product = $("#listView").data("kendoListView").dataItem($("#listView").data("kendoListView").element.find('.selected'));
+            if ((product && product.url == $(".fileinput-new.thumbnail img").attr("src")) || (!$(".fileinput-preview.fileinput-exists.thumbnail img").length && $(".fileinput-new.thumbnail img").attr("src").indexOf("http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image") == 0))
+                return;
+            $(this).append('<i class="fa fa-times fa-4" onclick="dropImage(0)"></i>')
+        });
+    }
+    function clearForm() {
+
+
+
+        loadForm(@Html.Raw(Json.Encode(newData)));
+
+    }
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        vi_tri: {required: !0 },
+                        ma_chuyen_muc: { required: !0 },
+                        loai: {required: !0 }
+                    },
+                messages:
+                    {
+
+                        vi_tri: {
+                            required: "Thông tin bắt buộc"
+                        },
+                        ma_chuyen_muc: {
+                            required: "Thông tin bắt buộc"
+                        },
+                        loai: {
+                            required: "Thông tin bắt buộc"
+                        }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var imgurl = $(".fileinput .fileinput-new.thumbnail img").attr("src");
+                    imgurl = imgurl == "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" ? "" : imgurl;
+                    $("#EditForm").append('<input type="hidden" name="url_link" value="' + imgurl + '"/>');
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: {  },
+                        dataType: "json",
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Html.Raw(@Resources.Global._just_amoment)...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Html.Raw(@Resources.Global._save_successfully)')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                reset = false;
+                                loadForm(data.data);
+                            }
+                            else {
+                                toastr.error('', data.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function edit(e) {
+        debugger
+        var product = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(product);
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function Search(e) {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText!='') {
+            filterDesc.filters.push({ field: "image", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "trang_thai", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "ma_chuyen_muc", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "vi_tri", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+    function onDatabound(e) {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+</script>

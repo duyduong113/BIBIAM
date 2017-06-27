@@ -1,0 +1,274 @@
+﻿
+@{
+    if (ViewBag.type == "1")
+    {
+        ViewBag.Title = "Book PR Báo";
+    }
+    else
+    {
+        ViewBag.Title = "Book PR Mới";
+    }
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+}
+<input type="hidden" value="@ViewBag.type" id="type" />
+<div class="row-fluid">
+    
+    <div class="span12">
+        <div class="span4">
+            <div class="control-group">
+                <label>Khách hàng</label>
+                <div class="controls">
+                    @(Html.Kendo().AutoComplete()
+                              .Name("txt-CustomerID")
+                              .DataTextField("CustomerName")
+                              .Animation(true)
+                              .Placeholder("Nhập tên khách hàng")
+                              .Filter("contains")
+                              .MinLength(1)
+                              .HtmlAttributes(new { style = "width:100%",@class = "input-medium" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("CustomerRead", "CRM_CustomerSupport")
+                                          .Data("onAdditionalData");
+                                  })
+                                  .ServerFiltering(true);
+                              })
+                             .Events(e =>
+                             {
+                                 e.Select("onSelectCustomer");
+                                 e.Close("onCloseSelect");
+                             })
+                             .Template("<span>#=CustomerID# - #=CustomerName#</span>")
+                    )
+                </div>
+            </div>
+            <input type="hidden" class="span12" id="customer-id" placeholder="..." />
+        </div>
+        <div class="span2">
+            <div class="control-group">
+                <label>Nhân viên</label>
+                <div class="controls">
+                    <select id="listStaff" class="select" data-placeholder="Nhân viên" style="width:100%">
+                        <option value="">-- Chọn nhân viên--</option>
+                        @foreach (var item in ViewBag.listStaff)
+                        {
+                            <option value="@item.Code">@item.Name</option>
+                        }
+                    </select>
+                   
+                </div>
+            </div>
+        </div>
+        <div class="span2">
+            <div class="control-group">
+                <label>Mã book</label>
+                <div class="controls">
+                    <input type="text" class="input-medium" id="bookcode" value="@ViewBag.BookCode" readonly />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+              .Grid<ERPAPD.Models.CRM_BookPRLocation>()
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#'  />").Width(30).Filterable(false).Sortable(false);
+
+                  columns.ForeignKey(p => p.Website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name")
+                         .Title("Website")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name")
+                         .Title("Chuyên mục")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Location, (System.Collections.IEnumerable)ViewBag.listLocation, "Code", "Name")
+                         .Title("Vị trí")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.Bound(p => p.NgayLen)
+                         .Title("Ngày lên")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayLen,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayLen,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("Date");
+
+                  columns.ForeignKey(p => p.GioLen, (System.Collections.IEnumerable)ViewBag.listTime, "Code", "Name")
+                        .Title("Giờ lên")
+                        .Width(120)
+                        .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                        .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.Bound(p => p.Link)
+                         .Title("Link")
+                         .Width(200)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  //.EditorViewData(new { ViewBag.listWebsite })
+                  //.EditorTemplateName("AutoCompleteTemplate");
+
+                  columns.ForeignKey(p => p.VungMien, (System.Collections.IEnumerable)ViewBag.listRegion, "Code", "Name")
+                         .Title("Vùng miền")
+                         .Width(120)
+                         .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                 
+                  columns.Bound(p => p.Status).Hidden();
+              })
+              .ToolBar(toolbar =>
+              {
+              toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-small btn-success" href="javascript:void(0)" id="btnGridAdd">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                    </a>
+
+                    <button type="button" id="btnSaveBook" class="btn btn-primary btn-small">Lưu thông tin</button>
+                    <a class="btn btn-small btn-danger" href="javascript:void(0)">
+                        @*<i class="icon-plus"></i>*@ Xóa
+                    </a>
+                    <a class="btn btn-default btn-small" href="@Url.Action("ListBookPRBao", "CRM_BookingPR") ">Trở về</a>
+                }
+            </div>
+            </text>);
+              })
+              .Navigatable()
+              .AutoBind(false)
+              .Editable(editable => editable.Mode(GridEditMode.InCell))
+              .Events(events => { events.Edit("onEdit"); })
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource.Ajax()
+                                        .Batch(true)
+                                        .PageSize(50)
+                                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.ID);
+                                            model.Field(p => p.ID).Editable(false);
+                                        })
+                                        .Create(create => create.Action("BookPRBao_Create", "CRM_BookingPR").Data("getHeaderInfo"))
+                                        )
+        )
+    </div>
+</div>
+
+
+
+<script>
+    $('.select').chosen();
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            window.history.back();
+        }
+    }
+
+    function getHeaderInfo() {
+        return {
+            customerid: $('#customer-id').val(),
+            staff: $('#listStaff').val(),
+            bookcode: $('#bookcode').val(),
+            type: $('#type').val()
+        }
+    }
+
+    function onAdditionalData() {
+        return {
+            text: $("#txt-CustomerID").val()
+        };
+    }
+    function onSelectCustomer(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#customer-id").val(dataItem.CustomerID);
+    }
+    function onCloseSelect(e) {
+        console.log(e);
+        //var dataItem = this.dataItem(e.item.index());
+        //$("#txt-CustomerID").val(dataItem.CustomerID + " - " + dataItem.CustomerName);
+    }
+
+    $('#btnGridAdd').click(function () {
+        $("#Grid").data("kendoGrid").dataSource.insert();
+    })
+
+    $('#btnSaveBook').bind('click', function () {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    })
+
+    function onEdit(e) {
+        debugger
+        var a = $("[aria-activedescendant=Category_option_selected]");
+        if (a.length > 0) {
+            var dataItem = $('#Grid').data('kendoGrid').dataItem($(e.container).closest("tr"));
+            console.log(dataItem);
+            if (!(dataItem.Website == null || dataItem.Website == "")) {
+                //alert(dataItem.PositionID);
+                $.post(r + "/CRM_BookingPR/GetListCategoryValue?web=" + dataItem.Website, function (data) {
+                    if (!data.Errors) {
+                        var ds1 = new kendo.data.DataSource();
+                        ds1.data(data.listCategory);
+                        $("#Category").data("kendoDropDownList").setDataSource(ds1);
+                    }
+                });
+            }
+        }
+
+    }
+</script>

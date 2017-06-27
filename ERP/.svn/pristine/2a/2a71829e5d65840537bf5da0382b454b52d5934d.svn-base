@@ -1,0 +1,86 @@
+﻿
+@{
+    Layout = null;
+    int global2 = ViewBag.countID;
+}
+<tr class="group-guarantee">
+    <td>
+        <input type="hidden" name="pk_bao_lanh" value="" />
+        <input type="hidden" name="c_nguoi_bao_lanh" value="" />
+        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-NguoiBaoLanh-" + global2)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên người bảo lãnh")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-guarantee", @onfocus = "setGlobalGuarantee(" + global2 + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalGuarantee");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectNguoiBaoLanh");
+                                    })
+        )
+      
+        @{global2++;}
+    </td>
+    <td>
+        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-NguoiKyBaoLanh-" + global2)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên người ký bảo lãnh")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-guarantee", @onfocus = "setGlobalGuarantee(" + global2 + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalGuarantee");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectNguoiKyBaoLanh");
+                                    })
+        )
+        <input type="hidden" name="c_nguoi_ky_bao_lanh" value="" />
+        @{global2++;}
+    </td>
+    <td>
+        <input name="c_tien_bao_lanh" onchange="changeTienBaoLanh('MONEY')" class="currency tienbaolanh" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input name="c_ngay_bao_lanh" class="date-picker" type="text" value="" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input name="c_ngay_tra_no" class="date-picker" type="text" value="" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input onchange="changeTienBaoLanh()" name="c_tien_chua_thanh_toan" class="currency tienchuathanhtoan" type="text" value="" readonly data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input readonly onchange="changeTienBaoLanh()" name="c_tien_da_thanh_toan" class="currency tiendathanhtoan" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="changeTienBaoLanh('TRU')" name="c_tru_luong" class="currency truluong" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="changeTienBaoLanh('HOAN')" name="c_hoan_luong" class="currency hoanluong" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input type="text" name="c_ghi_chu" value="" />
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupGuarantee(this)"><i class="icon-minus"></i></button>
+    </td>
+</tr>

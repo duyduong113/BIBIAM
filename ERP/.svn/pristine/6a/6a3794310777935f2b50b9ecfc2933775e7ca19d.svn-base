@@ -1,0 +1,16 @@
+﻿@(Html.Kendo().DropDownListFor(m => m)
+                  .AutoBind(false)
+                  .OptionLabel("Chọn...")
+                  .DataTextField("ten_phan_cap")
+                  .DataValueField("ma_phan_cap")
+                  .Filter("contains")
+                  .DataSource(dataSource =>
+                  {
+                      dataSource.Read(read => read.Action("GetHierarchyByLevel", "Merchant_Product_Hierarchy", new { cap = "4" }).Data("filterCayPhanCap4"))
+                                .ServerFiltering(false);
+                  })
+                  .CascadeFrom("CayPhanCap3")
+                  .CascadeFromField("ma_phan_cap_cha")
+                  .Events(events => { events.Select("onSelect4"); })
+)
+@Html.ValidationMessageFor(m => m)
