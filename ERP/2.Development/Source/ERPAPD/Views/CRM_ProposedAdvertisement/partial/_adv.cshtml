@@ -1,0 +1,36 @@
+﻿<div class="row-fluid">
+    @if (ViewBag.typeService != null && ViewBag.typeService == 1)
+    {
+        @Html.Partial("service/_banner")
+    }
+    else if (ViewBag.typeService != null && ViewBag.typeService == 2)
+    {
+        @Html.Partial("service/_package_PR")
+    }
+    else if (ViewBag.typeService != null && ViewBag.typeService == 3)
+    {
+        @Html.Partial("service/_contract_PR")
+    }
+    else if (ViewBag.typeService != null && ViewBag.typeService == 4)
+    {
+        @Html.Partial("service/_cpm")
+    }
+    else
+    {
+        // Thêm mới
+        <div class="row-fluid">
+            @Html.Partial("service/_banner")
+        </div>
+        <div class="row-fluid">
+            @Html.Partial("service/_package_PR")
+        </div>
+        <div class="row-fluid">
+            @Html.Partial("service/_contract_PR")
+        </div>
+        <div class="row-fluid">
+            @Html.Partial("service/_cpm")
+        </div>
+        
+    }
+
+</div>

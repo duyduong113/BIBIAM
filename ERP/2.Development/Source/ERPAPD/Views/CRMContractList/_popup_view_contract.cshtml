@@ -1,0 +1,428 @@
+﻿@{
+    var isKT = false; var isKD = false;
+    if (ViewBag.Group.Count > 0)
+    {
+        foreach (var item in ViewBag.Group)
+        {
+            if (item.Id == 57)
+            {
+                isKT = true;
+                break;
+            }
+            else if (item.Id == 50)
+            {
+                isKD = true;
+            }
+        }
+    }
+}
+
+<div style="width: 90%; height:420px; margin-left: 0; left: 5%" id="popup-view-contract" class="modal hide contract-view-popup">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title" id="lbltitle"></span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div style="max-height: 100%; background-color: #F5F5F5; " class="modal-body overflow-visible">
+        <div class="modal-body-content" style="height: 420px; overflow-y: scroll; padding: 10px; background-color: #c9cac9"></div>
+
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-success btn-small" onclick="reviewContract(true)"> In hợp đồng</a>
+        <a class="btn btn-info btn-small" onclick="exportContract()"> Xuất ra file Word </a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div style="width: 90%; height:520px; margin-left: 0; left: 5%" id="popup-view-additionalList" class="modal hide contract-view-popup">
+    <form action="" id="additionalList" class="form-inline">
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title" id="lbltitle"></span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div style="max-height: 100%; background-color: #F5F5F5; " class="modal-body overflow-visible">
+
+            <div class="modal-body-content" style="height:400px; overflow-y: scroll; padding: 10px; background-color: #c9cac9">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            @if (isKT)
+            {
+                <span id="group-comfirm">
+                    <button class="btn btn-warning btn-small" onclick="sendConfirmation(true)" type="button"> Duyệt </button>
+                    <button id="un-comfirm" class="btn btn-danger btn-small" onclick="sendConfirmation(false)" type="button"> Hủy duyệt </button>
+                </span>
+            }
+            else if(isKD)
+            {
+                <span id="group-comfirm">
+                    <button class="btn btn-success btn-small" type="reset"> Làm mới </button>
+                    <button class="btn btn-success btn-small" onclick="saveAdditionalList(true)" type="submit"> Lưu </button>
+                    <button class="btn btn-success btn-small" type="button" onclick="reviewAdditionalList('additional')"> Theo BKBS </button>
+                    <button class="btn btn-success btn-small" type="button" onclick="reviewAdditionalList('contract')"> Theo HĐ dự thảo </button>
+                </span>
+            }
+            else
+            { 
+                <span id="group-comfirm">
+                    <button class="btn btn-success btn-small" type="reset"> Làm mới </button>
+                    <button class="btn btn-success btn-small" type="submit"> Lưu </button>
+                    <button class="btn btn-warning btn-small" onclick="sendConfirmation(true)" type="button"> Duyệt </button>
+                    <button id="un-comfirm" class="btn btn-danger btn-small" onclick="sendConfirmation(false)" type="button"> Hủy duyệt </button>
+                    <button class="btn btn-success btn-small" type="button" onclick="reviewAdditionalList('additional')"> Theo BKBS </button>
+                    <button class="btn btn-success btn-small" type="button" onclick="reviewAdditionalList('contract')"> Theo HĐ dự thảo </button>
+                </span>               
+            }
+            <button class="btn btn-success btn-small" onclick="reviewAdditionalList('print')" type="button"> In </button>
+            <button class="btn btn-info btn-small" onclick="exportAdditionalList()" type="button"> Xuất ra file Word </button>
+            @*<button class="btn btn-info btn-purple" onclick="resizeGrid()" type="button"> check </button>*@
+            <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+        </div>
+    </form>
+</div>
+<script>
+    var listTaskBKBS = [];
+    var iListBKBS = 0;
+    function resizePopup() {
+        var popupHeight = $(".modal-backdrop").height();
+        $('.contract-view-popup').css("height", popupHeight - 100);
+        $('.contract-view-popup .modal-body-content').css("height", popupHeight - 200);
+    }
+    function checkDisplayButton(status) {
+        if (parseInt(status) == 1) {
+            $("#group-comfirm").hide();
+            $("#un-comfirm").show();
+            $(".empty-line").addClass("disable-event");
+            resizePopup();
+        } else {
+            $("#group-comfirm").show();
+            $("#un-comfirm").hide();
+            $(".empty-line").removeClass("disable-event");
+            resizePopup();
+        }
+    }
+    function sendConfirmation(active) {
+        var PKContract = $('form#formContract').attr("data-contract");
+        $.post(r + "/CRMMnContract/Confirmation_AdditionList/", { PK: parseInt(PKContract), status: active }, function (data) {
+            if (data.success) {
+                if (active) {
+                    $.gritter.add({
+                        title: 'Thành công',
+                        text: 'Đã duyệt !',
+                        class_name: 'gritter-success'
+                    });
+                    checkDisplayButton(1);
+                } else {
+                    $.gritter.add({
+                        title: 'Thành công',
+                        text: 'Hủy duyệt !',
+                        class_name: 'gritter-success'
+                    });
+                    checkDisplayButton(0);
+                }
+            } else {
+                if (data.message == "NULL") {
+                    alert("Chưa lưu bảng kê bổ sung của hợp đồng này");
+                } else {
+                    $.gritter.add({
+                        title: 'Lỗi cập nhật',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        })
+
+        return;
+    }
+
+    $("form#additionalList").validate({
+        rules: {
+
+            LoaiHopDong: { required: true }
+
+        },
+        messages: {
+            LoaiHopDong: { required: "Thông tin bắt buộc" }
+
+        },
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+
+        submitHandler: function (form) {
+            var check = resetValueStaff();
+            if (!check) {
+                return;
+            }
+            var _url = r + "/CRMContractList/AdditionalList_Save";
+            $('form#additionalList input[name="FKContractDraft"]').val($('form#formContract').attr("data-contract"));
+            $.ajax({
+                url: _url,
+                type: 'POST',
+                data: $('form#additionalList').serialize(),
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: 'Cập nhật thành công !',
+                            text: data.message,
+                            class_name: 'gritter-success'
+                        });
+                        runTaskBKBS();
+                        saveStaff();
+                        $("#popup-view-additionalList").hide(2000, function () {
+                            $(this).modal("hide");
+                        });
+
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            return false;
+        }
+    });
+    var aGlb;
+    function setGlb(k) {
+        aGlb = k;
+    }
+    function onSelect(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $(this.element).parents("td").find(".item-staff").val(dataItem.RefStaffId);
+        $(this.element).parents("td").find(".item-team").val(dataItem.Team);
+        $(this.element).parents("td").find(".item-region").val(dataItem.Region);
+
+        $(this.element).parents("td").find(".value-show").text(dataItem.FullName);
+        //console.log(this.element);
+        //$(this.element).hide();
+    }
+    function onAdditionalDataTxt() {
+        return {
+            text: $("#txt-EmployerName-" + aGlb).val()
+        };
+    }
+    function onChangeSelect(e) {
+        var element = $(this)[0].element;
+        if (element.val() == "") {
+            console.log(element.parents("td").find(".item-PKStaff").val());
+            if (parseInt(element.parents("td").find(".item-PKStaff").val()) > 0) {
+                addTaskListBKBS("BKBS", element.parents("td").find(".item-PKStaff").val());
+            }
+
+            element.parents("td").find(".item-staff").val("");
+            element.parents("td").find(".item-team").val("");
+            element.parents("td").find(".item-region").val("");
+            element.parents("td").find(".value-show").text("");
+        }
+        console.log(listTaskBKBS);
+
+    }
+    function saveStaff() {
+        var arr = [];
+        $("#ListStaffDraff tr.group-staff").each(function (index) {
+            var ob = {};
+            var pfStaff = $(this).find(".item-PKStaff").val();
+            var staff = $(this).find(".item-staff").val();
+            var region = currencyToNumber($(this).find(".item-region").val());
+            var team = currencyToNumber($(this).find(".item-team").val());
+
+            var percent = $(this).find(".item-percent").val();
+            var sign = currencyToNumber($(this).find(".item-sign").val());
+            var real = currencyToNumber($(this).find(".item-real").val());
+            var ny = currencyToNumber($(this).find(".item-ny").val());
+            var other = currencyToNumber($(this).find(".item-other").val());
+
+            if (percent > 0 && staff != "") {
+                ob.PKStaff = pfStaff;
+                ob.FKContract = $('form#formContract').attr("data-contract")
+                ob.StaffId = staff;
+                ob.region = staff;
+                ob.team = staff;
+                ob.Percent = percent;
+                ob.Money = sign;
+                ob.MoneyInYear = real;
+                ob.MoneyNextYear = ny;
+                ob.MoneyWebOther = other;
+                arr[index] = ob;
+            } 
+        })
+        console.log(arr);
+        $.ajax({
+            url: r + "/CRMContractList/AdditionalStaff_Save",
+            type: 'POST',
+            data: { listItem: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (!data.success) {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+   
+    function hasValueChange() {
+        hideAllInput();
+        return;
+    }
+    function hideAllInput() {
+        $(".body-print .empty-line").each(function () {
+            var value = '';
+            if ($(this).find(".real-value").val() != "") {
+                 value = $(this).find(".real-value").val();
+                // console.log(value);
+
+            } else {
+                 value = $(this).find("input.real-value").val();
+            }
+
+            $(this).find(".value-show").text(value);
+        })
+
+        $(".real-value").hide();
+        $(".value-show").show();
+        return;
+    }
+    function resetRow(input, type) {
+        //DSky = dsthuhien + dschuyen + dskhac
+        var e = $(input).parents(".group-staff");
+        var sum = DSSignContract;
+        var percent = currencyToNumber($(e).find(".item-percent").val());
+        var sign = currencyToNumber($(e).find(".item-sign").val());
+        var real = currencyToNumber($(e).find(".item-real").val());
+        var ny = currencyToNumber($(e).find(".item-ny").val());
+        var other = currencyToNumber($(e).find(".item-other").val());
+        if (sign > sum || real > sum || ny > sum || other > sum) {
+            alert("Doanh số nhập vào lớn hơn DS ký trên HĐ !");
+            hideAllInput();
+            $(input).val(0);
+            return;
+        }
+
+        if (type == "PERCENT") {
+            sign = sum * percent / 100;
+            real = sign - ny - other;
+            other = sign - real - ny;
+            ny = sign - real - other;
+        }
+        if (type == "SIGN") {
+            ny = sign - real - other;
+            other = sign - real - ny;
+        }
+        if (type == "REAL") {
+            real = sign - ny - other;
+            other = sign - real - ny;
+        }
+        if (type == "NY") {
+            real = sign - ny - other;
+            other = sign - real - ny;
+        }
+        if (type == "OTHER") {
+            real = sign - ny - other;
+            ny = sign - real - other;
+        }
+        //if (percent <= 0 || sign <= 0) {
+        //    alert("Chưa có doanh số ký !");
+        //    $(input).val(0);
+        //    hideAllInput();
+        //    return;
+        //}
+        $(e).find(".item-percent").val(numberToCurrency(percent));
+        $(e).find(".item-sign").val(numberToCurrency(sign));
+        $(e).find(".item-real").val(numberToCurrency(real));
+        $(e).find(".item-ny").val(numberToCurrency(ny));
+        $(e).find(".item-other").val(numberToCurrency(other));
+        var success = resetValueStaff(input);
+    }
+    function resetValueStaff(inp) {
+        var sum = DSSignContract;
+        var sumPercent = 0;
+        var sumSign = 0;
+        var sumReal = 0;
+        var sumNy = 0;
+        var sumOther = 0;
+        $("#ListStaffDraff .group-staff").each(function () {
+            var percent = currencyToNumber($(this).find(".item-percent").val());
+            var sign = currencyToNumber($(this).find(".item-sign").val());
+            var real = currencyToNumber($(this).find(".item-real").val());
+            var ny = currencyToNumber($(this).find(".item-ny").val());
+            var other = currencyToNumber($(this).find(".item-other").val());
+            sumPercent += percent;
+            sumSign += sign;
+            sumReal += real;
+            sumNy += ny;
+            sumOther += other;
+        })
+
+        $("#group-sum-money .item-percent").text(numberToCurrency(sumPercent));
+        $("#group-sum-money .item-sign").text(numberToCurrency(sumSign));
+        $("#group-sum-money input[name='StrDSSign']").val(numberToCurrency(sumSign));
+        $("#group-sum-money .item-real").text(numberToCurrency(sumReal));
+        $("#group-sum-money input[name='StrDSReal']").val(numberToCurrency(sumReal));
+        $("#group-sum-money .item-ny").text(numberToCurrency(sumNy));
+        $("#group-sum-money input[name='StrDSNextYear']").val(numberToCurrency(sumNy));
+        $("#group-sum-money .item-other").text(numberToCurrency(sumOther));
+        $("#group-sum-money input[name='StrDSOther']").val(numberToCurrency(sumOther));
+
+        if (!inp && sumPercent < 100) {
+            alertMessage("Tỉ lệ < 100% !");
+            return false;
+        }
+        if (sumPercent > 100) {
+            alertMessage("Tỉ lệ > 100% !");
+            $(inp).val(0);
+            hideAllInput();
+            return false;
+        }
+        if (sumSign > sum) {
+            alertMessage("Doanh số ký BKBS > DS ký HĐ !");
+            return false;
+        }
+        hideAllInput();
+        return true;
+    }
+   
+    function addTaskListBKBS(type, pk) {
+        var func = {};
+        func.Type = type;
+        func.PK = pk;
+        listTaskBKBS[iList] = func;
+        iList++;
+    }
+    function runTaskBKBS() {
+        for (var i = 0; i < listTaskBKBS.length; i++) {
+            var type = listTaskBKBS[i].Type;
+            var pk = listTaskBKBS[i].PK;
+            del = deleteOne(type, pk);
+        }
+    }
+   
+</script>
+
+

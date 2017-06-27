@@ -1,0 +1,213 @@
+﻿
+<style>
+    td{padding-left:5px;}
+    
+</style>
+
+<div class="reviewcontract" id="docx" style="display: none; font-size:8px;"></div>
+<script type="text/x-kendo-template" id="popupcontract">
+    <div style="margin:0;padding:0;background-color:white; line-height:1;">
+        <table style="width:650px;margin: auto;" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td style="width:450px;font-weight:bold;font-size:16px;text-align:center;">HỢP ĐỒNG MUA BÁN Ô TÔ</td>
+                            <td style="width:250px;font-style:italic;">Số: <span>#=contractnumber#</span></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-weight:bold;text-decoration:underline;">Căn cứ</span><br />
+                    <span style="font-style:italic;">
+                        - Bộ luật Dân sự và Luật Thương Mại năm 2005 và các văn bản pháp luật liên quan;<br />
+                        - Căn cứ vào nhu cầu và khả năng của các bên.<br />
+                        Hôm nay, ngày @DateTime.Now.ToString("dd") tháng @DateTime.Now.ToString("MM") năm @DateTime.Now.ToString("yyyy") tại văn phòng Công ty Cổ Phần Dịch Vụ Sài Gòn Ôtô, chúng tôi gồm :
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="div1">
+                        <table cellpadding="5" cellspacing="0" border="1 solid \\#eee" width="100%">
+                            <tr style="font-weight:bold;">
+                                <td width="30%">A. BÊN BÁN</td>
+                                <td>:</td>
+                                <td colspan="6">CÔNG TY CỔ PHẦN DỊCH VỤ SÀI GÒN Ô TÔ</td>
+                            </tr>
+                            <tr>
+                                <td>Ngày Đại diện</td>
+                                <td width="1%">:</td>
+                                <td colspan="2" width="25%">Ông/bà</td>
+                                <td colspan="2">Chức vụ:</td>
+                                <td width="11%">Tel:</td>
+                                <td width="10%">( 08) 38181458</td>
+                            </tr>
+                            <tr>
+                                <td>Theo giấy ủy quyề số:</td>
+                                <td>:</td>
+                                <td colspan="4">_____ /UQ Ngày : ___/___/2016</td>
+                                <td>Fax:</td>
+                                <td>( 08) 38181458</td>
+                            </tr>
+                            <tr>
+                                <td>Ngân hàng</td>
+                                <td>:</td>
+                                <td colspan="6">007 100 1043 898 tại NH Vietcombank-CN TP.HCM</td>
+                            </tr>
+                            <tr>
+                                <td>Hoặc</td>
+                                <td>:</td>
+                                <td colspan="6">060.010.014.861 tại NH Sacombank Phòng Giao Dịch Võ Văn Tần</td>
+                            </tr>
+                            <tr>
+                                <td>Tư vấn bán hàng</td>
+                                <td>:</td>
+                                <td colspan="4">#=rule!=null && rule.fullname!=null ? rule.fullname : ''#</td>
+                                <td>Tel:</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td>:</td>
+                                <td colspan="4">#=rule!=null && rule.email!=null ? rule.email : ''#</td>
+                                <td>Wed:</td>
+                                <td>saigonford.com.vn</td>
+                            </tr>
+                            <tr style="font-weight:bold;">
+                                <td>B. BÊN MUA</td>
+                                <td>:</td>
+                                <td colspan="6">#=company!= null ? company : fullname #</td>
+                            </tr>
+                            <tr>
+                                <td>Địa chỉ</td>
+                                <td>:</td>
+                                <td colspan="6"></td>
+                            </tr>
+                            <tr>
+                                <td>Chứng minh nhân dân (cá nhân)</td>
+                                <td>:</td>
+                                <td width="11%;"> #=identity!= null ? identity: ''#</td>
+                                <td width="5%">Do:</td>
+                                <td colspan="2">#=identityaddress!=null ? identityaddress:''#</td>
+                                <td>Ngày cấp:</td>
+                                <td>#=identitydate!= null ? kendo.toString(kendo.parseDate(identitydate),'dd/MM/yyyy') : ''#</td>
+                            </tr>
+                            <tr>
+                                <td>Mã số Thuế (doanh nghiệp)</td>
+                                <td>:</td>
+                                <td colspan="6">#=taxcode!=null ? taxcode:''#</td>
+                            </tr>
+                            <tr>
+                                <td>Người Đại diện</td>
+                                <td>:</td>
+                                <td colspan="3">#=represent!=null ? represent:''#</td>
+                                <td>Chức vụ:</td>
+                                <td colspan="2">#=position!= null ? position:''#</td>
+                            </tr>
+                            <tr>
+                                <td>Điện thoại</td>
+                                <td>:</td>
+                                <td colspan="3"> #=phone != null ? phone:''#</td>
+                                <td>Fax:</td>
+                                <td colspan="2">#=fax!=null ? fax:''#</td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td>:</td>
+                                <td colspan="6">#=email != null ? email :''#</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-style:italic;">Sau khi bàn bạc, thỏa thuận hai Bên ký kết Hợp đồng mua bán ô tô <b>(“Hợp đồng”)</b> với các điều khoản sau:</span><br />
+                    #if(condition!= null && condition.length > 0){#
+                        <b>#=condition[0].name#</b>
+                    #}#
+                    @*<p style="text-transform:uppercase;font-weight:bold;">ĐIỀU 1: TÊN HÀNG SỐ LƯỢNG CHẤT LƯỢNG GIÁ TRỊ HỢP ĐỒNG</p>*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    #if(product!=null && product.length  > 0){#
+                    <div class="div2">
+                        <table cellpadding="5" cellspacing="0" border="1 solid \\#eee" width="100%">
+                            <tr style="text-align:center;font-weight:bold;">
+                                <td>STT</td>
+                                <td colspan="2">Hàng hóa</td>
+                                <td>Đơn giá (VNĐ)</td>
+                                <td>Đơn vị tính</td>
+                                <td>Số lượng</td>
+                                <td>Thành tiền (VNĐ)</td>
+                            </tr>
+                            # for(var i = 0; i< product.length; i++){#
+                            <tr>
+                                <td rowspan="3">#=i + 1#</td>
+                                <td rowspan="3">
+                                    <span><b>#=product[i].name#</b></span><br />
+                                    <span>
+                                        - Màu: #=product[i].colorDes#<br />
+                                        - Lắp ráp: #=product[i].domestic == true ? 'Việt Nam' :'Nhập khẩu'#<br />
+                                        - Năm sản xuất: #=product[i].car.productionYear#
+                                    </span>
+                                </td>
+                                <td rowspan="3">
+                                    #=product[i].note != null ? product[i].note :''#
+                                </td>
+                                <td rowspan="3">#=kendo.format('{0:N0}', product[i].price) #</td>
+                                <td>Chiếc</td>
+                                <td>#= product[i].number#</td>
+                                <td>#=kendo.format('{0:N0}', product[i].price * product[i].number)#</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Giảm giá đặc biệt</td>
+                                <td>#=kendo.format('{0:N0}', product[i].sale)#</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><b>Tổng giá bán</b></td>
+                                <td>#=kendo.format('{0:N0}', product[i].price + product[i].sale)#</td>
+                            </tr>
+                            #}#
+                            <tr>
+                                <td>#= product.length + 1#</td>
+                                <td colspan="5">Phụ kiện/ phụ tùng (#=totalService!= null ? totalService : 0 #): #=serviceName!= null ? serviceName:''#</td>
+                                <td>#=kendo.format('{0:N0}', priceService)#</td>
+                            </tr>
+                            <tr>
+                                <td colspan="7">
+                                    @using MCC.Models;
+                                    <span><b>Tổng trị giá hợp đồng:</b> #=kendo.format('{0:N0}', product[0].price + product[0].sale + priceService)#  đ</span> <br />
+                                    <span><b><i>Bằng chữ:</i></b> @Html.Raw(tw_Contract_Report.DocSo(683000000.ToString()))</span> 
+                                </td>
+                            </tr>
+                            <tr>
+                                #if(condition!= null && condition[0].content!=null && condition.length > 0){#
+                                <td colspan="7">
+                                    #=condition[0].content.replace('{DiliveryTime}', rule !=null && rule.deliverytime != null ? rule.deliverytime :'').replace('{Promotion}', promotionName!= null ? promotionName:'')#
+                                </td>
+                                #}#
+                            </tr>
+                        </table>
+                    </div>
+                    #}#
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    #if(condition!= null && condition.length > 0){#
+                         #for(var i = 1; i < condition.length;  i++){#
+                            <b>#=condition[i].name#</b> <br/>
+                            #=condition[i].content.replace('{DiliveryTime}', rule !=null && rule.deliverytime != null ? rule.deliverytime :'').replace('{DiliveryAdress}', rule !=null && rule.deliveryplace != null ? rule.deliveryplace :'')#
+                        #}#
+                    #}#
+                </td>
+            </tr>
+
+        </table>
+    </div>
+</script>

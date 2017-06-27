@@ -1,0 +1,549 @@
+﻿@using MCC.Models;
+@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._promotional_campaign);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool isAdmin = ViewBag.isAdmin != null ? ViewBag.isAdmin : false;
+
+    var data = new Merchant_Product_Promotion();
+    data.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG;
+    data.loai = "tien";
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<style>
+    .input-icon.right > i {
+        right: -20px;
+        float: right;
+        left:auto;
+    }
+
+    
+</style>
+<div class="col-md-12">
+	<div class="tabbable-line">
+		<ul class="nav nav-tabs">
+			<li class="active">
+				<a href="\\#tab_1" data-toggle="tab">Danh Sách Khuyến Mãi</a>
+			</li>
+			<li>
+				<a href="\\#tab_2" data-toggle="tab" id="tab_2_click"> Chỉnh Sửa</a>
+			</li>
+		</ul>
+
+		<div class="tab-content">
+
+			<div class="tab-pane in active" id="tab_1">
+
+                <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+                    <div class="row">
+                        <div class="col-md-4">
+                            @if (isAdmin)
+                            {
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("ListMerchant")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._merchant) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Events(e => e.Change("filter"))
+                                      .Filter("contains")
+                                      .MinLength(2)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetMerchantInfo", "CustomData");
+                                          }).ServerFiltering(false);
+                                      })
+
+                                        )
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                        .Name("trang_thai")
+                                        .DataTextField("Text")
+                                        .DataValueField("Value")
+                                        .Events(e => e.Change("filter"))
+                                        .OptionLabel("TRẠNG THÁI")
+                                        .BindTo(new List<SelectListItem>() {
+                                          new SelectListItem() {
+                                              Text = "ĐANG SỬ DỤNG",
+                                              Value = AllConstant.trang_thai.DANG_SU_DUNG
+                                          },
+                                          new SelectListItem() {
+                                              Text = "KHÔNG SỬ DỤNG",
+
+                                              Value = AllConstant.trang_thai.KHONG_SU_DUNG
+                                          }
+                                    })
+                                    .HtmlAttributes(new { style = "width: 100%" })
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+
+                                    <div class="input-icon right">
+                                        <div class="input-group-btn input-icon right">
+                                            <i class="icon-magnifier" onclick="filter()"></i>
+                                            <input type="text" class="form-control form-control-solid" id="txtSearch" name="txtSearch" onkeyup="filter()" placeholder="@Html.Raw(Resources.Global._search)...">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+				<div class="row-fluid">
+					@(Html.Kendo().Grid<Merchant_Product_Promotion>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.id)
+                        .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+                        .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#+@@+#=trang_thai#+@@+#=ten_chuong_trinh_km#'/>")
+                        .Width(20).Filterable(false).Sortable(false);
+                        columns.Template(@<text></text>).ClientTemplate(
+                            "<a class='btn btn-xs btn-success' onClick='editPromotion(this)'><i class='fa fa-pencil-square-o' aria-hidden='true'></i></a>").Width(30).HtmlAttributes(new { @class = "text-center" });
+                        if(isAdmin)
+                        {
+                            columns.Bound(p => p.ma_gian_hang).Title("Gian hàng").Width(75);
+                        }
+                        columns.Bound(p => p.ten_chuong_trinh_km).Title(@Html.Raw(Resources.Global._promotion).ToString().ToUpper()).Width(205).HtmlAttributes(new { @class = "editable" });
+                        columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._time).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" })
+							.ClientTemplate("#=kendo.toString(kendo.parseDate(ngay_bat_dau), 'dd/MM/yyyy')# - #=kendo.toString(kendo.parseDate(ngay_ket_thuc), 'dd/MM/yyyy')#");
+					    columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._content).ToString().ToUpper()).Width(80).HtmlAttributes(new { @class = "editable" })
+                            .ClientTemplate("# if (loai == 'tien') { #" +
+                                    @Html.Raw(Resources.Global._sales).ToString() + " #=kendo.format('{0:N0}',gia_tri)# Đ " +
+                                    "# } else { #" +
+                                    @Html.Raw(Resources.Global._sales).ToString() + " #:gia_tri# %" +
+                                    "# } #");
+                        columns.Bound(p => p.trang_thai).Title(@Html.Raw(Resources.Global._status).ToString().ToUpper()).Width(75).HtmlAttributes(new { @class = "text-center" })
+                            .ClientTemplate(
+                                "#if(trang_thai=='" + AllConstant.trang_thai.DANG_SU_DUNG + "'){#"
+                                + "<label style='text-align:center;opacity:1;' class='btn green btn-outline btn-circle btn-sm active'>Đang sử dụng</label>"
+                                + "#}else{#"
+                                + "<label style='text-align:center;opacity:1;' class='btn red btn-outline btn-circle btn-sm active'>Không sử dụng</label>"
+                                + "#}#");
+                    })
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 40, 60, 80 }))
+                    .Scrollable()
+                    .ToolBar(toolbar =>
+                    {
+                        toolbar.Template(@<text>
+                <div class="pull-left">
+                    @if (create || all)
+                    { <a onclick='create()' class="btn btn-success btn-small"><i class="fa fa-plus" aria-hidden="true"></i> @Html.Raw(Resources.Global._add)</a>}
+
+                    @if (delete || all)
+                    {
+                        <button class="btn btn-small btn-danger" onclick=DelPromotion()><i class="fa fa-trash" aria-hidden="true"></i> @Resources.Global._delete</button>
+                    }
+                    @if (all || create || update)
+                    {
+                        <button class="btn btn-small btn-primary" onclick="Active()"><i class="fa fa-check-square-o" aria-hidden="true"></i> Sử dụng</button>
+                        <button class="btn btn-small btn-warning" onclick="InActive()"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Không sử dụng</button>
+                    }
+
+                </div>
+                        </text>);
+                    })
+                    .Navigatable()
+                    .Pageable(x => x.PageSizes(new int[] { 20, 40, 60, 80 }))
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .HtmlAttributes(new { @style = "height:480px" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Events(events => { events.Error("error_handler"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.ten_chuong_trinh_km).Editable(false);
+                            model.Field(p => p.loai).Editable(false);
+                            model.Field(p => p.ngay_bat_dau).Editable(false);
+                            model.Field(p => p.ngay_ket_thuc).Editable(false);
+
+                        })
+                        .Read(c => c.Action("Read", "Merchant_Product_Promotion"))
+                        )
+)
+				</div>
+
+			</div>
+
+			<div class="tab-pane" id="tab_2">
+				<div class="col-md-12 formEdit">
+                  
+				</div>
+                <div class="griddetail">
+
+                </div>
+             
+
+
+			</div>
+		</div>
+	</div>
+</div>
+@Html.Partial("Create")
+<script>
+    $(document).ready(function () {
+        loadForm(@Html.Raw(Json.Encode(data)));
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+
+        //$('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+
+        $.validator.addMethod("promotionstartdate", function (value, element) {
+            
+            var start_dateOLD = JSON.parse('@Html.Raw(Json.Encode(data))').ngay_bat_dau;
+            var start_time = convertDate($("#ngay_bat_dau").val());
+            var current_time = kendo.toString(kendo.parseDate(new Date()), 'yyyy/MM/dd');
+            return current_time <= start_time ? true : start_dateOLD == start_time ? true : false;
+        }, "Ngày bắt đầu phải lớn hơn ngày hiện tại");
+        $.validator.addMethod("promotiondate", function (value, element) {
+            var start_time = convertDate($("#ngay_bat_dau").val());
+            var end_time = convertDate($("#ngay_ket_thuc").val());
+            var current_time = kendo.toString(kendo.parseDate(new Date()), 'yyyy/MM/dd');
+            return (current_time <= end_time && start_time <= end_time );
+        }, "Ngày kết thúc phải lớn hơn ngày bắt đầu và ngày hiện tại");
+        $.validator.addMethod("promotionpercent", function (value, element) {
+            if ($("#EditForm input[name='loai']:checked").val() == 'phan_tram')
+                return ValidatePromotion();
+            return true;
+        }, "Giá trị = [5%, 50%]");
+        $.validator.addMethod("promotionmoney", function (value, element) {
+            if ($("#EditForm input[name='loai']:checked").val() == 'tien')
+                return ValidatePromotion();
+            return true;
+        }, "Giá trị = [50000Đ, 1000000Đ]");
+
+	});
+
+	function editPromotion(e) {
+
+		var promotion = $('#Grid').data('kendoGrid').dataItem($(e).closest('tr'))
+        loadForm(promotion);
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+		$("#tab_2_click").trigger("click");
+
+	}
+</script>
+<script>
+
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+    }
+    function checkAll(e) {
+
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function Getlistcheck(type) {
+        var listrowid = [];
+        var listrowidyes = '';
+        var listrowidno = '';
+        switch (type) {
+            case 1:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true){
+                            if($(this).attr("id").split(/@@@@/)[1].trim()!='@AllConstant.trang_thai.DANG_SU_DUNG'){
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else
+                            {
+                                toastr.error('',$(this).attr("id").split(/@@@@/)[2].trim()+" đang Mở!" );
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 2:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true){
+                            if($(this).attr("id").split(/@@@@/)[1].trim()!='@AllConstant.trang_thai.KHONG_SU_DUNG'){
+                                listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                            else
+                            {
+                                toastr.error('',$(this).attr("id").split(/@@@@/)[2].trim()+" đang Tắt!" );
+                                listrowidno += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                                $(this).data();
+                            }
+                        }
+                    })
+                }
+                break;
+            case 3:
+                {
+                    $('#Grid').find(".checkrowid").each(function () {
+                        if ($(this).prop('checked') == true) {
+                            listrowidyes += $(this).attr("id").split(/@@@@/)[0].trim() + ',';
+                            $(this).data();
+                        }
+                    })
+                }
+                break;
+        }
+        listrowid.listrowidyes = listrowidyes;
+        listrowid.listrowidno = listrowidno;
+        return listrowid;
+    }
+     function DelPromotion() {
+        var data = Getlistcheck(3);
+        if(data.listrowidyes=='')
+        {
+            toastr.error('', "Vui lòng chọn Chương trình khuyến mãi cần xóa!");
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa các Chương trình khuyến mãi đã chọn!",
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Product_Promotion/Delete", { data: data.listrowidyes}, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Xóa thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+     function Active() {
+        var data = Getlistcheck(1);
+        if(data.listrowidyes=='')
+        {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Sử dụng các chương trình khuyến mãi đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Product_Promotion/Active", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+
+     function InActive() {
+        var data = Getlistcheck(2);
+        if(data.listrowidyes=='')
+        {
+            return;
+        }
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Không sử dụng các chương trình khuyến mãi Thẻ đã chọn!",
+            buttons:
+                {
+
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Merchant_Product_Promotion/Active", { data: data.listrowidyes }, function (data) {
+                                if (data.success) {
+                                    toastr.clear();
+                                    $("#Grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', 'Ngưng sử dụng thành công');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.message);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function create() {
+        clearForm();
+        $("#tab_2_click").trigger("click");
+    }
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var noi_dung = $("#txtSearch").val();
+        if (noi_dung != null && noi_dung != "") {
+            var filterOr = { logic: "or", filters: [] };
+            filterOr.filters.push({ field: "ten_chuong_trinh_km", operator: "contains", value: noi_dung });
+
+            filterOr.filters.push({ field: "ma_chuong_trinh_km", operator: "contains", value: noi_dung });
+            filterOr.filters.push({ field: "loai", operator: "contains", value: noi_dung });
+            filter.filters.push(filterOr);
+        }
+        //
+        var ListMerchant = $('#ListMerchant').val();
+        if (ListMerchant != null && ListMerchant != "") {
+            filter.filters.push({ field: "ma_gian_hang", operator: "eq", value: ListMerchant });
+        }
+
+        var trang_thai = $('#trang_thai').val();
+        if (trang_thai != null && trang_thai != "") {
+            filter.filters.push({ field: "trang_thai", operator: "eq", value: trang_thai });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function error_handler(e) {
+        if (e.status == "error") {
+            toastr.error('@Resources.Global._500_error_title', '@Resources.Global._error_message');
+        }
+    }
+     function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_chuong_trinh_km: { required: true },
+                        gia_tri: { promotionpercent: true, promotionmoney: true, number:true, required: true },
+                        ngay_bat_dau: { required: true, promotionstartdate: true },
+                        ngay_ket_thuc: { required: true, promotiondate: true }
+                    },
+                messages:{
+                    gia_tri:{
+                        number: "Kiểu số nguyên",
+                        required: "Thông tin bắt buộc"
+                    }
+                },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var obj = JSON.parse('@Html.Raw(Json.Encode(data))');
+                    $("input[name='gia_tri']").val(currencyToNumber($("input[name='gia_tri']").val()));
+                    $("#EditForm").append('<input type="text" name="id" class="hidden" value="' + obj.id + '" />');
+                    var details = [];
+                    if ($('#PromotionGrid').data('kendoGrid').dataSource.hasChanges())
+                        details = getDataPromotionGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { products: details, ma_gian_hang: obj.ma_gian_hang },
+                        mimeType: "multipart/form-data",
+                        cache: false,
+                        processData: false,
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            var rs = JSON.parse(data);
+                            if (rs.success) {
+                                toastr.success("Lưu thành công!")
+                                $("#Grid").data("kendoGrid").dataSource.read();
+                                $("#PromotionGrid").data("kendoGrid").dataSource.read();
+
+                                if(reset)
+                                {
+                                    reset = false;
+                                    clearForm();
+                                }
+                                else {
+                                        $("input[name='gia_tri']").val(numberToCurrency($("input[name='gia_tri']").val()));
+                                }
+
+                            }
+                            else {
+                                toastr.error(rs.message)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            if (XMLHttpRequest.status == 500)
+                                toastr.error('ERROR');
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+</script>

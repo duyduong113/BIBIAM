@@ -1,0 +1,17 @@
+﻿@{
+    Layout = null;
+}
+<label class="control-label">Default currency new</label>
+<div class="controls">
+    <select name="CurrencyNameNew" id="CurrencyNameNew" class='chosen-select' data-placeholder="Chọn mã tiền tệ mới ">
+        <option value="">--Chọn mã tiền tệ mới--</option>
+        @foreach (var iteam in ViewBag.listCurrenciesND)
+        {
+            <option value="@iteam.ma_tien_te">@iteam.ten_tien_te</option>
+        }
+    </select>
+</div>
+
+<script type="text/javascript">
+    $(".chosen-select").chosen();
+</script>

@@ -1,0 +1,47 @@
+﻿@{
+    Layout = null;
+}
+<div class="row-fluid">
+    <table id="" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:15%">Web</th>
+                <th style="width:20%">Chuyên mục</th>
+                <th style="width:20%">Vị trí</th>
+                <th style="width:15%">Tính chất</th>
+                <th style="width:15%">Thời gian tính tiền</th>
+                <th style="width:15%">Thời gian khuyến mãi</th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.realBanner != null && ViewBag.realBanner.Count > 0)
+            {
+                foreach (var item in ViewBag.realBanner)
+                {
+                    int week = item.c_days / 7;
+                    int days = item.c_days % 7;
+                    string strDay = week + " Tuần - " + days + " ngày";
+                    int weekKM = item.c_km_days / 7;
+                    int daysKM = item.c_km_days % 7;
+                    string strDayKM = weekKM + " Tuần - " + daysKM + " ngày";
+                    <tr onclick="detailReal('REAL_BN','@item.c_website','@item.c_category','@item.c_location','@item.c_nature')" class="">
+                        <td class="first">
+                            @Html.Raw(item.WebsiteName)
+                        </td>
+                        <td>
+                            @Html.Raw(item.CategoryName)
+                        </td>
+                        <td>
+                            @Html.Raw(item.LocationName)
+                        </td>
+                        <td>
+                            @Html.Raw(item.NatureName)
+                        </td>
+                        <td>@strDay</td>
+                        <td>@strDayKM</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

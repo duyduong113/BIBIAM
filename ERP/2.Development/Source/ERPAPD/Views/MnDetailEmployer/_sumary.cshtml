@@ -1,0 +1,563 @@
+﻿<div class="span12 detail-sumary">
+    <div class="row-fluid">
+        <form action="@Url.Content("~/MnDetailEmployer/Customer_Update")" method="post" id="customerForm" class="form-inline">
+            <div class="span5">
+                <div class="form-horizontal">
+                    <div class="group-txt">
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Mã khách hàng</label>
+                            <div class="controls">
+                                <input class="span10" type="text" value="@ViewBag.detailCustomer.CustomerCode" placeholder="Nhập mã khách hàng" disabled />
+                                <input name="CustomerID" type="hidden" value="@ViewBag.detailCustomer.CustomerID" />
+
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-2">Tên ngắn gọn</label>
+                            <div class="controls">
+                                <input name="ShortName" class="span10" type="text" id="form-field-2" value="@ViewBag.detailCustomer.ShortName" placeholder="Nhập tên ngắn gọn" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-2">Tên đầy đủ (pháp nhân)</label>
+                            <div class="controls">
+                                <input class="span10" type="text" name="CustomerName" value="@ViewBag.detailCustomer.CustomerName" placeholder="Nhập tên đầy đủ" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-7">Mã số thuế</label>
+                            <div class="controls">
+                                <div class="span7"><input name="TaxCode" class="span12" id="TaxCode" type="text" value="@ViewBag.detailCustomer.TaxCode" placeholder="Nhập mã số thuế" /></div>
+                                <div class="span3"><a class="" onclick="showConfirmTax()">Tra cứu MST</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group-txt">
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-3">Nguồn</label>
+                            <div class="controls">
+                                <select name="Source" id="listSource" class="span10">
+                                    <option disabled selected>Chọn nguồn khách hàng</option>
+                                    @foreach (var item in ViewBag.listSource)
+                                    {
+                                        <option @if (item.ParamID == ViewBag.detailCustomer.Source) { @Html.Raw("selected")            } value="@item.ParamID">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-3">Loại hình DN</label>
+                            <div class="controls">
+                                <select name="CompanyType" id="listCompanyType" class="span10">
+                                    <option disabled selected>Chọn loại hình DN</option>
+                                    @foreach (var item in ViewBag.listCompanyType)
+                                    {
+                                        <option @if (item.Code == ViewBag.detailCustomer.CompanyType) { @Html.Raw("selected")           } value="@item.Code">@item.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-5">Ngành hàng</label>
+                            <div class="controls">
+                                <select name="Category" id="listCats" class="span10">
+                                    <option disabled selected>Chọn ngành hàng</option>
+                                    @foreach (var item in ViewBag.listCategory)
+                                    {
+                                        <optgroup id="@item.HierarchyID" label="@item.Value">
+                                            @foreach (var sub in ViewBag.listSubCategory)
+                                            {
+                                                if (sub.ParentID == item.HierarchyID)
+                                                {
+                                                    <option @if (sub.HierarchyID == ViewBag.detailCustomer.Category)
+                                                            { @Html.Raw("selected")} value="@sub.HierarchyID">@sub.Value</option>
+                                                }
+                                            }
+                                        </optgroup>
+                                    }
+                                    @*@foreach (var item in ViewBag.listCategory)
+                                    {
+                                        <optgroup label="@item.Value">
+                                            @foreach (var subitem in ViewBag.listSubCategory)
+                                            {
+                                                if (item.HierarchyID == subitem.ParentID)
+                                                {
+                                                    <option @if (item.HierarchyID == ViewBag.detailCustomer.Category){ @Html.Raw("selected")   } value="@subitem.HierarchyID">@subitem.Value</option>
+                                                }
+                                                <option @if (item.HierarchyID == ViewBag.detailCustomer.Category) { @Html.Raw("selected")    } value="@subitem.HierarchyID">@subitem.Value</option>
+                                            }
+                                        </optgroup>
+                                    }*@
+                                    @*@foreach (var item in ViewBag.listCategory)
+
+                                        {
+                                            <option @if (item.CategoryID == ViewBag.detailCustomer.Category) { @selected       } value="@item.CategoryID">@item.CategoryName</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-3">Loại khách hàng</label>
+                            <div class="controls">
+                                <select name="Customertype" id="listType" class="span10">
+                                    <option disabled selected>Chọn loại khách hàng</option>
+                                    @if (ViewBag.listType != null)
+                                    {
+                                        foreach (var item in ViewBag.listType)
+                                        {
+                                            <option @if (item.Code == ViewBag.detailCustomer.CustomerType) { @Html.Raw("selected")  } value="@item.Code">@item.Value</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Loại đại lý</label>
+                            <div class="controls">
+                                <select id="listAgency" class="span10 select" name="AgencyType" data-placeholder='Chọn dữ liệu'>
+                                    <option disabled selected>Chọn loại đại lý</option>
+                                    @if (ViewBag.listAgencyType != null)
+                                    {
+                                        foreach (var item in ViewBag.listAgencyType)
+                                        {
+                                            <option @if (item.Code == ViewBag.detailCustomer.AgencyType) { @Html.Raw("selected")  } value="@item.Code">@item.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Agency nguyên tắc</label>
+                            <div class="controls">
+                                @if (ViewBag.detailCustomer.AgencyRule == 1)
+                                {
+                                    <input type="checkbox" class="ace-checkbox-2" id="AgencyRule" name="AgencyRule" checked="checked" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" class="ace-checkbox-2" id="AgencyRule" name="AgencyRule" />
+                                }
+
+                            </div>
+                        </div>
+                        @*BaoHV comment*@
+                        @*@if (ViewBag.detailCustomer.CustomerType == "DAI_LY")
+                            {
+                                <div class="control-group">
+                                    <label class="control-label">Agency nguyên tắc</label>
+                                    <div class="controls">
+                                        <select id="listAgency" name="AgencyType" class="span10">
+                                            <option value="AGENCY_BASIC" selected>Agency nguyên tắc</option>
+                                            <option value="AGENCY_">Agency cam kết</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" name="AgencyType" value="AGENCY_BASIC" />
+                            }*@
+
+                    </div>
+                    <div class="" id="area-select">
+                        <div class="control-group">
+                            <label class="control-label">Quốc gia *</label>
+                            <div class="controls">
+                                <select name="Area" onchange="changeCountry(this)" id="listCountry" class="span10">
+                                    @foreach (var item in ViewBag.listCountry)
+                                    {
+                                        <option @if (item.CountryID == ViewBag.detailCustomer.Area) { @Html.Raw("selected")        } value="@item.CountryID">@item.CountryName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Tỉnh thành</label>
+                            <div class="controls">
+                                <select name="Province" onchange="changeCountry(this)" id="listCity" class="span10">
+                                    @if (ViewBag.listCity != null)
+                                    {
+                                        foreach (var item in ViewBag.listCity)
+                                        {
+                                            <option @if (item.CityID == ViewBag.detailCustomer.Province) { @Html.Raw("selected")         } value="@item.CityID">@item.CityName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Quận / Huyện</label>
+                            <div class="controls">
+                                <select name="District" onchange="changeCountry(this)" id="listDictrict" class="span10">
+                                    @if (ViewBag.listDistrict != null)
+                                    {
+                                        foreach (var item in ViewBag.listDistrict)
+                                        {
+                                            <option @if (item.DistrictID == ViewBag.detailCustomer.District) { @Html.Raw("selected")          } value="@item.DistrictID">@item.DistrictName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Phường / Xã</label>
+
+                            <div class="controls">
+                                <select name="Wards" id="listWards" class="span10">
+                                    @if (ViewBag.listWards != null)
+                                    {
+                                        foreach (var item in ViewBag.listWards)
+                                        {
+                                            <option @if (item.WardsID == ViewBag.detailCustomer.Wards) { @Html.Raw("selected")   } value="@item.WardsID">@item.WardsName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Số nhà / Tên đường</label>
+                        <div class="controls">
+                            <textarea name="Address" class="autosize-transition span10" style="overflow: hidden; resize: vertical; word-wrap: break-word; height: 50px;">@ViewBag.detailCustomer.Address</textarea>
+                        </div>
+                    </div>
+
+                    <div id="listPhone" class="control-group">
+                        <label class="control-label">Điện thoại bàn LH</label>
+                        @{
+                            try
+                            {
+                                var phone = Json.Decode(ViewBag.detailCustomer.Phone);
+                                if (phone.Length == 0)
+                                {
+                                    <div class="controls">
+                                        <div class="span9 web-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>
+                                        <div class="span3"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    for (var i = 0; i < phone.Length; i++)
+                                    {
+                                        if (i == 0)
+                                        {
+                                            <div class="controls">
+                                                <div class="span9 web-txt"><input class="span12" value="@phone[i]" type="text" placeholder="Số điện thoại" /> </div>
+                                                <div class="span3"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="controls">
+                                                <div class="span9 web-txt"><input class="span12" value="@phone[i]" type="text" placeholder="Số điện thoại" /></div>
+                                                <div class="span3"><a class="btn btn-small minus-website" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></a></div>
+                                            </div>
+                                        }
+                                    }
+                                }
+
+                            }
+                            catch (Exception)
+                            {
+                                <div class="controls">
+                                    <div class="span9 web-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>
+                                    <div class="span3"><a id="add-phone" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                </div>
+                            }
+                        }
+
+
+
+                    </div>
+                    <input name="Phone" type="hidden" id="Phone" />
+                </div>
+            </div>
+            <div class="span5">
+                <div class="form-horizontal">
+                    <div class="group-txt">
+                        <div class="control-group">
+                            <label class="control-label">Nhân viên KD phụ trách</label>
+                            <div class="controls">
+                                <select name="StaffId" id="listEmployee" class="span10">
+                                    <option disabled selected>Chọn nhân viên KD phụ trách</option>
+                                    @if (ViewBag.listEmployee != null)
+                                    {
+                                        foreach (var item in ViewBag.listEmployee)
+                                        {
+                                            <option @if (item.RefEmployeeID == ViewBag.detailCustomer.StaffId) { @Html.Raw("selected")   } value="@item.RefEmployeeID">@item.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <input id="website" type="hidden" name="Website" />
+                            </div>
+                        </div>
+
+                        <div id="listWebsite" class="control-group">
+                            <label class="control-label">Website</label>
+                            @{
+                                try
+                                {
+                                    var websites = Json.Decode(ViewBag.detailCustomer.Website);
+                                    if (websites.Length == 0)
+                                    {
+                                        <div class="controls">
+                                            <div class="span9 web-txt"><input class="span12" value="http://" type="text" placeholder="Website 1" /> </div>
+                                            <div class="span3"><a id="add-website" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        for (var i = 0; i < websites.Length; i++)
+                                        {
+                                            if (i == 0)
+                                            {
+                                                <div class="controls">
+                                                    <div class="span9 web-txt"><input class="span12" value="@websites[i]" type="text" placeholder="Website 1" /> </div>
+                                                    <div class="span3"><a id="add-website" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="controls">
+                                                    <div class="span9 web-txt"><input class="span12" value="@websites[i]" type="text" placeholder="Nhập tên Website" /></div>
+                                                    <div class="span3"><a class="btn btn-small minus-website" onclick="minusWeb(this)"><i class="icon-minus-sign"></i></a></div>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    <div class="controls">
+                                        <div class="span9 web-txt"><input class="span12" value="http://" type="text" placeholder="Website 1" /> </div>
+                                        <div class="span3"><a id="add-website" class="btn btn-small"><i class="icon-plus"></i></a></div>
+                                    </div>
+                                }
+                            }
+
+
+
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Đính kèm tập tin</label>
+                            @*ViewBag.detailCustomer.StaffId*@
+                            <div class="controls">
+                                <div class="span10">
+                                    <input name="Files" type="file" id="id-input-file-2">
+                                    <span style="display: none" id="FileNames">@ViewBag.detailCustomer.FileName</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-2">Địa chỉ trên hợp đồng</label>
+
+                            <div class="controls">
+                                <textarea name="Address2" class="autosize-transition span10" style="overflow: hidden; word-wrap: break-word; resize: vertical; height: 50px;">@ViewBag.detailCustomer.Address2</textarea>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="group-txt">
+                        <div class="control-group">
+                            <label class="control-label">Điện thoại bàn trên HĐ</label>
+
+                            <div class="controls">
+                                <input name="Phone2" value="@ViewBag.detailCustomer.Phone2" class="span10" type="text" placeholder="Nhập điện thoại bàn trên hợp đồng" />
+
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-4">Số Fax</label>
+                            <div class="controls">
+                                <input name="Fax" value="@ViewBag.detailCustomer.Fax" class="span10" type="text" placeholder="Nhập số Fax" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-5">Số tài khoản</label>
+                            <div class="controls">
+                                <input name="Account" value="@ViewBag.detailCustomer.Account" class="span10" type="text" placeholder="Nhập số tài khoản" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-6">Tại ngân hàng</label>
+                            <div class="controls">
+                                <input name="BankName" value="@ViewBag.detailCustomer.BankName" class="span10" type="text" placeholder="Nhập tên ngân hàng" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-7">Chi nhánh</label>
+                            <div class="controls">
+                                <input name="BankBranch" value="@ViewBag.detailCustomer.BankBranch" class="span10" type="text" placeholder="Nhập tên ngân hàng" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Người đại diện</label>
+                            <div class="controls">
+                                <input name="Sponsor" value="@ViewBag.detailCustomer.Sponsor" class="span10" type="text" placeholder="Nhập tên người đại diện" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="form-field-1">Chức vụ</label>
+
+                            <div class="controls">
+                                <select id="listCustomerPosition" class="span10 select" name="Position" data-placeholder='Chọn dữ liệu'>
+                                    <option></option>
+                                    @foreach (var item in ViewBag.listCustomerPosition)
+                                    {
+                                        <option @if (ViewBag.detailCustomer.Position == item.PositionID)
+                                        { @Html.Raw("selected") } value="@item.PositionID">@item.PositionName</option>
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="span11">
+                <p class="pull-right">
+                    <a id="updateCustomer" class="btn btn-small btn-primary"> Lưu</a>
+                    <button type="reset" class="btn btn-small btn-default">Hủy</button>
+                    <button class="btn btn-small" onclick="removeFile()"><i class="icon-remove"></i></button>
+                </p>
+            </div>
+        </form>
+    </div>
+
+</div>
+<script>
+    $(document).ready(function () {
+        $("#listCustomerPosition").chosen();
+        if ($('#FileNames').html() == '') {
+            $('.ace-file-input label span').attr('data-title', 'No File ...');
+            $('.ace-file-input label').attr('class', '');
+            $('.ace-file-input a').removeAttr('href');
+            $('.ace-file-input a').attr('id', 'removeFile');
+        } else {
+            $('.ace-file-input label span').attr('data-title', $('#FileNames').html());
+            $('.ace-file-input label').attr('class', 'selected');
+            $('.ace-file-input a').removeAttr('href');
+            $('.ace-file-input a').attr('onclick', 'removeFile()');
+            //$(".ace-file-input a").remove();
+            //$('.ace-file-input').append('<button style="border-radius: 25px;background-color: orange !important;border: none;color: #fff !important;    display: block;position: absolute;right: -20px;height: 30px;" class="btn btn-small" onclick="removeFile()"><i class="icon-remove"></i></button>');
+        }
+    });
+    function removeFile() {
+        $('.ace-file-input label span').attr('data-title', 'No File ...');
+        $('.ace-file-input label').attr('class', '');
+    }
+    $("#add-website").click(function () {
+        var html = '<div class="controls">';
+        html += '<div class="span9 web-txt"><input class="span12" value="http://" type="text" placeholder="Nhập tên Website" /> </div>';
+        html += '<div class="span3"><button class="btn btn-small minus-website" onclick="minusWeb(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listWebsite").append(html);
+    })
+    function minusWeb(e) {
+        $(e).parent().parent().remove();
+    }
+
+    $("#add-phone").click(function () {
+        var html = '<div class="controls">';
+        html += '<div class="span9 web-txt"><input class="span12" value="" type="text" placeholder="Số điện thoại" /> </div>';
+        html += '<div class="span3"><button class="btn btn-small minus-website" onclick="minusPhone(this)"><i class="icon-minus-sign"></i></button></div>';
+        html += '</div>';
+        $("#listPhone").append(html);
+    })
+    function minusPhone(e) {
+        $(e).parent().parent().remove();
+    }
+    $("#updateCustomer").click(function () {
+
+        $("#customerForm").submit();
+        return;
+
+    })
+    $("#customerForm").validate({
+        submitHandler: function (form) {
+            //debugger
+            var arr_web = [];
+            for (var i = 0; i < $("#listWebsite input").length; i++) {
+                arr_web[i] = $("#listWebsite input")[i].value;
+
+            }
+            json = JSON.stringify(arr_web);
+            $("#website").val(json);
+
+            var arr_phone = [];
+            for (var i = 0; i < $("#listPhone input").length; i++) {
+
+                arr_phone[i] = $("#listPhone input")[i].value;
+            }
+            var json_phone = JSON.stringify(arr_phone);
+            $("#Phone").val(json_phone);
+
+            if ($('#AgencyRule').prop('checked')) {
+                $('#AgencyRule').val(1);
+            }
+            else {
+                $('#AgencyRule').val(0);
+            }
+
+            var formContent = $("#customerForm").serialize();
+            var url = $("#customerForm")[0].action;
+            $.post(url, formContent).done(function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: 'Cập nhật thành công !',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+        },
+        showErrors: function (errorMap, errorList) {
+            if (errorList[0] != undefined) {
+                $.gritter.add({
+                    title: '@Resources.Multi.Error',
+                    text: errorList[0].message,
+                    class_name: 'gritter-error'
+                });
+            }
+
+        },
+        rules: {
+            CustomerName: "required",
+            Address: "required",
+            Phone: "required",
+
+        },
+        messages: {
+            CustomerName: "Vui lòng nhập tên đầy đủ !",
+            Address: "Vui lòng nhập địa chỉ liên hệ !",
+            Phone: "Vui lòng nhập điện thoại !",
+
+        }
+    });
+</script>

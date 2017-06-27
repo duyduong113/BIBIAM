@@ -1,0 +1,157 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Works>
+<style>
+    .gr-btn-work button {
+        margin-right: 1px;
+    }
+    .chosen-container{
+        width:100% !important;
+    }
+</style>
+<div style="padding:10px;margin:0" class="span12">
+    <div class="span3">
+        <select multiple class="chosen-select" id="listWorkFilter" data-placeholder="Loại công việc" style="display: none">
+            @foreach (var item in ViewBag.listWorkType)
+            {
+                <option value="@item.ParamID">@item.Value</option>
+            }
+        </select>
+    </div>
+    <div class="span2">
+        <select class="chosen-select" id="listStatusFilter" data-placeholder="Trạng thái" style="display: none;">
+            <option value="">--Tất cả--</option>
+            <option value="YET">Chưa làm</option>
+            <option value="DONE">Đã làm</option>
+        </select>
+    </div>
+    <div class="span5">
+        <p class="pull-right">
+            <a  href="#work-form" data-toggle="modal" class="btn btn-small btn-primary">Thêm công việc</a>
+        </p>
+    </div>
+</div>
+<div style="margin:0" class="span12 mn-list">
+    @(Html.Kendo().Grid(Model)
+    .Name("GridWorks")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.CustomerID)
+        .Title("Thao tác")
+        .Width(100)
+        .ClientTemplate(
+            "<p class='gr-btn-work'><button data-rel='tooltip' data-placement='right' data-original-title='Gọi' class='btn btn-mini btn-success tooltip-success'><i class='icon-phone'></i></button>"
+           + "<button data-rel='tooltip' data-placement='bottom' data-original-title='Hoàn tất' data-status='#=Status#' onclick='updateStatus(this,#=RowID#)' class='btn btn-mini btn-primary tooltip-info'><i class='icon-check'></i></button>"
+           + "<button data-rel='tooltip' data-placement='right' data-original-title='Chi tiết' onclick='openDetail(#=RowID#)' class='btn btn-mini btn-grey'><i class='icon-info-sign'></i></button></p>"
+                );
+        columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.listWorkType, "ParamID", "Value")
+        .Title("Loại công việc").Width(100);
+        columns.Bound(p => p.Title)
+            .Title("Tiêu đề")
+            .Width(100); columns.Bound(p => p.Description)
+            .Title("Nội dung")
+            .Width(150);
+        columns.Bound(p => p.EmName)
+     .Title("Người liên hệ")
+     .ClientTemplate(
+            "<span>#if(EmName != null){##=EmName##}#</span></br><span>#if(EmEmail != null){##=EmEmail##}#</span>"
+                )
+     .Width(100);
+        columns.Bound(p => p.Status)
+    .Title("Trạng thái")
+    .ClientTemplate(
+        "#if(Status == 'YET'){#<span class='blue'>Chưa làm</span>#}else{#<span class='red'>Đã làm</span>#}#"
+        )
+    .Width(100);
+        //columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.listStatusType, "ParamID", "Value")
+        //.Title("Trạng thái")
+        // .Width(80);
+        columns.Bound(p => p.Deadline).Format("{0:dd/MM/yyyy}").Width(120)
+        .ClientTemplate("#if(kendo.toString(Deadline,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(Deadline,'dd/MM/yyyy hh:mm:ss tt') #" + "#}# ");
+    })
+
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+    .Navigatable()
+    .Events(events => { events.DataBound("dataBound"); })
+    .Resizable(r => r.Columns(true))
+    //.Events(events => { events.DataBound("dataBound"); })
+    .Scrollable(scrollable => scrollable.Virtual(false))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(50)
+    .Model(model =>
+    {
+        model.Id(p => p.CustomerID);
+    })
+    .Read(read => read.Action("WorksRead", "CRMCustomerSupportDetail", new { @CustomerID = ViewBag.CustomerID }))
+   ))
+</div>
+
+<script type="text/javascript">
+    $("#listWorkFilter, #listStatusFilter").chosen();
+    $("#listWorkFilter, #listStatusFilter").change(function () {
+        filter();
+    });
+    function updateStatus(e,rowID) {
+        if ($(e).attr("data-status") == "DONE") {
+            return;
+        }
+        if (!confirm("Update trạng thái ?")) {
+            return;
+        }
+        var url = "/CRMCustomerSupportDetail/Update_Work";
+        gridView = $("#GridWorks");
+        $.post(r + url, { rowID: rowID, }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    text: '@Resources.Multi.Successfully',
+                    class_name: 'gritter-success'
+                });
+                gridView.data("kendoGrid").dataSource.read();
+            }
+            else {
+                $.gritter.add({
+                    title: 'lỗi cập nhật',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function openDetail(rowID) {
+        $("#detail-work-form").modal('show');
+        var url = "/Ajax/GetViewWork";
+        $.post(r + url, { rowID: rowID, }, function (data) {
+            $("#detail-work").html(data);
+        });
+    }
+    function filter() {
+        var grid = $('#GridWorks').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+
+        var TypeOption = $("#listWorkFilter option:selected");
+        console.log(TypeOption);
+        var fillterType = { logic: "or", filters: [] }
+        if (TypeOption.length > 0) {
+            for (var i = 0; i < TypeOption.length; i++) {
+                var option = TypeOption[i].value;
+                fillterType.filters.push({ field: "Type", operator: "eq", value: option });
+            }
+            filter.filters.push(fillterType);
+        }
+        var StatusOption = $("#listStatusFilter").val();
+        var fillterStatus = { logic: "and", filters: [] };
+
+        console.log(StatusOption);
+        if (StatusOption && StatusOption != "") {
+            fillterStatus.filters.push({ field: "Status", operator: "eq", value: StatusOption });
+            filter.filters.push(fillterStatus);
+        }
+        //return;
+        grid.dataSource.filter(filter);
+    }
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+    }
+</script>

@@ -1,0 +1,64 @@
+﻿@{
+    Layout = null;
+    int global = ViewBag.countID;
+}
+<tr class="group-staff-revenue">
+    <td>
+        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName-" + global)
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-employer", @onfocus = "setGlobal(" + global + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataName");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItem").Change("onChangeValueSuggest");
+                                    })
+        )
+        <input class="input-value-suggess" type="hidden" name="pk_staff" value="" />
+        <input class="input-value-suggess" type="hidden" name="c_staff_id" value="" />
+        <input class="input-value-suggess" type="hidden" name="c_unit_id" value="" /> @*Vung Mien*@
+        <input class="input-value-suggess" type="hidden" name="c_group_id" value="" />
+        @{global++;}
+    </td>
+    <td>
+        <input style="width:100%" class="input-small staff-revenue-unit" value="" type="text" disabled />
+    </td>
+    <td>
+        <input style="width:100%" class="input-small staff-revenue-group" value="" type="text" disabled />
+    </td>
+    <td>
+        <input name="c_percent" onchange="changePercent(true,false)" class="input-small staff-revenue-proportion" value="" type="number" />
+    </td>
+    <td>
+        <input name="c_money" class="input-small staff-revenue-revenue-up currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input name="c_money_in_year" class="input-small staff-revenue-implementation currency" value="" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input name="c_money_next_year" class="input-small staff-revenue-next-year currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input name="c_charge" type="checkbox" class="staff-revenue-presenter">
+    </td>
+    <td>
+        <input name="c_money_web_other" class="input-small staff-revenue-other currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+   
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRevenueStaff(this)"><i class="icon-minus"></i></button>
+    </td>
+
+</tr>
+

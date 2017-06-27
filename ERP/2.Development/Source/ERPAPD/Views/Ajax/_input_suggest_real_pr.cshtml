@@ -1,0 +1,170 @@
+﻿
+@{
+    Layout = null;
+    int glo = ViewBag.countID;
+}
+<tr class="group-real-pr">
+    <td>
+        <input type="hidden" class="item-pk-pr" value="" />
+        <input class="input-value-suggess item-web" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-real-service-" + glo)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập tên Web")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                            .Data("onAdditionalDataReal");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+        )
+        @{glo++;}
+
+      
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" value="" />
+
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-real-service-" + glo)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập chuyên mục")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                        .Data("onAdditionalDataReal");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+        @{glo++;}
+
+      
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" value="" />
+
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-real-service-" + glo)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập vị trí")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "item-location-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                        .Data("onAdditionalDataReal");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+        @{glo++;}
+
+
+    </td>
+    <td>
+        <input class="input-value-suggess item-region" type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-real-service-" + glo)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập tên miền")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "item-region-name", @onfocus = "setGlobalReal(" + glo + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 52 })
+                                                                        .Data("onAdditionalDataReal");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+        )
+        @{glo++;}
+
+
+    </td>
+    <td>
+        <input onchange="resetRealPR()" class="date-picker item-update" type="text" value="" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input onchange="resetRealPR()" class="item-qty currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="resetRealPR()" class="item-unit-price currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input class="item-total-money currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+            <input class="item-promotion" type="checkbox" value="0" />
+    </td>
+    <td>
+        <input class="date-picker item-public-date" type="text" value="" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input class="input-value-suggess " type="hidden" value="" />
+        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-real-service-" + glo)
+                                    .DataTextField("FullName")
+                                    //.Value(Html.Raw(item.FullName))
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "item-staff", @onfocus = "setGlobalReal(" + glo + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataReal");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectEmployer").Change("onChangeValueSuggest");
+                                    })
+        )
+        @{glo++;}
+    </td>
+    <td>
+        <input class="item-note" type="text" value="" />
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealPR(this)"><i class="icon-minus"></i></button>
+        <button data-rel="tooltip" data-placement="top" title="" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRowPR(this)"><i class="icon-book"></i></button>
+
+    </td>
+</tr>

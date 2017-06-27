@@ -1,0 +1,161 @@
+﻿
+@{
+    Layout = null;
+    int glb = ViewBag.countID;
+}
+<tbody class="list">
+    <tr class="group-hdt-service">
+        <td><input class="item-source" type="text" /></td>
+        <td>
+            <div class="control-group">
+                <div class="controls">
+                    <input type="hidden" class="item-PKProduct" value="0" />
+                    <input class="input-value-suggess item-web" type="hidden" value="24" />
+                    @(Html.Kendo().AutoComplete()
+                                                                    .Name("txt-AdvChannel-" + glb)
+                                                                    .DataTextField("Name")
+                                                                    .Placeholder("Nhập tên Web")
+                                                                    .Filter("contains")
+                                                                    .MinLength(1)
+                                                                    .HtmlAttributes(new { style = "width:100%", @class = "item-web-name", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                    .DataSource(source =>
+                                                                    {
+                                                                        source.Read(read =>
+                                                                        {
+                                                                            read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                                .Data("onAdditionalDataChannel");
+                                                                        })
+                                                                        .ServerFiltering(true);
+                                                                    })
+                                                                    .Events(e =>
+                                                                    {
+                                                                        e.Select("onSelectChannelItem");
+                                                                    })
+                    )
+
+                </div>
+                <script>
+                                    $("#txt-AdvChannel-@glb").val("24h.com.vn");
+                </script>
+            </div>
+            @{glb++;}
+            
+        </td>
+        <td>
+            <div class="control-group">
+                <div class="controls">
+                    <input class="input-value-suggess item-category" type="hidden" value="24H_DNV" />
+                    @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập chuyên mục")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "item-category-name", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem");
+                                                                })
+                    )
+                </div>
+                <script>
+                $("#txt-AdvChannel-@glb").val("Thông tin doanh nghiệp");
+                </script>
+            </div>
+            @{glb++;}
+            
+
+        </td>
+        <td>
+            <input placeholder="Nhập số lượng" onchange="resetGroupProduct()" class="item-qty currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="1"/>
+        </td>
+        <td>
+            <input placeholder="Nhập đơn giá" onchange="resetGroupProduct()" class="item-price currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="800,000"/>
+
+        </td>
+        <td>
+            <input placeholder="Nhập CK Tiền" onchange="resetGroupProduct()" class="item-ck-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+        </td>
+        <td>
+            <input placeholder="Nhập CTKM" class="item-ck-money-Promotion" type="text" />
+
+        </td>
+        <td>
+            <div class="visible-desktop btn-group">
+                <button data-rel="tooltip" data-placement="left" data-original-title="Xóa" type="button" onclick="removeOneService(this)" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                <button data-rel="tooltip" data-placement="left" data-original-title="Nhân bản" type="button" onclick="clonRow(this)" class="btn btn-minier btn-default"><i class="fa fa-clone"></i></button><br />
+            </div>
+        </td>
+    </tr>
+    <tr class="date-discount">
+        <td colspan="3">
+            <table class="table table-striped table-bordered table-hover table-service table-service-date">
+                <thead>
+                    <tr>
+                        <th>Ngày lên</th>
+                        <th>Ngày xuống</th>
+                        <th>Số ngày</th>
+                        <th>số tuần</th>
+                        <th><button data-rel="tooltip" data-placement="top" data-original-title="Thêm" type="button" onclick="plusDateService(this)" class="btn btn-minier btn-success tooltip-success"><i class="icon-plus"></i></button></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="group-service-date">
+                        <td>
+                            <input class="item-pk" type="hidden" value="0" />
+                            <input onchange="resetWeekDay(this)" class="item-date-dateup date-picker" />
+                        </td>
+                        <td><input onchange="resetWeekDay(this)" class="item-date-datedown date-picker" /></td>
+                        <td><input onchange="resetWeekDay(this,0)" class="item-date-days" type="text" /></td>
+                        <td><input onchange="resetWeekDay(this,1)" class="item-date-weeks" type="text" /></td>
+                        <td>
+                            <div class="visible-desktop btn-group">
+                                <button data-rel="tooltip" data-placement="right" data-original-title="Xóa" type="button" onclick="removeThisRowDate(this)" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <label class="pull-right" style="margin-top:-10px; font-size:15px;"> Tổng tiền : <span class="total_money_by_product" style="color:#dd5a43!important;font-weight:bold;"></span><i style="color:#dd5a43!important;"> đ</i></label>
+        </td>
+        <td colspan="1"></td>
+        <td colspan="3">
+            <table class="table table-striped table-bordered table-hover table-service table-service-discount">
+                <thead>
+                    <tr>
+                        <th>Chiết khấu</th>
+                        <th>Tiền CK</th>
+                        <th>Tiền chưa VAT</th>
+                        <th>Chương trình KM</th>
+                        <th><button data-rel="tooltip" data-placement="top" data-original-title="Thêm" type="button" onclick="plusDiscountService(this)" class="btn btn-minier btn-success tooltip-success"><i class="icon-plus"></i></button></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="group-service-discount">
+                        <td>
+                            <input class="item-pk" type="hidden" value="0" />
+                            <input onchange="resetGroupProduct()" class="item-km-discount" type="text" />
+                        </td>
+                        <td><input class="item-km-money_ck currency" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>
+                        <td><input class="item-km-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>
+                        <td><input class="item-km-Promotion" /></td>
+                        <td>
+                            <div class="visible-desktop btn-group">
+                                <button data-rel="tooltip" data-placement="right" data-original-title="Xóa" type="button" onclick="removeThisRowPromotion(this)" class="btn btn-minier btn-danger tooltip-error"><i class="icon-minus"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</tbody>

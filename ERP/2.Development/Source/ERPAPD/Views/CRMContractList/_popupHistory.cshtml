@@ -1,0 +1,77 @@
+﻿
+<div id="popup-history" class="modal hide" style="width:1000px !important; left: 35% !important">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông tin duyệt dự thảo hợp đồng!</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+        @if (ViewBag.itemdraff != null)
+        {
+            <h4> Dự thảo hợp đồng của bạn <span id="statusContract" style="color:red;font-weight:bold;">@ViewBag.itemdraff.StatusName</span> </h4>
+            <div class="row-fluid">
+                <div class="row-fluid mn-list">
+                    @(Html.Kendo().Grid<CRM24H.Models.CRM_Contract_History_Action>()
+        .Name("GridAction")
+        .Columns(columns =>
+        {
+            //columns.Bound(p => p.PKProduct)
+            //        .Width(25).Filterable(false).Sortable(false).Groupable(false)
+            //        .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+            //        .ClientTemplate("<input style='text-align:center' class='checkvalue' type='checkbox' data-id= '#=PKProduct#' id='#=PKProduct#' />");
+            columns.Bound(p => p.CreatedAt)
+                 .Title("Ngày").Format("{0:dd/MM/yyyy}")
+                 .Width(30);
+            columns.Bound(p => p.Action)
+                 .Title("Hoạt động")
+                 .Width(30);
+            columns.Bound(p => p.UserNameApprover)
+                .Title("Người duyệt/TC/ĐC")
+                .Width(120);
+            columns.Bound(p => p.Reason)
+                    .Title("Lý do")
+                    .Width(120);
+            columns.Bound(p => p.ApprovedAt)
+                    .Title("Được duyệt lúc").Format("{0:dd/MM/yyyy HH:mm:ss}")
+                    .Width(30).ClientTemplate("#if(kendo.toString(ApprovedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(ApprovedAt,'dd/MM/yyyy hh:mm:ss tt') #" + "#}# ");
+            columns.Bound(p => p.UserNameRequester)
+                  .Title("Người soạn dự thảo:")
+                  .Width(120);
+            columns.Bound(p => p.EmailRequester)
+                    .Title("Email")
+                    .Width(60);
+            columns.Bound(p => p.RequestAt)
+                    .Title("Gửi duyệt lúc").Format("{0:dd/MM/yyyy HH:mm:ss}").
+                     Width(30).ClientTemplate("#if(kendo.toString(RequestAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RequestAt,'dd/MM/yyyy hh:mm:ss tt') #" + "#}# ");
+            columns.Bound(o => o.FileGuiDuyet).Title("File đính kèm").Width(200).
+                ClientTemplate("#if(FileGuiDuyet!=''){#<a class='btn btn-mini' href='" + Url.Content("~/attach-file/contract_draff/#=FileGuiDuyet#") + "'>#=FileGuiDuyet#</a> #}else{##}#").Width(250);
+
+        })
+
+        .Pageable(pager => pager.PageSizes(new[] { 5, 10 }))
+        .Resizable(r => r.Columns(true))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(5)
+            .Sort(s => s.Add(p => p.ID))
+            .Model(model =>
+            {
+                model.Id(p => p.ID);
+            })
+             .Read(read => read.Action("ReadHistory", "CRMContractList", new { @Id = @ViewBag.itemdraff.PKContractDraft })))
+                    )
+                </div>
+            </div>
+
+        }
+
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-default btn-small" data-dismiss="modal">Đóng</a>
+    </div>
+</div>
+
+
+
+
+

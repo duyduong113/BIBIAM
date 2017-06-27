@@ -1,0 +1,657 @@
+﻿@{
+    ViewBag.Title = "From Mapping";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool AllowEditTemplate = (ViewData["AllowEditTemplate"] != null && (bool)ViewData["AllowEditTemplate"]);
+    bool AllowReport = (ViewData["AllowReport"] != null && (bool)ViewData["AllowReport"]);
+}
+<style>
+    .info-region {
+        padding-left: 10px;
+        font-size: 12px;
+        padding: 5px 5px 0px 0px;
+        display: inline-block;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span3" style=" width:305px;">
+        <label for="ClassName" style="display: inline-block; font-size:12px; padding:5px 5px 0px 0px;">Region</label>
+        <select id="RegionName" style="width: 250px; height: 25px; font-size:12px; ">
+            @foreach (var a in ViewBag.Region)
+            {
+                if (a.RegionID == ViewBag.hOld)
+                {
+                    <option value="@a.RegionID" selected>@a.RegionName</option>
+                }
+                else
+                {
+                    <option value="@a.RegionID">@a.RegionName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="span8">
+        <div id="DescriptiopClas" style="width:900px;"></div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+
+        <div style="width:48%; float:right;">
+            <div class="row-fluid">
+                <input id="txtClassNameManual" class="span2" placeholder="Search CityName or CityID... (example City1;City2....CityID1;CityID2)" style="width:350px;" />
+                <button type="button" id="btnSearchClassManual" class="btn btn-purple btn-small" onclick="FilterMappinged();">Search</button>
+            </div>
+            @(Html.Kendo().Grid<ERPAPD.Models.DC_Location_MappingLocation>()
+            .Name("GridManual")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.CityID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll3'  onClick='checkAll3(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id= '#=CityID#' />").Width(35).Sortable(false).Filterable(false);
+                columns.Bound(p => p.CityID).Title("CityID").Width(70);
+                columns.Bound(p => p.CityName).Title("CityName");
+                columns.Bound(p => p.RegionID).Title("RegionID").Width(75);
+                columns.Bound(p => p.RegionName).Title("RegionName");
+            })
+                .ToolBar(toolbar =>
+            {
+                toolbar.Custom()
+                .Text("Export To Excel")
+                .HtmlAttributes(new { @class = "exportClass" })
+                .Url(Url.Action("ExportExcel", "MappingLocation", new { filter = "~", sort = "~", PositionID = "~", ClassID = "~" }));
+                toolbar.Custom()
+                    .Text("Import From Excel")
+                    .HtmlAttributes(new { id = "importOther", Href = "javascript:void(0)" });
+
+            })
+            .Events(events => { events.DataBound("dataBound3"); })
+            .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+            .Navigatable()
+            .ColumnMenu()
+                    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("Partner_editor"))
+            .Sortable()
+            .Scrollable(scrollable => scrollable.Virtual(false))
+                    //.Filterable()
+            .Resizable(resize => resize.Columns(true))
+            .DataSource(dataSource => dataSource
+            .Ajax()
+                //.Filter(f => { f.Add(a => a.Active).IsEqualTo(true); })
+                .PageSize(200)
+                .Events(events => { events.Error("error_handler3"); events.RequestEnd("onRequestEnd3"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.CityID);
+
+                })
+
+                .Read(red => red.Action("ListRegionMappingedAll_Read", "MappingLocation").Data("additionalData"))
+                )
+            )
+        </div>
+        <div id="PositionSystem" class="tab-pane in active" style="width:45%; float:left;">
+            <div class="row-fluid">
+                <input id="txtClassShippingCity" class="span2" placeholder="Search ShippingCity... (example ShippingCity1;ShippingCity2....)" style="width:350px;" />
+                <button type="button" id="btnSearchClassShippingCity" class="btn btn-purple btn-small" onclick="FilterShippingCity();">Search</button>
+            </div>
+            @(Html.Kendo().Grid<ERPAPD.Models.DC_Location_MappingLocation>()
+            .Name("Grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.ShippingCity).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id= '#=ShippingCity#' />").Width(20).Sortable(false).Filterable(false);
+                columns.Bound(p => p.ShippingCity).Title("ShippingCity");
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Custom()
+                .Text("Export To Excel")
+                .HtmlAttributes(new { @class = "exportClass" })
+                .Url(Url.Action("ExportExcelMapping", "MappingLocation", new { filter = "~", sort = "~", ShippingCity = "~", RegionID = "~" }));
+
+            })
+            .Events(events => { events.DataBound("dataBound"); })
+            .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+            .Navigatable()
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Sortable()
+            .Resizable(resize => resize.Columns(true))
+            .DataSource(dataSource => dataSource
+            .Ajax()
+                .PageSize(200)
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.ShippingCity);
+
+                })
+                .Read(red => red.Action("ListShippingCityAll_Read", "MappingLocation").Data("additionalData"))
+                )
+            )
+        </div>
+        <div style="width:7%; float:left;">
+            <div class="control-group" style="margin-top:150px; margin-bottom:0px;">
+                <a onclick='SavePosition()' class='btn btn-success btn-small' style="width:63px; ">Add > </a>
+                <a onclick='DeletePosition()' class='btn btn-success btn-small' style="width:63px; margin-top:10px; background-color:red!important; border-color:red!important;"> < @Resources.Multi.Remove</a>
+                <a class="btn btn-success btn-small" style="width:63px; margin-top:10px;" href="@Url.Content("~/MappingLocation")">Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+@(Html.Kendo()
+      .Window()
+      .Name("windowimport")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importform" action="@Url.Content("~/MappingLocation/ImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+<script>
+
+    $('#FileUpload').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+    $('#importOther').bind('click', function () {
+        $("#windowimport").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+    //function importexcel() {
+    //    if ($("#FileUpload").val() == '') {
+    //        $.gritter.add({
+    //            title: '',
+    //            text: 'Please choose file import.',
+    //            class_name: 'gritter-error'
+    //        });
+    //        return false;
+    //    }
+    //    else {
+    //        $('#importform').submit();
+    //    }
+    //}
+    $('#btnImport').bind('click', function () {
+        $('#importform').submit();
+    });
+    (function () {
+        $("#importform").ajaxForm({
+            beforeSend: function () {
+                $("#windowimport").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimport").data("kendoWindow").open();
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownload').css('display', 'none');
+                        $('#btndownload').attr('href', "");
+                    }
+
+
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+    $('#txtClassCityName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            FilterCityName();
+        }
+    });
+    function FilterMappinged() {
+        
+        grid = $("#GridManual").data("kendoGrid");
+        var ShippingCity = $("#txtClassNameManual").val();
+        var filter = { logic: "and", filters: [] };
+        var filterShippingCity = { logic: "or", filters: [] };
+        if (ShippingCity) {
+            for (var i = 0; i < ShippingCity.split(';').length; i++) {
+                filterShippingCity.filters.push({ field: "CityName", operator: "contains", value: ShippingCity.split(';')[i] });
+                filterShippingCity.filters.push({ field: "CityID", operator: "contains", value: ShippingCity.split(';')[i] });
+            }
+            filter.filters.push(filterShippingCity);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#txtClassNameManual').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            FilterMappinged();
+        }
+    });
+    function FilterShippingCity() {
+       
+        grid = $("#Grid").data("kendoGrid");
+        var ShippingCity = $("#txtClassShippingCity").val();
+        var filter = { logic: "and", filters: [] };
+        var filterShippingCity = { logic: "or", filters: [] };
+        if (ShippingCity) {
+            for (var i = 0; i < ShippingCity.split(';').length; i++) {
+                filterShippingCity.filters.push({ field: "ShippingCity", operator: "contains", value: ShippingCity.split(';')[i] });
+            }
+            filter.filters.push(filterShippingCity);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#txtClassShippingCity').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            FilterShippingCity();
+        }
+    });
+    ChangInfoClass('@Model.RegionID');
+    $('#RegionName').change(function () {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        $("#GridManual").data("kendoGrid").dataSource.read();
+        ChangInfoClass($(this).val());
+    })
+    function DeletePosition() {
+        var listrowid = "";
+        $('#GridManual').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/MappingLocation/DeleteMappingCity", { data: listrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $('#Grid').data("kendoGrid").dataSource.read();
+                        $('#GridManual').data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll3').prop('checked', false);
+                    }
+                    else {
+                        $('#GridManual').data("kendoGrid").dataSource.read();
+                        $('#Grid').data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function SavePosition() {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            $.post(r + "/MappingLocation/SaveMappingCity", { data: listrowid, RegionID: $("#RegionName").val(), }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        title: '',
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    $('#Grid').data("kendoGrid").dataSource.read();
+                    $("#GridManual").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                }
+                else {
+
+                    // $('#Grid4_' + curunitid).data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    $("#GridManual").data("kendoGrid").dataSource.read();
+                    $('#Grid').data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else{
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function ChangInfoClass(id) {
+        $.post(r + "/MappingLocation/getInfoByRegion", { RegionID: $("#RegionName").val() }, function (data) {
+            $("#DescriptiopClas").html();
+            var html = '<label for="ClassName" style="display: inline-block;font-size:12px; padding:5px 5px 0px 0px;"> ' + data.RegionID + '</label> ';
+            html += '<label for="ClassName" class="info-region"><span style="margin-right: 10px;">|</span>' + data.RegionName + '</label> ';
+            html += '<label for="ClassName" class="info-region"><span style="margin-right: 10px;">|</span>' + data.CountryName + '</label>';
+            html += '<label for="ClassName" class="info-region"><span style="margin-right: 10px;">|</span>' + data.AliasName + '</label>';
+            $("#DescriptiopClas").html(html);
+        });
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAll3(e) {
+        var x = $(e).prop('checked');
+        $('#GridManual').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+
+        });
+    }
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        var $exportLink = grid.element.find('.exportClass');
+        var href = $exportLink.attr('href');
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        href = href.replace(/RegionID=([^&]*)/, 'RegionID=' + $("#RegionName").val());
+        $exportLink.attr('href', href);
+    }
+    function onRequestEnd(e) {
+      
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            alert();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+        }
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#GridPosition").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+    function dataBound2(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        var $exportLink = grid.element.find('.exportClass');
+        var href = $exportLink.attr('href');
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        href = href.replace(/RegionID=([^&]*)/, 'RegionID=' + $("#RegionName").val());
+        $exportLink.attr('href', href);
+    }
+    function error_handler2(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#GridPosition").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+    function onRequestEnd2(e) {
+        
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            alert();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+        }
+    }
+    function dataBound3(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        //  Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exportClass');
+        var href = $exportLink.attr('href');
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        href = href.replace(/RegionID=([^&]*)/, 'RegionID=' + $("#RegionName").val());
+        $('#ImportClassID').val($("#ClassName").val());
+        $("#ImportClassName").val($("#ClassName option:selected").text());
+        $exportLink.attr('href', href);
+
+        //Get the export link as jQuery object
+    }
+    function error_handler3(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#GridManual").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+    function onRequestEnd3(e) {
+        
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridManual").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            alert();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridManual").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        var gridElement2 = $("#GridManual");
+        dataArea2 = gridElement2.find(".k-grid-content"),
+        otherElements2 = gridElement2.children().not(".k-grid-content"),
+        otherElementsHeight2 = 0;
+        otherElements2.each(function () {
+            otherElementsHeight2 += $(this).outerHeight();
+        });
+        var offsetbottom2 = parseInt($(window).height()) - parseInt($('#GridManual').offset().top);
+        if (offsetbottom > offsetbottom2) {
+            offsetbottom = offsetbottom2;
+        }
+        if (otherElementsHeight < otherElementsHeight2) {
+            otherElementsHeight = otherElementsHeight2;
+        }
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+        dataArea2.height(offsetbottom - otherElementsHeight - 30);
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+    function additionalData() {
+        return {
+            RegionID: $("#RegionName").val(),
+        };
+    }
+</script>

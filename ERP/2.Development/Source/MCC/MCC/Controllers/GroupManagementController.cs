@@ -1,0 +1,311 @@
+﻿using MCC.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.SqlServer;
+using Kendo.Mvc.UI;
+using System.Data;
+using MCC.Helpers;
+using System.IO;
+using OfficeOpenXml;
+using CloudinaryDotNet;
+using System.Configuration;
+using Hangfire;
+using MCC.Filters;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create,delete,export,grant access")]
+    public class GroupManagementController : CustomController
+    {
+        //private readonly bool overwrite;
+        //
+        // GET: /GroupManagement/
+        public ActionResult Index()
+        {
+            //using (var dbConn = Helpers.OrmliteConnection.openConn())
+            //{
+            //    dbConn.DropTables(
+            //        typeof(tw_UserInGroup)
+            //        );
+            //    dbConn.CreateTables(overwrite,
+            //        typeof(tw_UserInGroup)
+            //        );
+            //}
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    ViewData["listAccessRight"] = dbConn.Select<AccessRight>();
+                    ViewBag.listUser = dbConn.GetDictionary<Int64, string>("SELECT id,name + '-' + fullName + ' ('+ phone +')' as name FROM tw_User WHERE active = 1").Select(s => new tw_User_Json { id = s.Key, name = s.Value }).OrderBy(s => s.name);
+                    return View();
+                }
+            }
+            return RedirectToAction("NoAccess", "Error");
+        }
+
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+            using (IDbConnection dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                var data = new DataSourceResult();
+                data = KendoApplyFilter.KendoData<tw_UserGroup>(request);
+                return Json(data);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult CreateUpdate(tw_UserGroup data, List<AccessDetail> AccessDetail)
+        {
+            try
+            {
+                using (var dbConn = Helpers.OrmliteConnection.openConn())
+                {
+                    if (data.id > 0)
+                    {
+                        if (data.id != 1 && data.name != "guest")
+                        {
+                            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+                            {
+                                var existGroup = dbConn.SingleOrDefault<tw_UserGroup>("name={0} and id <> {1}", data.name, data.id);
+                                if (existGroup != null)
+                                {
+                                    return Json(new { success = false, error = "Group name already existed" });
+                                }
+
+                                var exist = dbConn.SingleOrDefault<tw_UserGroup>("id={0}", data.id);
+                                data.updatedAt = DateTime.Now;
+                                data.updatedBy = currentUser.name;
+                                dbConn.UpdateOnly(data,
+                                        onlyFields: p =>
+                                            new
+                                            {
+                                                p.name,
+                                                p.listAccess,
+                                                p.listUser,
+                                                p.description,
+                                                p.active,
+                                                p.updatedAt,
+                                                p.updatedBy
+                                            },
+                                    where: p => p.id == data.id);
+                            }
+                            else
+                            {
+                                return Json(new { success = false, error = "Don't have permission to update" });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["create"]))
+                        {
+                            var existGroup = dbConn.SingleOrDefault<tw_UserGroup>("name={0}", data.name);
+                            if (existGroup != null)
+                            {
+                                return Json(new { success = false, error = "Group name already existed" });
+                            }
+
+                            data.createdAt = DateTime.Now;
+                            data.createdBy = currentUser.name;
+                            dbConn.Insert(data);
+                            int Id = (int)dbConn.GetLastInsertId();
+                            data.id = Id;
+                        }
+                        else
+                        {
+                            return Json(new { success = false, error = "Don't have permission to create" });
+                        }
+                    }
+
+                    if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["grant access"]))
+                    {
+                        if (data.id != 1)
+                        {
+                            if (AccessDetail != null && AccessDetail.Count > 0)
+                            {
+                                foreach (var item in AccessDetail)
+                                {
+                                    var existAccess = dbConn.SingleOrDefault<AccessRight>("controllerName={0}", item.controllerName);
+                                    if (existAccess != null)
+                                    {
+                                        var newAccess = new Dictionary<string, bool>();
+                                        foreach (var a in existAccess.access)
+                                        {
+                                            newAccess.Add(a, item.access != null && item.access.ContainsKey(a) ? true : false);
+                                        }
+
+                                        var exist = dbConn.SingleOrDefault<AccessDetail>("groupId={0} AND controllerName={1}", item.groupId, item.controllerName);
+                                        if (exist != null)
+                                        {
+                                            exist.access = newAccess;
+                                            exist.updatedAt = DateTime.Now;
+                                            exist.updatedBy = currentUser.name;
+
+                                            dbConn.UpdateOnly(exist,
+                                            onlyFields: p =>
+                                                new
+                                                {
+                                                    p.access,
+                                                    p.updatedAt,
+                                                    p.updatedBy
+                                                },
+                                            where: p => p.id == exist.id);
+                                        }
+                                        else
+                                        {
+                                            item.access = newAccess;
+                                            item.createdAt = DateTime.Now;
+                                            item.createdBy = currentUser.name;
+                                            dbConn.Insert(item);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        if (data.users != null && data.users.Count > 0)
+                        {
+                            foreach (var item in data.users)
+                            {
+                                var exist = dbConn.SingleOrDefault<tw_UserInGroup>("userId={0} AND groupId={1}", item, data.id);
+                                if (exist == null)
+                                {
+                                    var userInGroup = new tw_UserInGroup();
+                                    userInGroup.userId = item;
+                                    userInGroup.groupId = data.id;
+                                    userInGroup.createdAt = DateTime.Now;
+                                    userInGroup.createdBy = currentUser.name;
+                                    dbConn.Insert(userInGroup);
+                                }
+                            }
+
+                            dbConn.Delete<tw_UserInGroup>("groupId={0} AND userId NOT IN (" + String.Join(",", data.users.Select(s => s)) + ")", data.id);
+
+                        }
+                    }
+                }
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, error = e.Message });
+            }
+        }
+        public ActionResult Delete(tw_UserGroup data, List<AccessDetail> AccessDetail)
+        {
+            using (var dbConn = Helpers.OrmliteConnection.openConn())
+            {
+                if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["grant access"]))
+                {
+                    if (data.id != 1)
+                    {
+                        if (AccessDetail != null && AccessDetail.Count > 0)
+                        {
+                            foreach (var item in AccessDetail)
+                            {
+                                var existAccess = dbConn.SingleOrDefault<AccessRight>("controllerName={0}", item.controllerName);
+                                if (existAccess != null)
+                                {
+                                    var newAccess = new Dictionary<string, bool>();
+                                    foreach (var a in existAccess.access)
+                                    {
+                                        newAccess.Add(a, item.access != null && item.access.ContainsKey(a) ? true : false);
+                                    }
+
+                                    var exist = dbConn.SingleOrDefault<AccessDetail>("groupId={0} AND controllerName={1}", item.groupId, item.controllerName);
+                                    if (exist != null)
+                                    {
+                                        exist.access = newAccess;
+                                        exist.updatedAt = DateTime.Now;
+                                        exist.updatedBy = currentUser.name;
+
+                                        dbConn.UpdateOnly(exist,
+                                        onlyFields: p =>
+                                            new
+                                            {
+                                                p.access,
+                                                p.updatedAt,
+                                                p.updatedBy
+                                            },
+                                        where: p => p.id == exist.id);
+                                    }
+                                    else
+                                    {
+                                        item.access = newAccess;
+                                        item.createdAt = DateTime.Now;
+                                        item.createdBy = currentUser.name;
+                                        dbConn.Insert(item);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (data.users != null && data.users.Count > 0)
+                    {
+                        foreach (var item in data.users)
+                        {
+                            var exist = dbConn.SingleOrDefault<tw_UserInGroup>("userId={0} AND groupId={1}", item, data.id);
+                            if (exist == null)
+                            {
+                                var userInGroup = new tw_UserInGroup();
+                                userInGroup.userId = item;
+                                userInGroup.groupId = data.id;
+                                userInGroup.createdAt = DateTime.Now;
+                                userInGroup.createdBy = currentUser.name;
+                                dbConn.Insert(userInGroup);
+                            }
+                        }
+
+                        dbConn.Delete<tw_UserInGroup>("groupId={0} AND userId NOT IN (" + String.Join(",", data.users.Select(s => s)) + ")", data.id);
+
+                    }
+                }
+                return Json(new { success = true, message = "Thành công!" });
+            }
+        }
+        public ActionResult ActiveUserGroup(string data)
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["update"]))
+            {
+                try
+                {
+                    string[] separators = { "," };
+                    string[] ids = data.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    if (ids.Length == 0)
+                    {
+                        return Json(new { success = false, message = "Chọn các Nhóm người dùng cần kích hoạt!" });
+                    }
+
+                    using (var dbConn = Helpers.OrmliteConnection.openConn())
+                    {
+                        foreach (var id in ids)
+                        {
+                            var exists = dbConn.FirstOrDefault<tw_UserGroup>("id={0}".Params(id));
+                            dbConn.UpdateOnly(new tw_UserGroup { active = exists.active == true ? false : true, updatedBy = currentUser.name, updatedAt = DateTime.Now }, onlyFields: p => new { p.active, p.updatedBy, p.updatedAt }, where: p => p.id == int.Parse(id));
+                        }
+                    }
+                    return Json(new { success = true, message = "Thành công!" });
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false, error = e.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, error = "Bạn không có quyền thực hiên chức năng này!" });
+            }
+        }
+
+
+
+
+    }
+}

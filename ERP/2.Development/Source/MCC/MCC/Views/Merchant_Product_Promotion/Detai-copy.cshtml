@@ -1,0 +1,527 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core;
+@{
+	ViewBag.Title = Html.Raw(Resources.Global._promotion_detail);
+
+}
+@{
+	var data = ViewBag.data == null ? new Merchant_Product_Promotion() : ViewBag.data;
+}
+
+<style>
+	.input-icon.right > i {
+		right: 0px;
+		float: right;
+	}
+
+	.k-pager-wrap {
+		background: none;
+		border: none;
+		box-shadow: none;
+		padding-top: 10px;
+	}
+
+	.todo-tasklist-item.selected {
+		background-color: #D2EDF3;
+	}
+
+	.bootstrap-tagsinput {
+		width: 100%;
+	}
+
+	.AccessRightsMobileBootbox .modal-dialog {
+		width: 90%;
+	}
+
+	.active-color {
+		color: blue;
+	}
+
+	.inactive-color {
+		color: red;
+	}
+
+	.max100 {
+		max-width: 100%;
+	}
+
+	.portlet-title {
+		border-bottom: 0px solid #eee;
+		padding: 0;
+		margin-bottom: 10px;
+		min-height: 41px;
+		-webkit-border-radius: 4px 4px 0 0;
+		-moz-border-radius: 4px 4px 0 0;
+		-ms-border-radius: 4px 4px 0 0;
+		-o-border-radius: 4px 4px 0 0;
+		border-radius: 4px 4px 0 0;
+	}
+
+	.margin {
+		margin: 15px;
+	}
+
+	.k-grid tr td {
+		font-size: 13px;
+		vertical-align: inherit;
+	}
+
+	.input-group[class*=col-] {
+		float: none;
+		padding-left: inherit;
+		padding-right: inherit;
+	}
+</style>
+<script src="~/Scripts/utilitycommon.js"></script>
+
+<script type="text/x-kendo-template" id="EditTemplate">
+	<div class="portlet-title caption">
+		<i class="icon-pencil"></i>
+		<span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._promotion)</span>
+	</div>
+	<form action="@Url.Content("~/Merchant_Product_Promotion/UpsertPromotion")" method="post" id="EditForm" novalidate="novalidate">
+		
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-group col-md-12">
+					<label class="col-md-2">Chương trình khuyến mãi<span class="text-danger"> * </span></label>
+					<div class="input-icon right col-md-5">
+						<i class="fa"></i>
+						<input type="text" class="form-control input-sm max100" name="ten_chuong_trinh_km" value="#=ten_chuong_trinh_km?ten_chuong_trinh_km:''#">
+					</div>
+				</div>
+				<div class="form-group col-md-12">
+					<label class="col-md-2">@Html.Raw(Resources.Global._promotion_type)<span class="text-danger"> * </span></label>
+					<label class='radio-inline'><input type='radio' name='loai' value="phan_tram" checked #=loai =="phan_tram" ?"checked":""#> @Html.Raw(Resources.Global._sales) theo % </label>
+					<label class='radio-inline'><input type='radio' name='loai' value="tien" #=loai =="tien" ?"checked":""#> @Html.Raw(Resources.Global._sales) theo tiền</label>
+				</div>
+				<div class="form-group col-md-12">
+					<label class="col-md-2">Giá trị<span class="text-danger"> * </span></label>
+					<div class="input-group input-icon right col-md-3">
+						<i class="fa"></i>
+						<input type="text" class="form-control input-sm max100" name="gia_tri" value="#=gia_tri?loai=='tien'?kendo.format('{0:N0}',gia_tri):gia_tri:''#">
+						<span class="input-group-btn">
+							<button class="btn default input-sm" onclick="review(this)" type="button">
+								<i class="fa fa-eye"></i>
+							</button>
+						</span>
+					</div>
+				</div>
+				<div class="form-group col-md-12">
+					<label class="col-md-2">@Html.Raw(Resources.Global._by_start_date)</label>
+					<div class="col-md-3 input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+						<i class="fa"></i>
+						<input type="text" class="form-control input-sm" placeholder="@DateTime.Now.ToString("dd/MM/yyyy")" id="ngay_bat_dau" name="ngay_bat_dau" value="#=kendo.toString(kendo.parseDate(ngay_bat_dau),'yyyy/MM/dd') !='0001/01/01' && ngay_bat_dau !=null ? kendo.toString(kendo.parseDate(ngay_bat_dau),'dd/MM/yyyy'): kendo.toString(kendo.parseDate(new Date()),'dd/MM/yyyy') #">
+						<span class="input-group-btn">
+							<button class="btn default input-sm" type="button">
+								<i class="fa fa-calendar"></i>
+							</button>
+						</span>
+					</div>
+				</div>
+				<div class="form-group col-md-12">
+					<label class="col-md-2">@Html.Raw(Resources.Global._by_end_date)</label>
+					<div class="col-md-3 input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+						<i class="fa"></i>
+						<input type="text" class="form-control input-sm" placeholder="@DateTime.Now.ToString("dd/MM/yyy")" id="ngay_ket_thuc" name="ngay_ket_thuc" value="#=kendo.toString(kendo.parseDate(ngay_ket_thuc),'yyyy/MM/dd') !='0001/01/01' && ngay_ket_thuc !=null ? kendo.toString(kendo.parseDate(ngay_ket_thuc),'dd/MM/yyyy'): kendo.toString(kendo.parseDate(new Date(new Date().getTime()+ 7*86400000)),'dd/MM/yyyy')#">
+						<span class="input-group-btn">
+							<button class="btn default input-sm" type="button">
+								<i class="fa fa-calendar"></i>
+							</button>
+						</span>
+					</div>
+				</div>
+				#if (id > 0) {#
+				<div class="form-group col-md-12">
+					<label class="col-md-2">Trạng thái<span class="text-danger"> * </span></label>
+					<div class="input-icon right col-md-10">
+						<i class="fa"></i>
+						# if (trang_thai == '@AllConstant.trang_thai.DANG_SU_DUNG') { #
+						<span class='col-md-2 col-xs-10 label label-success btn-circle'> @Html.Raw(Resources.Global._active).ToString() </span>
+						# } else { #
+						<span class='col-md-2 col-xs-10 label label-warning btn-circle'> @Html.Raw(Resources.Global._inactive).ToString() </span>
+						# } #
+					</div>
+				</div>
+				#}#
+			</div>
+		</div>
+</form>
+		<div class="griddetail">
+		</div>
+</script>
+<script type="text/x-kendo-template" id="GridDetailTemplate">
+	<div class="col-md-12">
+		<button type="button" id="btnAddProduct" class="savesend btn btn-primary" onclick="showModal()">
+			<i class="fa  fa-plus-circle"></i>
+			Thêm sản phẩm
+		</button>
+		<button type="button" id="btnAddProduct" class="savesend btn btn-warning" onclick="refresh()">
+			<i class="fa  fa-refresh"></i>
+			Refresh
+		</button>
+		<button type="button" id="btnAddProduct" class="savesend btn btn-default" onclick="review()">
+			<i class="fa  fa-eye"></i>
+			Review
+		</button>
+		<div class="pull-right right">
+			@*<button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>*@
+			<a onclick="save()" class="btn btn-sm green btn-circle">Lưu</a>
+			<a onclick="saveAndnew()" class="btn btn-sm yellow btn-circle">Lưu và tạo mới</a>
+		</div>
+	</div>
+	<div class="col-md-12 details">
+		@(Html.Kendo().Grid<Merchant_Product_Promotion_Detail>()
+			.Name("PromotionGrid")
+			.Columns(columns =>
+			{
+			columns.Bound(p => p.id)
+			.Template(@<text></text>).Title("").HtmlAttributes(new { @class = "text-center" })
+			.ClientTemplate("<a class='fa fa-trash-o btn btn-sm red' onclick='deleteProduct(this)'></a>")
+			.Width(25).Filterable(false).Sortable(false);
+			columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._picture).ToString().ToUpper()).Width(60).HtmlAttributes(new { @class = "editable" })
+			.ClientTemplate("<img src= \\#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image' \\# class='img-responsive' style='display:inline; height:50px;'>\\#=id?'':'<span class=\"text-danger bold\">New</span>'\\#");
+			columns.Bound(p => p.part_no).Title(@Html.Raw(Resources.Global._code).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+			columns.Bound(p => p.ten_san_pham).Title(@Html.Raw(Resources.Global._product).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+			columns.Bound(p => p.don_gia).Title(@Html.Raw(Resources.Global._access_price).ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+			columns.Bound(p => p.gia_si).Title(@Html.Raw(Resources.Global._price + " sỉ").ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+			columns.Bound(p => p.don_gia_sau_km).Title("Đơn giá sau KM").Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+			columns.Bound(p => p.gia_si_sau_km).Title("Giá sỉ sau KM").Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+			columns.Template(@<text></text>).Title("Giảm giá").Width(50).HtmlAttributes(new { @class = "editable" })
+			.ClientTemplate("\\# if (loai == 'tien') { \\#" +
+			" \\#=kendo.format('{0:N0}',gia_tri)\\# Đ " +
+			"\\# } else { \\#" +
+			" \\#:gia_tri\\# %" +
+			"\\# } \\#");
+			})
+			.Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }))
+			.Navigatable()
+			.Pageable(x => x.PageSizes(new int[] { 10, 20, 50, 100 }))
+			.Events(events => { events.DataBound("onDataBound"); events.DataBinding("onDataBinding"); })
+			.Reorderable(reorderable => reorderable.Columns(true))
+			.DataSource(dataSource => dataSource
+			.Ajax()
+			.Batch(true)
+			.PageSize(10)
+			.ServerOperation(false)
+			.Events(events => { events.Error("error_handler"); })
+			.Model(model =>
+			{
+				model.Id(p => p.id);
+				model.Field(p => p.ma_san_pham).Editable(false);
+				model.Field(p => p.ten_san_pham).Editable(false);
+			})
+			.Read(c => c.Action("Read", "Merchant_Product_Promotion_Detail", new { ma_km = "#=ma_chuong_trinh_km#" }))
+			.Update(c => c.Action("Upsert", "Merchant_Product_Promotion_Detail", new { ma_km = "#=ma_chuong_trinh_km#" }))
+			).ToClientTemplate()
+		)
+	</div>
+</script>
+
+@Html.Partial("_popup_add_product")
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+	<div class="text-center" style="padding: 30px 0 20px 0;">
+		<img src="@Url.Content("~/Images/matbuon.png")" />
+		<div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._car_lower) @Html.Raw(Resources.Global._yet)</div>
+		<div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+	</div>
+</script>
+
+<script>
+	
+	$(document).ready(function () {
+        $.validator.addMethod("promotionstartdate", function (value, element) {
+            var start_dateOLD = JSON.parse('@Html.Raw(Json.Encode(data))').ngay_bat_dau;
+            var start_time = convertDate($("#ngay_bat_dau").val());
+            var current_time = kendo.toString(kendo.parseDate(new Date()), 'yyyy/MM/dd');
+            return current_time <= start_time ? true : start_dateOLD == start_time ? true : false;
+        }, "Ngày bắt đầu phải lớn hơn ngày hiện tại");
+        $.validator.addMethod("promotiondate", function (value, element) {
+            var start_time = convertDate($("#ngay_bat_dau").val());
+            var end_time = convertDate($("#ngay_ket_thuc").val());
+            var current_time = kendo.toString(kendo.parseDate(new Date()), 'yyyy/MM/dd');
+            return (current_time <= end_time && start_time <= end_time );
+        }, "Ngày kết thúc phải lớn hơn ngày bắt đầu và ngày hiện tại");
+        $.validator.addMethod("promotionpercent", function (value, element) {
+            if ($("#EditForm input[name='loai']:checked").val() == 'phan_tram')
+                return ValidatePromotion();
+            return true;
+        }, "Giá trị = [5%, 50%]");
+        $.validator.addMethod("promotionmoney", function (value, element) {
+            if ($("#EditForm input[name='loai']:checked").val() == 'tien')
+                return ValidatePromotion();
+            return true;
+        }, "Giá trị = [50000Đ, 1000000Đ]");
+    });
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    var reset = false;
+    function save() {
+       review();
+       $('#EditForm').submit();
+    }
+    function getDataPromotionGrid() {//return promotion_detail
+        var obj = [];
+        $.each($("#PromotionGrid").data("kendoGrid").dataSource.data(), function () {
+            var ma_san_pham = this.ma_san_pham;
+            obj.push(ma_san_pham);
+        });
+        return obj;
+    }
+    function saveAndnew() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+    }
+    function edit(e) {
+		var data = $("#GridView").data("kendoGrid").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        cardSelected(e);
+        //clearFormColor(data.id);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function onDatabound(e) {
+        var listView = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+        var $exportLink = $('.export');
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+            $exportLink.attr('href', href);
+        }
+    }
+    function loadForm(data) {
+
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        var GridDetailTemplate = kendo.template($("#GridDetailTemplate").html());
+        $(".griddetail").html(GridDetailTemplate(data));
+        loadValidate(data);
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+        $("#EditForm input[name='gia_tri']").blur(function () {
+            $("#ProductGrid").data("kendoGrid").dataSource.data([]);
+            $(this).val(numberToCurrency(currencyToNumber($(this).val())));
+        });
+        $("#EditForm input[type='radio']").on('change', function () {
+            $("#ProductGrid").data("kendoGrid").dataSource.data([]);
+        });
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(data))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_chuong_trinh_km: { required: true },
+                        gia_tri: { promotionpercent: true, promotionmoney: true, number:true, required: true },
+                        ngay_bat_dau: { required: true, promotionstartdate: true },
+                        ngay_ket_thuc: { required: true, promotiondate: true }
+                    },
+                messages:{
+                    gia_tri:{
+                        number: "Kiểu số nguyên",
+                        required: "Thông tin bắt buộc"
+                    }
+                },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning");
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    var obj = JSON.parse('@Html.Raw(Json.Encode(data))');
+                    $("input[name='gia_tri']").val(currencyToNumber($("input[name='gia_tri']").val()));
+                    $("#ngay_bat_dau").val(convertDate($("#ngay_bat_dau").val()));
+                    $("#ngay_ket_thuc").val(convertDate($("#ngay_ket_thuc").val()));
+                    $("#EditForm").append('<input type="text" name="id" class="hidden" value="' + obj.id + '" />');
+                    var details = [];
+                    if ($('#PromotionGrid').data('kendoGrid').dataSource.hasChanges())
+                        details = getDataPromotionGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { products: details, ma_gian_hang: obj.ma_gian_hang },
+                        mimeType: "multipart/form-data",
+                        cache: false,
+                        processData: false,
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            var rs = JSON.parse(data);
+                            if (rs.success) {
+                                toastr.success("Lưu thành công!")
+                                $("#PromotionGrid").data("kendoGrid").dataSource.read();
+                                if(reset)
+                                {
+                                    reset = false;
+                                    clearForm();
+                                }
+                                else {
+                                    if (obj.id == 0)
+                                    {
+                                        window.location = "/Merchant_Product_Promotion/index/" ;
+                                    }
+                                    else {
+                                        $("input[name='gia_tri']").val(numberToCurrency($("input[name='gia_tri']").val()));
+                                        $("#ngay_bat_dau").val(kendo.toString(kendo.parseDate($("#ngay_bat_dau").val()), 'dd/MM/yyyy'));
+                                        $("#ngay_ket_thuc").val(kendo.toString(kendo.parseDate($("#ngay_ket_thuc").val()), 'dd/MM/yyyy'));
+                                    }
+                                }
+
+                            }
+                            else {
+                                toastr.error(rs.message)
+                                clearForm();
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function error_handler(e) {
+        if (e.status == "error") {
+            toastr.error('@Resources.Global._500_error_title', '@Resources.Global._error_message');
+        }
+    }
+    function onDataBinding(e) {
+    }
+    function onDataBound(e) {
+        $('.checkrowid').hover(
+           function () { $(this).addClass('hover') },
+           function () {
+               $(this).removeClass('hover')
+           });
+    }
+    function checked(e) {
+        $(e).hasClass('checked') ? $(e).removeClass('checked').children('input.icheck').prop("checked", false) : $(e).addClass('checked').children('input.icheck').prop("checked", true);
+    }
+    function loadPromotionGrid(dataSource, promotion) {
+        $("#PromotionGrid").data('kendoGrid').dataSource.data([]);
+        //$.ajax({
+        //    type: "POST",
+        //    async: true,
+        //    url: r + "/CustomData/GetMinPrice",
+        //    success: function (data) {
+        //        if (data.success) {
+        //            var minPrice = data.data;
+        //            /* ... */
+        //        }
+        //    }
+        //});
+        var minPrice = 50000;
+        $.each(dataSource, function () {
+            this.loai = promotion.loai
+            this.gia_tri = promotion.gia_tri;
+            this.don_gia_sau_km = promotion.loai == 'tien' ? this.don_gia - promotion.gia_tri : this.don_gia * (100 - promotion.gia_tri) / 100;
+            this.gia_si_sau_km = this.loai == 'tien' ? this.gia_si - this.gia_tri : this.gia_si * (1 - this.gia_tri / 100);
+            if (this.don_gia_sau_km > minPrice)
+                $("#PromotionGrid").data('kendoGrid').dataSource.add(this);
+        });
+    }
+    function ValidatePromotion() {
+        var gia_tri = currencyToNumber($("#EditForm input[name='gia_tri']").val());
+        if (!gia_tri)
+            gia_tri = 0;
+        var loai = $("#EditForm input[name='loai']:checked").val();
+        if ((loai == 'tien' && 50000 > gia_tri) || (loai == 'tien' && 1000000 < gia_tri) || (loai == 'phan_tram' && 50 < gia_tri) || (loai == 'phan_tram' && 5 > gia_tri))
+            return false;
+        return true;
+    }
+    function review(e) {
+        var promotion = [];
+        promotion.gia_tri = currencyToNumber($("#EditForm input[name='gia_tri']").val());
+        if (!promotion.gia_tri)
+            promotion.gia_tri = 0;
+        promotion.loai = $("#EditForm input[name='loai']:checked").val();
+        if (!ValidatePromotion())
+            return;
+        loadPromotionGrid($("#PromotionGrid").data('kendoGrid').dataSource.data(), promotion);
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#PromotionGrid').find(".k-grid-content .checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function deleteProduct(e) {
+        var data = $("#PromotionGrid").data("kendoGrid").dataSource.getByUid($(e).parents('tr').attr("data-uid"));
+        if (data)
+            $("#PromotionGrid").data("kendoGrid").dataSource.remove(data);
+    }
+    function refresh() {
+        $("#PromotionGrid").data("kendoGrid").dataSource.read();
+    }
+    function Search(e) {
+		GridView = $("#GridView").data("kendoGrid");
+        var seachText = $(e).val();
+        debugger
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText.length) {
+            filterDesc.filters.push({ field: "ten_chuong_trinh_km", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "loai", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+		GridView.dataSource.filter(filter);
+    }
+</script>

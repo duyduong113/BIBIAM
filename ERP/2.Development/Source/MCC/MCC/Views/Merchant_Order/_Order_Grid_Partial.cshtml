@@ -1,0 +1,50 @@
+﻿@using BIBIAM.Core.Entities
+@using BIBIAM.Core
+<script type="text/x-kendo-template" id="OrderDetailGrid">
+    <div class="toolbar col-md-12">
+        #if (id==0||trang_thai_don_hang=='@AllConstant.trang_thai_don_hang.NEW'){#
+        <a onclick="openCreateDetailPO()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._po_add)</a>
+        #}#
+    </div>
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<Merchant_OrderDetail>()
+            .Name("OrderDetailGrid")
+            .Columns(columns =>
+            {
+                
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'><i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(p => p.ma_san_pham).Width(80).HtmlAttributes(new { style = "" }).Title("Mã SP");
+                columns.Bound(p => p.ten_san_pham).Width(150).HtmlAttributes(new { style = "" }).Title("Tên Sản Phẩm");
+                columns.Bound(p => p.don_gia).Width(100).HtmlAttributes(new { style = "" }).Title("Đơn giá").Format("{0:n0}");
+                columns.Bound(p => p.so_luong).Width(40).HtmlAttributes(new { style = "" }).Title("Số lượng").Format("{0:n0}");
+                columns.Bound(p => p.book_available).Width(40).HtmlAttributes(new { style = "" }).Title("Tồn kho").Format("{0:n0}");
+                columns.Bound(p => p.khuyen_mai).Width(80).HtmlAttributes(new { style = "" }).Title("Khuyến mãi(%)");
+                columns.Bound(p => p.thanh_tien).Width(140).HtmlAttributes(new { style = "" }).Title("Thành Tiền").Format("{0:n0}");
+                columns.Bound(p => p.sp_khuyen_mai).Width(80).HtmlAttributes(new { style = "" }).Title("Sản phẩm khuyến mãi");
+            })
+                                                                    .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                                                                    .Pageable()
+                                                                    .Navigatable()
+                                                                    .Scrollable()
+                                                                    .HtmlAttributes(new { @style = "height:500px" })
+                                                                    .Resizable(resizable => resizable.Columns(true))
+                                                                    .Events(events => { events.DataBound("onDatabound"); })
+                                                                    .DataSource(dataSource => dataSource
+                                                                    .Ajax()
+                                                                    .Batch(true)
+                                                                    .PageSize(20)
+                                                                    .Aggregates(aggregates =>
+                                                                     {
+                                                                            
+                                                                       })
+                                                                    .Model(model =>
+                                                                           {
+                                                                               model.Id(p => p.id);
+                                                                           })
+                                                                            .Events(events => { events.Error("error_handler"); events.Change("change_grid"); })
+                                                                            .Read(c => c.Action("ReadOrderDetail", "Merchant_Order", new { ma_don_hang = "#=ma_don_hang#", ma_gian_hang = "#=ma_gian_hang#" }))
+                                                                    ).ToClientTemplate()
+
+        )
+    </div>
+</script>

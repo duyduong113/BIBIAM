@@ -1,0 +1,2477 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._contract);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+    bool resetpassword = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["reset password"] : false;
+}@{
+    var newData = new tw_Contract_List();
+}
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .todo-tasklist-item-border-grey-sal {
+        border-left: #BFCAD1 2px solid;
+    }
+
+    .todo-tasklist-item-border-yellow-crusta {
+        border-left: #F3C200 2px solid;
+    }
+
+    .todo-tasklist-item-border-purple-medium {
+        border-left: #BF55EC 2px solid;
+    }
+
+    .todo-tasklist-item-border-green-meadow {
+        border-left: #1BBC9B 2px solid;
+    }
+</style>
+<div class="row">
+    <div class="col-md-4">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #if(status=='cancel'){#todo-tasklist-item-border-grey-sal#}if(status=='new'){#todo-tasklist-item-border-green#}if(status=='deposit'){#todo-tasklist-item-border-yellow-crusta#}if(status=='payment'){#todo-tasklist-item-border-purple-medium#}if(status=='completed'){#todo-tasklist-item-border-green-meadow#}# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-12" style="padding-left:0;">
+                    <div class="todo-tasklist-item-title" style="padding-bottom:5px;">
+                        <a onclick="edit(this)">#=contractnumber# - #=fullname#</a>
+                        @*<span style="font-weight: 300; font-size: 13px; color: \\#217ebd; ">| #=domain#</span>*@
+                    </div>
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._sign_day): <span style="font-weight:bold;">#=createdAt ? kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy'): '' #</span> | @Html.Raw(Resources.Global._the_august) #=deliveryin ? '<span><input type="checkbox" checked /></span> ' : '<span><input type="checkbox" /></span>' #
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        @Html.Raw(Resources.Global._total_price): <span style="color:red;font-weight:bold">#=totalprice + totalservice > 0  ? kendo.format('{0:N0}', totalprice +totalservice) : 0#</span> | @Html.Raw(Resources.Global._deposit): <span style="color:blue; font-weight:bold">#=rulesMeta!=null && rulesMeta.deposit > 0 ?  kendo.format('{0:N0}', rulesMeta.deposit) : 0# </span>
+                    </div>
+
+                    <div class="todo-tasklist-item-text" style="color:\\#d1d1d1">
+                        NVKD : #=rulesMeta!=null && rulesMeta.fullname !=null ? rulesMeta.fullname : user!=null && user.fullName !=null ? user.fullName: ''# | #=rulesMeta!=null && rulesMeta.phone !=null ? rulesMeta.phone : user!=null && user.phone !=null ? user.phone: ''# | <a href="mailto:#=rulesMeta!=null && rulesMeta.email !=null ? rulesMeta.email : user!=null && user.email !=null ? user.email: ''#">#=rulesMeta!=null && rulesMeta.email !=null ? rulesMeta.email : user!=null && user.email !=null ? user.email: ''#</a>
+                    </div>
+                    <div class="todo-tasklist-item-text" style="color:\\#d1d1d1">
+                        @Html.Raw(Resources.Global._user_inshowroom) : #=rulesMeta!=null && rulesMeta.showroomName !=null ? rulesMeta.showroomName :''#
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                @*<div class="caption">
+                        <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._contract)</span>
+                    </div>*@
+                <div class="inputs">
+                    <div class="portlet-input input-inline input-small">
+                        <div class="input-icon right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" id="descriptionF" class="form-control form-control-solid input-circle" onkeyup="filter(this)" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <a class="btn btn-circle blue btn-sm" onclick="showMoreFilter(this)">
+                            <span class="moreFilterText">@Html.Raw(Resources.Global._more)</span>
+                            <i class="fa fa-filter"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="inputs" style="margin-right:10px;">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="row filterMore" style="display: none; padding-bottom: 20px;margin-bottom:10px">
+                    <div class="col-md-12">
+                        <form role="form" class="filterForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="input-group" id="defaultrange">
+                                            <input type="text" class="form-control input-sm" id="stockindateRangeF" placeholder="@Html.Raw(Resources.Global._sign_day)">
+                                            <span class="input-group-btn input-group-sm">
+                                                <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                                    <i class="fa fa-calendar"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <select class="form-control input-sm max100">
+                                        <option value="">@Html.Raw(Resources.Global._status)</option>
+                                        <option value="new">@Html.Raw(Resources.Global._new)</option>
+                                        <option value="deposit">@Html.Raw(Resources.Global._deposit)</option>
+                                        <option value="payment">@Html.Raw(Resources.Global._payment_status)</option>
+                                        <option value="complete">@Html.Raw(Resources.Global._completed)</option>
+                                        <option value="cancel">@Html.Raw(Resources.Global._cancel)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom:5px;">
+                                <div class="col-md-12 text-right">
+                                    <div class="btn-group">
+                                        <a class="btn btn-circle red btn-sm clearFilter" onclick="clearFilter()">
+                                            <span class="moreFilterText">@Html.Raw(Resources.Global._clear)</span>
+                                            <i class="fa fa-close"></i>
+                                        </a>
+                                        <a class="btn btn-circle btn-sm green" onclick="filter()" style="margin-left:5px;"><i class="fa fa-search"></i> @Html.Raw(Resources.Global._search)</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<MCC.Models.tw_Contract_List>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Contract"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 formEdit">
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/Contract/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <input type="hidden" name="contractnumber" value="#=contractnumber#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._add_edit) @Html.Raw(Resources.Global._contract)</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0 && status == 'new'){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeContract('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+                #if(id > 0){#
+                @if (all || export)
+                {
+                    <div class="actions" style="margin-right:10px;">
+                        <div class="btn-group">
+                            <a class="btn green btn-outline btn-circle btn-sm dropdown-toggle" href="javascript:;" data-toggle="dropdown" aria-expanded="false">
+                                @Html.Raw(Resources.Global._actions)
+                                <i class="fa fa-angle-down"></i>
+                            </a>
+                            <ul class="dropdown-menu pull-right">
+                                <li>
+                                    <a class="export" onclick="InProposal('#=id#');">
+                                        <i class="fa fa-cloud-download"></i> @Html.Raw(Resources.Global._print_contract)
+                                    </a>
+                                </li>
+                                #if(productMeta!=null && productMeta.id>0){#
+                                <li>
+                                    <a class="export" onclick="printProposal()">
+                                        <i class="fa fa-cloud-download"></i> @Html.Raw(Resources.Global._proposal_form)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="export" onclick="printRetailDelivery()">
+                                        <i class="fa fa-cloud-download"></i> @Html.Raw(Resources.Global._retail_delivery_from)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="export" onclick="printCheckDelivery()">
+                                        <i class="fa fa-cloud-download"></i> @Html.Raw(Resources.Global._check_before_delivery_vehicle)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="export" onclick="">
+                                        <i class="fa fa-cloud-download"></i> @Html.Raw(Resources.Global._vehicle_delivery_records)
+                                    </a>
+                                </li>
+                                #}#
+                            </ul>
+                        </div>
+                    </div>
+                }
+                #}#
+
+            </div>
+            <div class="portlet-body form">
+                <div class="tabbable-line">
+                    #if(id>0){#
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-lg-3">@Html.Raw(Resources.Global._number) : <span style="color:orangered; font-weight:bold">#=contractnumber#</span></label>
+                            <label class="col-lg-2">@Html.Raw(Resources.Global._sign_day)</label>
+                            <div class="col-lg-3">
+                                <div class="input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+                                    <input type="text" class="form-control" placeholder="01/01/1900" name="contractday" value="#=contractday!=null ? kendo.toString(kendo.parseDate(contractday),'dd/MM/yyyy') : ''#">
+                                    <span class="input-group-btn">
+                                        <button class="btn default" type="button">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                            <label class="col-lg-1">@Html.Raw(Resources.Global._total_price)</label>
+                            <div class="col-lg-3">
+                                <input type="text" class="form-control" value="#=totalprice + totalservice > 0  ? kendo.format('{0:N0}', totalprice + totalservice) : 0#" readonly style="background:\\#f9e8b3; font-weight:bold;" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-lg-2">@Html.Raw(Resources.Global._the_august) : </label>
+                            <div class="col-lg-1">
+                                #if(deliveryin){#
+                                <input type="checkbox" id="deliveryin" value="true" name="deliveryin" checked onchange="checkTextbox()">
+                                #}else{#
+                                <input type="checkbox" id="deliveryin" value="false" name="deliveryin" onchange="checkTextbox()">
+                                #}#
+                            </div>
+                            <label class="col-lg-2">@Html.Raw(Resources.Global._delivery_time)</label>
+                            <div class="col-lg-3">
+                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._delivery_time)" readonly value="#=rulesMeta!=null && rulesMeta.deliverytime? rulesMeta.deliverytime: ''#" style="background:\\#f9e8b3;font-weight:bold;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:5px;">
+                        <div class="form-group">
+                            <label class="col-lg-2">@Html.Raw(Resources.Global._status)</label>
+                            <div class="clearfix">
+                                <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                    <label class="btn grey-salt btn-sm btn-outline #=status=='cancel'? 'active' : ''#">
+                                        #if(status =='cancel'){#
+                                        <input type="radio" checked name="status" value="cancel" class="toggle">@Html.Raw(Resources.Global._cancel)
+                                        #}else{#
+                                        <input type="radio" name="status" value="cancel" class="toggle" onchange="cancel('#=id#');">@Html.Raw(Resources.Global._cancel)
+                                        #}#
+                                    </label>
+                                    <label class="btn green btn-sm btn-outline #=status=='new'? 'active' : ''#">
+                                        #if(status =='new'){#
+                                        <input type="radio" checked name="status" value="new" class="toggle">@Html.Raw(Resources.Global._new)
+                                        #}else{#
+                                        <input type="radio" name="status" value="new" class="toggle">@Html.Raw(Resources.Global._new)
+                                        #}#
+                                    </label>
+
+                                    <label class="btn yellow-crusta btn-sm btn-outline #=status=='deposit'? 'active' : ''#">
+                                        #if(status =='deposit'){#
+                                        <input type="radio" checked name="status" value="deposit" class="toggle">@Html.Raw(Resources.Global._deposit)
+                                        #}else{#
+                                        <input type="radio" name="status" value="deposit" class="toggle">@Html.Raw(Resources.Global._deposit)
+                                        #}#
+                                    </label>
+
+                                    <label class="btn purple-medium btn-sm btn-outline #=status=='payment'? 'active' : ''#">
+                                        #if(status =='payment'){#
+                                        <input type="radio" checked name="status" value="payment" class="toggle">@Html.Raw(Resources.Global._payment_status)
+                                        #}else{#
+                                        <input type="radio" name="status" value="payment" class="toggle">@Html.Raw(Resources.Global._payment_status)
+                                        #}#
+                                    </label>
+                                    <label class="btn green-meadow btn-sm btn-outline #=status=='completed'? 'active' : ''#">
+                                        #if(status =='completed'){#
+                                        <input type="radio" checked name="status" value="completed" class="toggle">@Html.Raw(Resources.Global._completed)
+                                        #}else{#
+                                        <input type="radio" name="status" value="completed" class="toggle">@Html.Raw(Resources.Global._completed)
+                                        #}#
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    #if(status =='cancel'){#
+                    <div class="row">
+                        <label class="col-lg-1" style="color:red">@Html.Raw(Resources.Global._reason): </label>
+                        <label class="col-lg-11">#=reason!= null ? reason : ''#</label>
+                    </div>
+                    #}#
+                    #}#
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1" data-toggle="tab"> @Html.Raw(Resources.Global._buyer_infor) </a>
+                        </li>
+                        #if(id > 0){#
+                        <li>
+                            <a href="\\#tab_1_2" data-toggle="tab"> @Html.Raw(Resources.Global._product_service) </a>
+                        </li>
+                        <li>
+                            <a href="\\#tab_1_3" data-toggle="tab">@Html.Raw(Resources.Global._payment_infor) </a>
+                        </li>
+                        <li>
+                            <a href="\\#tab_1_5" data-toggle="tab">@Html.Raw(Resources.Global._purview) </a>
+                        </li>
+                        <li>
+                            <a href="\\#tab_1_4" data-toggle="tab"> @Html.Raw(Resources.Global._interview) </a>
+                        </li>
+                        #}#
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._customer_type)</label>
+                                        <div class="input-icon right">
+                                            <select name="customertype" class="form-control input-sm max100" onchange="changeType(this)" id="customertype">
+                                                #if(customertype == 'company'){#
+                                                <option value="personal">@Html.Raw(Resources.Global._personal)</option>
+                                                <option value="company" selected>@Html.Raw(Resources.Global._company)</option>
+                                                #}else{#
+                                                <option value="personal" selected>@Html.Raw(Resources.Global._personal)</option>
+                                                <option value="company">@Html.Raw(Resources.Global._company)</option>
+                                                #}#
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="fullname">
+                                        <label>@Html.Raw(Resources.Global._fullname)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100 fullname" placeholder="@Html.Raw(Resources.Global._fullname)" name="fullname" value="#=fullname!=null?fullname:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="taxcode">
+                                        <label>@Html.Raw(Resources.Global._company_tax)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._company_tax)" name="taxcode" value="#=taxcode!=null?taxcode:''#">
+                                        </div>
+                                    </div>
+                                    @*<div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="company">
+                                            <label>@Html.Raw(Resources.Global._company_name)</label>
+                                            <div class="input-icon right">
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._company_name)" name="company" value="#=company!=null?company:''#">
+                                            </div>
+                                        </div>*@
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._phone)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._phone)" name="phone" value="#=phone!=null?phone:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._email)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._email)" name="email" value="#=email!=null?email:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="identity">
+                                        <label>@Html.Raw(Resources.Global._physical_id)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._physical_id)" name="identity" value="#=identity!=null?identity:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="identitydate">
+                                        <label>@Html.Raw(Resources.Global._identity_date)</label>
+                                        <div class="input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+                                            <input type="text" class="form-control" placeholder="@DateTime.Now.ToString(" yyyy-mm-dd")" name="identitydate" value="#=kendo.toString(kendo.parseDate(identitydate),'yyyy/MM/dd') !='0001/01/01' && identitydate !=null ? kendo.toString(kendo.parseDate(identitydate),'dd/MM/yyyy'): ''#">
+                                            <span class="input-group-btn">
+                                                <button class="btn default" type="button">
+                                                    <i class="fa fa-calendar"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="identityaddress">
+                                        <label>@Html.Raw(Resources.Global._identity_address)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._identity_address)" name="identityaddress" value="#=identityaddress!=null?identityaddress:''#">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="represent">
+                                        <label>@Html.Raw(Resources.Global._showroom_representative)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._showroom_representative)" name="represent" value="#=represent!=null?represent:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="position">
+                                        <label>@Html.Raw(Resources.Global._position)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._position)" name="position" value="#=position!=null?position:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="fax">
+                                        <label>@Html.Raw(Resources.Global._fax)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fax)" name="fax" value="#=fax!=null?fax:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._address)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._address)" name="address" value="#=address!=null?address:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._city_province)<span class="required"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                    .Name("city")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Resources.Global._city_province + "...")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=city!= 0 ? city:''#")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetCity", "CustomData").Data("filterCity");
+                                        }).ServerFiltering(false);
+                                    }).ToClientTemplate()
+                                        )
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._district)</label>
+                                        @(Html.Kendo().DropDownList()
+                                    .Name("district")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Html.Raw(Resources.Global._district) + "...")
+                                    .Filter("contains")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=district!=null ? district:''#")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetDistrict", "CustomData")
+                                            .Data("filterDistrict");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Enable(false)
+                                    .CascadeFrom("city").ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                            </div>
+                            @*<div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._fullname)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fullname)" name="fullname" value="#=fullname!=null?fullname:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._phone)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._phone)" name="phone" value="#=phone!=null?phone:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._email)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._email)" name="email" value="#=email!=null?email:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._physical_id)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._physical_id)" name="identity" value="#=identity!=null?identity:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._identity_date)</label>
+                                        <div class="input-group input-icon right date date-picker" data-date-format="dd/mm/yyyy">
+                                            <input type="text" class="form-control" placeholder="01/01/1900" name="identitydate" value="#=kendo.toString(kendo.parseDate(identitydate),'yyyy/MM/dd') !='0001/01/01' && identitydate !=null ? kendo.toString(kendo.parseDate(identitydate),'dd/MM/yyyy'): ''#">
+                                            <span class="input-group-btn">
+                                                <button class="btn default" type="button">
+                                                    <i class="fa fa-calendar"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._identity_address)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._identity_address)" name="identityaddress" value="#=identityaddress!=null?identityaddress:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._address)<span class="required"> * </span></label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._address)" name="address" value="#=address!=null?address:''#">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._city_province)<span class="required"> * </span></label>
+                                        @(Html.Kendo().DropDownList()
+                                                    .Name("city")
+                                                    .HtmlAttributes(new { style = "width:100%" })
+                                                    .OptionLabel(Resources.Global._city_province + "...")
+                                                    .DataTextField("Name")
+                                                    .DataValueField("Id")
+                                                   .Value("#=city!= 0 ? city:''#")
+                                                   .Filter("contains")
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("GetCity", "CustomData").Data("filterCity");
+                                                        }).ServerFiltering(false);
+                                                    }).ToClientTemplate()
+                                        )
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._district)</label>
+                                        @(Html.Kendo().DropDownList()
+                                                .Name("district")
+                                                .HtmlAttributes(new { style = "width:100%" })
+                                                .OptionLabel(Html.Raw(Resources.Global._district) + "...")
+                                                .Filter("contains")
+                                                .DataTextField("Name")
+                                                .DataValueField("Id")
+                                                .Value("#=district!=null ? district:''#")
+
+                                                .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetDistrict", "CustomData")
+                                                            .Data("filterDistrict");
+                                                    })
+                                                    .ServerFiltering(true);
+                                                })
+                                                .Enable(false)
+                                                .CascadeFrom("city").ToClientTemplate()
+                                        )
+                                    </div>
+                                    @*<div class="form-group" style="margin-top:35px;">
+                                            <div class="clearfix">
+                                                <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                    <label class="btn red btn-sm btn-outline #=!active ? 'active' : ''#">
+                                                        #if(active==false){#
+                                                        <input type="radio" name="active" value="false" class="toggle" checked> @Html.Raw(Resources.Global._showroom_inactive)
+                                                        #}else{#
+                                                        <input type="radio" name="active" value="false" class="toggle"> @Html.Raw(Resources.Global._showroom_inactive)
+                                                        #}#
+                                                    </label>
+                                                    <label class="btn green btn-sm btn-outline #=active ? 'active' : ''#">
+                                                        #if(active==true){#
+                                                        <input type="radio" name="active" value="true" class="toggle" checked> @Html.Raw(Resources.Global._showroom_active)
+                                                        #}else{#
+                                                        <input type="radio" name="active" value="true" class="toggle"> @Html.Raw(Resources.Global._showroom_active)
+                                                        #}#
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>*@
+                            @*</div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>@Html.Raw(Resources.Global._customer_type)</label>
+                                            <div class="input-icon right">
+                                                <select name="customertype" class="form-control input-sm max100" onchange="changeType(this)">
+                                                    #if(customertype == 'company'){#
+                                                    <option value="personal">@Html.Raw(Resources.Global._personal)</option>
+                                                    <option value="company" selected>@Html.Raw(Resources.Global._company)</option>
+                                                    #}else{#
+                                                    <option value="personal" selected>@Html.Raw(Resources.Global._personal)</option>
+                                                    <option value="company">@Html.Raw(Resources.Global._company)</option>
+                                                    #}#
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="company">
+                                            <label>@Html.Raw(Resources.Global._company_name)</label>
+                                            <div class="input-icon right">
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._company_name)" name="company" value="#=company!=null?company:''#">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="taxcode">
+                                            <label>@Html.Raw(Resources.Global._company_tax)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._company_tax)" name="taxcode" value="#=taxcode!=null?taxcode:''#">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="represent">
+                                            <label>@Html.Raw(Resources.Global._showroom_representative)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._showroom_representative)" name="represent" value="#=represent!=null?represent:''#">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="position">
+                                            <label>@Html.Raw(Resources.Global._position)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._position)" name="position" value="#=position!=null?position:''#">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="#=customertype=='company' ? 'display:block':'display:none'#" id="fax">
+                                            <label>@Html.Raw(Resources.Global._fax)</label>
+                                            <div class="input-icon right">
+                                                <i class="fa"></i>
+                                                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fax)" name="fax" value="#=fax!=null?fax:''#">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+                        #if(id>0){#
+                        <div class="tab-pane" id="tab_1_2">
+                            @*Danh sách xe*@
+                            <div class="row" id="ProductForm">
+                                <div class="col-lg-12">
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._car_list)</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <input type="hidden" id="productid" />
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._select_car)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("cardidP")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_car) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Events(e =>
+                                      {
+                                          e.Change("onChangeCar");
+                                      })
+                                                //.Value("")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getCar", "Contract");
+                                          }).ServerFiltering(false);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._price)</label>
+                                        <input type="hidden" name="priceP" value="0" />
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._price)" id="priceFrom" onkeyup="changeValue(this)">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._sales)</label>
+                                        <input type="hidden" value="0" name="saleP" />
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._sales)" id="saleFrom" value="" onkeyup="changeValue(this)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._note)</label>
+                                        <textarea name="noteP" class="form-control input-sm max100" rows="4" id="noteP"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:10px;">
+                                #if(status == 'new'){#
+                                @if (all || create || update)
+                                {
+                                    <button type="button" class="btn default btn-sm btn-circle blue" onclick="saveCar()">@Html.Raw(Resources.Global._save)</button>
+                                }
+                                #}#
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    @(Html.Kendo().Grid<MCC.Models.tw_Contract_Product_Meta>()
+                                    .Name("grid")
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound(p => p.id).Hidden();
+                                        columns.Bound(p => p.id).Hidden().HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' productid='\\#=id\\#'/>").Width(20).Filterable(false).Sortable(false);
+                                        columns.Bound(p => p.carid).Hidden();
+                                        //columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-warning btn-xs' data-id='#=id#' onclick='edit(this)'>" + @Html.Raw(Resources.Global._cardefinition_action_edit) + "</a> &nbsp;" + "<a class='btn btn-danger btn-xs' onclick='deleteCarDefinition(#=id#);'>" + @Html.Raw(Resources.Global._cardefinition_action_delete) + "</a>").Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        columns.Bound(p => p.id).Width(100).ClientTemplate("<img src='\\#=car!=null && car.imagesSize !=null && car.imagesSize.thumb!= null ? car.imagesSize.thumb : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&text=no+image' \\#'").Title(@Html.Raw(Resources.Global._car_picture).ToString());
+                                        columns.Bound(p => p.id).Width(180).Title(@Html.Raw(Resources.Global._car_infor).ToString()).ClientTemplate("<span class='gridText'>\\#=name\\#</span>"
+                                        + "<br/><span>" + @Html.Raw(Resources.Global._color) + ": \\#=colorDes\\#</span>"
+                                        + "<br/><span>" + @Html.Raw(Resources.Global._make) + ": \\#if(domestic){\\#" + @Html.Raw(Resources.Global._domestic) + "\\#}else{\\#" + @Html.Raw(Resources.Global._import_make) + "\\#}\\#</span>"
+                                        + "<br/><span style='font-weight: 600;'>" + @Html.Raw(Resources.Global._code_vin) + ":</span>" + "<span> \\#=code!=null ? code: ''\\#</span>"
+                                        );
+                                        columns.Bound(p => p.price).Title(@Html.Raw(Resources.Global._price).ToString()).Width(130).ClientTemplate("<span>" + @Html.Raw(Resources.Global._price) + " : \\#=kendo.format(' {0:N0}', price)\\#</span>"
+                                            + "<br/>" + "<span>" + @Html.Raw(Resources.Global._sales) + " :  \\#=kendo.format(' {0:N0}', sale)\\#</span>"
+                                             + "<br/>" + "<span>" + @Html.Raw(Resources.Global._money) + " :  \\#=kendo.format(' {0:N0}', price -sale)\\#</span>"
+                                            );
+
+                                        //columns.Bound(p => p.price).Width(100).Title(@Html.Raw(Resources.Global._price).ToString()).Format("{0:N0}");
+                                        //columns.Bound(p => p.sale).Width(100).Title(@Html.Raw(Resources.Global._sales).ToString()).Format("{0:N0}");
+                                        //columns.Bound(p => p.id).Width(100).Title(@Html.Raw(Resources.Global._money).ToString()).ClientTemplate("\\#=kendo.format('{0:N0}', price-sale)\\#");
+                                        columns.Bound(p => p.note).Width(100).Title(@Html.Raw(Resources.Global._note).ToString());
+                                        columns.Template(@<text></text>).ClientTemplate("\\#if(statuscontract!=null && statuscontract == 'new'){\\#" + "<a class='btn blue btn-xs' onclick='UpdateProject(this)'><i class ='icon-pencil'></i></a> &nbsp;" + "<a class='btn red btn-xs' onclick='DeleteProject(this);'><i class='fa fa-remove'></i></a>" + "\\#}\\#").Width(60).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        //columns.Command(command => { command.Custom(@Html.Raw(Resources.Global._edit).ToString()).Click("UpdateProject").HtmlAttributes(new { @class = "btn blue btn-circle", @href = "\\#ProductForm" }); command.Custom(@Html.Raw(Resources.Global._delete).ToString()).Click("DeleteProject").HtmlAttributes(new { @class = "btn red btn-circle" }); }).Width(160);
+                                    })
+                                                .Pageable()
+                                                .Navigatable()
+                                                .Scrollable()
+                                            //.HtmlAttributes(new { @style = "height:250px;" })
+                                                .Resizable(resizable => resizable.Columns(true))
+                                            //.Events(events => { events.DataBound("onDatabound"); })
+                                                .DataSource(dataSource => dataSource
+                                                .Ajax()
+                                                .Batch(true)
+                                                .PageSize(20)
+                                                    //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                    //.Aggregates(aggregates =>
+                                                    //{
+                                                    //    aggregates.Add(p => p.price).Sum();
+                                                    //})
+                                                .Model(model =>
+                                                {
+                                                    model.Id(p => p.id);
+                                                    model.Field(p => p.createdAt).Editable(false);
+                                                    model.Field(p => p.createdBy).Editable(false);
+                                                    model.Field(p => p.updatedAt).Editable(false);
+                                                    model.Field(p => p.updatedBy).Editable(false);
+                                                })
+                                                    .Read(read => read.Action("ReadProduct", "Contract").Data("function () {return { contractid: '#=id#'}}"))
+
+
+                                        ).ToClientTemplate()
+)
+
+                                </div>
+                            </div>
+                            @*Dich vu*@
+                            <div class="row" id="ServiceForm">
+                                <div class="col-lg-12">
+                                    <div class="caption" style="padding-top:15px; padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._service)</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <input type="hidden" id="idS" />
+                                    <div class="form-group">
+                                        <label>
+                                            @Html.Raw(Resources.Global._type)
+                                        </label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("typeS")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_accessory) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                                //.Value("#=representative#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getServiceType", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._name_Caps)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._name_Caps)" name="nameS" value="">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._price)</label>
+                                        <input type="hidden" value="0" name="priceS" />
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._price)" id="priceS" value="" onkeyup="changeValue(this)">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._select_car)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("productidS")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_car) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                                //.Value("#=representative#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getInContract", "Contract").Data("function () {return { id: '#=id#'}}");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._note)</label>
+                                        <textarea name="noteS" class="form-control input-sm max100" rows="4" id="noteS"></textarea>
+                                        @*<input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._note)" name="productG.note" value="">*@
+                                    </div>
+                                </div>
+                            </div>
+                            #if(status == 'new'){#
+                            @if (all || create || update)
+                            {
+                                <div style="margin-bottom:10px;">
+                                    <button type="button" class="btn default btn-sm btn-circle blue" onclick="saveService()">@Html.Raw(Resources.Global._save)</button>
+                                </div>
+                            }
+                            #}#
+                            <div class="row">
+                                <div class="col-md-12">
+                                    @(Html.Kendo().Grid<MCC.Models.tw_Contract_Service_Meta>()
+                                    .Name("grid2")
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound(p => p.id).Hidden();
+                                        //columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-warning btn-xs' data-id='#=id#' onclick='edit(this)'>" + @Html.Raw(Resources.Global._cardefinition_action_edit) + "</a> &nbsp;" + "<a class='btn btn-danger btn-xs' onclick='deleteCarDefinition(#=id#);'>" + @Html.Raw(Resources.Global._cardefinition_action_delete) + "</a>").Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        columns.Bound(p => p.name).Width(180).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._name_Caps).ToString());
+                                        columns.Bound(p => p.servicename).Width(110).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._type).ToString());
+                                        columns.Bound(p => p.price).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._price).ToString()).Format("{0:N0}");
+                                        columns.Bound(p => p.productname).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._car).ToString());
+                                        columns.Bound(p => p.note).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._note).ToString());
+                                        columns.Template(@<text></text>).ClientTemplate("\\#if(statuscontract!=null && statuscontract == 'new'){\\#" + "<a class='btn blue btn-xs' onclick='UpdateService(this)'><i class ='icon-pencil'></i></a> &nbsp;" + "<a class='btn red btn-xs' onclick='DeleteService(this);'><i class='fa fa-remove'></i></a>" + "\\#}\\#").Width(60).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        //columns.Template(@<text></text>).ClientTemplate("<a class='btn blue btn-xs' onclick='UpdateService(this)'><i class ='icon-pencil'></i></a> &nbsp;" + "<a class='btn red btn-xs' onclick='DeleteService(this);'><i class='fa fa-remove'></i></a>").Width(60).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        //columns.Command(command => { command.Custom(@Html.Raw(Resources.Global._edit).ToString()).Click("UpdateService").HtmlAttributes(new { @class = "btn btn-sm btn-circle blue", @Href = "\\#ServiceForm" }); command.Custom(@Html.Raw(Resources.Global._delete).ToString()).Click("DeleteService").HtmlAttributes(new { @class = "btn btn-sm btn-circle red" }); }).Width(160);
+                                    })
+                                                .Pageable()
+                                                .Navigatable()
+                                                .Scrollable()
+                                                .ColumnMenu()
+                                            //.HtmlAttributes(new { @style = "height:250px;" })
+                                                .Resizable(resizable => resizable.Columns(true))
+                                                .Sortable()
+                                            //.Events(events => { events.DataBound("onDatabound"); })
+                                                .DataSource(dataSource => dataSource
+                                                    .Ajax()
+                                                    .Batch(true)
+                                                    .PageSize(20)
+                                                    //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                            .Model(model =>
+                                                            {
+                                                                model.Id(p => p.id);
+                                                                model.Field(p => p.createdAt).Editable(false);
+                                                                model.Field(p => p.createdBy).Editable(false);
+                                                                model.Field(p => p.updatedAt).Editable(false);
+                                                                model.Field(p => p.updatedBy).Editable(false);
+                                                            })
+                                                         .Read(read => read.Action("ReadService", "Contract").Data("function () {return { contractid: '#=id#'}}"))
+                                                ).ToClientTemplate()
+                                    )
+                                </div>
+                            </div>
+                            <div class="row" id="PromotionForm">
+                                <div class="col-lg-12">
+                                    <div class="caption" style="padding-top:15px; padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._promotion)</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <input type="hidden" id="idPro" />
+                                    <div class="form-group">
+                                        <label>
+                                            @Html.Raw(Resources.Global._type)
+                                        </label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("typePro")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_accessory) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                                //.Value("#=representative#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getServiceType", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._name_Caps)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._name_Caps)" name="namePro" value="">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._price)</label>
+                                        <input type="hidden" value="0" name="pricePro" />
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._price)" id="pricePro" value="">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._select_car)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("productidPro")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_car) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                                //.Value("#=representative#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getInContract", "Contract").Data("function () {return { id: '#=id#'}}");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                            </div>
+
+                            #if(status == 'new'){#
+                            @if (all || create || update)
+                            {
+                                <div style="margin-bottom:10px;">
+                                    <button type="button" class="btn default btn-sm btn-circle blue" onclick="savePromotion()">@Html.Raw(Resources.Global._save)</button>
+                                </div>
+                            }
+                            #}#
+                            <div class="row">
+                                <div class="col-md-12">
+                                    @(Html.Kendo().Grid<MCC.Models.tw_Contract_Promotion_Meta>()
+                                    .Name("grid3")
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound(p => p.id).Hidden();
+                                        //columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-warning btn-xs' data-id='#=id#' onclick='edit(this)'>" + @Html.Raw(Resources.Global._cardefinition_action_edit) + "</a> &nbsp;" + "<a class='btn btn-danger btn-xs' onclick='deleteCarDefinition(#=id#);'>" + @Html.Raw(Resources.Global._cardefinition_action_delete) + "</a>").Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        columns.Bound(p => p.name).Width(180).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._name_Caps).ToString());
+                                        columns.Bound(p => p.servicename).Width(110).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._type).ToString());
+                                        columns.Bound(p => p.price).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._price).ToString()).Format("{0:N0}");
+                                        columns.Bound(p => p.productname).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._car).ToString());
+                                        columns.Bound(p => p.note).Width(100).HtmlAttributes(new { style = "background-color:\\#;color:\\#468847" }).Title(@Html.Raw(Resources.Global._note).ToString());
+                                        columns.Template(@<text></text>).ClientTemplate("\\#if(statuscontract!=null && statuscontract == 'new'){\\#" + "<a class='btn blue btn-xs' onclick='updatePromotion(this)'><i class ='icon-pencil'></i></a> &nbsp;" + "<a class='btn red btn-xs' onclick='deletePromotion(this);'><i class='fa fa-remove'></i></a>" + "\\#}\\#").Width(60).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        //columns.Template(@<text></text>).ClientTemplate("<a class='btn blue btn-xs' onclick='UpdateService(this)'><i class ='icon-pencil'></i></a> &nbsp;" + "<a class='btn red btn-xs' onclick='DeleteService(this);'><i class='fa fa-remove'></i></a>").Width(60).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                                        //columns.Command(command => { command.Custom(@Html.Raw(Resources.Global._edit).ToString()).Click("UpdateService").HtmlAttributes(new { @class = "btn btn-sm btn-circle blue", @Href = "\\#ServiceForm" }); command.Custom(@Html.Raw(Resources.Global._delete).ToString()).Click("DeleteService").HtmlAttributes(new { @class = "btn btn-sm btn-circle red" }); }).Width(160);
+                                    })
+                                                .Pageable()
+                                                .Navigatable()
+                                                .Scrollable()
+                                                .ColumnMenu()
+                                            //.HtmlAttributes(new { @style = "height:250px;" })
+                                                .Resizable(resizable => resizable.Columns(true))
+                                                .Sortable()
+                                            //.Events(events => { events.DataBound("onDatabound"); })
+                                                .DataSource(dataSource => dataSource
+                                                    .Ajax()
+                                                    .Batch(true)
+                                                    .PageSize(20)
+                                                    //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                            .Model(model =>
+                                                            {
+                                                                model.Id(p => p.id);
+                                                                model.Field(p => p.createdAt).Editable(false);
+                                                                model.Field(p => p.createdBy).Editable(false);
+                                                                model.Field(p => p.updatedAt).Editable(false);
+                                                                model.Field(p => p.updatedBy).Editable(false);
+                                                            })
+                                                         .Read(read => read.Action("ReadPromotion", "Contract").Data("function () {return { contractid: '#=id#'}}"))
+                                                ).ToClientTemplate()
+                                    )
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="caption" style="padding-top:15px; padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._total_price)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control max100" value="#=totalprice + totalservice > 0  ? kendo.format('{0:N0}', totalprice + totalservice) : 0#" readonly />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br /><br />
+                        </div>
+                        @*Điều khoản*@
+                        <div class="tab-pane" id="tab_1_3">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._payment_infor)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._payment)</label>
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                #if(rulesMeta== null){#
+                                                <label class="btn green btn-sm btn-outline ">
+                                                    <input type="radio" name="payment" value="bank" checked onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._link_bank)
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline active">
+                                                    <input type="radio" name="payment" value="payoff" checked onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._pay_off)
+                                                </label>
+                                                #}else{#
+                                                <label class="btn green btn-sm btn-outline #=rulesMeta!=null && rulesMeta.payment=='bank' ? 'active':''#">
+                                                    #if(rulesMeta!=null && rulesMeta.payment=='bank'){#
+                                                    <input type="radio" name="payment" value="bank" checked onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._link_bank)
+                                                    #}else {#
+                                                    <input type="radio" name="payment" value="bank" onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._link_bank)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=rulesMeta!=null && rulesMeta.payment=='payoff' ? 'active':''#">
+                                                    #if(rulesMeta!=null && rulesMeta.payment=='payoff'){#
+                                                    <input type="radio" name="payment" value="payoff" checked onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._pay_off)
+                                                    #}else {#
+                                                    <input type="radio" name="payment" value="payoff" onchange="changePayment(this)" class="toggle">@Html.Raw(Resources.Global._pay_off)
+                                                    #}#
+                                                </label>
+                                                #}#
+                                            </div>
+                                        </div>
+                                    </div>
+                                    #if(rulesMeta!=null && rulesMeta.payment =='bank'){#
+                                    <div class="form-group" style="display:none" id="form-group-payoff">
+                                        <label>@Html.Raw(Resources.Global._payment_type)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("paymenttype")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._payment_type) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=rulesMeta!=null && rulesMeta.paymenttype !=null ? rulesMeta.paymenttype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getPaymentType", "Contract");
+                                          }).ServerFiltering(false);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group" id="form-group-bank">
+                                        <label>@Html.Raw(Resources.Global._bank)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("banktype")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._bank) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=rulesMeta!=null && rulesMeta.banktype !=null ? rulesMeta.banktype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getBankName", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    #}else {#
+                                    <div class="form-group" id="form-group-payoff">
+                                        <label>@Html.Raw(Resources.Global._payment_type)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("paymenttype")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._payment_type) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=rulesMeta!=null && rulesMeta.paymenttype !=null ? rulesMeta.paymenttype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getPaymentType", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group" style="display:none" id="form-group-bank">
+                                        <label>@Html.Raw(Resources.Global._bank)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("banktype")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._bank) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=rulesMeta!=null && rulesMeta.banktype !=null ? rulesMeta.banktype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getBankName", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    #}#
+
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._deposit)</label>
+                                        <input type="hidden" name="deposit" value="#=rulesMeta!=null && rulesMeta.deposit >0 ? rulesMeta.deposit: ''#" />
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._deposit)" onkeyup="changeValue(this)" id="deposit" value="#=rulesMeta!=null && rulesMeta.deposit >0 ? rulesMeta.deposit: ''#">
+                                    </div>
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._delivery_time)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._delivery_time)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._delivery_time)" name="deliverytime" value="#=rulesMeta!=null && rulesMeta.deliverytime !=null ? rulesMeta.deliverytime: ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._delivery_place)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._delivery_place)" name="deliveryplace" value="#=rulesMeta!=null && rulesMeta.deliveryplace !=null ? rulesMeta.deliveryplace: ''#">
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._follow)</label>
+                                        <div class="input-icon right">
+                                            <select name="followR" class="form-control input-sm max100">
+                                                <option></option>
+                                                #if(rulesMeta!=null){#
+                                                #if(rulesMeta.follow == '3month'){#
+                                                <option value="3month" selected>3 tháng</option>
+                                                <option value="1month">1 tháng</option>
+                                                <option value="hot">hot</option>
+                                                #}else if(rulesMeta.follow == '1month'){#
+                                                <option value="3month">3 tháng</option>
+                                                <option value="1month" selected>1 tháng</option>
+                                                <option value="hot"> hot</option>
+                                                #}else if(rulesMeta.follow == 'hot'){#
+                                                <option value="3month">3 tháng</option>
+                                                <option value="1month">1 tháng</option>
+                                                <option value="hot" selected>hot</option>
+                                                #}else {#
+                                                <option value="3month">3 tháng</option>
+                                                <option value="1month">1 tháng</option>
+                                                <option value="hot">hot</option>
+                                                #}#
+                                                #}else{#
+                                                <option value="3month">3 thángd</option>
+                                                <option value="1month">1 tháng</option>
+                                                <option value="hot"> hot</option>
+                                                #}#
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._order_case)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._bidding)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._bidding)" name="biddingR" value="#=rulesMeta!=null && rulesMeta.bidding !=null ? rulesMeta.bidding: ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._fleet)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fleet)" name="fleetR" value="#=rulesMeta!=null && rulesMeta.fleet !=null ? rulesMeta.fleet: ''#">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._special)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._special)" name="specialR" value="#=rulesMeta!=null && rulesMeta.special !=null ? rulesMeta.special: ''#">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._worker)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._employee_name)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("employee")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._busrole_choosesale) + "...")
+                                      .DataTextField("fullName")
+                                      .DataValueField("name")
+                                      .Value("#=rulesMeta!=null && rulesMeta.employee !=null ? rulesMeta.employee : createdBy#")
+                                      .Filter("contains")
+                                      .Events(e =>
+                                        {
+                                            e.Change("onChangeEmployee");
+                                        })
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getUser", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._user_inshowroom)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._user_inshowroom)" value="#=rulesMeta!=null && rulesMeta.showroomName !=null ? rulesMeta.showroomName: ''#" name="showroom" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._phone)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._phone)" value="#=rulesMeta!=null && rulesMeta.phone !=null ? rulesMeta.phone : user!=null && user.phone !=null ? user.phone: ''#" name="phoneR" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._email)</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._email)" value="#=rulesMeta!=null && rulesMeta.email !=null ? rulesMeta.email : user!=null && user.email !=null ? user.email: ''#" name="emailR" readonly>
+                                    </div>
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._othercosts)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Cộng tác viên / môi giới</label>
+                                        <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._email)" value="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab_1_4">
+                            @*Người phỏn vấn*@
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._general)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._fullname)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fullname)" value="#=interviewerMeta!=null && interviewerMeta.fullname!=null ? interviewerMeta.fullname : '' #" name="fullnameI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._position)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._position)" value="#=interviewerMeta!=null && interviewerMeta.position!=null ? interviewerMeta.position : '' #" name="positionI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._moblephone)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._moblephone)" value="#=interviewerMeta!=null && interviewerMeta.mobilephone!=null ? interviewerMeta.mobilephone : '' #" name="mobilephoneI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._email)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._email)" value="#=interviewerMeta!=null && interviewerMeta.email!=null ? interviewerMeta.email : '' #" name="emailI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._telephone)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._telephone)" value="#=interviewerMeta!=null && interviewerMeta.telephone!=null ? interviewerMeta.telephone : '' #" name="telephoneI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._fax)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._fax)" value="#=interviewerMeta!=null && interviewerMeta.fax!=null ? interviewerMeta.fax : '' #" name="faxI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._address)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._address)" value="#=interviewerMeta!=null && interviewerMeta.address!=null ? interviewerMeta.address : '' #" name="addressI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._city_province)</label>
+                                        @(Html.Kendo().DropDownList()
+                                    .Name("cityI")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .OptionLabel(Resources.Global._city_province + "...")
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Value("#=interviewerMeta!=null && interviewerMeta.city > 0? interviewerMeta.city: ''#")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetCity", "CustomData").Data("filterCity");
+                                        }).ServerFiltering(false);
+                                    }).ToClientTemplate()
+                                        )
+                                    </div>
+
+
+
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._payment_type)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._payment_type)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("paymenttypeI")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._payment_type) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=interviewerMeta!=null && interviewerMeta.paymenttype!=null? interviewerMeta.paymenttype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getPaymentTypeInterView", "Contract");
+                                          }).ServerFiltering(false);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._bank)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._bank)" value="#=interviewerMeta!=null && interviewerMeta.bankname!=null ? interviewerMeta.bankname : '' #" name="banknameI">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._borrowed_time)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._borrowed_time)" value="#=interviewerMeta!=null && interviewerMeta.borrowed!=null ? interviewerMeta.borrowed : '' #" name="borrowedI">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="caption" style="padding-bottom:5px;">
+                                        <span class="caption-subject bold">@Html.Raw(Resources.Global._personal_info)</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._legal_status)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("legaltypeI")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._legal_status) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=interviewerMeta!=null && interviewerMeta.legaltype!=null? interviewerMeta.legaltype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getLegalType", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._gender)</label>
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                <label class="btn green btn-sm btn-outline #=interviewerMeta!=null && interviewerMeta.gender =='male'? 'active' : ''#">
+                                                    #if(interviewerMeta!=null && interviewerMeta.gender=='male'){#
+                                                    <input type="radio" name="genderI" value="male" class="toggle" checked> @Html.Raw(Resources.Global._male)
+                                                    #}else{#
+                                                    <input type="radio" name="genderI" value="male" class="toggle"> @Html.Raw(Resources.Global._male)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=interviewerMeta!=null && interviewerMeta.gender=='female'? 'active' : ''#">
+                                                    #if(interviewerMeta!=null && interviewerMeta.gender=='female'){#
+                                                    <input type="radio" name="genderI" value="female" class="toggle" checked> @Html.Raw(Resources.Global._female)
+                                                    #}else{#
+                                                    <input type="radio" name="genderI" value="female" class="toggle"> @Html.Raw(Resources.Global._female)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=interviewerMeta!=null && interviewerMeta.gender=='unknown'? 'active' : ''#">
+                                                    #if(interviewerMeta!=null && interviewerMeta.gender=='unknown'){#
+                                                    <input type="radio" name="genderI" value="unknown" class="toggle" checked> @Html.Raw(Resources.Global._unknown)
+                                                    #}else{#
+                                                    <input type="radio" name="genderI" value="unknown" class="toggle"> @Html.Raw(Resources.Global._unknown)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._birthday)</label>
+                                        <div class="input-group input-medium  date date-picker" data-date-format="dd/mm/yyyy">
+                                            <input type="text" class="form-control" placeholder="01/01/1900" name="birdthdayI" value="#=interviewerMeta!=null && interviewerMeta.birdthday!=null ? kendo.toString(kendo.parseDate(interviewerMeta.birdthday),'dd/MM/yyyy') : '' #">
+                                            <span class="input-group-btn">
+                                                <button class="btn default" type="button">
+                                                    <i class="fa fa-calendar"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._marital_status)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("marialstatusI")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._marital_status) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=interviewerMeta!=null && interviewerMeta.marialstatus!=null? interviewerMeta.marialstatus: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getMarial", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._children_number)</label>
+                                        <div class="input-icon right">
+                                            <i class="fa"></i>
+                                            <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._children_number)" name="childrennumberI" value="#=interviewerMeta!=null && interviewerMeta.childrennumber!=null ? interviewerMeta.childrennumber : '' #">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._business_type)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("businesstypeI")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._business_type) + "...")
+                                      .DataTextField("Name")
+                                      .DataValueField("Value")
+                                      .Value("#=interviewerMeta!=null && interviewerMeta.businesstype!=null? interviewerMeta.businesstype: ''#")
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getBusinessType", "Contract");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab_1_5">
+                            <div class="tabbable-custom">
+                                <ul class="nav nav-tabs">
+                                    <li class="active">
+                                        <a href="\\#tab_1_5_1" data-toggle="tab"> @Html.Raw(Resources.Global._purview) </a>
+                                    </li>
+                                    <li>
+                                        <a href="\\#tab_1_5_2" data-toggle="tab" style="display:none;"> @Html.Raw(Resources.Global._edit_condition) </a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="tab_1_5_1">
+                                        <div class="clearfix">
+                                            <div class="todo-tasklist">
+                                                @(Html.Kendo().ListView<tw_Contract_Condition_Meta>()
+                                                    .Name("listViewInfo_#=id#")
+                                                    .TagName("div")
+                                                    .HtmlAttributes(new { @class = "row", @style = "border-style:none;box-shadow:none;margin:0;margin-top:10px;" })
+                                                    .ClientTemplateId("EditTemplate2")
+                                                    .DataSource(dataSource =>
+                                                    {
+                                                        dataSource.Read(read => read.Action("ReadCondition", "Contract", new { contractid = "#=id#" }));
+                                                        dataSource.PageSize(10).Sort(s => { s.Add(a => a.order).Ascending(); });
+                                                    })
+                                                    .Pageable().ToClientTemplate()
+                                                )
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="tab_1_5_2" class="tab-pane">
+                                        <div class="EditMoreInfo"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        #}#
+                    </div>
+                </div>
+                <div class="form-actions right">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0 && status =='new'){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeContract('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-template" id="EditTemplate2">
+    <div class="todo-tasklist-item">
+        <div class="col-md-12" style="padding-left:0;">
+            <div class="todo-tasklist-item-title" style="padding-bottom:5px;">
+                <a onclick="edit(this)">#=name#</a>
+            </div>
+            <span class="item-status pull-right">
+                <a onclick="editRule(this, '#=id#', '#=contractid#')" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+            </span>
+            <div class="todo-tasklist-item-text">
+                @Html.Raw(Resources.Global._created_by) #=createdBy# @Html.Raw(Resources.Global._at) #=kendo.toString(kendo.parseDate(createdAt),'dd/MM/yyyy HH:mm')#
+            </div>
+            <div class="todo-tasklist-item-text">
+                #=content!= null ? content.replace('{Promotion}', promotionName!=null ? promotionName:'').replace('{DiliveryTime}', service!=null && service.deliverytime != null ? service.deliverytime:'').replace('{DiliveryAdress}', service!=null && service.deliveryplace != null ? service.deliveryplace:'') : ''#
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="UpdateStatusTemplate">
+    <form class="form-horizontal">
+        <div class="row">
+            <div class="col-md-12">
+                <textarea class="form-control" name="reason" id="reason"></textarea>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-tmpl" id="CreateUpdateMoreInfoTemplate">
+    <form action="@Url.Content("~/Contract/UpdateCondition")" method="post" id="MoreInfoForm" novalidate="novalidate">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="hidden" name="id" value="#=id#" />
+                <input type="hidden" name="contractid" value="#=contractid#" />
+            </div>
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._name_Caps)<span class="required"> * </span></label>
+                    <div class="input-icon right">
+                        <input type="text" class="form-control input-sm" placeholder="name" name="code" value="#=name!=null ? name : ''#" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._content_Caps)</label>
+                    <div class="clearfix">
+                        @*<textarea id="Content" name="Content" style="height:600px">#=content!=null ? content : ''#</textarea>*@
+                        @(Html.Kendo().Editor().Name("content")
+                    .Value("#=content!=null ? content : ''#")
+                    .Encode(false)
+                    .HtmlAttributes(new { style = "height:450px;", placeholder = Html.Raw(Resources.Global._content_Caps) })
+                    .Tools(tools => tools
+                    .Clear()
+                    .Bold().Italic().Underline().Strikethrough()
+                    .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                    .InsertUnorderedList().InsertOrderedList()
+                    .Outdent()
+                    .Indent()
+                    .CreateLink().Unlink()
+                    .InsertImage()
+                    .SubScript()
+                    .SuperScript()
+                    .TableEditing()
+                    .ViewHtml()
+                    .Formatting()
+                    .CleanFormatting()
+                    .FontColor()
+                    .BackColor()
+                    .FontName()
+                    .FontSize()
+                    .CustomTemplate(template => template.Template("<a class='k-button' onclick='onFullScreen(this)'>" + Html.Raw(Resources.Global._full_screen) + "</a>")))
+                    .Messages(m => m
+                        .ImageWebAddress("Đường dẫn ảnh")
+                        .DialogCancel("Hủy")
+                        .DialogInsert("Thêm")
+                    )
+                    .ImageBrowser(imageBrowser => imageBrowser
+                    .Image(@HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + "/Content/Upload/images/{0}")
+                    .Read("Read", "ImageBrowser")
+                    .Create("Create", "ImageBrowser")
+                    .Destroy("Destroy", "ImageBrowser")
+                    .Upload("Upload", "ImageBrowser")
+                    .Thumbnail("Thumbnail", "ImageBrowser")).ToClientTemplate()
+                        )
+                    </div>
+                </div>
+                <div class="form-actions right">
+                    <a onclick="backMoreInfo()" class="btn default btn-sm btn-circle">@Html.Raw(Resources.Global._back)</a>
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn green btn-sm btn-circle">@Html.Raw(Resources.Global._save)</button>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </form>
+</script>
+@Html.Partial("View")
+<script>
+    function loadValidateMoreInfo(contractid) {
+        var e = $("#MoreInfoForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        title: { required: !0 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                $("#listViewInfo_" + contractid).data("kendoListView").dataSource.read();
+                                //loadFormMoreInfo(data.data, data.data.projectId);
+                                bootbox.hideAll();
+                                toastr.clear();
+                                toastr.success('', '@Resources.Global._save_successfully.')
+                            }
+                            else {
+                                toastr.clear();
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    function backMoreInfo() {
+        $('.nav-tabs a[href="#tab_1_5_1"]').tab('show');
+    }
+    function onFullScreen(e) {
+        var editor = $("#content").data("kendoEditor");
+        if ($(e).html() == "@Html.Raw(Resources.Global._full_screen)") {
+            $(e).html("@Html.Raw(Resources.Global._restore_down)");
+            editor.wrapper.css("height", $(window).height())
+            .css("width", "100%")
+            .css("position", 'fixed')
+            .css("top", 0)
+            .css("left", 0).css("z-index", 10000).css("overflow", "hidden");
+        } else {
+            $(e).html("@Html.Raw(Resources.Global._full_screen)");
+            editor.wrapper.css("height", "450px").css("position", 'relative').css("width", "100%").css("z-index", 10).css("overflow", "auto");
+        }
+    }
+    function editRule(e, id, contractid) {
+        var data = $("#listViewInfo_" + contractid).data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"));
+        console.log(data);
+        loadFormMoreInfo(data, contractid);
+        $('.nav-tabs a[href="#tab_1_5_2"]').tab('show');
+        $('.nav-tabs a[href="#tab_1_5_2"]').css('display', 'block');
+    }
+    function loadFormMoreInfo(data, contractid) {
+        var CreateUpdateMoreInfoTemplate = kendo.template($("#CreateUpdateMoreInfoTemplate").html());
+        $(".EditMoreInfo").html(CreateUpdateMoreInfoTemplate(data));
+        loadValidateMoreInfo(contractid);
+    }
+    function DeleteProject(e) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        grid = $("#grid").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: '@Resources.Global._contract',
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Contract/deleteProduct", { id: dataItem.id }, function (data) {
+                                if (data.success) {
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function UpdateProject(e) {
+        grid = $("#grid").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        $("#productid").val(dataItem.id);
+        $("input[name='priceP'], #priceFrom").val(dataItem.price);
+        $("input[name='saleP'], #saleFrom").val(dataItem.sale);
+        $("textarea[name='noteP']").val(dataItem.note);
+        var dropdownlist = $("#cardidP").data("kendoDropDownList");
+        dropdownlist.select(function (data) {
+            return data.id == dataItem.carid;
+        });
+        $("html, body").animate({
+            scrollTop: $("#ProductForm").offset().top - 70
+        }, 600);
+        reinitPlugins();
+    }
+    function DeleteService(e) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        grid = $("#grid2").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: '@Resources.Global._contract',
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Contract/deleteService", { id: dataItem.id }, function (data) {
+                                if (data.success) {
+                                    $("#grid2").data("kendoGrid").dataSource.read();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function UpdateService(e) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        grid = $("#grid2").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        $("#idS").val(dataItem.id);
+        $("input[name='nameS']").val(dataItem.name);
+        $("input[name='priceS']").val(dataItem.price);
+        $("#priceS").val(dataItem.price);
+        $("textarea[name='noteS']").val(dataItem.note);
+        var dropdownlist = $("#typeS").data("kendoDropDownList");
+        dropdownlist.select(function (datatype) {
+            return datatype.Value == dataItem.type;
+        });
+        var dropdownlist2 = $("#productidS").data("kendoDropDownList");
+        dropdownlist2.select(function (dataproduct) {
+            return dataproduct.id == dataItem.productid;
+        });
+        $("html, body").animate({
+            scrollTop: $("#ServiceForm").offset().top - 70
+        }, 600);
+        reinitPlugins();
+    }
+
+    loadFirst();
+    function loadFirst()
+    {
+        var params = new URLSearchParams(window.location.search);
+        var cusid = params.get('id');
+        if (cusid != null && cusid != "") {
+            $.post(r + "/CustomerManagement/ReadCustomerDetail", { id: cusid }, function (data) {
+                if (data.success) {
+                    console.log(data.data);
+                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));  
+                    if (data.data.customertype == 'company') {
+                        $("#company").css("display", "block");
+                        $("#taxcode").css("display", "block");
+                        $("#represent").css("display", "block");
+                        $("#position").css("display", "block");
+                        $("#fax").css("display", "block");
+
+                        $('#customertype').val('company');
+
+                        $("input[name='fullname']").val(data.data.fullname);
+                        $("input[name='phone']").val(data.data.phone);
+                        if (data.data.email != null && data.data.email != "") {
+                            $("input[name='email']").val(data.data.email);
+                        }
+                        if (data.data.identity != null && data.data.identity != "") {
+                            $("input[name='identity']").val(data.data.identity);
+                        }
+                        if (data.data.identitydate != null && data.data.identitydate != "") {
+                            $("input[name='identitydate']").val(kendo.toString(kendo.parseDate(data.data.identitydate), 'dd/MM/yyyy'));
+                        }
+                        if (data.data.identityaddress != null && data.data.identityaddress != "") {
+                            $("input[name='identityaddress']").val(data.data.identityaddress);
+                        }
+                        $("input[name='address']").val(data.data.address);
+                        $("input[name='city']").val(data.data.city);
+                        if (data.data.district != null && data.data.district != "") {
+                            $("input[name='district']").val(data.data.district);
+                        }
+                        $("#city").data('kendoDropDownList').value(data.data.city);
+                        $("#district").data('kendoDropDownList').value(data.data.district);
+                        $("input[name='taxcode']").val(data.data.taxcode);
+                        $("input[name='represent']").val(data.data.represent);
+                        $("input[name='position']").val(data.data.position);
+                        $("input[name='fax']").val(data.data.fax);
+                    }
+                    else {
+                        $("#company").css("display", "none").val('');
+                        $("#taxcode").css("display", "none").val('');
+                        $("#represent").css("display", "none").val('');
+                        $("#position").css("display", "none").val('');
+                        $("#fax").css("display", "none");
+
+                        $('#customertype').val('personal');
+                        $("input[name='fullname']").val(data.data.fullname);
+                        $("input[name='phone']").val(data.data.phone);
+                        if (data.data.email != null && data.data.email != "") {
+                            $("input[name='email']").val(data.data.email);
+                        }
+                        if (data.data.identity != null && data.data.identity != "") {
+                            $("input[name='identity']").val(data.data.identity);
+                        }
+                        if (data.data.identitydate != null && data.data.identitydate != "") {
+                            $("input[name='identitydate']").val(kendo.toString(kendo.parseDate(data.data.identitydate), 'dd/MM/yyyy'));
+                        }
+                        if (data.data.identityaddress != null && data.data.identityaddress != "") {
+                            $("input[name='identityaddress']").val(data.data.identityaddress);
+                        }
+                        $("input[name='address']").val(data.data.address);
+                        $("#city").data('kendoDropDownList').value(data.data.city);
+                        $("#district").data('kendoDropDownList').value(data.data.district);
+                    }
+                    
+                    
+                    //loadForm(data.data);                   
+                }
+                else {
+                    toastr.error('', data.error)
+                }
+            });
+        }
+        else {
+            loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 })
+        loadValidate();
+        initPlugins();
+
+    }
+    @*loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));*@
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        fullname: { required: !0 },
+                        phone: { required: !0 },
+                        address: { required: !0 },
+                        city: { required: !0 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    loadForm(data.data);
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        var params = new URLSearchParams(window.location.search);
+        var cusid = params.get('id');
+        if (cusid != null && cusid != "") {
+            window.location.replace(r + "/Contract");
+        }
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }
+    function filterCity() {
+        return {
+            Id: 242
+        };
+    }
+    function filterDistrict() {
+        return {
+            Id: $("#city").val()
+        };
+    }
+    function onDatabound(e) {
+        var listView = this;
+    }
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        loadValidate();
+        initPlugins();
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+
+    function initPlugins() {
+        $("#priceFrom, #saleFrom, #priceS, #deposit, #pricePro").autoNumeric("init", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+    function reinitPlugins() {
+        $("#priceFrom, #saleFrom, #priceS, #deposit, #pricePro").autoNumeric("update", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+    function saveCar() {
+        var carid = $("#cardidP").val();
+        if (carid != null && carid != "") {
+            $.post(r + "/Contract/saveListCar", { id: $("#productid").val(), carid: carid, price: $("#priceFrom").val(), sale: $("#saleFrom").val(), contractid: $("input[name='id']").val(), note: $("#noteP").val() }, function (data) {
+                if (data.success) {
+                    toastr.success('', '@Resources.Global._save_successfully')
+                    $("#grid").data("kendoGrid").dataSource.read();
+
+                    //console.log($("#grid").data("kendoGrid").dataSource.aggregates().Sum());
+                    var ds = $("#grid").data("kendoGrid").dataSource;
+                    var aggregates = ds.aggregates();
+                    var margin = aggregates.price;
+                    console.log(margin)
+
+                    console.log($("#grid").data("kendoGrid").dataSource.aggregates().sum);
+
+                    $("#productid").val(0);
+                    $("#priceFrom").val(0);
+                    $("#saleFrom").val(0);
+                    $("#noteP").val('');
+                    var dropdownlist = $("#cardidP").data("kendoDropDownList");
+                    dropdownlist.select(function (data) {
+                        return data.id == "";
+                    });
+                    $("#listView").data("kendoListView").dataSource.read();
+                }
+                else {
+                    toastr.error('', data.error)
+                }
+            });
+        }
+        else {
+            toastr.error('', 'input data');
+        }
+    }
+    function saveService() {
+        var productid = $("#productidS").val();
+        if (productid != null && productid != "") {
+            $.post(r + "/Contract/saveListService", { id: $("#idS").val(), type: $("#typeS").val(), name: $("input[name='nameS']").val(), price: $("#priceS").val(), contractid: $("input[name='id']").val(), note: $("#noteS").val(), productid: productid }, function (data) {
+                if (data.success) {
+                    toastr.success('', '@Resources.Global._save_successfully')
+                    $("#grid2").data("kendoGrid").dataSource.read();
+                    $("#idS").val(0);
+                    $("input[name='nameS']").val('');
+                    $("#priceS").val(0);
+                    $("#noteS").val('');
+                    var dropdownlist = $("#cardidP").data("kendoDropDownList");
+                    dropdownlist.select(function (data) {
+                        return data.id == "";
+                    });
+                    var dropdownlist = $("#productidS").data("kendoDropDownList");
+                    dropdownlist.select(function (data) {
+                        return data.id == "";
+                    });
+                    $("#listView").data("kendoListView").dataSource.read();
+                }
+                else {
+                    toastr.error('', data.error);
+                }
+            });
+        }
+        else {
+            toastr.error('', 'input data');
+        }
+    }
+    function savePromotion() {
+        var productid = $("#productidPro").val();
+        if (productid != null && productid != "") {
+            $.post(r + "/Contract/saveListPromotion", { id: $("#idPro").val(), type: $("#typePro").val(), name: $("input[name='namePro']").val(), price: $("#pricePro").val(), contractid: $("input[name='id']").val(), note: $("#noteS").val(), productid: productid }, function (data) {
+                if (data.success) {
+                    toastr.success('', '@Resources.Global._save_successfully')
+                    $("#grid3").data("kendoGrid").dataSource.read();
+                    $("#idPro").val(0);
+                    $("input[name='namePro']").val('');
+                    $("#pricePro").val(0);
+                    $("#notePro").val('');
+                    var dropdownlist = $("#productidPro").data("kendoDropDownList");
+                    dropdownlist.select(function (data) {
+                        return data.id == "";
+                    });
+                    var dropdownlist = $("#typePro").data("kendoDropDownList");
+                    dropdownlist.select(function (data) {
+                        return data.id == "";
+                    });
+                    $("#listView").data("kendoListView").dataSource.read();
+                }
+                else {
+                    toastr.error('', data.error);
+                }
+            });
+        }
+        else {
+            toastr.error('', 'input data');
+        }
+    }
+    function updatePromotion(e) {
+        grid = $("#grid3").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        $("#idPro").val(dataItem.id);
+        $("input[name='namePro']").val(dataItem.name);
+        $("input[name='pricePro']").val(dataItem.price);
+        $("#pricePro").val(dataItem.price);
+        $("textarea[name='notePro']").val(dataItem.note);
+        var dropdownlist = $("#typePro").data("kendoDropDownList");
+        dropdownlist.select(function (datatype) {
+            return datatype.Value == dataItem.type;
+        });
+        var dropdownlist2 = $("#productidPro").data("kendoDropDownList");
+        dropdownlist2.select(function (dataproduct) {
+            return dataproduct.id == dataItem.productid;
+        });
+        $("html, body").animate({
+            scrollTop: $("#PromotionForm").offset().top - 70
+        }, 600);
+        reinitPlugins();
+    }
+    function deletePromotion(e) {
+        grid = $("#grid3").data("kendoGrid");
+        var dataItem = grid.dataItem(e.closest("tr"));
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: '@Resources.Global._contract',
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Contract/deletePromotion", { id: dataItem.id }, function (data) {
+                                if (data.success) {
+                                    $("#grid3").data("kendoGrid").dataSource.read();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+    $("#defaultrange").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+    }, function (t, e) {
+        $("#defaultrange input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+    function filter() {
+        listView = $("#listView").data("kendoListView");
+        var seachText = $("#descriptionF").val();
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        if (seachText) {
+            filterDesc.filters.push({ field: "fullName", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "email", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "phone", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function changeType(e) {
+        if (e.value == 'company') {
+            $("#company").css("display", "block");
+            $("#taxcode").css("display", "block");
+            $("#represent").css("display", "block");
+            $("#position").css("display", "block");
+            $("#fax").css("display", "block");
+        }
+        else {
+            $("#company").css("display", "none").val('');
+            $("#taxcode").css("display", "none").val('');
+            $("#represent").css("display", "none").val('');
+            $("#position").css("display", "none").val('');
+            $("#fax").css("display", "none");
+        }
+    }
+    function InContract(id) {
+        debugger;
+        $.post(r + "/Contract/GetTemplateContract", { id: id }, function (data) {
+            if (data.success) {
+                var popup = kendo.template($("#popupcontract").html());
+                $(".reviewcontract").html(popup(data.header));
+                console.log(data.header);
+                bootbox.dialog({
+                    closeButton: true,
+                    message: popup(data.header),
+                    title: "",
+                    size: "large",
+                    buttons:
+                    {
+                        danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                        main: { label: "@Html.Raw(Resources.Global._print_contract)", className: "btn green btn-circle btn-sm", callback: function () { printContract(); return false; } },
+                        mains: { label: "@Html.Raw(Resources.Global._export_word)", className: "btn green btn-circle btn-sm", callback: function () { exportContract(); return false; } },
+                    }
+                })
+            }
+        });
+    }
+    function exportContract() {
+        var html, link, blob, url, css;
+        css = (
+             '<style>' +
+             'div.reviewcontract{size: 841.95pt 595.35pt;mso-page-orientation: landscape;}' +
+             'div.reviewcontract {page: reviewcontract; line-height:1; }' +
+             'div.div1 table td{border-collapse:collapse;border:1px gray dotted}' + 'div.div2 table td{border-collapse:collapse;border:1px gray solid} td{font-size:8px;}' +
+             '</style>'
+            );
+        html = window.docx.innerHTML;
+        blob = new Blob(['\ufeff', css + html], {
+            type: 'application/msword'
+        });
+        url = URL.createObjectURL(blob);
+        link = document.createElement('A');
+        link.href = url;
+        link.download = 'Document';
+        document.body.appendChild(link);
+        if (navigator.msSaveOrOpenBlob) navigator.msSaveOrOpenBlob(blob, 'Document.doc'); // IE10-11
+        else link.click();
+        document.body.removeChild(link);
+    }
+    function printContract() {
+        var html = $(".reviewcontract").html();
+        var printWin = window.open("about:blank", "Voucher", "menubar=no;status=no;toolbar=no; font-size:8px;");
+        printWin.document.write(html);
+        printWin.document.close();
+        printWin.window.print();
+        printWin.close();
+    }
+    function removeContract(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: '@Resources.Global._contract',
+            buttons:
+                {
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/Contract/deleteContract", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();                                  
+                                    toastr.clear();
+                                    toastr.success('', '@Resources.Global._delete_successfully');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function changePayment(e) {
+        if (e.value == 'payoff') {
+            $("#form-group-bank").css("display", "none");
+            $("#form-group-payoff").css("display", "block");
+            var dropdownlist = $("#banktype").data("kendoDropDownList");
+            dropdownlist.select(function (data) {
+                return data.Value == "";
+            });
+        }
+        else {
+            $("#form-group-bank").css("display", "block");
+            $("#form-group-payoff").css("display", "none");
+            var dropdownlist = $("#paymenttype").data("kendoDropDownList");
+            dropdownlist.select(function (data) {
+                return data.Value == "";
+            });
+
+        }
+    }
+
+    function onChangeEmployee(e) {
+        var dataItem = this.dataItem(e.item);
+        if (dataItem.name != null && dataItem.name != "") {
+            $.post(r + "/Contract/changeUser", { name: dataItem.name }, function (data) {
+                if (data.success) {
+                    $("input[name='showroom']").val(data.data.name);
+                    $("input[name='phoneR']").val(data.data.phone);
+                    $("input[name='emailR']").val(data.data.email);
+                }
+            });
+        }
+    }
+    function onChangeCar(e) {
+        var dataItem = this.dataItem(e.item);
+        if (dataItem.id != null && dataItem.id != "") {
+            $.post(r + "/Contract/changeCar", { id: dataItem.id }, function (data) {
+                if (data.success && data.data != null) {
+                    $("#priceFrom").val((data.data.priceTo + data.data.priceFrom) / 2);
+                    $("input[name='priceP']").val((data.data.priceTo + data.data.priceFrom) / 2);
+                    reinitPlugins();
+                }
+                else {
+                    $("#priceFrom, input[name='priceP']").val('');
+                }
+            });
+        }
+    }
+    function checkTextbox() {
+        if ($("#deliveryin").prop("checked") == true) {
+            $("#deliveryin").attr("checked", true);
+            $("#deliveryin").val("true");
+        }
+        else {
+            $("#deliveryin").attr("checked", false);
+            $("#deliveryin").val("false");
+        }
+    }
+    function cancel(id) {
+        var UpdateStatusPOTemplate = kendo.template($("#UpdateStatusTemplate").html());
+        bootbox.dialog({
+            closeButton: true,
+            message: UpdateStatusPOTemplate(id),
+            title: "@Html.Raw(Resources.Global._update) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { cancelclose(); return false; } },
+                main: { label: "@Html.Raw(Resources.Global._update)", className: "btn green btn-circle btn-sm", callback: function () { updateStatus(id); return false; } }
+            }
+        });
+    }
+    function cancelclose() {
+        bootbox.hideAll();
+    }
+
+    function updateStatus(id) {
+        var reason = $("#reason").val();
+        if (reason != null && reason != "") {
+            $.post(r + "/Contract/updateStatus", { id: id, reason: $("#reason").val() }, function (data) {
+                if (data.success) {
+                    loadForm(data.data);
+                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                    toastr.success('', '@Resources.Global._po_create_successfully');
+                }
+                bootbox.hideAll();
+            });
+        }
+        else {
+            $("#reason").focus();
+            toastr.error('', "input reason.")
+        }
+    }
+    function changeValue(e) {
+        e.value = e.value.split(',').join('');
+        if ($(e).attr("id") == "deposit") {
+            $("input[name='deposit']").val(e.value);
+        }
+        if ($(e).attr("id") == "priceFrom") {
+            $("input[name='priceP']").val(e.value);
+        }
+        if ($(e).attr("id") == "saleFrom") {
+            $("input[name='saleP']").val(e.value);
+        }
+        if ($(e).attr("id") == "priceS") {
+            $("input[name='priceS']").val(e.value);
+        }
+
+    }
+    function InProposal(id) {
+        //window.location = r + '/Contract/ExportToWord/' + id;
+        window.open(r + "/Contract/ExportToWord?id=" + id, '_blank');
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function printProposal() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            listrowid = $(this).attr("productid")
+            //window.location = r + '/Contract/printProposal/' + listrowid;
+            window.open(r + "/Contract/printProposal?id=" + listrowid, '_blank');
+        });
+    }
+    function printCheckDelivery() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            listrowid = $(this).attr("productid")
+            //window.location = r + '/Contract/printCheckDelivery/' + listrowid;
+            window.open(r + "/Contract/printCheckDelivery?id=" + listrowid, '_blank');
+        });
+    }
+    function printRetailDelivery() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            listrowid = $(this).attr("productid");
+            window.open(r + "/Contract/printRetailDelivery?id=" + listrowid, '_blank');
+            //window.location = r + '/Contract/printRetailDelivery/' + listrowid;
+        });
+    }
+</script>

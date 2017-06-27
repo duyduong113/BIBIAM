@@ -1,0 +1,38 @@
+﻿@model Dictionary<string, string>
+@{
+    ViewBag.Title = "SignedData";
+}
+
+<form id="payment_form" action="@Url.Content("~/PaymentVT/Signed")" method="post" enctype="multipart/form-data">
+    @foreach (var item in Model.Keys.ToArray())
+    {
+        <input type="text" name="@item" value="@Model[item]" />
+    }
+    <div id="UnsignedDataSection" class="section">
+        <span>card_type:</span><input type="text" name="card_type"><br />
+        <span>card_number:</span><input type="text" name="card_number"><br />
+        <span>card_expiry_date:</span><input type="text" name="card_expiry_date"><br />
+    </div>
+    <input type="submit" id="submit" value="Confirm " />
+</form>
+
+<script>
+    $("input[name='card_type']").val("001");
+    $("input[name='card_number']").val("4242424242424242");
+    $("input[name='card_expiry_date']").val("11-2020");
+
+    //$("#payment_form").ajaxForm({
+    //    beforeSend: function () {
+    //        $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+    //    },
+    //    uploadProgress: function (event, position, total, percentComplete) {
+    //    },
+    //    success: function (data) {
+    //        console.log(data);
+    //    },
+    //    complete: function (xhr) {
+
+    //    }
+    //});
+</script>
+

@@ -1,0 +1,899 @@
+﻿@{
+    int glb_package = 0;
+    int glb_stt = 1;
+}
+<div class="row-fluid" id="package-wrapper">
+    <label>
+        @if (ViewBag.typeService != null && ViewBag.typeService == 2)
+        {
+            <input id="ckb-package" name="form-field-checkbox" type="checkbox" class="ace" checked="checked">
+        }
+        else
+        {
+            <input id="ckb-package" name="form-field-checkbox" type="checkbox" class="ace">
+        }
+        <span class="lbl" style="font-weight:bold"> Đăng gói giá PR</span>
+        <input type="hidden" class="input-mini" id="total_moneyOrder" value="@ViewBag.TienLuyTien" />
+    </label>
+    <div class="row-fluid" id="package-table" style="display:none">
+        <div class="span12">
+            <table class="table table-striped table-bordered table-hover" style="width:100%">
+                <thead style="background-color:#86DBF7;">
+                    <tr style="text-align:center">
+                        <td rowspan="2">#</td>
+                        <td rowspan="2">STT</td>
+                        <td rowspan="2">Mã Book</td>
+                        <td rowspan="2">Ngày đăng</td>
+                        <td rowspan="2">Giờ</td>
+                        <td rowspan="2">Website</td>
+                        <td colspan="4">DẪN ĐĂNG LẠI</td>
+                        <td rowspan="2">TT Bài</td>
+                        <td rowspan="2">Đơn giá chưa CK</td>
+                        <td rowspan="2">CK1</td>
+                        <td rowspan="2">CK2</td>
+                        <td rowspan="2">CK3</td>
+                        <td rowspan="2">Tiền đã CK</td>
+                        <td rowspan="2">Tiền lũy kế <br>đã Order</td>
+                        <td rowspan="2">Tiền còn <br>chưa đăng</td>
+                        <td rowspan="2">Nhãn hàng</td>
+                        <td rowspan="2">Ghi chú</td>
+                    </tr>
+                    <tr style="text-align:center">
+                        <td>Website</td>
+                        <td>Chuyên mục</td>
+                        <td>Vị trí</td>
+                        <td>Vùng miền</td>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <td colspan="12" style="text-align:center">
+                            @*<input type="button" class="btn btn-small btn-pink" value="Lưu" onclick="SavePackagePR()" />*@
+                            @*<input type="button" class="btn btn-small btn-success" value="Thêm vị trí" onclick="plusPackage()" />*@
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Chọn vị trí" onclick="showPPListBooking(1)" />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Nhân bản" onclick="ClonePackagePR()" />
+                            @*<input type="button" class="btn btn-small btn-success" value="Xuất CNPS " />
+                              <input type="button" class="btn btn-small btn-success" value="Tham khảo KPI " />*@
+                        </td>
+                        <td colspan="7">
+                            @if (ViewBag.listInfoOrders != null)
+                            {
+                                <p class="pull-left" style="font-size:15px;color:red">Hạn mức cho phép xuất bản QC: <span id="dm_chophep_pr_goi">@ViewBag.listInfoOrders.c_han_muc_goi_pr.ToString("#,##0")</span></p>
+                            }
+                            else
+                            {
+                                <p class="pull-left" style="font-size:15px;color:red">Hạn mức cho phép xuất bản QC: <span id="dm_chophep_pr_goi">0</span></p>
+                            }
+                            <p class="pull-right" style="font-size:15px;color:red"> Tổng tiền đăng đợt này: <span id="tong_tien_dang_dot_pr_goi">0</span></p>
+                        </td>
+                    </tr>
+                </tfoot>
+
+                @if (ViewBag.listPackagePR != null && ViewBag.listPackagePR.Count > 0)
+                {
+                    <tbody>
+                        @foreach (var item in ViewBag.listPackagePR)
+                        {
+                            <tr data-pkservice="@item.pk_services">
+                                <td>
+                                    <input type="checkbox">
+                                    <input type="hidden" class="input-mini  fk_adv" value="@item.fk_adv" />
+                                    <input type="hidden" class="input-mini  c_dot_order" value="@item.c_dot_order" />
+                                </td>
+                                <td>@glb_stt</td> @{glb_stt++;}
+                                <td><input class="input-mini bookcode" type="text" value="@item.c_book_code" placeholder="Mã book"></td>
+                                <td>
+                                    <input class="date-picker input-mini dateUp" type="text" value="@item.c_ngay_len.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" style="width:65px" />
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-time" type="hidden" value="@item.c_gio" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Placeholder("Giờ lên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "item-time-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestTime", "CRM_ProposedAdvertisement", new { PKList = 72 })
+                                                .Data("onDataPackage");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.c_gio_name)");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-web1" type="hidden" value="khampha.vn" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Placeholder("Website")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web1-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 })
+                                                .Data("onDataPackage");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("khampha.vn");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-web2" type="hidden" value="@item.c_website" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Placeholder("Website")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web2-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 });
+                                            //.Data("onAdditionalDataChannel");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.c_website_name)");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-category" type="hidden" value="@item.c_category" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Filter("contains")
+                                    .Placeholder("Chuyên mục")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestCategory", "CRM_ProposedAdvertisement", new { PKList = 22 })
+                                                .Data("onDataPackage");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.c_category_name)");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-location" type="hidden" value="@item.c_location" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Placeholder("Vị trí")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestLocation", "CRM_ProposedAdvertisement")
+                                                .Data("onDataPackage");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.c_location_name)");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-region" type="hidden" value="@item.c_vung_mien" />
+                                    @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Filter("contains")
+                                    .Placeholder("Vùng miền")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-region-name", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestRegion", "CRM_ProposedAdvertisement", new { PKList = 52 })
+                                                .Data("onDataPackage");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.c_vung_mien_name)");
+                                    </script>
+                                    @{glb_package++;}
+                                </td>
+                                <td>
+                                    <input class="input stt" type="text" style="width:30px" value="@item.c_so_luong" placeholder="STT">
+                                </td>
+                                <td>
+                                    <input onchange="changeDiscountPackagePR()" class="input-mini currency moneyBeforeDiscount" value="@item.c_don_gia.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền chưa CK">
+                                </td>
+                                <td>
+                                    <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck1" value="@item.c_chiet_khau1.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK1">
+                                </td>
+                                <td>
+                                    <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck2" value="@item.c_chiet_khau2.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK2">
+                                </td>
+                                <td>
+                                    <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck3" value="@item.c_chiet_khau3.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK3">
+                                </td>
+                                <td>
+                                    <input onchange="SumMoneyServicePackagePR()" class="input-small currency moneyAfterDiscount" value="@item.c_don_gia_sau_ck.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đã CK">
+                                </td>
+                                <td>
+                                   
+                                    <input class="input-small currency moneyOrder" type="text" value="@item.c_luy_ke_da_dang.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" placeholder="Lũy kế">
+                                </td>
+                                <td>
+                                    <input class="input-small currency moneyLeft" type="text" value="@item.c_tien_tra.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền còn">
+                                </td>
+                                <td>
+                                    <input class="input-small packageLable" type="text" value="@item.c_label" placeholder="Nhãn hàng">
+                                </td>
+                                <td>
+                                    <input class="input-small note" type="text" value="@item.c_note" placeholder="Ghi chú">
+                                </td>
+                                <td>
+                                    <button type="button" onclick="minusPackage(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+                                </td>
+                            </tr>
+
+                                        }
+                    </tbody>
+                                        }
+                                        else
+                                        {
+                                            if (ViewBag.listServices != null && ViewBag.listServices.Count > 0)
+                                            {
+                                                <tbody>
+                                                    @foreach (var item in ViewBag.listServices)
+                                                    {
+
+                                                        <tr data-pkservice="@item.pk_services">
+                                                            <td>
+                                                                <input class="input-value-suggess item-pk-services" type="hidden" value="0" />
+                                                            </td>
+                                                            <td>@glb_stt</td> @{glb_stt++;}
+                                                            <td><input class="input-mini bookcode" type="text" value="@item.c_book_code" placeholder="Mã book"></td>
+                                                            <td>
+                                                                <input class="date-picker input-mini dateUp" value="@item.NgayLen.ToString("dd/MM/yyyy")" type="text" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" style="width:65px" />
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-time" type="hidden" value="@item.GioLen" />
+                                                                @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Package-" + glb_package)
+                                        .DataTextField("Name")
+                                        .Placeholder("Giờ lên")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestTime", "CRM_ProposedAdvertisement", new { PKList = 72 })
+                                                    .Data("onDataPackage");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectPackageItem");
+                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.GioLen)");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-web1" type="hidden" value="khampha.vn" />
+                                                                @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Package-" + glb_package)
+                                        .DataTextField("Name")
+                                        .Placeholder("Website")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 })
+                                                    .Data("onDataPackage");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectPackageItem");
+                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("khampha.vn");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-web2" type="hidden" value="@item.WebsiteID" />
+                                                                @(Html.Kendo().AutoComplete()
+                                    .Name("txt-Adv-Package-" + glb_package)
+                                    .DataTextField("Name")
+                                    .Placeholder("Website")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 });
+                                            //.Data("onAdditionalDataChannel");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectPackageItem");
+                                    })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.WebsiteName)");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-category" type="hidden" value="@item.CategoryID" />
+                                                                @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Package-" + glb_package)
+                                        .DataTextField("Name")
+                                        .Filter("contains")
+                                        .Placeholder("Chuyên mục")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestCategory", "CRM_ProposedAdvertisement", new { PKList = 22 })
+                                                    .Data("onDataPackage");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectPackageItem");
+                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.CategoryName)");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-location" type="hidden" value="@item.LocationID" />
+                                                                @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Package-" + glb_package)
+                                        .DataTextField("Name")
+                                        .Placeholder("Vị trí")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestLocation", "CRM_ProposedAdvertisement")
+                                                    .Data("onDataPackage");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectPackageItem");
+                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.LocationName)");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-value-suggess item-region" type="hidden" value="@item.VungMien" />
+                                                                @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Package-" + glb_package)
+                                        .DataTextField("Name")
+                                        .Filter("contains")
+                                        .Placeholder("Vùng miền")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalPackage(" + glb_package + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestRegion", "CRM_ProposedAdvertisement", new { PKList = 52 })
+                                                    .Data("onDataPackage");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectPackageItem");
+                                        })
+                                                                )
+                                                                <script>
+                                                                    $("#txt-Adv-Package-@glb_package").val("@Html.Raw(item.TenVungMien)");
+                                                                </script>
+                                                                @{glb_package++;}
+                                                            </td>
+                                                            <td>
+                                                                <input class="input stt" type="text" value="@item.Number" style="width:30px" placeholder="TT Bài">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="changeDiscountPackagePR()" class="input-mini currency moneyBeforeDiscount" value="@item.c_don_gia.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền chưa CK">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="changeDiscountPackagePR()" class="input-mini currency ck1" value="@item.c_chiet_khau1.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK1">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="changeDiscountPackagePR()" class="input-mini currency ck2" value="@item.c_chiet_khau2.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK2">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="changeDiscountPackagePR()" class="input-mini currency ck3" value="@item.c_chiet_khau3.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK3">
+                                                            </td>
+                                                            <td>
+                                                                <input onchange="SumMoneyServicePackagePR()" class="input-small currency moneyAfterDiscount" value="@item.PriceCharged.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đã CK">
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-small currency moneyOrder" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Lũy kế">
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-small currency moneyLeft" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền còn">
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-small packageLable" type="text" placeholder="Nhãn hàng">
+                                                            </td>
+                                                            <td>
+                                                                <input class="input-small note" type="text" placeholder="Ghi chú">
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" onclick="minusPackage(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+                                                            </td>
+                                                        </tr>
+
+                                                                    }
+                                                </tbody>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <tbody></tbody>
+                                                                        }
+                                                                    }
+            </table>
+
+        </div>
+    </div>
+</div>
+<script>
+
+    $(document).ready(function () {
+        SumMoneyServicePackagePR();
+        $('#ckb-package').change(function () {
+            if ($(this).is(":checked")) {
+                $('#package-table').css('display', 'inline')
+            } else {
+                $('#package-table').css('display', 'none')
+            }
+        })
+    })
+
+    var chGlbPk = 0;
+    var c = parseInt("@glb_package");
+    var cp = parseInt("@glb_stt");
+    function setGlobalPackage(k) {
+        chGlbPk = k;
+    }
+    function onDataPackage() {
+        return {
+            text: $("#txt-Adv-Package-" + chGlbPk).val()
+        };
+    }
+    function onSelectPackageItem(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents("td").find(".input-value-suggess").val(dataItem.Code);
+    }
+    function plusPackage() {
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Package/", { incree: parseInt(c) }, function (data) {
+            $("#package-table").find("table").find("tbody").append(data);
+            c = c + 6;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+        })
+        return;
+    }
+    function minusPackage(e) {
+        var pk = $(e).closest('tr').attr("data-pkservice");
+        $.ajax({
+            url: r + "/CRM_ProposedAdvertisement/DeleteService",
+            type: 'POST',
+            data: { pkservice: pk },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    alertMessage('Thành công', 'Xóa dữ liệu thành công', true);
+
+                    $(e).closest('tr').remove();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage('Lỗi', errorThrown, false);
+
+            }
+        });
+        SumMoneyServicePackagePR();
+        calcLK();
+    }
+
+
+
+    var packageObj = {
+        data: [],
+        addPackage: function (pk_services, fk_adv, bookcode, ngay_len, gio, website1, website2, category, location, region, stt, dongia, ck1, ck2, ck3, moneyAfterDiscount, orderMoney, lable, note) {
+            var packageItem = {
+                pk_services: pk_services,
+                fk_adv: fk_adv,
+                c_type: 2,
+                c_book_code: bookcode,
+                c_ngay_lenString: ngay_len,
+                c_gio: gio,
+                c_website1: website1,
+                c_website2: website2,
+                c_website: website2, // check again
+                c_category: category,
+                c_location: location,
+                c_vung_mien: region,
+                c_so_luong: stt,
+                c_don_gia: dongia,
+                c_chiet_khau1: ck1,
+                c_chiet_khau2: ck2,
+                c_chiet_khau3: ck3,
+                c_don_gia_sau_ck: moneyAfterDiscount,
+                c_luy_ke_da_dang: orderMoney,
+                c_label: lable,
+                c_note: note
+            };
+            this.data.push(packageItem)
+        }
+    };
+
+    function changeDiscountPackagePR() {
+        var luyke = 0;
+        // ;
+        $("#package-table").find("table").find("tbody").find('tr').each(function (index) {
+            var don_gia = 0;
+            don_gia = currencyToNumber($(this).find('input.moneyBeforeDiscount').val());
+            var ck1 = currencyToNumber($(this).find('input.ck1').val());
+            if (ck1 != 0) {
+                don_gia = don_gia - (don_gia * ck1 / 100);
+            }
+            $(this).find('input.moneyAfterDiscount').val(don_gia);
+            var ck2 = currencyToNumber($(this).find('input.ck2').val());
+            if (ck2 != 0) {
+                don_gia = don_gia - (don_gia * ck2 / 100);
+            }
+            $(this).find('input.moneyAfterDiscount').val(don_gia);
+            var ck3 = currencyToNumber($(this).find('input.ck3').val());
+            if (ck3 != 0) {
+                don_gia = don_gia - (don_gia * ck3 / 100);
+            }
+            luyke = don_gia;
+            $(this).find('input.moneyAfterDiscount').val(kendo.toString(don_gia, "n0"));
+        })
+        SumMoneyServicePackagePR();
+        calcLK();
+    }
+
+    function calcLK() {
+        var luyKe = 0;
+        if ($('#total_moneyOrder').val() > 0 && '@ViewBag.c_dot_order' == 0) {           
+            luyKe = $('#total_moneyOrder').val();
+        }
+        //var currentLK = $("#package-table").find("table").find("tbody").find('tr').find('input.total_moneyOrder').val();
+        $("#package-table").find("table").find("tbody").find('tr').each(function (index) {
+            luyKe += currencyToNumber($(this).find('input.moneyAfterDiscount').val());
+            $(this).find('input.moneyOrder').val(kendo.toString(luyKe, "n0"));
+        });
+       
+    }
+    function SavePackagePR(pkadv, tracking) {
+        
+        var fail = false;
+        var isValid = false;
+        $("#package-table").find("table").find("tbody").find('tr').each(function (index) {
+            var pk_services = $(this).attr('data-pkservice');
+            var fk_adv = pkadv;
+            var book_code = $(this).find('input.bookcode').val();
+            if (book_code == "") {
+                alertMessage('', 'Vui lòng nhập mã book', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var ngay_len = convertDate($(this).find('input.dateUp').val());
+            if (ngay_len == "") {
+                alertMessage('', 'Vui lòng nhập ngày lên', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var gio = $(this).find('input.item-time').val();
+            if (gio == "") {
+                alertMessage('', 'Vui lòng nhập giờ lên', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var web1 = $(this).find('input.item-web1').val();
+            if (web1 == "") {
+                alertMessage('', 'Vui lòng nhập Website', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+
+            var web2 = $(this).find('input.item-web2').val();
+            if (web2 == "") {
+                alertMessage('', 'Vui lòng nhập Website', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var category = $(this).find('input.item-category').val();
+            if (category == "") {
+                alertMessage('', 'Vui lòng nhập Chuyên mục', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var location = $(this).find('input.item-location').val();
+            if (location == "") {
+                alertMessage('', 'Vui lòng nhập Vị trí', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+
+            var region = $(this).find('input.item-region').val();
+            if (region == "") {
+                alertMessage('', 'Vui lòng nhập Vùng miền', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var stt = $(this).find('input.stt').val();
+            if (stt == "") {
+                //  alertMessage('', 'Vui lòng nhập Số lượng', false);
+                //  fail = true;
+                // isValid = false;
+                //$(this).focus();
+                //  return;
+                stt = 0;
+            }
+
+            var moneyBeforeDiscount = currencyToNumber($(this).find('input.moneyBeforeDiscount').val());
+            if (moneyBeforeDiscount == "") {
+                alertMessage('', 'Vui lòng nhập đơn giá', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+
+            var moneyAfterDiscount = currencyToNumber($(this).find('input.moneyAfterDiscount').val());
+            if (moneyAfterDiscount == "") {
+                alertMessage('', 'Vui lòng nhập Số tiền sau CK', false);
+                fail = true;
+                $(this).focus();
+                return;
+            }
+            var ck1 = currencyToNumber($(this).find('input.ck1').val());
+            var ck2 = currencyToNumber($(this).find('input.ck2').val());
+            var ck3 = currencyToNumber($(this).find('input.ck3').val());
+            var moneyOrder = currencyToNumber($(this).find('input.moneyOrder').val());
+            var moneyLeft = currencyToNumber($(this).find('input.moneyLeft').val());
+            var packageLable = $(this).find('input.packageLable').val();
+            var note = $(this).find('input.note').val();
+            if (!tracking) {
+                packageObj.addPackage(pk_services, fk_adv, book_code, ngay_len, gio, web1, web2, category, location, region, stt, moneyBeforeDiscount, ck1, ck2, ck3, moneyAfterDiscount, moneyOrder, packageLable, note);
+            }
+
+        });
+        console.log(packageObj.data);
+        if (!tracking) {
+            if (packageObj.data.length > 0){
+                $.ajax({
+                    url: r + "/CRM_ProposedAdvertisement/SaveAdvService",
+                    type: 'POST',
+                    data: { avd: packageObj.data, c_dot_order: '@ViewBag.c_dot_order' },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        packageObj.data = [];
+                        if (data.success) {                            
+                            $("#formAdv").attr("data-dot-order", data.c_dot_order);
+                            isValid = true;
+                            return true;
+                        }
+                        else {
+                            packageObj.data = [];
+                            alertMessage('Lỗi', data.message, false);
+                            isValid = false
+                            return false;
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        packageObj.data = [];
+                        alertMessage('Lỗi', errorThrown, false);
+                        isValid = false; 
+                        return false;
+                    }
+                });
+                return isValid;
+            }
+            else{
+                alertMessage('Lỗi','Chưa chọn sản phẩm nào để', false);
+                return false;
+            }
+        }
+        else {
+            return fail;
+        }
+    }
+
+    function showPPListBooking(e) {
+        $('#txt-bookcode-goi-pr').val($('#txt-BookCode').val());
+        $('#typeBook').val(e);
+        $('#popup-adv-list-booking').modal('show');
+    }
+
+    function SumMoneyServicePackagePR() {
+        var tong_tien_dang_dot_pr_goi = 0;
+        $("#package-table").find("table").find("tbody").find('tr').each(function (index) {
+            var totalRow = currencyToNumber($(this).find('input.moneyAfterDiscount').val());
+            tong_tien_dang_dot_pr_goi = tong_tien_dang_dot_pr_goi + totalRow;
+        })
+        $("#total-qc-this-publish").html(kendo.toString(tong_tien_dang_dot_pr_goi, "n0"));
+        $('#tong_tien_dang_dot_pr_goi').html(kendo.toString(tong_tien_dang_dot_pr_goi, "n0"));
+        if (!checkGiaTri()) {
+            alertMessage('Lỗi', 'Tổng tiền đăng đợt này lớn hơn giá trị HD trừ đã đăng QC', false);
+        }
+        return tong_tien_dang_dot_pr_goi;
+    }
+
+    function ClonePackagePR() {
+        // check row is checked:
+        var isRowChecked = $("#package-table").find("table").find("tbody").find('tr').find('input:checked');
+        // only one row checked to clone
+        if (isRowChecked.length == 0) {
+            alertMessage('Lỗi', 'Chưa chọn sản phẩm để nhân bản', false);
+
+        }
+        else {
+            if (isRowChecked.length > 1) {
+                alertMessage('Lỗi', 'Chỉ được chọn 1 sản phẩm để nhân bản', false);
+
+            }
+            else {
+                var $tr = $(isRowChecked).closest('tr');
+                var obj = {};
+                obj.c_book_code = $tr.find(".bookcode").val();
+                obj.fk_adv = $tr.find(".fk_adv").val();
+                obj.c_dot_order = $tr.find(".c_dot_order").val();
+                obj.pk_services = 0;//$tr.find(".pk_services").val();
+                obj.c_ngay_lenString = $tr.find(".dateUp").val();
+                obj.c_gio = $tr.find(".item-time").val();
+                obj.c_gio_name = $tr.find("input.item-time-name").val();
+                obj.c_website1 = $tr.find(".item-web1").val();
+                obj.c_website1_name = $tr.find("input.item-web1-name").val();
+                obj.c_website2 = $tr.find(".item-web2").val();
+                obj.c_website2_name = $tr.find("input.item-web2-name").val();
+                obj.c_website = $tr.find(".item-web2").val();
+                obj.c_website_name = $tr.find("input.item-web2-name").val();
+                obj.c_category = $tr.find(".item-category").val();
+                obj.c_category_name = $tr.find("input.item-category-name").val();
+                obj.c_location = $tr.find(".item-location").val();
+                obj.c_location_name = $tr.find("input.item-location-name").val();
+                obj.c_vung_mien = $tr.find(".item-region").val();
+                obj.c_vung_mien_name = $tr.find("input.item-region-name").val();
+                obj.c_so_luong = $tr.find(".stt").val();
+                obj.c_don_gia = currencyToNumber($tr.find(".moneyBeforeDiscount").val());
+                obj.c_chiet_khau1 = currencyToNumber($tr.find(".ck1").val());
+                obj.c_chiet_khau2 = currencyToNumber($tr.find(".ck2").val());
+                obj.c_chiet_khau3 = currencyToNumber($tr.find(".ck3").val());
+                obj.c_don_gia_sau_ck = currencyToNumber($tr.find(".moneyAfterDiscount").val());
+                obj.c_ngay_tra_tienString = $tr.find(".datePayment").val();
+                obj.c_luy_ke_da_dang = currencyToNumber($tr.find(".moneyOrder").val());
+                obj.c_tien_tra = currencyToNumber($tr.find(".moneyLeft").val());
+                obj.c_label = $tr.find(".packageLable").val();
+                obj.c_note = $tr.find(".note").val();
+                //console.log(obj);
+                $.ajax({
+                    url: r + "/Ajax/DNDQC_CloneService_PackagePR",
+                    type: 'POST',
+                    data: { incree: parseInt(c), coStt: cp, service: obj },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        $("#package-table").find("table").find("tbody").append(data);
+                        c = c + 6;
+                        cp = cp + 1;
+                        $('.date-picker').datepicker();
+                        $('.currency').maskMoney();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alertMessage('Lỗi', errorThrown, false);
+                    }
+                });
+            }
+            SumMoneyServicePackagePR();
+            calcLK();
+        }
+    }
+</script>

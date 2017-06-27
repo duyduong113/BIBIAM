@@ -1,0 +1,210 @@
+﻿@using BIBIAM.Core.Entities
+<style>
+    #hierarchy-1, #hierarchy-2, #hierarchy-3 {
+        height: 300px;
+        overflow: auto;
+    }
+
+    .no-data {
+        text-align: center;
+    }
+</style>
+<div id="popup-hierarchy" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Chọn cây phân cấp sản phẩm</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        @(Html.Kendo().ListView<BIBIAM.Core.Entities.Hierarchy>().Name("hierarchy-1").TagName("ul").ClientTemplateId("HierTemplate").HtmlAttributes(new { @class = "", @style = "border-style:none;box-shadow:none;" }).DataSource(dataSource => { dataSource.Read(read => read.Action("ReadHierarchy", "Merchant_Product", new { cap = 1 })); }).Events(events => { events.DataBound("onDatabound"); }))
+                    </div>
+                    <div class="col-md-4">
+                        @(Html.Kendo().ListView<BIBIAM.Core.Entities.Hierarchy>().Name("hierarchy-2").TagName("ul").ClientTemplateId("HierTemplate").HtmlAttributes(new { @class = "", @style = "border-style:none;box-shadow:none;" }).AutoBind(false).DataSource(dataSource => { dataSource.Read(read => read.Action("ReadHierarchy", "Merchant_Product", new { cap = 2 })); dataSource.Events(events => { events.RequestEnd("onRequestEnd"); }); dataSource.AutoSync(true); }).Events(events => { events.DataBound("onDatabound"); }))
+                    </div>
+                    <div class="col-md-4">
+                        @(Html.Kendo().ListView<BIBIAM.Core.Entities.Hierarchy>().Name("hierarchy-3").TagName("ul").ClientTemplateId("HierTemplate").HtmlAttributes(new { @class = "", @style = "border-style:none;box-shadow:none;" }).AutoBind(false).DataSource(dataSource => { dataSource.Read(read => read.Action("ReadHierarchy", "Merchant_Product", new { cap = 3 })); dataSource.Events(events => { events.RequestEnd("onRequestEnd"); }); dataSource.AutoSync(true); }).Events(events => { events.DataBound("onDatabound"); }))
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="HierTemplate">
+    <li class='list-group-item' onclick="getHierarchyChild('#=cap#',this)">
+        <span> #=ten_phan_cap#</span>
+        #if (cap != 3){#
+        <i class='fa fa-angle-right drop-icon pull-right'></i>
+        #}else{#
+        <i class='fa fa-check pull-left'></i>
+        #}#
+    </li>
+</script>
+<script>
+    function showHier() {
+        $("#popup-hierarchy").modal('show');
+    }        
+    function getHierarchyChild(cap, e) {
+        if (cap == 3)
+            return finishHier(e);
+        $("#hierarchy-" + cap).find('li').removeClass("active");
+        $(e).addClass("active");
+        var currentHierID = $("#hierarchy-" + cap).data("kendoListView").dataItem(e).ma_phan_cap;
+        var str = "#hierarchy-" + (cap + 1);
+        for (i = cap + 1; i <= 3; i++)
+            $("#hierarchy-" + i).data("kendoListView").dataSource.data([]);
+        $(str).data("kendoListView").dataSource.read({ cap: cap + 1, ma_phan_cap_cha: currentHierID });
+    }    
+    function findRootHierarchy(hierID)
+    {
+        var object = [];
+        var list1 = $("#hierarchy-1").data("kendoListView");
+        var list2 = $("#hierarchy-2").data("kendoListView");
+        var list3 = $("#hierarchy-3").data("kendoListView");
+        for (var i = 0; i < $("#hierarchy-3 li").length; i++){
+            var e = $("#hierarchy-3 li :eq("+i+")");
+            if (list3.dataItem(e).ma_phan_cap == hierID)
+            {
+                object.hierarchy3 = {ten_phan_cap: list3.dataItem(e).ten_phan_cap, ma_phan_cap: list3.dataItem(e).ma_phan_cap, ma_phan_cap_cha: list3.dataItem(e).ma_phan_cap_cha};
+                break;
+            }
+        }
+        if(!object.hierarchy3)
+            return null;
+        for (var i = 0; i < $("#hierarchy-2 li").length; i++){
+            var e = $("#hierarchy-2 li :eq("+i+")");
+            if (list2.dataItem(e).ma_phan_cap == object.hierarchy3.ma_phan_cap_cha)
+            {
+                object.hierarchy2 = {ten_phan_cap: list2.dataItem(e).ten_phan_cap, ma_phan_cap: list2.dataItem(e).ma_phan_cap, ma_phan_cap_cha: list2.dataItem(e).ma_phan_cap_cha};
+                break;
+            }
+        }
+        if(!object.hierarchy2)
+            return null;
+        for (var i = 0; i < $("#hierarchy-1 li").length; i++){
+            var e = $("#hierarchy-1 li :eq("+i+")");
+            if (list1.dataItem(e).ma_phan_cap == object.hierarchy2.ma_phan_cap_cha)
+            {
+                object.hierarchy1 = {ten_phan_cap: list1.dataItem(e).ten_phan_cap, ma_phan_cap: list1.dataItem(e).ma_phan_cap, ma_phan_cap_cha: list1.dataItem(e).ma_phan_cap_cha};
+                break;
+            }
+        }
+        if(!object.hierarchy1)
+            return null;
+        return object;
+    }
+    //function generateProperty(element, ma_phan_cap) {
+    //    $.post(r + "/Merchant_Product/ReadProperty", { ma_phan_cap: ma_phan_cap }, function (data) {
+    //        if (data.success) {                
+    //            if (!data.data.length)
+    //            {
+    //                $(element).html('');
+    //                return
+    //            }
+    //            var html = 'Thuộc tính sản phẩm';                
+    //            for (var i = 0; i < data.data.length; i++) {                    
+    //                html += property_detail(data.data[i]);
+    //            }
+    //            $(element).html(html);
+    //            $(element).find(".classValidate").each(function () {
+    //                $(this).rules('add', {
+    //                    required: true,
+    //                    messages: {
+    //                        required: "Thông tin bắt buộc"
+    //                    }
+    //                });
+    //            });
+    //        }
+    //    });
+    //}
+    //function property_detail(data) {
+    //    var html = "";
+    //    switch (data.loai) {
+    //        case 'text': //text
+    //            html += "<div class='form-group col-md-12' data-type='" + data.loai + "' id ='H" + data.id + "'>" +
+    //                "<label for='H"+data.id+"' class='col-md-2'>" + data.ten_thong_so + "<span class='text-danger'> * </span></label>";
+    //            html += "<div class='input-icon right col-md-10'>" +
+    //                        "<i class='fa'></i>" +
+    //                        "<input type='text' class='form-control input-sm max100 classValidate' name='gia_tri_thong_so' id='" + data.detail[0].ma_thuoc_tinh + "'>" +
+    //                    "</div>";
+    //            html += "</div>";
+    //            break;
+    //        case 'select': //combobox
+    //            html += "<div class='form-group col-md-12' data-type='" + data.loai + "' id ='H" + data.id + "'>" +
+    //                            "<label for='H"+data.id+"' class='col-md-2'>" + data.ten_thong_so + "<span class='text-danger'> * </span></label>" +
+    //                            "<div class='col-md-10'>";
+    //            html += "<select  name='gia_tri_thong_so' class = 'col-md-12'>";
+    //            html += "<option value=''>--Chọn--</option>";
+    //            for (var i = 0; i < data.detail.length; i++) {
+    //                if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+    //                    html += "<option value ='" + data.detail[i].ma_thuoc_tinh + "'>" + data.detail[i].ten_thuoc_tinh + "</option>";
+    //                }
+    //            }
+    //            html += "</select>" +
+    //                    "</div>" +
+    //                "</div>";
+    //            break;
+    //        case 'checkbox': //checkbox
+    //            if (data.detail.length < 1)
+    //                break;
+    //            html += "<div class='form-group col-md-12' data-type='" + data.loai + "' id ='H" + data.id + "'>" +
+    //                "<label class='col-md-2'>" + data.ten_thong_so + "<span class='text-danger'> * </span></label>" +
+    //                "<div class='col-md-10'>";
+    //            for (var i = 0; i < data.detail.length; i++) {
+    //                if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+    //                    html += "<div class='col-md-2'>" +
+    //                        "<label class='checkbox-inline'><input id='"+data.detail[i].ma_thuoc_tinh+"' type='checkbox'>" + data.detail[i].ten_thuoc_tinh + "</label>" +
+    //                    "</div>";
+    //                }
+    //            }
+    //            html += "</div>" +
+    //                "</div>";
+    //            break;
+    //        case 'radio': //checkbox
+    //            html += "<div class='form-group col-md-12' data-type='" + data.loai + "' id ='H" + data.id + "'>" +
+    //                "<label class='col-md-2'>" + data.ten_thong_so + "<span class='text-danger'> * </span></label>" +
+    //                "<div class='col-md-10'>";
+    //            for (var i = 0; i < data.detail.length; i++) {
+    //                if (data.ma_thong_so == data.detail[i].ma_thong_so) {
+    //                    html += "<div class='col-md-2'>" +
+    //                        "<label class='radio-inline'><input id='" + data.detail[i].ma_thuoc_tinh + "' type='radio' name='optradio'>" + data.detail[i].ten_thuoc_tinh + "</label>" +
+    //                    "</div>";
+    //                }
+    //            }
+    //            html += "</div>" +
+    //                "</div>";
+    //            break;
+    //        case 'color': //color
+    //            html += "<div class='form-group col-md-12' data-type='" + data.loai + "' data-id ='" + data.ma_thong_so + "'data-name='" + data.ten_thong_so + "'>" +
+    //                "<label class='col-md-2'><span>" + data.ten_thong_so + "</span><span class='text-danger'> * </span></label>" +
+    //                "<div class='col-md-10'>";
+    //            html += "<input type='text' class='hidden' name='ma_thong_so' value='" + data.ma_thong_so + "'>" +
+    //                    "<input class='col-md-2' id='color' name = 'gia_tri_thong_so' type='color'/>";
+    //            html += "</div>" +
+    //                "</div>";
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //    return html;
+    //}
+    function onRequestEnd(e) {        
+        $("#popup-hierarchy .modal-body .no-data").remove();
+        if ((e.type == "read") && !e.response.Errors){
+            if (!e.response.Total){
+                if ($("#hierarchy-2 li.active").length)
+                    $("#hierarchy-3").parent().prepend("<div class='no-data'>No Data</div>");
+                else if ($("#hierarchy-1 li.active").length)
+                    $("#hierarchy-2").parent().prepend("<div class='no-data'>No Data</div>");
+            }
+        }        
+    }
+    function onDatabound(e) {
+        var wrapper = this.wrapper;
+        wrapper.scrollTop(wrapper[0].scrollHeight);
+    }
+</script>

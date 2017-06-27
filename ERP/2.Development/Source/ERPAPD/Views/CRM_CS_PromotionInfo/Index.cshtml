@@ -1,0 +1,298 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Telesales_PromotionInfo>
+@{
+    ViewBag.Title = "Thông tin khuyến mãi";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<div class="row-fluid">
+    <div class="span12">
+        <div id="newlistICareID" style="display: inline-block;">
+            <input type="text" id="txtTitle" name="txtTitle" placeholder="@Resources.Multi.Search @Resources.Multi.Follow.ToLower() @Resources.Multi.Title.ToLower(), @Resources.Multi.Content.ToLower()..." style="width: 350px;" />
+            <select name="select" id="ActiveDocument" class='chosen-select span2' style="width:250px;" multiple data-placeholder="@Resources.Multi.Select @Resources.Multi.Status.ToLower()...">
+                <option value="true" selected>Active</option>
+                <option value="false">Inactive</option>
+            </select>
+            <select name="select" id="UserID" class='chosen-select span2' style="width:250px;" multiple data-placeholder="Chọn người tạo...">
+                <option value="">All</option>
+                @foreach (var item in ViewBag.User)
+                {
+                    <option value="@item.UserName">@item.UserName</option>
+                }
+            </select>
+        </div>
+        <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none"  onclick="filter()">@Resources.Multi.Filter</button>
+
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+              .Grid(Model)
+              .Name("Grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ID#'  />").Width(30).Filterable(false).Sortable(false);
+                  //columns.Bound(p => p.ID).HeaderTemplate("").HtmlAttributes(new { cid = "#=ID#" }).ClientTemplate("<button type='button' class='btn btn-info btn-mini' style='display:inline-block;' onclick ='Edit(#=ID#)' >Chỉnh sửa</button>").Title("").Width(90);
+                  columns.Bound(p => p.Title).Title(Resources.Multi.Title).Width(200).ClientTemplate("<a href='" + Url.Action("Edit", "CRM_CS_PromotionInfo") + "/#=ID#'>#=Title#</a>");
+                  columns.Bound(p => p.AppliedForCompanies).Title("Áp dụng cho").ClientTemplate("#=getTextByValue(data)#").Width(200);
+                  columns.Bound(p => p.StartDate).Title("Ngày bắt đầu").Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").ClientTemplate("#if(kendo.toString(StartDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(StartDate,'" + Resources.Multi.DateFormat + "') #" + "#}#");
+                  columns.Bound(p => p.EndDate).Title(Resources.Multi.EndDate).Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").ClientTemplate("#if(kendo.toString(EndDate,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(EndDate,'" + Resources.Multi.DateFormat + "') #" + "#}#");
+                  columns.Bound(p => p.IsAll).Title("Áp dụng tất cả").Width(80);
+                  columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+                  columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#");
+                  columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+                  columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+                  //columns.Command(command => { command.Custom("Edit").Click("Edit").HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") }); command.Custom("ViewDetails").Click("showDetails"); }).Width(100);
+              })
+              .Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .Navigatable()
+              .Events(events => { events.DataBound("dataBound"); })
+              .ToolBar(toolbar =>
+              {
+                 toolbar.Template(@<text>
+                    <div class="pull-left">
+                        @if (AllowCreate)
+                        {
+                            <a class="btn btn-success btn-small" href="javascript:void(0)" id="btnCreate">
+                                @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                            </a>
+                        }
+                        @if (AllowUpdate)
+                        {
+                            <a class="btn btn-warning btn-small" href="javascript:void(0)" id="btnGridInActive" onclick="showConfirmPopup(0)">
+                                @*<i class="icon-plus"></i>*@ @Resources.Multi.InActive
+                            </a>
+                        }
+                        @if (AllowDelete)
+                        {
+                            <a class="btn btn-danger btn-small" href="javascript:void(0)" id="btnGridDelete" onclick="showConfirmPopup(-1)">
+                                @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                            </a>
+                        }
+
+                    </div>
+                </text>);
+              })
+                .Navigatable()
+                .Sortable()
+                .Scrollable(scrollable => scrollable.Virtual(false))
+                .Sortable()
+              .Resizable(resize => resize.Columns(true))
+              .DataSource(dataSource => dataSource
+                .Ajax()
+                .Filter(f => { f.Add(a => a.IsActive).IsEqualTo(true); })
+                .PageSize(100)
+                .Read("DailyNew_Read", "CRM_CS_PromotionInfo"))
+        )
+        @(Html.Kendo()
+              .Window()
+              .Name("Details")
+              .Title("PostContent")
+              .Visible(false)
+              .Modal(true)
+              .Draggable(true)
+              .Width(800)
+        )
+        <script type="text/x-kendo-template" id="template">
+            <div><h3>#=Title#</h3></div>
+            <div>#=Content#</div>
+        </script>
+
+        <script type="text/javascript">
+            var detailsTemplate = kendo.template($("#template").html());
+
+            function showDetails(e) {
+                e.preventDefault();
+
+                var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                var wnd = $("#Details").data("kendoWindow");
+
+                wnd.content(detailsTemplate(dataItem));
+                wnd.center().open();
+            }
+        </script>
+    </div>
+</div>
+@Html.Partial("_popup")
+<script>
+    //
+    function getTextByValue(data) {
+        if (data.AppliedForCompanies != null && typeof data.AppliedForCompanies != "undefined") {
+            var result = "";
+            for (var i = 0; i < data.AppliedForCompanies.length; i++) {
+                result += data.AppliedForCompanies[i] + "; "
+            }
+            if (result.length > 0)
+                result = result.substring(0, result.length - 2);
+            return result;
+        }
+        else
+            return "";
+
+    }
+    function filter() {
+        //$.post(r + "/Account/checkUser", function (data) {
+        //    if (data.success) {
+        //    }
+        //    else {
+        //        window.location.reload();
+        //    }
+        //});
+        grid = $("#Grid").data("kendoGrid");
+        var ActiveDocument = $("#ActiveDocument option:selected");
+        var ActiveUser = $("#UserID option:selected");
+        var Title = $("#txtTitle").val();
+        var filter = { logic: "and", filters: [] };
+        var filterActiveDocument = { logic: "or", filters: [] };
+        var filterActiveUser = { logic: "or", filters: [] };
+        var filterlistDescription = { logic: "or", filters: [] };
+        if (ActiveUser.length > 0) {
+            for (var i = 0; i < ActiveUser.length; i++) {
+                var option = ActiveUser[i].value;
+                if (option === "") {
+                    filterActiveUser.filters.push({ field: "CreatedBy", operator: "contains", value: "" });
+                }
+                else {
+                    filterActiveUser.filters.push({ field: "CreatedBy", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterActiveUser);
+        }
+        if (ActiveDocument.length > 0) {
+            for (var i = 0; i < ActiveDocument.length; i++) { 
+                filterActiveDocument.filters.push({ field: "IsActive", operator: "eq", value: ActiveDocument[i].value });
+            }
+            filter.filters.push(filterActiveDocument);
+        }
+        if (Title) {
+            filterlistDescription.filters.push({ field: "Title", operator: "contains", value: Title });
+            filterlistDescription.filters.push({ field: "Content", operator: "contains", value: Title });
+            filter.filters.push(filterlistDescription);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $("#ActiveDocument, #UserID").chosen();
+    $(document.body).keydown(function (e) {
+        var Description = $("#ActiveDocument option:selected");
+        var PartnerType = $("#UserID option:selected");
+        var txtTitle = $("#txtTitle").val();
+        if (Description.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+        if (PartnerType.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+        if (txtTitle.length) {
+            if (e.keyCode == 13) {
+                filter();
+            }
+        }
+    });
+
+    $('#btnCreate').bind('click', function () {
+        window.location = '@Url.Action("Create", "CRM_CS_PromotionInfo")';
+    });
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+    function dataBound() {
+        resizeGrid();
+        //load selected
+        var gridDataSource = $("#Grid").data("kendoGrid").dataSource;
+        var $Grid = $("#Grid");
+
+        $('#Grid').find(".k-grid-content tbody tr").each(function () {
+            var $tr = $(this);
+            var uid = $tr.attr("data-uid");
+            var data_entry = _.find(gridDataSource._data, function (data_source) {
+                return data_source.uid === uid;
+            });
+            $tr.addClass('kendo-data-row').attr('data-KendoGrid-rowid', data_entry.ArticleId);
+        });
+
+        //Mark any selected rows as selected (persists selections from page to page)
+        var selectedRowIds = $Grid.attr('data-KendoGrid-selected');
+        if (selectedRowIds != null) {
+            var selectedRowIdArray = selectedRowIds.split(',');
+            var visibleRows = $Grid.find('.kendo-data-row');
+            $(visibleRows).each(function () {
+                $row = $(this);
+                var rowID = $row.attr('data-KendoGrid-rowid');
+                if (_.contains(selectedRowIdArray, rowID)) {
+                    //$row.addClass('k-state-selected');
+                    $row.find('.checkItem').attr('checked', 'checked');
+                }
+            });
+            var totalview = $("#Grid").data("kendoGrid").dataSource.view().length;
+            var totalchecked = $('.checkItem:checked').length;
+            if (totalview != totalchecked) {
+                $('#checkAll').removeAttr("checked");
+            }
+            else {
+                $('#checkAll').attr("checked", "checked");
+            }
+        }
+    }
+    function readData(e) {
+        var $Grid = $("#Grid");
+        var $cb = $(e);
+
+        //Get Current Selected Values
+        var selectedVals = [];
+        var selectedRowIds = $Grid.attr('data-KendoGrid-selected');
+        if (selectedRowIds != null && selectedRowIds != "") {
+            selectedVals = selectedRowIds.split(',');
+        }
+
+        var $row = $cb.parents('.kendo-data-row').first();
+        var rowId = $row.attr('data-KendoGrid-rowid');
+        if ($cb.is(':checked')) {
+            //$row.addClass('k-state-selected');
+            selectedVals.push(rowId);
+        }
+        else {
+            $('#checkAll').removeAttr("checked");
+            //$row.removeClass('k-state-selected');
+            selectedVals = _.without(selectedVals, rowId);
+        }
+
+        //Set selected values to a custom data attribute on the grid
+        $Grid.attr('data-KendoGrid-selected', selectedVals);
+    }
+
+    function getValue(e) {
+        readData(e);
+    }
+   
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+</script>

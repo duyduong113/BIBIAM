@@ -1,0 +1,490 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Customer_Presenter>
+@{
+    ViewBag.Title = "Danh sách người liên hệ";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    //var listday = new List<Object>();
+    //listIsLeader.Add(new { Value = "True", Name = "True" });
+    //listIsLeader.Add(new { Value = "False", Name = "False" });
+    var listDay = new List<int>();
+    for (int i = 1; i <= 31; i++)
+    {
+        listDay.Add(i);
+    }
+
+    var listMonth = new List<int>();
+    for (int i = 1; i <= 12; i++)
+    {
+        listMonth.Add(i);
+    }
+    var listYear = new List<int>();
+    for (int i = DateTime.Now.Year; i > DateTime.Now.Year - 200; i--)
+    {
+        listYear.Add(i);
+    }
+
+}
+<style>
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+    }
+
+    .actionGird {
+        margin-left: 2px;
+    }
+</style>
+
+<div class="row-fluid" id="formheader">
+    @using (Html.BeginForm("CustomerPresenter_Create", "CustomerPresenter", FormMethod.Post, new { @class = "form-horizontal", id = "formCreate", enctype = "multipart/form-data" }))
+    {
+        <div class="span12">
+            <div class="span4">
+                <div class="control-group">
+                    <label class="span2" style="text-align:left" for="form-field-1">Họ tên</label>
+                    <div class="controls span10">
+                        <input id="Id_GridPresenter" name="Id" type="text" placeholder="Hệ thống tự sinh mã nếu thêm mới dữ liệu" style="display:none" readonly />
+                       @* <input id="CustomerID_GridPresenter" name="CustomerID" value="@ViewBag.detailCustomer.CustomerID" style="display:none" />*@
+                        <input id="FirstName_GridPresenter" name="FirstName" class="span4" type="text" placeholder="Họ" />
+                        <input id="MiddleName_GridPresenter" name="MiddleName" class="span5" type="text" placeholder="Tên đệm" />
+                        <input id="LastName_GridPresenter" name="LastName" class="span3" type="text" placeholder="Tên" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="control-group">
+                        <label class="span2" style="text-align:left">Nhân xưng</label>
+                        <div class="controls span10">
+                            <input id="Personal" name="Personal" type="text"style="display:none;" />
+                            @Html.DropDownList("Personal_GridPresenter", new SelectList(ViewBag.listGender, "ParamID", "Value", 1),
+                                "-Chọn-", new { @style = "width: 95px;height: 30px;" })
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="span2" style="text-align:left" for="form-field-3">Ngày sinh</label>
+                    <div class="controls span10">
+                        <select id="DayOfBirth_GridPresenter" class="span3" name="DayOfBirth" data-placeholder="Chọn ngày">
+                            <option disabled selected> Ngày</option>
+                            @foreach (var item in listDay)
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        </select>
+                        <select id="MonthOfBirth_GridPresenter" class="span4" name="MonthOfBirth">
+                            <option disabled selected> Tháng</option>
+                            @foreach (var item in listMonth)
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        </select>
+
+                        <select id="YearOfBirth_GridPresenter" class="span5" name="YearOfBirth" data-placeholder="Chọn năm">
+                            <option disabled selected> Năm</option>
+                            @foreach (var item in listYear)
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label class="span2" style="text-align:left">Công ty</label>
+                    <div class="controls span10">
+                        <input type="text" id="Company_GridPresenter" name="Company" class="span12" placeholder="Nhập công ty" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="span2" style="text-align:left">Điện thoại</label>
+                    <div class="controls span10">
+                        <input name="Phone" id="Phone_GridPresenter" type="text" class="span12" placeholder="Nhập số điện thoại" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="span2" style="text-align:left">Email</label>
+                    <div class="controls span10">
+                        <input id="Email_GridPresenter" name="Email" type="text" class="span12" placeholder="Nhập Email" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="control-group">
+                    <label class="span2" style="text-align:left">Chức vụ</label>
+                    <div class="controls span10">
+                        <input type="text" id="Position_GridPresenter" name="Position" class="span12" placeholder="Nhập chức vụ" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="span2" style="text-align:left">Ghi chú</label>
+                    <div class="controls span10">
+                        <textarea name="Note" id="Note_GridPresenter" class="autosize-transition span12"
+                                  placeholder="Nhập ghi chú" style="overflow: hidden; resize: vertical;
+                             word-wrap: break-word; height: 70px;"></textarea>
+                    </div>
+                </div>
+                <div class="control-group" style="display:none">
+                    <label class="span2" for="form-field-5">Khách hàng</label>
+                    <div class="controls span10">
+                        <select class="span5" name="customerArray[0]" style="width: 290px; ">
+                            <option value="@ViewBag.detailCustomer.CustomerID">@ViewBag.detailCustomer.CustomerID</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+<div id="grid-container-presenter">
+    <div class="row-fluid mn-list">
+        @(Html.Kendo().Grid(Model)
+                    .Name("GridPresenter")
+                    .Columns(columns =>
+                                    {
+                                        columns.Bound(p => p.FirstName).Hidden();
+                                        columns.Bound(p => p.MiddleName).Hidden();
+                                        columns.Bound(p => p.LastName).Hidden();
+                                        columns.Bound(p => p.DayOfBirth).Hidden();
+                                        columns.Bound(p => p.MonthOfBirth).Hidden();
+                                        columns.Bound(p => p.YearOfBirth).Hidden();
+                                        columns.Bound(p => p.Phone).Hidden();
+                                        columns.Bound(p => p.CustomerID).Hidden();
+                                        columns.Bound(p => p.Id)
+                                                .Width(25).Filterable(false).Sortable(false).Groupable(false)
+                                                .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onclick='checkAll(this);' />")
+                                                .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#' />");
+                                        columns.Bound(p => p.Id)
+                                               .Title("#")
+                                               .Width(50)
+                                               .ClientTemplate("<div>" +
+                                                                     "<span> " + "<a class='btn btn-minier btn-success actionGird' style='width:30px'   href='javascript:void(0);' ><i class='fa fa-pencil'></i> Gọi</a>" + "</br>" +
+                                                                     "<div>" +
+                                                                   "</div>" +
+                                                               "</div>");
+                                        columns.Bound(p => p.Id)
+                                                .Title("Người giới thiệu")
+                                                .Width(150)
+                                                .ClientTemplate("<span> <a href='javascript:void(0)' onclick='setDataPresent(this)'>#=FirstName# #=MiddleName# #=LastName# </a> - #=PersonalName# </span>  </br>");
+                                        columns.Bound(p => p.Company)
+                                                .Title("Công ty")
+                                                .Width(150)
+                                                .ClientTemplate(@"<div>" +
+                                                                    "<div>" +
+                                                                     "<span> #=Company#</span> </br>" +
+                                                                    "</div>" +
+                                                                "</div>");
+                                        columns.Bound(p => p.Position)
+                                               .Title("Chức vụ")
+                                               .Width(100)
+                                               .ClientTemplate(@"<div>" +
+                                                                   "<div>" +
+                                                                    "<span> #=Position# </span> </br>" +
+                                                                   "</div>" +
+                                                               "</div>");
+                                        columns.Bound(p => p.Email)
+                                                .Title("Email")
+                                                .Width(120)
+                                                .ClientTemplate("<div>" +
+                                                                      "<span> <a href='mailto:#=Email#' target='_top'>#=Email#</a></span></br>" +
+                                                                      "<div>" +
+                                                                    "</div>" +
+                                                                "</div>");
+                                        //columns.Bound(p => p.listCustomer)
+                                        //        .Title("Khách hàng")
+                                        //        .Width(300)
+                                        //        .ClientTemplate("<div>" +
+                                        //                             "<span> #=listCustomer#</br>" +
+                                        //                        "</div>");
+                                        columns.Bound(p => p.Note)
+                                                .Title("Ghi chú")
+                                                .Width(300)
+                                                .ClientTemplate("<div>" +
+                                                                     "<span> #=Note#</br>" +
+                                                                "</div>");
+                                    })
+                    .ToolBar(toolbar =>
+                    {
+                        toolbar.Template(@<text>
+                            <div class="pull-left">
+                                @if (AllowCreate)
+                                {
+                                    <a class="btn btn-success btn-small" id="btnGridAdd">
+                                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                    </a>
+                                }
+                                @if (AllowCreate)
+                                {
+                                    <a class="btn btn-small btn-primary" href="javascript:void(0)" id="btnsave">
+                                        @Resources.Multi.Save
+                                    </a>
+                                }
+                                @if (AllowDelete)
+                                {
+                                    <a class="btn btn-danger btn-small" href="javascript:void(0)" id="btnGridDelete" onclick="showConfirmPopup2(-1)">
+                                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                    </a>
+                                }
+                            </div>
+                        </text>);
+})
+                        .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50 }))
+                        .Navigatable()
+                        .Sortable()
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(10)
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                        })
+                        .Read("ReadByCustomer", "CustomerPresenter", new { @CustomerID = @ViewBag.detailCustomer.CustomerID })
+                        //.Read(read => read.Action("Read", "CustomerPresenter"))
+                        ))
+
+
+    </div>
+</div>
+<div id="popup-confirm2" class="row" style="margin:0 auto;display:none">
+    <div class="widget-box">
+        <p> <span id="txtcontent2"></span> </p>
+    </div>
+    <div class="form-footer-custom">
+        <div class="pull-right" style="padding-right:15px">
+            <button type="button" class="btn btn-info btn-small " onclick="onChangeStatus2()">
+                @*<i class="icon-ok"></i>*@ Đồng ý
+            </button>
+            <button type="button" class="btn btn-default btn-small" onclick="onCloseForm2()">
+                @*<i class="icon-undo"></i>*@ Đóng lại
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    //BaoHV
+    $("#formheader").hide();
+    $("#btnsave").click(function () {
+        $('#Personal').val($('#Personal_GridPresenter').val());
+        $("#formCreate").submit();
+        
+        return;
+    });
+    $("#btnGridAdd").click(function () {
+        $("#formCreate")[0].reset();
+        $("#formheader").show();
+    })
+    $('#popup-confirm2').kendoWindow({
+        width: "300",
+        actions: ["Close"],
+        visible: false,
+        resizable: false,
+        title: 'Thông báo',
+        close: function (e) {
+            $("#divMaskPopup").hide();
+        }
+    });
+    function onCloseForm2() {
+        $('#popup-confirm2').data('kendoWindow').close();
+    }
+    function showConfirmPopup2(e) {
+        let listrowid = "";
+       // debugger;
+        $('#GridPresenter').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id")+ '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $("#divMaskPopup").show();
+            if (e == -1) {
+                $('#txtcontent2').text("Are you sure you want to delete this record?");
+            }
+            var popup = $('#popup-confirm2').data("kendoWindow");
+            popup.center().open();
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onChangeStatus2() {
+        let listrowid = "";
+        $('#GridPresenter').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id")+'@@@@';
+            }
+        });
+       // debugger
+        $.post(r + "/CustomerPresenter/DeleteAll", { listdata: listrowid }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                    class_name: 'gritter-success'
+                });
+                $('#popup-confirm2').data('kendoWindow').close();
+                $("#GridPresenter").data("kendoGrid").dataSource.read();
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+                $('#popup-confirm2').data('kendoWindow').close();
+            }
+        });
+    }
+    function setDataPresent(obj) {
+       
+        var currentRow = $(obj).closest("tr");
+        var dataItem = $("#GridPresenter").data("kendoGrid").dataItem(currentRow);
+        onBindDataToForm(dataItem, "GridPresenter");
+        $("#formheader").show();
+    }
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem,formName) {
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName + "_" + formName).val(d);
+                }
+            }
+            else {
+                $("#" + propName +"_"+formName).val(dataItem[propName]);
+            }
+        }
+    }
+    //
+    $("#formCreate").validate({
+        // Rules for form validation
+        rules: {
+            FirstName: {
+                required: true,
+            },
+            MiddleName: {
+                required: true,
+            },
+            LastName: {
+                required: true,
+            },
+            DayOfBirth: {
+                required: true,
+            },
+            MonthOfBirth: {
+                required: true,
+            },
+            YearOfBirth: {
+                required: true,
+            },
+            Email: {
+                email: true,
+            }
+        },
+        // Messages for form validation
+        messages: {
+            FirstName: {
+                required: "Thông tin bắt buộc"
+            },
+            MiddleName: {
+                required: "Thông tin bắt buộc"
+            },
+            LastName: {
+                required: "Thông tin bắt buộc"
+            },
+            DayOfBirth: {
+                required: "Thông tin bắt buộc"
+            },
+            MonthOfBirth: {
+                required: "Thông tin bắt buộc"
+            },
+            YearOfBirth: {
+                required: "Thông tin bắt buộc"
+            },
+            Email: {
+                email: "Không đúng định dạng email"
+            }
+        },
+        // Do not change code below
+        errorPlacement: function (error, element) {
+            // error.insertAfter(element);
+        },
+        submitHandler: function (form) {
+            $(form).ajaxSubmit({
+                //clearForm: true,//To clear form after ajax submitting
+                beforeSend: function () {
+                    $("#loading").removeClass('hide');
+                    return;
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Thêm mới dữ liệu thành công',
+                            class_name: 'gritter-success'
+                        });
+                        $('#formCreate')[0].reset();
+                        $("#formCreate").attr("action", '@Url.Action("CustomerPresenter_Create","CustomerPresenter")');
+                        $("#GridPresenter").data("kendoGrid").dataSource.read();
+                        $("#formheader").hide();
+                    }
+                    else {
+
+                    }
+                }
+            });
+            return false;
+        }
+    });
+
+    function editPresent(e) {
+        $.post(r + '/CustomerPresenter/GetDetailCustomerPresenter', { Id: e }, function (data) {
+            if (data.success) {
+                $('#id-present').val(data.data.Id);
+                $('#first-name-present').val(data.data.FirstName);
+                $('#personal-present').val(data.data.Personal);
+                $('#middle-name-present').val(data.data.MiddleName);
+                $('#last-name-present').val(data.data.LastName);
+                $('#list-day').val(data.data.DayOfBirth);
+                $('#list-month').val(data.data.MonthOfBirth);
+                $('#list-year').val(data.data.YearOfBirth);
+                $('#company-present').val(data.data.Company);
+                $('#phone-present').val(data.data.Phone);
+                $('#email-present').val(data.data.Email);
+                $('#position-present').val(data.data.Position);
+                $('#note-present').val(data.data.Note);
+
+                var url = $("#formCreate")[0].action;
+                $("#formCreate").attr("action", '@Url.Action("CustomerPresenter_Update", "CustomerPresenter")');
+                $('html, body').animate({
+                    scrollTop: $("#formCreate").offset().top - 100
+                }, 1000);
+            }
+
+        })
+
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#GridPresenter').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function ResetForm() {
+        $("#formCreate").attr("action", '@Url.Action("CustomerPresenter","CustomerPresenter_Create")');
+    }
+</script>

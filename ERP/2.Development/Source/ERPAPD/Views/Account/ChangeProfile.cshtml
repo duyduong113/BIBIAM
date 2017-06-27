@@ -1,0 +1,234 @@
+﻿@model ERPAPD.Models.Users
+
+@{
+    ViewBag.Title = Resources.Multi.ChangeProfileTitle;
+}
+
+@*<h2>Change Profile</h2>
+    <p>
+        Use the form below to change your password.
+    </p>*@
+<h2>@ViewBag.Error</h2>
+
+<style>
+    .k-invalidx {
+        width: 288px;
+    }
+
+    .ace-file-input {
+        width: 180px;
+        margin-top: 5px;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/assets/js/x-editable/bootstrap-editable.min.js")"></script>
+<script src="@Url.Content("~/Scripts/assets/js/x-editable/ace-editable.min.js")"></script>
+
+
+<div class="row-fluid">
+    <div id="user-profile-1" class="user-profile row-fluid">
+        @using (Html.BeginForm("ChangeProfile", "Account", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal" }))
+        {
+
+            @Html.ValidationSummary(true, "Profile change was unsuccessful. Please correct the errors and try again.")
+
+            <legend>@Resources.Multi.ChangeProfileTitle</legend>
+
+
+            <div class="span5">
+                <fieldset class="span12">
+                    <div class="control-group">
+                        <label class="control-label" for="Title"> @Resources.Multi.Account</label>
+                        <div class="controls">
+                            @Html.HiddenFor(a => a.UserName)
+                            <input class="k-invalidx" placeholder="@Resources.Multi.FullName" data-val="true" data-val-required="Tên tài khoản là bắt buộc." disabled id="UserName" name="UserName" type="text" value="@Model.UserName" aria-invalid="true">
+                            <span class="field-validation-valid" data-valmsg-for="Title" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="Detail"> @Resources.Multi.FullName</label>
+                        <div class="controls">
+                            <input class="k-invalidx" placeholder="@Resources.Multi.FullName" data-val="true" data-val-required="@Resources.Multi.FullNameVaidate" id="FullName" name="FullName" type="text" value="@Model.FullName" aria-invalid="true">
+                            <span class="field-validation-valid" data-valmsg-for="Detail" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="Detail"> @Resources.Multi.Email</label>
+                        <div class="controls">
+                            @Html.HiddenFor(a => a.Email)
+
+
+                            <input class="k-invalidx" placeholder="@Resources.Multi.Email" data-val="true" data-val-required="@Resources.Multi.Email @Resources.Multi.Is @Resources.Multi.Require" id="Email" name="Email" type="text" value="@Model.Email" disabled="disabled" aria-invalid="true">
+                            <span class="field-validation-valid" data-valmsg-for="Detail" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.SalesApp</label>
+                        <div class="controls">
+                            @Html.CheckBoxFor(m => m.IsAppUser, new { disabled = "disabled" })
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="Detail"> @Resources.Multi.Phone</label>
+                        <div class="controls">
+                            <input class="k-invalidx" placeholder="@Resources.Multi.Phone" data-val="true" id="Phone" name="Phone" type="text" value="@Model.Phone" data-bind="value:Phone" aria-invalid="true">
+                            <span class="field-validation-valid" data-valmsg-for="Phone" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.Gender</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownListFor(m => m.Gender)
+                                                .HtmlAttributes(new { @style = "width: 303px;" })
+                                        .OptionLabel(Resources.Multi.Choose)
+                                        .DataTextField("Description")
+                                        .DataValueField("CodeID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListGender", "Users");
+                                            });
+                                        })
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.Position</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownListFor(m => m.Position)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                    .OptionLabel(Resources.Multi.Choose)
+                                                        .DataTextField("PositionName")
+                                                .DataValueField("PositionID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListPosition", "Users");
+                                            });
+                                        }).Enable(false)
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.Level</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownListFor(m => m.LevelID)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                    .OptionLabel(Resources.Multi.Choose)
+                                                                .DataTextField("Description")
+                                                                .DataValueField("LevelID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListlevel", "Users").Data("filterLevel");
+                                            }).ServerFiltering(true);
+                                        })
+                                                 .Enable(false)
+                                              .AutoBind(false)
+                                                                .CascadeFrom("Position")
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.Department</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownListFor(m => m.DepartmentID)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                    .OptionLabel(Resources.Multi.Choose)
+                                        .DataTextField("Department")
+                                        .DataValueField("DepartmentID")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListDepartment", "Users");
+                                            });
+                                        }).Enable(false)
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="TypeID"> @Resources.Multi.Team</label>
+                        <div class="controls">
+                            @(Html.Kendo().DropDownListFor(m => m.Team)
+                                                        .HtmlAttributes(new { @style = "width: 303px;" })
+                                .OptionLabel(Resources.Multi.Choose)
+                                                        .DataTextField("TeamName")
+                                                        .DataValueField("Team")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("getListTeam", "Users");
+                                            });
+                                        }).Enable(false)
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="Detail"> @Resources.Multi.Extension</label>
+                        <div class="controls">
+                            <input class="k-invalidx" placeholder="Extension" data-val="true" id="XLiteID" name="XLiteID" type="text" value="@Model.info.XLiteID" disabled>
+                            <span class="field-validation-valid" data-valmsg-for="XLiteID" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="Detail"> @Resources.Multi.AccountCode</label>
+                        <div class="controls">
+                            <input class="k-invalidx" placeholder="Account Code" data-val="true" id="XLiteCode" name="XLiteCode" type="text" value="@Model.info.XLiteCode" disabled>
+                            <span class="field-validation-valid" data-valmsg-for="XLiteCode" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label"></label>
+                        <div class="controls">
+                            <button type="submit" class="btn btn-small btn-primary" style="width:303px">
+                                @Resources.Multi.btnChange
+                            </button>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="span2">
+                <div style="text-align:left">
+                    <img src="@Url.Content("~/Content/image/upload/"+Model.ImageUrl)" style="width:180px" />
+                    <br />
+                    <input type="file" id="id-input-file-2" name="UploadedFile" />
+                </div>
+            </div>
+            <div class="span4">
+            </div>
+        }
+    </div>
+
+</div>
+
+
+
+<script>
+    function filterLevel() {
+        return {
+            Position: $("#Position").val()
+        };
+    }
+    $('#id-input-file-2').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false, //| true | large
+        whitelist: 'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+
+</script>

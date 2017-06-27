@@ -1,0 +1,208 @@
+﻿<style>
+    #extentionForm .controls{
+        position:relative;
+    }
+     #extentionForm .controls span{
+         position:absolute;
+         top:0;
+         right:2%;
+         
+     }
+     #extentionForm .controls span a{
+         color: red;
+         font-size:1.5em;
+         display:none;
+     }
+</style>
+
+<div class="row-fluid">
+    <form action="@Url.Content("~/MnDetailEmployer/Create_Extention")" method="post" id="extentionForm" class="span12 form-inline">
+        <div class="span10">
+            <div class="span12 form-horizontal" id="txt-extentsions">
+                @{
+                    if (ViewBag.extentions != null)
+                    {
+                        try
+                        {
+                            var exts = Json.Decode(ViewBag.extentions.Value);
+                            for (var i = 0; i < @exts.Length; i++)
+                            {
+                                <div style="margin-left:0" class="span6">
+                                    <div class="control-group">
+                                        <label class="control-label">@exts[i].name</label>
+                                        <div class="controls">
+                                            <input class="span10" type="text" value="@exts[i].value" placeholder="Nhập Exts" />
+                                            <span ><a onclick="delExtention(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            <p>@e.Message</p>
+                        }
+                    }
+                }
+
+            </div>
+        </div>
+        <div class="span11 ">
+            <p class="pull-right">
+                <a href="#modal-form" role="button" class="btn btn-small btn-success" data-toggle="modal">Thêm</a>
+                <a id="updateExtentions" class="btn btn-small btn-primary">Lưu</a>
+                <button type="reset" class="btn btn-small btn-danger">Hủy</button>
+            </p>
+        </div>
+        <input type="hidden" name="CustomerID" value="@ViewBag.detailCustomer.CustomerID" />
+        <input type="hidden" id="exts-json" name="Value" value="" />
+
+    </form>
+</div>
+
+
+<div id="modal-form" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Edit</span>
+        @* <button type="button" class="close" data-dismiss="modal">&times;</button>*@
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+
+    </div>
+    @* modal-header custom*@
+    <style>
+        button.btclose {
+            float: right;
+            font-size: 22px;
+            text-shadow: 0 1px 0 #fff;
+            opacity: 0.2;
+            background: transparent;
+            border: 0;
+            margin-top: -3px;
+        }
+
+        .chosen-container .chosen-results {
+            max-height: 100px !important;
+        }
+    </style>
+
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid">
+            <div class="span7">
+                <div class="control-group">
+                    <label class="control-label">Tên</label>
+                    <div class="controls">
+                        <input class="span12" type="text" id="ext-name" placeholder="Nhập tên phần mở rộng" value="" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Dữ liệu</label>
+                    <div class="controls">
+                        <input class="span12" type="text" id="ext-value" placeholder="Nhập data" value="" />
+                    </div>
+                </div>
+                @*<div class="control-group">
+                    <label class="control-label">Kiểu dữ liệu</label>
+                    <div class="controls">
+                        <select name="Type" class="span6 chosen-select">
+                            <option value="STRING">Chuỗi</option>
+                            <option value="INT">Số</option>
+                        </select>
+                    </div>
+                </div>*@
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <a id="saveExtentions" class="btn btn-info btn-small ">
+            <i class="icon-ok"></i>Lưu
+        </a>
+        <button class="btn btn-default btn-small" data-dismiss="modal">
+            <i class="icon-undo"></i>Hủy
+        </button>
+    </div>
+
+</div>
+
+<script>
+    function delExtention(e) {
+        if(confirm("Bạn có chắc chắn xóa !")){
+            $(e).parents(".span6").remove();
+        }
+    }
+    $('body').on('mouseenter', '#extentionForm .controls', function () {
+        $(this).find("a").fadeOut(100);
+        $(this).find("a").fadeIn(500);
+    }).on('mouseleave', '#extentionForm .controls', function () {
+        $(this).find("a").hide();
+    });
+    
+    $("#saveExtentions").click(function () {
+        var div = '<div style="margin-left:0" class="span6">';
+        div += '<div class="control-group">';
+        div += '<label class="control-label" for="form-field-1">' + $("#ext-name").val() + '</label>';
+        div += '<div class="controls">';
+        div += '<input class="span10" type="text" value="' + $("#ext-value").val() + '" placeholder="Nhập Exts" />';
+        div += '<span><a onclick="delExtention(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>';
+        div += '</div>';
+        div += '</div>';
+        div += '</div>';
+        $("#txt-extentsions").append(div);
+        $('#modal-form').modal('hide')
+
+    })
+    $("#updateExtentions").click(function () {
+        $("#extentionForm").submit();
+        return;
+    });
+    $("#extentionForm").validate({
+        submitHandler: function (form) {
+
+            var arr = [];
+            $("#txt-extentsions .control-group").each(function (e) {
+                var obj = {};
+                obj.name = $(this).find("label").text();
+                obj.value = $(this).find("input").val();
+                arr[e] = obj;
+            });
+            console.log(arr);
+            $("#exts-json").val(JSON.stringify(arr));
+            var formContent = $("#extentionForm").serialize();
+            var url = $("#extentionForm")[0].action;
+            $.post(url, formContent).done(function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: 'Cập nhật thành công !',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+        },
+        showErrors: function (errorMap, errorList) {
+            if (errorList[0] != undefined) {
+                $.gritter.add({
+                    title: '@Resources.Multi.Error',
+                    text: errorList[0].message,
+                    class_name: 'gritter-error'
+                });
+            }
+
+        },
+        rules: {
+            Name: "required",
+
+
+        },
+        messages: {
+            Name: "Vui lòng nhập tên !",
+
+        }
+    });
+</script>

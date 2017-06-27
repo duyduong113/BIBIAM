@@ -1,0 +1,371 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_PlanKPI>
+@{
+    ViewBag.Title = "Plan KPI";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<div class="row-fluid">
+    <form class="form-inline">
+        <div class="span12" style="padding-bottom:3px">
+            <select name="select" id="filter-kpi" class='span2' data-placeholder="Kpi" multiple>
+                <option value="">All</option>
+                @foreach (var item in ViewBag.listKpi)
+                {
+                    <option value="@item.ParamID">@item.Value</option>
+                }
+            </select>
+            <select name="select" id="filter-year" class='span2' data-placeholder="Year" multiple>
+                <option value="">All</option>
+                @foreach (var item in ViewBag.listYear)
+                {
+                    <option value="@item.Year">@item.Year</option>
+                }
+            </select>
+            <select name="select" id="filter-month" class='span2' data-placeholder="Month" multiple>
+                <option value="">All</option>
+                @foreach (var item in ViewBag.listMonth)
+                {
+                    <option value="@item.Month">@item.Month</option>
+                }
+            </select>
+            <select name="select" id="filter-period" class='span2' data-placeholder="Period" multiple>
+                <option value="">All</option>
+                @foreach (var item in ViewBag.listQuarter)
+                {
+                    <option value="@item.Quarter">@item.Quarter</option>
+                }
+            </select>
+            <button type="button" style="float:none" id="btnSearch" class="btn btn-primary btn-mini" onclick="filter()">@Resources.Multi.Filter</button>
+        </div>
+    </form>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+              .Grid(Model)
+              .Name("Grid")
+              .Editable(editable => editable.Mode(GridEditMode.InCell))
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />")
+                                          .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#'  />")
+                                          .Width(30)
+                                          .Filterable(false)
+                                          .Sortable(false);
+                  columns.ForeignKey(p => p.Kpi, (System.Collections.IEnumerable)ViewBag.listKpi, "ParamID", "Value").
+                      Title("Kpi").Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).EditorTemplateName("GridNullableForeignKey");
+                  // columns.ForeignKey(p => p.Week, (System.Collections.IEnumerable)ViewBag.listWeek, "Week", "Week").Title("Week").Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  columns.ForeignKey(p => p.Month, (System.Collections.IEnumerable)ViewBag.listMonth, "Month", "Month").Title("Month").Width(120)
+                      .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Year, (System.Collections.IEnumerable)ViewBag.listYear, "Year", "Year")
+                      .Title("Year").Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.Period, (System.Collections.IEnumerable)ViewBag.listQuarter, "Quarter", "Quarter").Title("Quarter").
+                      Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).EditorTemplateName("GridNullableForeignKey");
+                  columns.Bound(p => p.Percents).Title("Percent(%)").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  columns.Bound(p => p.Amount).Title("Amount($)").Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                  columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+                  columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#");
+                  columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+                  columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+              })
+              .Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              // .Sortable()
+              .Navigatable()
+              .Resizable(resize => resize.Columns(true))
+              .Events(events => { events.DataBound("dataBound"); })
+              .ToolBar(toolbar =>
+              {
+              toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-success btn-small" href="javascript:void(0)" onclick="onCreate()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                    </a>
+                    <a class="btn btn-primary btn-small" href="javascript:void(0)" onclick="onUpdate()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Update
+                    </a>
+                    <a class="btn btn-default btn-small" href="javascript:void(0)" onclick="onCancel()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Cancel
+                    </a>
+                    <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="showPPConfimrDelete()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                    </a>
+
+                }
+            </div>
+            </text>);
+              })
+              .DataSource(dataSource => dataSource
+                                                .Ajax()
+                                                .Batch(true)
+                                                .PageSize(100)
+                                                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                .Sort(s => s.Add("Month"))
+                                                .Model(model =>
+                                                {
+                                                    model.Id(p => p.Id);
+                                                    model.Field(p => p.Id).Editable(false);
+                                                    model.Field(p => p.CreatedBy).Editable(false);
+                                                    model.Field(p => p.CreatedAt).Editable(false);
+                                                    model.Field(p => p.UpdatedAt).Editable(false);
+                                                    model.Field(p => p.UpdatedBy).Editable(false);
+                                                })
+                                                .Create("Create", "CRMPlanKpi")
+                                                .Update("Update", "CRMPlanKpi")
+                                                .Read("Read", "CRMPlanKpi"))
+        )
+    </div>
+</div>
+<div class="row-fluid">
+    <div id="confirm-delete-pp" class="modal hide" tabindex="-1">
+        <div class="k-window-titlebar k-header">
+            <span class="k-window-title">Thông báo</span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body overflow-visible">
+            <div class="row-fluid form-horizontal">
+                <p> Bạn chắc chắn xóa dữ liệu đã được chọn ?</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn btn-info btn-small" onclick="Delete()"> Đồng ý</a>
+            <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $('#filter-kpi,#filter-year,#filter-month,#filter-week,#filter-period').chosen();
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: 'Lỗi',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: 'Thành công',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: 'Thành công',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        resizeGrid();
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function filter() {
+        var grid = $("#Grid").data("kendoGrid");
+
+        var filter = { logic: "and", filters: [] };
+       
+        var listKpi = $("#filter-kpi option:selected");
+        var filterlistKpi = { logic: "or", filters: [] };
+        if (listKpi.length > 0) {
+            for (var i = 0; i < listKpi.length; i++) {
+                var option = listKpi[i].value;
+                if (option == '') {
+                    filterlistKpi.filters.push({ field: "Kpi", operator: "contains", value: '' });
+                }
+                else {
+                    filterlistKpi.filters.push({ field: "Kpi", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterlistKpi);
+        }
+
+        var listYear = $("#filter-year option:selected");
+        var filterlistYear = { logic: "or", filters: [] };
+        if (listYear.length > 0) {
+            for (var i = 0; i < listYear.length; i++) {
+                var option = listYear[i].value;
+                if (option == '') {
+                    filterlistYear.filters.push({ field: "Year", operator: "contains", value: '' });
+                }
+                else {
+                    filterlistYear.filters.push({ field: "Year", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterlistYear);
+        }
+
+        var listMonth = $("#filter-month option:selected");
+        var filterlistMonth = { logic: "or", filters: [] };
+        if (listMonth.length > 0) {
+            for (var i = 0; i < listMonth.length; i++) {
+                var option = listMonth[i].value;
+                if (option == '') {
+                    filterlistMonth.filters.push({ field: "Month", operator: "contains", value: '' });
+                }
+                else {
+                    filterlistMonth.filters.push({ field: "Month", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterlistMonth);
+        }
+        var listPeriod = $("#filter-period option:selected");
+        var filterlistPeriod = { logic: "or", filters: [] };
+        if (listPeriod.length > 0) {
+            for (var i = 0; i < listPeriod.length; i++) {
+                var option = listPeriod[i].value;
+                if (option == '') {
+                    filterlistPeriod.filters.push({ field: "Period", operator: "contains", value: '' });
+                }
+                else {
+                    filterlistPeriod.filters.push({ field: "Period", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterlistPeriod);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    $('#filter-kpi').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    $('#filter-kpi,#filter-year,#filter-month, #filter-period').bind('change', function (e) {
+        filter();
+    });
+
+    function onCreate() {
+        $('#Grid').data('kendoGrid').dataSource.insert()
+    }
+
+    function onUpdate() {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    }
+    function onCancel() {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    }
+
+
+    function showPPConfimrDelete() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + ';;';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+        $('#confirm-delete-pp').modal('show');
+    }
+
+    function Delete() {
+        var listrowid = '';
+        $('#Grid').find(".k-grid-content .checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid == null || listrowid == "") {
+            $.gritter.add({
+                title: "@Resources.Multi.Error",
+                text: 'Vui lòng chọn data',
+                class_name: 'gritter-error'
+            });
+            $('#confirm-delete-pp').modal('hide');
+        }
+        else {
+            $.post(r + "/CRMPlanKpi/Delete", { data: listrowid }, function (data) {
+
+                if (data.error > 0) {
+                    $.gritter.add({
+                        title: "@Resources.Multi.Error",
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+
+                if (data.success > 0) {
+                    $.gritter.add({
+                        title: '@Resources.Multi.Success',
+                        text: 'Xóa thành công ',
+                        class_name: 'gritter-success'
+                    });
+                }
+
+                // $("#window1").data("kendoWindow").close();
+                $("#Grid").data("kendoGrid").dataSource.read();
+                $('#confirm-delete-pp').modal('hide');
+            });
+        }
+    }
+
+</script>

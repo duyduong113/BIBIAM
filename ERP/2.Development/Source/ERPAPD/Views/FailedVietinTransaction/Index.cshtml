@@ -1,0 +1,141 @@
+﻿@{
+    ViewBag.Title = "ERPAPD | Transaction thất bại Viettin";
+
+    bool AllowCreate = (ViewBag.Assets.Create != null && ViewBag.Assets.Create);
+    bool AllowUpdate = (ViewBag.Assets.Update != null && (bool)ViewBag.Assets.Update);
+    bool AllowExport = (ViewBag.Assets.Export != null && (bool)ViewBag.Assets.Export);
+    bool AllowImport = (ViewBag.Assets.Import != null && (bool)ViewBag.Assets.Import);
+    bool AllowDelete = (ViewBag.Assets.Delete != null && (bool)ViewBag.Assets.Delete);
+}
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="customer" placeholder="CustomerID, OrderID" style="width:200px" />
+                            <select name="select" id="status" class='chosen-select span2' data-placeholder="Trạng thái" multiple>
+                                <option value="">All</option>
+                                <option value="DECLINE">DECLINE</option>
+                                <option value="ERROR">ERROR</option>
+                            </select>
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_SignedVietinReponse_Log>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.log.decision).Width(80).Title(Resources.Multi.Status);
+                columns.ForeignKey(p => p.log.reason_code, (System.Collections.IEnumerable)ViewBag.listError, "Code", "Description").Width(200).Title("@Resources.Multi.Error");
+                columns.Bound(p => p.log.req_bill_to_address_line1).Width(150).Title("Địa chỉ");
+                columns.Bound(p => p.log.req_bill_to_address_city).Width(100).Title("Thành phố");
+                columns.Bound(p => p.log.signed_date_time).Width(130).Title("Ngày giao dịch");
+                columns.Bound(p => p.log.req_reference_number).Width(180).Title("RefID");
+                columns.Bound(p => p.log.transaction_id).Width(150).Title("Mã giao dịch");
+                columns.Bound(p => p.log.req_amount).ClientTemplate("#=kendo.toString(kendo.parseFloat(log.req_amount),'n0')#").Width(100).Title("Số tiền");
+                columns.Bound(p => p.log.req_bill_to_surname).Width(100).Title("Firstname");
+                columns.Bound(p => p.log.req_bill_to_forename).Width(100).Title("Lastname");
+                columns.Bound(p => p.log.req_bill_to_email).Width(200).Title("Email salesman");
+            })
+            .ToolBar(tools =>
+            {
+                tools.Excel().Text(Resources.Multi.Export).HtmlAttributes(new { @class = "btn btn-info" });
+            })
+        .Events(events => { events.DataBound("dataBound"); })
+        .Pageable()
+        .Sortable()
+        .Scrollable()
+        .Navigatable()
+        .Filterable()
+        .Reorderable(r => r.Columns(true))
+        .Resizable(r => r.Columns(true))
+        .ColumnMenu()
+        .Excel(excel => excel
+            .FileName("FailedVietinTransaction.xlsx")
+            .Filterable(true)
+            .ProxyURL(Url.Action("Excel_Export", "FailedVietinTransaction")))
+        .DataSource(
+            dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(20)
+            .Read(read => read.Action("Read", "FailedVietinTransaction"))
+        )
+        )
+    </div>
+</div>
+
+<script>
+    $("#customer").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+    function dataBound() {
+        resizeGrid();
+    }
+    $("#status").chosen();
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var customer = $('#customer').val();
+        var listStatus = $('#status option:selected');
+        var filter = { logic: "and", filters: [] };
+        var filterStatus = { logic: "or", filters: [] }
+        if (customer) {
+            filter.filters.push({ field: "log.req_reference_number", operator: "contains", value: customer });
+        }
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    filterStatus.filters.push({ field: "log.decision", operator: "contains", value: '' });
+                }
+                else {
+                    filterStatus.filters.push({ field: "log.decision", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterStatus);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+</script>
+

@@ -1,0 +1,282 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_Contract>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+    var listCustomerType = ViewBag.listCustomerType;
+    var listWeek = new List<int>();
+    for (int i = 1; i <= 53; i++)
+    {
+        listWeek.Add(i);
+    }
+
+}
+<div class="row-fluid">
+    <table class="table frame-search">
+        <tr>
+            <td style="width:20%"><span><b>Mã HĐ </b></span><input style="width:70%" id="txtContractCode" placeholder="Nhập mã HĐ"/></td>
+            <td style="width:25%">
+                <span><b>Chọn trạng thái nợ </b></span>
+                <select name="select" id="listDebtType">
+                    <option value="">Trạng thái nợ (All)</option>
+                    @foreach (var user in ViewBag.listDebtType)
+                    {
+                        <option value="@user.ParamID">@user.Value</option>
+                    }
+                </select>
+            </td>
+            @*<td><span><b>Ngày về 2 chiều </b></span><input style="width:60%" class="date-picker" id="txtReTwoDay" placeholder="Nhập ngày về 2 chiều" /></td>*@
+            <td style="width:25%"><span><b>Xuất hóa đơn </b></span>
+                <select name="select" id="txtBillExport">
+                    <option value="">All</option>
+                    <option value="1">Chưa xuất HĐ</option>
+                </select>
+            </td>
+            <td style="width:5%"><button onclick="filter()" type="button" class="btn btn-primary btn-mini">Lọc</button></td>
+            <td style="width:25%"></td>
+        </tr>
+    </table>
+</div>
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid<CRM24H.Models.CRM_Contract_Debt>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+
+        columns.Bound(p => p.c_code).Title("Mã HĐ").Width(80);
+        columns.ForeignKey(p => p.c_contract_type, (System.Collections.IEnumerable)ViewBag.listContractType, "ParamID", "Value").Title("Loại HĐ").Width(100);
+        columns.Bound(p => p.Salesman).Title("NVKD").Width(150).ClientTemplate("#=Salesman#"); ;
+        columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.listDebtType, "ParamID", "Value").Title("Trạng thái nợ").Width(60);
+        columns.Bound(p => p.PayDay).Title("Ngày dự kiến thu").Width(70).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.OutDate).Title("Số ngày quá hạn").Width(60).HtmlAttributes(new { style = "#=ConvertOutDate(Status)#;text-align: right;" });
+        columns.Bound(p => p.TotalAmount)
+                .Width(100)
+                .HeaderTemplate("<div style = 'height: 30px'>Tổng nợ theo hợp đồng </div><div class='hr-number'><span class='tTotalAmount'>0</span></div>")
+                .Format("{0:N0}")
+                .HtmlAttributes(new { style = "text-align: right;" });
+
+        columns.Bound(p => p.Published)
+                .Width(100)
+                .HeaderTemplate("<div style = 'height: 30px'><span>Đã XBQC</span></div><div class='hr-number'><span class='tPublished'>0</span></div>")
+                .Format("{0:N0}")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.PublishedToDay)
+                .Width(100)
+                .HeaderTemplate("<div style='height: 30px'><span>Đã XBQC đến hôm nay</span></div><div class='hr-number'><span class='tPublishedToDay'>0</span></div>")
+                .Format("{0:N0}")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.Collected)
+                .Width(100)
+                .HeaderTemplate("<div style='height: 30px'><span >Đã thu</span></div><div class='hr-number'><span idclasstCollected'>0</span></div>")
+                .Format("{0:N0}")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.Remain)
+               .Width(100)
+               .HeaderTemplate("<div style='height: 30px'><span>Tiền nợ ĐXBQC đến hôm nay</span></div><div class='hr-number'><span class='tRemain'>0</span></div>")
+               .Format("{0:N0}")
+               .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.TotalRemain)
+               .Width(100)
+               .HeaderTemplate("<div style='height: 30px'><span>Nợ còn lại theo hợp đồng</span></div><div class='hr-number'><span class='tTotalRemain'>0</span></div>")
+                .Format("{0:N0}")
+               .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.Invoiced)
+               .Width(100)
+               .HeaderTemplate("<div style='height: 30px'><span>Đã xuất theo hóa đơn</span></div><div class='hr-number'><span class='tInvoiced'>0</span></div>")
+                .Format("{0:N0}")
+               .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.NotInvoiced)
+              .Width(100)
+              .HeaderTemplate("<div style='height: 30px'><span>Chưa xuất hóa đơn</span></div><div class='hr-number'><span class='tNotInvoiced'>0</span></div>")
+               .Format("{0:N0}")
+              .HtmlAttributes(new { style = "text-align: right;" });
+    })
+
+
+     .Pageable(pager => pager.PageSizes(new[] {100, 200, 300, 500 }))
+    .Scrollable()
+    //.HtmlAttributes(new { style = "height: 500px;" })
+    .Sortable()
+    .ClientDetailTemplateId("templateDetail")
+    .Resizable(resizable => resizable.Columns(false))
+    .Events(events => { events.DataBound("dataBounddetail"); })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+      .PageSize(100)
+
+    .Model(model =>
+    {
+        model.Id(p => p.pk_contract);
+    })
+    .Sort(a => a.Add(m => m.CustomerCode).Descending()).Read(read => read.Action("ReadRemindDetail", "CRMMnDebt").Data("GetCustomerCode()")))
+    )
+</div>
+<script id="templateDetail" type="text/kendo-tmpl">
+    <div class="span12">
+        @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=pk_contract#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+            .Items(items =>
+            {
+                items.Add().Text("Lịch thanh toán").Content(@<text>
+            @(Html.Kendo().Grid<CRM24H.Models.CRM_GET_MONEY_MONTH_NEXT>()
+                        .Name("Grid_#=pk_contract#") // template expression, to be evaluated in the master context
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.c_ngay_tt_theo_hd)
+                                   .Title("Ngày TT theo HĐ").Format("{0:dd/MM/yyyy}")
+                                   .HtmlAttributes(new { style = "text-align: right;" })
+                                   .Width(50);
+                            columns.Bound(p => p.c_tien_tt_theo_hd)
+                                    .Title("Tiền TT theo HĐ").Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" })
+                                    .Width(50);
+                            columns.Bound(p => p.c_tien_du_kien_thu)
+                                   .Title("Số tiền dự kiến thu").Format("{0:N0}")
+                                   .HtmlAttributes(new { style = "text-align: right;" })
+                                   .Width(50);
+                            columns.Bound(o => o.c_tien_thanh_toan)
+                            .HtmlAttributes(new { style = "text-align: right;" })
+                                    .Title("Tiền đã thanh toán").Width(50).Format("{0:N0}");
+                            columns.Bound(o => o.c_tien_con_no)
+                                    .Title("Tiền còn nợ").Width(50)
+                                    .Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.ForeignKey(p => p.c_trang_thai_tt, (System.Collections.IEnumerable)ViewBag.listPaymentStatus, "ParamID", "Value").Title("Trạng thái TT").Width(70);
+                            columns.Bound(o => o.c_ngay_du_kien_thu)
+                                    .HtmlAttributes(new { style = "\\#=ChangeBGOutDate(c_status)\\#;text-align: right;" })
+                                    .Title("Ngày dự kiến thu").Width(50).Format("{0:dd/MM/yyyy}");
+                            columns.ForeignKey(p => p.c_status, (System.Collections.IEnumerable)ViewBag.listStatusPaypal, "Code", "Name")
+                                    .HtmlAttributes(new { style = "\\#=ChangeBGOutDate(c_status)\\#;text-align: right;" })
+                                    .Title("Trạng thái nợ").Width(70);
+                            columns.Bound(o => o.c_so_ngay_qua_han)
+                                    //.ClientTemplate("<span>\\#=Math.abs(c_so_ngay_qua_han)\\# ngày</span>")
+                                    .ClientTemplate("<span>\\#if(c_so_ngay_qua_han >= 0){\\#<span>0</span>\\#}else{\\#<span>\\#=Math.abs(c_so_ngay_qua_han)\\# ngày</span>\\#}\\#</span>")
+                                    .HtmlAttributes(new { style = "\\#=ChangeBGOutDate(c_status)\\#;text-align: right;" })
+                                    .Title("Quá hạn").Width(40);
+                        })
+                        .HtmlAttributes(new { style = "height: 200px;" })
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .PageSize(20)
+                            //.Sort(s => s.Add("c_dot_order").Descending())
+                            .Read(read => read.Action("PaymentDetailRead", "CRMMnDebt", new { pk_contract = "#=pk_contract#" }))
+                        )
+                        .Pageable()
+                        .Resizable(r => r.Columns(true))
+                        .Scrollable(scrollable => scrollable.Virtual(false))
+                        .ToClientTemplate())
+                </text>
+                );
+            })
+            .ToClientTemplate())
+
+    </div>
+</script>
+<script>
+    //chuyen doi so --> chuoi dinh danh tien $1,000
+    function GetCustomerCode() {
+        return { CustomerCode: CustomerCode };
+    }
+    function currency2String(value) {
+        return value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
+    }
+    function dataBounddetail(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+        var TotalAmount = 0;
+        var Published = 0;
+        var PublishedToDay = 0;
+        var Collected = 0;
+        var Remain = 0;
+        var TotalRemain = 0;
+        var Invoiced = 0;
+        var NotInvoiced = 0;
+        var ContractInDebt = 0;
+        var data = e.sender.dataSource._data;
+        for (var i = 0; i < data.length; i++) {
+            TotalAmount += data[i].TotalAmount;
+            Published += data[i].Published;
+            PublishedToDay += data[i].PublishedToDay;
+            Collected += data[i].Collected;
+            Remain += data[i].Remain;
+            TotalRemain += data[i].TotalRemain;
+            Invoiced += data[i].Invoiced;
+            NotInvoiced += data[i].NotInvoiced;
+            ContractInDebt++;
+        }
+        $('.tTotalAmount').html(kendo.toString(TotalAmount, 'N0'));
+        $('.tPublished').html(kendo.toString(Published, 'N0'));
+        $('.tPublishedToDay').html(kendo.toString(PublishedToDay, 'N0'));
+        $('.tCollected').html(kendo.toString(Collected, 'N0'));
+        $('.tRemain').html(kendo.toString(Remain, 'N0'));
+        $('.tTotalRemain').html(kendo.toString(TotalRemain, 'N0'));
+        $('.tInvoiced').html(kendo.toString(Invoiced, 'N0'));
+        $('.tNotInvoiced').html(kendo.toString(NotInvoiced, 'N0'));
+        $('.tContractInDebt').html(kendo.toString(ContractInDebt, 'N0'));
+       
+        var grid = $("#Grid").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter(),
+            group: grid.dataSource.group()
+        });
+        resizeGrid('Grid');
+    }
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 95);
+
+    }
+    function ChangeBGOutDate(status) {
+        if (status == 2) {
+            return "background-color:#FFCC80";
+        }
+        else if (status == 1) {
+            return "background-color:#FB8C00";
+        }
+        else if (status == 6) {
+            return "background-color:#c3dabf";
+        }
+        else {
+            return "";
+        }
+    }
+    function filter() {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var txtContractCode = $('#txtContractCode').val();
+        if (txtContractCode) {
+            filter.filters.push({ field: "c_code", operator: "eq", value: txtContractCode });
+        }
+        var listDebtType = $('#listDebtType').val();
+        if (listDebtType) {
+            filter.filters.push({ field: "Status", operator: "eq", value: listDebtType });
+        }
+        var txtBillExport = $('#txtBillExport').val();
+        if (txtBillExport == 1) {
+            filter.filters.push({ field: "NotInvoiced", operator: "gt", value: 0 });
+        }
+        //var txtReTwoDay = $('#txtReTwoDay').val();
+        //if (txtReTwoDay) {
+        //    filter.filters.push({ field: "c_trang_thai_no", operator: "eq", value: convertDate(txtReTwoDay) });
+        //}
+        grid.dataSource.filter(filter);
+    }
+    $(".frame-search").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    $("#clkNoBill").click(function () {
+        $('#txtBillExport').val(1);
+        filter();
+    })
+</script>
+

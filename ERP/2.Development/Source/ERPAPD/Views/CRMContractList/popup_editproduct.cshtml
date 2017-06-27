@@ -1,0 +1,753 @@
+﻿<div id="popup-product" class="modal hide fade" style="width:1000px !important; left: 30% !important">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thêm mới sản phẩm</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div class="row-fluid">
+            <form id="product-form" action="#" method="post" class="form-inline" enctype="multipart/form-data" style="margin-bottom:0px;">
+                <div id="divViewInfor">
+                    @*<b>Dịch vụ đăng ký mua</b>*@
+                    <div class="row-fluid">
+                        <div class="span2">
+                            <div class="controls">
+                                <label>
+                                    <input name="form-field-radio" type="radio" id="TypeBANNER" value="BANNER" onchange="onchangeproduct('BANNER')" class="type-product">
+                                    <span class="lbl"> Banner</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="span2">
+                            <div class="controls">
+                                <label>
+                                    <input name="form-field-radio" type="radio" id="TypeDB" value="DB" onchange="onchangeproduct('DB')" class="type-product">
+                                    <span class="lbl"> Bài</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="span2">
+                            <div class="controls">
+                                <label>
+                                    <input name="form-field-radio" type="radio" id="TypeFanpage" value="" onchange="onchangeproduct('Fanpage')" class="type-product">
+                                    <span class="lbl"> Fanpage</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="span2">
+                            <div class="controls">
+                                <label>
+                                    <input name="form-field-radio" type="radio" id="TypePR" value="PRRe" onchange="onchangeproduct('PRRe')" class="type-product">
+                                    <span class="lbl"> Bài PR giá rẻ</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <b>Thông tin dịch vụ</b>
+                        <div class="row-fluid">
+                            <div class="span4">
+                                <div class="span10">
+                                    <div class="control-group">
+                                        <label>Tên dịch vụ</label>
+                                        <div id="divProductCode">
+                                            <input class="input-lagre" type="text" placeholder="Chọn sản phẩm" disabled="disabled" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span1">
+                                    <div class="control-group">
+                                        <label>KM</label>
+                                        <div class="controls">
+                                            <input id="Promotion" type="checkbox" style="margin-top:0px; width:28px; height:28px; opacity:0.7" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span4">
+                                <div class="control-group">
+                                    <label>Mô tả</label>
+                                    <div class="controls">
+                                        <input id="ProductInfo" name="ProductInfo" class="input-lagre" />
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span2">
+                                <div class="span9">
+                                    <div class="control-group">
+                                        <label>Đơn giá</label>
+                                        <div class="controls">
+                                            <input id="Price" name="Price" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                                            @* <input id="Price1" class="input-small" type="text" onkeypress="formatMoney(this,1)" />*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span2" id="divNumber">
+                                    <div class="control-group">
+                                        <label>SL</label>
+                                        <div class="controls">
+                                            <input id="Number" name="Number" style="width:15px" type="text" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span2">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <label>Nguồn website</label>
+                                        <input class="input-mini span12" id="NguonDan" name="NguonDan" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row-fluid" id="divlist-time">
+                            @* do some thing *@
+                            <ul id="list-time-updown" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+                                <li>
+                                    <div class="row-fluid">
+                                        <div class="span4">
+                                            <label>Ngày bắt đầu</label>
+                                        </div>
+                                        <div class="span3">
+                                            <label>Thời gian dịch vụ</label>
+                                        </div>
+                                        <div class="span4">
+                                            <label>Ngày kết thúc</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="group-time-updown" style="list-style:none">
+                                    <div class="row-fluid group-item-time-updown">
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <input name="PKTime" class="input-medium hdt-service-discount" value=0 type="hidden" />
+                                                    <input name="DateUp" class="input-medium span12  date-picker" onchange="tinhNgay(this, 0)" type="text" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span3">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <input name="Week" class="input-mini span6 no-week" onchange="tinhNgay(this,2)" type="text" />
+                                                    <input name="NumberDay" class="input-mini span6 no-week" onchange="tinhNgay(this,1)" type="text" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <input name="DateDown" class="input-medium span10 date-picker" onchange="tinhNgay(this,0)" type="text" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span1">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupTimeUpDown()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span3">
+                            <div class="control-group">
+                                <b>Dịch vụ cộng thêm</b>
+                                <div class="controls">
+                                    <select id="hdt-services-additional" class='chosen-select' data-placeholder="Dịch vụ cộng thêm"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span4">
+                            <div class="control-group">
+                                <label>Ngày bắt đầu</label>
+                                <div class="controls">
+                                    <input id="hdt-start-date-additional" onchange="countnoday(this)" class="input-medium span12 date-picker" type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span3">
+                            <div class="control-group">
+                                <label>Thời gian dịch vụ</label>
+                                <div class="controls">
+                                    <input class="input-mini span6" type="text" />
+                                    <input class="input-mini span6" type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span4">
+                            <div class="control-group">
+                                <label>Ngày kết thúc</label>
+                                <div class="controls">
+                                    <input id="hdt-end-date-additional" onchange="countNoDay(this)" class="input-medium span10 date-picker" type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="span1">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <br>
+                                        <button class="btn btn-minier btn-success" onclick="plusHdtGroupTimeUpDown()"><i class="icon-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>*@
+                    </div>
+
+
+                    <div class="row-fluid">
+                        <b>Chiết khấu- CTKM</b>
+                        <div id="divlist-promotion">
+                            <ul id="list-promotion-hdt" data-contract="@ViewBag.PKContractDraff" style="list-style: none; margin: 0 0 10px 0 !important;">
+                                <li>
+                                    <div class="row-fluid">
+                                        <div class="span1">
+                                            <label>CK</label>
+                                        </div>
+                                        <div class="span4">
+                                            <label>Chương trình khuyến mãi</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="group-promotion-hdt">
+                                    <div class="row-fluid">
+                                        <div class=" span2">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <input name="PKPromotion" class="input-mini hdt-service-discount" value=0 type="hidden" />
+                                                    <input name="Discount" class="input-mini span12  hdt-service-discount" type="text" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="list-promotion">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span1">
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <button type="button" class="btn btn-minier btn-success" onclick="plusHdtGroupPromotion()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            @* do some thing *@
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <ul id="list-promtion-money" style="list-style: none; margin: 0 0 10px 0 !important;">
+                            <li>
+                                <div class="row-fluid">
+                                    <div class="span2">
+                                        <div class="control-group">
+                                            <label>CK tiền</label>
+                                        </div>
+                                    </div>
+                                    <div class="span4">
+                                        <div class="control-group">
+                                            <label>Chương trình khuyến mãi</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="row-fluid">
+                                    <div class="span2">
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <input id="CKTienMat" name="CKTienMat" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                                                <br><span id="spanloi" style="color:red;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="span4">
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <select name="CTKMCKTien" id="CTKMCKTien" class="chosen-select" data-placeholder="CK khuyến mãi">
+                                                    @foreach (var item in ViewBag.listPromotion)
+                                                    {
+                                                        <option value="@item.Code">@item.Name</option>
+                                                    }
+                                                </select>
+
+                                                @*   <input class="input-mini span12" type="text" />*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="SaveProduct()">Lưu lại</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    function changeProduct() {
+        $.post(r + '/Ajax/GetProductByCode/', { Code: $('#ProductCode').val() }, function (data) {
+            $('#ProductInfo').val(data.data[0].Nature);
+        });
+    }
+    $('#Promotion').click(function () {
+        if ($('#Promotion').is(":checked")) {
+            $('#Price,#CKTienMat').val('0.000');
+            $('#list-promotion-hdt .group-promotion-hdt').find(".hdt-service-discount").val('0.000');
+        }
+    });
+    function plusHdtGroupTimeUpDown() {
+        var html = '';
+        html += ' <li class="group-time-updown" style="list-style:none;">'
+        html += '                <div class="row-fluid">'
+        html += '                    <div class="span4">'
+        html += '                       <div class="control-group">'
+        html += '                           <div class="controls">'
+        html += '                                <input name="DateUp" class="input-medium span12 date-picker" onchange="tinhNgay(this,0)" type="text" />'
+        html += '                            </div>'
+        html += '                        </div>'
+        html += '                    </div>'
+        html += '                    <div class="span3">'
+        html += '                        <div class="control-group">'
+        html += '                            <div class="controls">'
+        html += '                                <input name="Week" class="input-mini span6  no-week" onchange="tinhNgay(this,2)" type="text" />'
+        html += '                                <input name="NumberDay" class="input-mini span6  no-week" onchange="tinhNgay(this,1)" type="text" />'
+        html += '                            </div>'
+        html += '                        </div>'
+        html += '                    </div>'
+        html += '                    <div class="span4">'
+        html += '                        <div class="control-group">'
+        html += '                            <div class="controls">'
+        html += '                                <input name="DateDown" class="input-medium span10 date-picker"  onchange="tinhNgay(this,0)" type="text" />'
+        html += '                            </div>'
+        html += '                        </div>'
+        html += '                    </div>'
+        html += '                    <div class="span1">'
+        html += '                        <div class="control-group">'
+        html += '                            <div class="controls">'
+        html += '                                <button  type="button" class="btn btn-minier btn-danger" onclick="minusHdtGroupTimeUpDown(this)"><i class="icon-minus"></i></button>'
+        html += '                            </div>'
+        html += '                        </div>'
+        html += '                    </div>'
+        html += '                </div>'
+        html += '            </li>'
+        $("#list-time-updown").append(html);
+        formatDateDisplay();
+    }
+    function plusHdtGroupPromotion() {
+        var html = '';
+        html += '<li class="group-promotion-hdt">'
+        html += '        <div class="row-fluid">'
+        html += '             <div class="span2">'
+        html += '                 <div class="control-group">'
+        html += '              <div class="controls">'
+        html += '                  <input name="Discount" class="input-mini span12 hdt-service-discount" type="text" />'
+        html += '              </div>'
+        html += '          </div>'
+        html += '      </div>'
+        html += '               <div class="span4">'
+        html += '                 <div class="control-group">'
+        html += '                     <div class="controls">'
+        html += '                        <div class="list-promotion">'
+        html += '                        </div>'
+        html += '                      </select>'
+        html += '                    </div>'
+        html += '                  </div>'
+        html += '              </div>'
+        html += '      <div class="span1">'
+        html += '          <div class="control-group">'
+        html += '              <div class="controls">'
+        html += '                  <button  type="button" class="btn btn-minier btn-danger" onclick="minusHdtGroupPromotion(this)"><i class="icon-minus"></i></button>'
+        html += '              </div>'
+        html += '          </div>'
+        html += '      </div>'
+        html += '  </div>'
+        html += '</li>'
+        $("#list-promotion-hdt").append(html);
+        $(".group-promotion-hdt .list-promotion").html('');
+        $(".group-promotion-hdt .list-promotion").html($('#listpromotion').html());
+        $("#list-promotion-hdt .select").chosen();
+    }
+    function minusHdtGroupPromotion(e, pk) {
+        $(e).closest('li').remove();
+        deleteItem(pk, "Promotion");
+    }
+    function minusHdtGroupTimeUpDown(e, pk) {
+        $(e).closest('li').remove();
+        deleteItem(pk, "Time");
+    }
+    var typeProduct = "";
+    var totalday = 0;
+    var totalAmtNoVAT = 0;
+    var totalAmtCK = 0;
+    var totalBeforeDiscount = 0;
+    function convertStringtoMoney(stringid) {
+        return parseFloat($('#' + stringid).val().split(",").join(''));
+    }
+    function calcuDiscountProduct() {
+        totalAmtNoVAT = convertStringtoMoney('Price') * parseFloat($('#Number').val());
+        totalBeforeDiscount = totalAmtNoVAT;
+        var tongsotuan = 0;
+        var tongsongay = 0;
+        $("#list-time-updown .group-time-updown").each(function (i) {
+            $(this).find("input").each(function () {
+                if ($(this).attr("name") == "Week") {
+                    tongsotuan = tongsotuan + parseInt($(this).val());
+                }
+                if ($(this).attr("name") == "NumberDay") {
+                    tongsongay = tongsongay + parseInt($(this).val());
+                }
+            });
+        })
+        tongsongay = tongsongay + (tongsotuan * 7);
+        if (typeProduct == "BANNER") {
+            var totalCK = 0;
+            //Đơn giá tính theo tuần
+            totalAmtNoVAT = (convertStringtoMoney('Price') / 7) * tongsongay;
+            totalBeforeDiscount = totalAmtNoVAT;
+            $("#list-promotion-hdt .group-promotion-hdt").each(function (i) {
+                //tính % chiết khấu KM
+                $(this).find("input").each(function () {
+                    if ($(this).prop("name") == "Discount") {
+                        if ($(this).val() > 0) {
+                            totalCK = totalCK + parseInt($(this).val());
+                        }
+                    }
+                });
+            });
+            totalAmtNoVAT = totalAmtNoVAT - (totalAmtNoVAT * (totalCK / 100));
+        }
+        else {
+            $("#list-promotion-hdt .group-promotion-hdt").each(function (i) {
+                //Đơn giá tính theo tuần
+                totalAmtNoVAT = (convertStringtoMoney('Price') / 7) * tongsongay;
+                //tính % chiết khấu KM
+                $(this).find("input").each(function () {
+                    if ($(this).prop("name") == "Discount") {
+                        if ($(this).val() > 0) {
+                            totalCK = totalCK + parseInt($(this).val());
+                        }
+                    }
+                });
+            });
+            totalAmtNoVAT = totalAmtNoVAT - (totalAmtNoVAT * (totalCK / 100));
+        }
+        if ($('#CKTienMat').val() != '') {
+            var mn = convertStringtoMoney('CKTienMat');
+            if (mn > totalAmtNoVAT) {
+                $.gritter.add({
+                    title: 'Lỗi',
+                    text: 'Tiền giảm trực tiếp không thể lớn hơn tổng tiền sau giảm giá',
+                    class_name: 'gritter-error'
+                });
+                return;
+            }
+            else {
+                totalAmtNoVAT = totalAmtNoVAT - convertStringtoMoney('CKTienMat');
+            }
+
+        }
+    }
+    function refreshData() {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        // GetAmtByContract();
+    }
+    function setData(obj, key) {
+        if (key == 1) {
+            $('#divViewInfor').show();
+            $('#hdt-services-additional').chosen();
+            $('#CTKMCKTien').chosen();
+            $("#list-time-updown .chosen-select").chosen();
+            var currentRow = $(obj).closest("tr");
+            var dataItem = $("#Grid").data("kendoGrid").dataItem(currentRow);
+            PKProductcurrent = dataItem.PKProduct;
+            if (dataItem.ProductType == "BANNER") {
+                $("#TypeBANNER").prop("checked", true);
+                $('#divNumber').hide();
+            }
+            if (dataItem.ProductType == "DB") {
+                $("#TypeDB").prop("checked", true);
+                $('#divNumber').show();
+            }
+            else {
+                // $("#TypeBanner").prop("checked", false);
+                $('#divNumber').show();
+            }
+            onchangeproduct(dataItem.ProductType);
+            onBindDataToForm(dataItem);
+            if (dataItem.Price == 0) {
+                $('#Promotion').prop('checked', true);
+                $('#Price').val('0.000');
+            }
+            else {
+                $('#Price').val(formatoString(dataItem.Price));
+                $('#Promotion').prop('checked', false);
+            }
+            $('#CKTienMat').val(formatoString(dataItem.CKTienMat));
+            $('#ProductCode').val(dataItem.FKProduct).trigger('chosen:updated');
+            $.post(r + '/Ajax/GetListTimeUpdownProductDraff/', { FKProduct: dataItem.PKProduct, FKContract: dataItem.FKContract }, function (data) {
+                $('#divlist-time').html(data);
+                formatDateDisplay();
+                $("#list-time-updown .chosen-select").chosen();
+            });
+            $.post(r + '/Ajax/GetListPromotionProductDraff/', { FKProduct: dataItem.PKProduct, FKContract: dataItem.FKContract }, function (data) {
+                $('#divlist-promotion').html(data);
+                formatDateDisplay();
+                $("#list-promotion-hdt .chosen-select").chosen();
+            });
+        }
+    }
+    function SaveProduct() {
+        debugger;
+        if (keyid == 0) {
+            var arr = [], arr2 = [];;
+            var ob = {};
+            var loop = true, loop2 = true;
+            calcuDiscountProduct();
+            var Urls = $('form#formContract')[0].action;
+            actionView = '@ViewBag.action';
+            $.ajax({
+                url: Urls,
+                type: 'POST',
+                data: $('form#formContract').serialize(),
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        debugger;
+                        if (actionView == "create") {
+                            if (data.PK) {
+                                console.log(data.PK);
+                                $("form#formContract").attr("data-contract", data.PK);
+                                $('#general-contract-PKContractDraft').val(data.PK);
+                            }
+                        }
+                        //
+                        debugger;
+                        //Đưa data vào list thời gian đăng bài
+                        $("#list-time-updown .group-time-updown").each(function (i) {
+                            var ob = {};
+                            ob.FKContract =  $("#formContract").attr("data-contract");
+                            ob.FKProduct = PKProductcurrent;
+                            ob.TotalAmtNoVAT = totalAmtNoVAT;
+                            $(this).find("input").each(function () {
+                                if ($(this).attr("name") == "PKTime") {
+                                    ob.PKTime = $(this).val();
+                                }
+                                if ($(this).attr("name") == "DateUp") {
+                                    ob.DateUp = convertDate($(this).val());
+                                }
+                                if ($(this).attr("name") == "DateDown") {
+                                    ob.DateDown = convertDate($(this).val());
+                                }
+                                if ($(this).attr("name") == "Week") {
+                                    ob.Week = $(this).val();
+                                }
+                                if ($(this).attr("name") == "NumberDay") {
+                                    ob.NumberDay = $(this).val();
+                                }
+                            })
+                            arr[i] = ob;
+                        })
+                        if (!loop) {
+                            return;
+                        }
+                        //Đưa data vào list chiết khấu
+                        $("#list-promotion-hdt  .group-promotion-hdt").each(function (i2) {
+                            var ob = {};
+                            // ob.FKContract = $("#list-promotion-hdt").attr("data-contract");
+                            ob.FKContract =  $("#formContract").attr("data-contract");
+                            ob.FKProduct = PKProductcurrent;
+                            ob.AmtNoVAT = 0;
+                            $(this).find("input").each(function () {
+                                if ($(this).attr("name") == "PKPromotion") {
+                                    ob.PKPromotion = $(this).val();
+                                }
+                                if ($(this).attr("name") == "Discount") {
+                                    ob.Discount = $(this).val();
+                                }
+                            });
+
+                            $(this).find("select").each(function () {
+                                if ($(this).attr("name") == "Promotion") {
+                                    ob.Promotion = $(this).val();
+                                }
+                            });
+                            arr2[i2] = ob;
+                        })
+                        if (!loop2) {
+                            return;
+                        }
+                        ob.FKContract =  $("#formContract").attr("data-contract"); // $("#list-time-updown").attr("data-contract");
+                        ob.NguonDan = $('#NguonDan').val();
+                        ob.FKProduct = $('#ProductCode').val();
+                        ob.Number = $('#Number').val();
+                        ob.Price = convertStringtoMoney('Price');
+                        ob.CKTienMat = convertStringtoMoney('CKTienMat');
+                        ob.CTKMCKTien = $('#CTKMCKTien').val();
+                        ob.TotalAmtBeforeDiscount = totalBeforeDiscount;
+                        ob.TotalAmtSevicePlus = 0;
+                        ob.TotalAmtAfterDiscount = totalAmtNoVAT;
+                       
+                        //
+
+                        $.ajax({
+                            url: "/CRMContractList/CreateProductDraff",
+                            type: 'POST',
+                            data: {
+                                listTimeProduct: arr, listPromotionProduct: arr2,
+                                ObProduct: ob
+                            },
+                            success: function (data, textStatus, jqXHR) {
+                                if (data.success) {
+                                    $.gritter.add({
+                                        title: 'Thành công',
+                                        text: 'Đã thêm sản phẩm thành công ',
+                                        class_name: 'gritter-success'
+                                    });
+                                    $('#popup-product').modal('hide');
+                                    //  refreshData();
+                                    $('#Grid').data('kendoGrid').dataSource.read({ "Id": $("#formContract").attr("data-contract") });
+                                    //
+                                }
+                                else {
+                                    $.gritter.add({
+                                        title: 'Lỗi',
+                                        text: data.message,
+                                        class_name: 'gritter-error'
+                                    });
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                $.gritter.add({
+                                    text: 'Lỗi Cập nhật !',
+                                    class_name: 'gritter-error'
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+           
+        }
+        else {
+            var arr = [], arr2 = []; arr3 = [];
+            var ob = {};
+            var loop = true, loop2 = true; loop3 = true;
+            //tính lại tiền của sản phẩm
+            calcuDiscountProduct();
+
+            //Đưa data vào list thời gian đăng bài
+            $("#list-time-updown .group-time-updown").each(function (i) {
+                var ob = {};
+                ob.FKContract = $("#formContract").attr("data-contract");  
+                ob.FKProduct = PKProductcurrent;
+
+                ob.TotalAmtNoVAT = totalAmtNoVAT;
+                $(this).find("input").each(function () {
+                    if ($(this).attr("name") == "PKTime") {
+                        ob.PKTime = $(this).val();
+                    }
+                    if ($(this).attr("name") == "DateUp") {
+                        ob.DateUp = convertDate($(this).val());
+                    }
+                    if ($(this).attr("name") == "DateDown") {
+                        ob.DateDown = convertDate($(this).val());
+                    }
+                    if ($(this).attr("name") == "Week") {
+                        ob.Week = $(this).val();
+                    }
+                    if ($(this).attr("name") == "NumberDay") {
+                        ob.NumberDay = $(this).val();
+                    }
+                })
+                arr[i] = ob;
+            })
+            if (!loop) {
+                return;
+            }
+            //Đưa data vào list chiết khấu
+            $("#list-promotion-hdt  .group-promotion-hdt").each(function (i2) {
+                var ob = {};
+                ob.FKContract =$("#formContract").attr("data-contract"); 
+                ob.FKProduct = PKProductcurrent;
+                ob.AmtNoVAT = 0;
+                $(this).find("input").each(function () {
+                    if ($(this).attr("name") == "PKPromotion") {
+                        ob.PKPromotion = $(this).val();
+                    }
+                    if ($(this).attr("name") == "Discount") {
+                        ob.Discount = $(this).val();
+                    }
+                });
+                $(this).find("select").each(function () {
+                    if ($(this).attr("name") == "Promotion") {
+                        ob.Promotion = $(this).val();
+                    }
+                });
+                arr2[i2] = ob;
+            })
+            if (!loop2) {
+                return;
+            }
+            ob.FKContract = $("#formContract").attr("data-contract");
+            ob.NguonDan = $('#NguonDan').val();
+            ob.FKProduct = $('#ProductCode').val();
+            ob.Number = $('#Number').val();
+            ob.Price = convertStringtoMoney('Price');
+            ob.CKTienMat = convertStringtoMoney('CKTienMat');
+            ob.CTKMCKTien = $('#CTKMCKTien').val();
+            ob.TotalAmtBeforeDiscount = totalBeforeDiscount;
+            ob.TotalAmtSevicePlus = 0;
+            ob.TotalAmtAfterDiscount = totalAmtNoVAT;
+            $.ajax({
+                url: "/CRMContractList/SaveTimeProductDraff",
+                type: 'POST',
+                data: {
+                    listTimeProduct: arr, listPromotionProduct: arr2,
+                    ObProduct: ob
+                },
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: 'Thành công',
+                            text: 'Cập nhật thành công !',
+                            class_name: 'gritter-success'
+                        });
+                        $('#popup-product').modal('hide');
+                        refreshData();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Cập nhật !',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+           
+        }
+    }
+</script>

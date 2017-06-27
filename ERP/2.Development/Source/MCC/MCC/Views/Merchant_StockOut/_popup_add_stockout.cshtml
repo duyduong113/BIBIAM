@@ -1,0 +1,141 @@
+﻿@*Popup add PO detail*@
+@using BIBIAM.Core.Entities
+<link href="~/Content/assets/global/plugins/icheck/skins/minimal/_all.css" rel="stylesheet" />
+<script src="~/Content/assets/global/plugins/icheck/icheck.min.js"></script>
+<style>
+    .search {
+    }
+
+    .box-search {
+        margin-bottom: 15px;
+    }
+
+    .search .box-search > span {
+        display: inline-block;
+        width: 100px;
+    }
+    .search .box-search > input {
+        display: inline-block;
+        width: 70%;
+    }
+
+    .search > button {
+        position: absolute;
+        right: 5%;
+        top: 20px;
+    }
+</style>
+
+<div id="popup-add-order" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Chọn đơn hàng</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="search">
+                    <div class="box-search">
+                        <input type="text" id="txtSearch" name="txtSearch" class="fourper form-control" placeholder="@Html.Raw(Resources.Global._all).ToString()">
+                    </div>
+                    <button class="search_order btn btn-primary" onclick="Filter()">@Html.Raw(@Resources.Global._search) </button>
+                </div>
+                <div class="magin">
+                    @(Html.Kendo().Grid<Merchant_OrderHeader>()
+                    .Name("OrderGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.id).Hidden();
+                        columns.Template(@<Text></Text>).Title("").ClientTemplate("<button type='button' onclick='Done(this)' class='btn btn-success'>Chọn</button>").Width(80).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.ma_don_hang).Title("Mã đơn hàng").Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.hoten).Title("Họ tên").Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.so_dien_thoai_giao).Title("Số điện thoại").Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Template(@<Text></Text>).Title("Địa chỉ giao hàng").ClientTemplate("<span> #=dia_chi_giao_hang ? dia_chi_giao_hang : ''#, #=quan_huyen_giao ? quan_huyen_giao : ''#, #=tinh_thanh_giao ? tinh_thanh_giao : ''#</span>").Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.hinh_thuc_thanh_toan).Title("Hình thức thanh toán").Width(120).HtmlAttributes(new { @class = "editable" });
+         })
+         .Scrollable()
+         .Navigatable()
+         .Filterable()
+         .ColumnMenu()
+                    .AutoBind(true)
+                      .Pageable(x => x.PageSizes(new int[] { 20, 100, 200, 300, 500 }))
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .ServerOperation(false)
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.id).Editable(false);
+                            
+                        })
+                        .Read(c => c.Action("ReadOrder", "Merchant_StockOut"))
+                        )
+                    )
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+	function showModal() {
+		//$("label[for='checkbox-isNotPromotion']").text('Tìm sản phẩm gợi ý từ ngày ' + $("#ngay_bat_dau").val() + " - " + $("#ngay_ket_thuc").val());
+		$("#popup-add-order").modal('show');
+	}
+	function Done(e) {
+	    var orderheader = $('#OrderGrid').data('kendoGrid').dataItem($(e).closest('tr'));
+	    $.ajax({
+	        type: "POST",
+	        async: true,
+	        url: r + "/Merchant_StockOut/AddProduct_Order",
+	        data: { ma_phieu_xuat_kho: $("#ma_phieu_xuat_kho").val(), ma_don_hang: orderheader.ma_don_hang },
+	        beforeSend: function () {
+	            App.blockUI({ boxed: !0, message: '@Html.Raw(@Resources.Global._just_amoment)...' });
+	        },
+	        success: function (data) {
+	            if (data.success) {
+	                App.unblockUI();
+	                $('.modal').modal('hide');
+	                $("#EditForm input[id='danh_sach_don_hang']").val(orderheader.ma_don_hang);
+	                $("#GridProduct").data("kendoGrid").dataSource.read();
+	                toastr.success('Tạo phiếu xuất kho thành công!');
+	            }
+	            else
+	                toastr.error(data.message)
+	        },
+	        complete: function (xhr) {
+	            App.unblockUI();
+	        }
+	    });
+	}
+    function Filter() {
+        //searchgridpopup
+        var listView = $("#OrderGrid").data("kendoGrid");
+        var seachText = $("#txtSearch").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+        if (typeof seachText != '') {
+            if (seachText.length) {
+                filterDesc.filters.push({ field: "ma_don_hang", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "hoten", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "sdt", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "dia_chi_giao_hang", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "tinh_thanh_giao", operator: "contains", value: seachText });
+                filterDesc.filters.push({ field: "quan_huyen_giao", operator: "contains", value: seachText });
+                filter.filters.push(filterDesc);
+            }
+        }
+        listView.dataSource.filter(filter);
+    }
+</script>

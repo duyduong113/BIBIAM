@@ -1,0 +1,66 @@
+﻿@{
+    Layout = null;
+}
+<table id="sample-table-1" class="table table-striped table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>
+                <i class="icon-user"></i>
+                Tên người liên hệ
+            </th>
+
+            <th>
+                <i class="icon-phone"></i>
+                Số điện thoại
+            </th>
+            <th class="hidden-480">Gọi</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in ViewBag.listContactByCus)
+        {
+            <tr>
+                <td class="">@item.Name</td>
+
+                <td>
+                    <a href="#">@item.Mobile</a>
+                </td>
+
+                <td class="hidden-480">
+                    <span class="btn btn-small btn-success"><a target="_blank" class="white" href="/CRMCustomerSupportDetail?CustomerID=@(ViewBag.detailCustomer.CustomerID)&callType=@(ViewBag.Type)&RowID=@(ViewBag.RowID)&phone=@(item.Mobile)"><i class="icon-phone"></i></a></span>
+                </td>
+            </tr>
+        }
+        @if (ViewBag.detailCustomer != null )
+        {
+            try
+            {
+                var phones = Json.Decode(ViewBag.detailCustomer.Phone);
+                for (var i = 0; i < phones.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(@phones[i])) { 
+                    <tr>
+                        <td>@ViewBag.detailCustomer.CustomerName</td>
+                        <td><a>@phones[i]</a></td>
+                        <td class="hidden-480">
+                            <span class="btn btn-small btn-success"><a class="white" href="/CRMCustomerSupportDetail?CustomerID=@(ViewBag.detailCustomer.CustomerID)&callType=@(ViewBag.Type)&RowID=@(ViewBag.RowID)&phone=@phones[i])"><i class="icon-phone"></i></a></span>
+                        </td>
+                    </tr>
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                <tr>
+                    <td>@ViewBag.detailCustomer.CustomerName</td>
+                    <td><a>@ViewBag.detailCustomer.Phone</a></td>
+                    <td class="hidden-480">
+                        <span class="btn btn-small btn-success"><a class="white" href="/CRMCustomerSupportDetail?CustomerID=@(ViewBag.detailCustomer.CustomerID)&callType=@(ViewBag.Type)&RowID=@(ViewBag.RowID)&phone=@(ViewBag.detailCustomer.Phone)"><i class="icon-phone"></i></a></span>
+                    </td>
+                </tr>
+            }
+
+        }
+    </tbody>
+</table>

@@ -1,0 +1,516 @@
+﻿@{ 
+    Layout = null;
+    string revenueDate = "";
+    if (ViewBag.itemdraff.NgayVeHaiChieu.ToString("dd/MM/yyyy") != "01/01/1900")
+    {
+        revenueDate = ViewBag.itemdraff.NgayVeHaiChieu.ToString("dd/MM/yyyy");
+    }
+}
+<style type="text/css">
+    .body-print {
+        margin: 0 auto;
+        font-family: "Times New Roman";
+        font-size: 12pt;
+        color: #000;
+        text-align: justify;
+        margin: 0px auto;
+        max-width: 750px;
+        background-color: #fff;
+        padding-bottom: 50px;
+    }
+
+    .title-row {
+        font-size: 14pt;
+    }
+
+    .body-print ul {
+        margin: 0;
+    }
+
+    .body-print li {
+        margin: 5px 0;
+    }
+
+    .body-print .dot-line {
+        display: inline-block;
+        width: 83%;
+        border-bottom: dotted 1px #a0bdc7;
+        height: 16px;
+    }
+
+    table .dot-line {
+        height: 16px;
+        text-align: right;
+    }
+
+    .body-print .empty-line {
+        display: inline-block;
+        width: 83%;
+        height: 16px;
+    }
+
+    .body-print .width-100px {
+        width: 100px;
+    }
+
+    .right-chkb {
+        margin-right: 40px;
+    }
+
+    .left10 {
+        margin-left: 10px !important;
+    }
+
+    .value-show {
+        margin-left: 10px;
+    }
+
+    input[type="text"].real-value, textarea {
+        display: none;
+        height: 12px;
+    }
+
+    table input[type="text"].real-value {
+        height: 16px;
+    }
+
+    th .value-show, th .real-value {
+        font-weight: normal;
+    }
+</style>
+<div style="padding:0 40px; text-align:justify;padding-bottom: 100px;" class="body-print">
+    <div class="text_head" id="print_header" style="height:60px;"></div>
+    <h2 align="center" class="text_head" style="font-weight:bold;">BẢNG KÊ BỔ SUNG THÔNG TIN HỢP ĐỒNG</h2>
+    <p><i><b><u>Lưu ý: </u></b> Nvkd có thể/hoặc không cần phải kê các nội dung có dấu (*)  </i></p>
+    <p>
+        <input name="FKContractDraft" type="hidden" value="" />
+        <ul>
+            <li>1.Tên KH <i>(đầy đủ):</i><div class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.CustomerName</span><input name="CustomerName" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" value="@ViewBag.itemdraff.CustomerName" /></div></li>
+            <li>
+                <span class="title-row">2.Mã KH </span>
+                <div style="width:18%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.CustomerCode</span><input name="CustomerCode" value="@ViewBag.itemdraff.CustomerCode" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">3.Mã book chỗ</span>
+                <div style="width:17%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.BookCode</span><input value="@ViewBag.itemdraff.BookCode" name="BookCode" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">4.Số hợp đồng </span>
+                <div style="width:18%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.Code</span><input name="Code" value="@ViewBag.itemdraff.Code" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+            </li>
+            <li>
+                <span class="title-row right-chkb">5.Loại KH:</span><span style="margin-right:5%">
+                    Trực tiếp
+                    @if (ViewBag.itemdraff.CustomerType == "TRUC-TIEP")
+                    {
+                        <input value="1" name="CustomerType" class="left10" type="checkbox" checked />
+                    }
+                    else
+                    {
+                        <input value="0" name="CustomerType" class="left10" type="checkbox" />
+                    }
+                </span>
+                <span class="title-row">Đại lý:</span>
+                <span class="right-chkb">Vàng <input name="AgencyType" value="DL_VANG" class="left10" type="radio" /></span>
+                <span class="right-chkb">Rubi <input name="AgencyType" value="DL_RUBI" class="left10" type="radio" /></span>
+                <span class="right-chkb">Tital<input name="AgencyType" value="DL_TITAL" class="left10" type="radio" /></span>
+                <span class="right-chkb">Basic<input name="AgencyType" value="DL_BASIC" class="left10" type="radio" /></span>
+            </li>
+            <li>
+                <span class="title-row">6.Ngày giao HĐ 2 chiều cho kế toán: </span>
+                <div style="width:20%" class="dot-line empty-line"><span class="value-show">@revenueDate</span><input  name="Deliver" value="@revenueDate" onchange="hasValueChange(this)" class="real-value date-picker" type="text" style="width:95%" /></div>
+                <span class="title-row right-chkb">Nợ HĐ<input name="HasOwe" class="left10" type="checkbox" /></span>
+            </li>
+            <li>
+                <span class="title-row">7.Người giao:</span><div style="width:30%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.UserNameStaff</span><input name="Deliver" value="@ViewBag.itemdraff.UserNameStaff" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">Nhóm:</span><div style="width:30%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.TeamName</span><input name="Team" value="@ViewBag.itemdraff.TeamName" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+            </li>
+            <li>
+                <span class="title-row">8.Ngành hàng:</span>
+                <div style="width:35%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.CategoryName</span><input name="Category" value="@ViewBag.itemdraff.CategoryName" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">9.Nhãn hàng:</span>
+                <div style="width:35%" class="dot-line empty-line"><span class="value-show">@ViewBag.itemdraff.Labels</span><input name="Labels" value="@ViewBag.itemdraff.Labels" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+            </li>
+            <li>
+                <span class="title-row">10.Phân loại doanh số:</span>
+                <table id="ListStaffDraff" cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+                    <tr align="center">
+                        <th style="width:20%">NVKD</th>
+                        <th style="width:10%">Tỷ lệ</th>
+                        <th style="width:15%">Doanh số ký</th>
+                        <th style="width:20%">Doanh số thực hiện <span style="font-weight:normal">(*)</span></th>
+                        <th style="width:20%">DS chuyển năm sau <span style="font-weight:normal">(*)</span></th>
+                        <th style="width:15%">DS khác<br /><i style="font-weight:normal">(ko tính cho nvkd)(*)</i></th>
+                    </tr>
+                    @if (ViewBag.staffDraff != null)
+                    {
+                        int count = 1;
+                        int sumPercent = 0;
+                        double sumMoney = 0;
+                        double sumMoneyInYear = 0;
+                        double sumMoneyNextYear = 0;
+                        double sumMoneyWebOther = 0;
+                        int global = 0;
+                        foreach (var item in ViewBag.staffDraff)
+                        {
+                            if (count < 4)
+                            {
+                                sumPercent += item.Percent;
+                                sumMoney += item.Money;
+                                sumMoneyInYear += item.MoneyInYear;
+                                sumMoneyNextYear += item.MoneyNextYear;
+                                sumMoneyWebOther += item.MoneyWebOther;
+                                <tr class="group-staff">
+                                    <td>
+                                        <div style="width:100%;text-align:left;" class="dot-line empty-line">
+                                            <span class="value-show"></span>
+                                            <input value="@item.PKStaff" class="hidden-suggess item-PKStaff" type="hidden" />
+                                            <input value="@item.StaffId" class="hidden-suggess item-staff" type="hidden" />
+                                            <input value="@item.UnitId" class="hidden-suggess item-region" type="hidden" />
+                                            <input value="@item.GroupId" class="hidden-suggess item-team" type="hidden" />
+                                            @(Html.Kendo().AutoComplete()
+                                            .Name("txt-EmployerName-" + global)
+                                            .DataTextField("FullName")
+                                            .Placeholder("Nhập tên nhân viên")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "real-value", @onfocus = "setGlb(" + global + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestEmployer", "CRMContractList")
+                                                        .Data("onAdditionalDataTxt");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelect").Change("onChangeSelect");
+                                            })
+                                            )
+                                            <script>
+                                                $("#txt-EmployerName-@global").val('@Html.Raw(item.FullName)');
+                                            </script>
+                                        </div>
+                                    </td>
+                                    <td><div style="width:100%;text-align:center" class="dot-line empty-line"><span class="value-show"></span><input value="@item.Percent" onchange="resetRow(this,'PERCENT')" class="real-value item-percent" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input value="@item.Money.ToString("#,##0")" onchange="resetRow(this,'SIGN')" class="real-value item-sign currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input value="@item.MoneyInYear.ToString("#,##0")" onchange="resetRow(this,'REAL')" class="real-value item-real currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input value="@item.MoneyNextYear.ToString("#,##0")" onchange="resetRow(this,'NY')" class="real-value item-ny currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input value="@item.MoneyWebOther.ToString("#,##0")" onchange="resetRow(this,'OTHER')" class="real-value item-other currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                </tr>
+                                count++;
+                                global++;
+                            }
+                        }
+                        if (count < 4)
+                        {
+                            for (var i = count; i < 4; i++)
+                            {
+                                string staff = "Staff0" + i;
+                                string percent = "Percent0" + i;
+                                string StrDSSign = "StrDSSign0" + i;
+                                string StrDSReal = "StrDSReal0" + i;
+                                string StrDSNextYear = "StrDSNextYear0" + i;
+                                string StrDSOther = "StrDSOther0" + i;
+
+                                <tr class="group-staff">
+                                    <td><div style="width:100%;text-align:left;" class="dot-line empty-line">
+                                        <span class="value-show"></span>
+                                        <input value="" class="hidden-suggess item-staff" type="hidden" />
+                                        <input name="@staff" value="" class="hidden-suggess item-region" type="hidden" />
+                                        <input  value="" class="hidden-suggess item-team" type="hidden" />
+                                        @(Html.Kendo().AutoComplete()
+                                        .Name("txt-EmployerName-" + global)
+                                        .DataTextField("FullName")
+                                        .Placeholder("Nhập tên nhân viên")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "real-value", @onfocus = "setGlb(" + global + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestEmployer", "CRMContractList")
+                                                    .Data("onAdditionalDataTxt");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelect").Change("onChangeSelect");
+                                        })
+                                        )
+                                        @{ global++;}
+                                        
+
+                                        </div>
+                                    </td>
+                                    <td><div style="width:100%;text-align:center" class="dot-line empty-line"><span class="value-show"></span><input name="@percent" value="0" onchange="resetRow(this,'PERCENT')" class="real-value item-percent" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="@StrDSSign" value="0" onchange="resetRow(this,'SIGN')" class="real-value item-sign currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="@StrDSReal" value="0" onchange="resetRow(this,'REAL')" class="real-value item-real currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="@StrDSNextYear" value="0" onchange="resetRow(this,'NY')" class="real-value item-ny currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                    <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="@StrDSOther" value="0" onchange="resetRow(this,'OTHER')" class="real-value item-other currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                                </tr>
+                            }
+
+                        }
+                        <tr align="right" id="group-sum-money">
+                            <td align="center"><b style="margin-left:10px">Tổng số</b></td>
+                            <td align="center"><span class="item-percent">@sumPercent</span></td>
+                            <td>
+                                <span class="item-sign">@sumMoney.ToString("#,##0")</span>
+                                <input name="StrDSSign" type="hidden" value="@sumMoney.ToString("#,##0")"/>
+                            </td>
+                            <td>
+                            <span class="item-real">@sumMoneyInYear.ToString("#,##0")</span>
+                                <input name="StrDSReal" type="hidden" value="@sumMoney.ToString("#,##0")" />
+                            </td>
+                            <td>
+                            <span class="item-ny">@sumMoneyNextYear.ToString("#,##0")</span>
+                                <input name="StrDSNextYear" type="hidden" value="@sumMoney.ToString("#,##0")" />
+                            </td>
+                            <td>
+                            <span class="item-other">@sumMoneyWebOther.ToString("#,##0")</span>
+                                <input name="StrDSOther" type="hidden" value="@sumMoney.ToString("#,##0")" />
+                            </td>
+                        </tr>
+
+                    }
+                </table>
+            </li>
+            <li>
+                <span class="title-row">11.Áp dụng gói bán hàng:</span>
+                <span class="right-chkb">Gói thông thường <input name="PacketSale" value="NORMAL" class="left10" type="radio" /></span>
+                <span class="right-chkb">Gói Khuyến mại <input name="PacketSale" value="SALE" class="left10" type="radio" /></span>
+            </li>
+            <li>
+                <div class="title-row">12.Chiết khấu trong chính sách: <input name="DiscountOn" class="left10" type="checkbox" /></div>
+                <div>
+                    <span class="right-chkb">Chiết khấu ngoài chính sách: <input name="DiscountOut" class="right-chkb" type="checkbox" /></span><span class="title-row">Mức CK thêm:</span>
+                    <div style="width:50%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMoneyDiscountOut" value="" onchange="hasValueChange(this)" class="real-value currency" type="text" style="width:95%" data-thousands="," data-decimal="." data-precision="0"/></div>
+                </div>
+                <div>Tổng giá trị xin thêm (chưa vat):</div>
+                <div style="width:95%;" class="dot-line empty-line"><span class="value-show"></span><textarea name="ToTalValueAdd" onchange="hasValueChange(this)" class="real-value" type="text" style="width:100%;height:40px"></textarea></div>
+                <div style="width:95%" class="dot-line"></div>
+                <div style="width:95%" class="dot-line"></div>
+            </li>
+            <li>
+                <span class="title-row">13.Chi phí MKT</span>
+                <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; PADDING-LEFT:5pt; border-collapse:collapse;border:solid windowtext 1.0pt; width:100%;" border="1">
+                    <tr align="center">
+                        <th rowspan="2">Nội dung</th>
+                        <th colspan="2">Tổng số phải trả</th>
+                        <th colspan="3">Phân bổ cho</th>
+                    </tr>
+                    <tr align="center">
+                        <th style="width:15%">Tổng số</th>
+                        <th style="color:red;width:15%">Trị giá vật phẩm</th>
+                        <th style="width:15%">DS thực hiện(*)</th>
+                        <th style="width:15%">DS chuyển năm sau<i>(*)</i></th>
+                        <th style="width:15%">DS khác (**)</th>
+
+                    </tr>
+                    <tbody>
+                        <tr>
+                            <td>-MKT</td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKT" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTValueItem" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTReal" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTNextYear" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTOther" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+
+                        </tr>
+                        <tr>
+                            <td>-Khác</td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTO" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTOValueItem" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTOReal" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTONextYear" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTOOther" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                        </tr>
+                        <tr>
+                            <td><b>Cộng</b></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTSum" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTSumValueItem" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTSumReal" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTSumNextYear" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                            <td><div style="width:100%" class="dot-line empty-line"><span class="value-show"></span><input name="StrMKTSumOther" value="" onchange="hasValueChange(this)" class="real-value currency" data-thousands="," data-decimal="." data-precision="0" type="text" style="width:95%" /></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size:11px"><i>(**)Khác: ngoài quy định</i></div>
+                <div>
+                    <span class="title-row">Người nhận </span>
+                    <div style="width:37%" class="dot-line empty-line"><span class="value-show"></span><input name="Receiver" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                    <span class="title-row">Bộ phận </span>
+                    <div style="width:37%" class="dot-line empty-line"><span class="value-show"></span><input name="AgentRe" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                </div>
+                <div>
+                    <span class="title-row">ĐTCQ </span>
+                    <div style="width:38%" class="dot-line empty-line"><span class="value-show"></span><input name="CoPhoneRe" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                    <span class="title-row">ĐTDĐ </span>
+                    <div style="width:38%" class="dot-line empty-line"><span class="value-show"></span><input name="PhoneRe" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                </div>
+                <div>
+                    <span class="title-row">Số tài khoản (nếu có) </span>
+                    <div style="width:30%" class="dot-line empty-line"><span class="value-show"></span><input name="BankNumber" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                    <span class="title-row">Tại ngân hàng</span>
+                    <div style="width:30%" class="dot-line empty-line"><span class="value-show"></span><input name="BankName" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                </div>
+            </li>
+            <li>
+                <span class="title-row">14.Thông tin NGƯỜI liên hệ thanh toán (bên khách hàng)</span>
+                <div style="width:8%" class="dot-line empty-line"><span class="value-show"></span><input name="CustomerContact" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">Bộ phận</span>
+                <div style="width:8%" class="dot-line empty-line"><span class="value-show"></span><input name="AgentCus" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+                <span class="title-row">ĐT</span>
+                <div style="width:8%" class="dot-line empty-line"><span class="value-show"></span><input name="PhoneCus" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+            </li>
+            <li>
+                <span class="title-row">14.Các thông tin khác</span>
+                <div style="width:70%" class="dot-line empty-line"><span class="value-show"></span><input name="InforOther" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div>
+            </li>
+        </ul>
+    </p>
+    <table cellpadding="2" cellspacing="0" style="vertical-align:bottom;font-family:Times New Roman; border-collapse:collapse;width:100%;">
+        <tr align="center">
+            <th style="width:32%">NVKD</th>
+            <th style="width:32%">Trưởng nhóm KD</th>
+            <th style="width:32%">Trưởng/phó KD</th>
+        </tr>
+        <tbody>
+            <tr>
+                <td><div style="width:90%;margin-top:60px" class="dot-line empty-line"><span class="value-show"></span><input name="StaffSign" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div></td>
+                <td><div style="width:90%;margin-top:60px" class="dot-line empty-line"><span class="value-show"></span><input name="StaffTeamSign" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div></td>
+                <td><div style="width:90%;margin-top:60px" class="dot-line empty-line"><span class="value-show"></span><input name="StaffLeadSign" value="" onchange="hasValueChange(this)" class="real-value" type="text" style="width:95%" /></div></td>
+
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+    hasValueChange();
+    checkDisplayButton(0);
+    $("input[name='AgencyType'][value='@ViewBag.itemdraff.AgencyType']").prop("checked", true);
+   
+    $(".empty-line").click(function () {
+        $(".real-value").hide();
+        $(".body-print input.real-value").each(function () {
+            var value = $(this).val();
+            $(this).parent().find(".value-show").text(value);
+        })
+        $(".value-show").show();
+        var value = $(this).find("input.real-value").val();
+        $(this).find(".real-value").show().focus().val(value);
+        $(this).find(".value-show").hide();
+
+    })
+    
+    $(".body-print").dblclick(function () {
+        hideAllInput();
+    })
+    $(".real-value").keypress(function (e) {
+        if (e.keyCode == 13) {
+            hasValueChange();
+        }
+    });
+    var DSSignContract = currencyToNumber($("#ctr-money-last").text());
+    //function resetRow(input, type) {
+    //    //DSky = dsthuhien + dschuyen + dskhac
+    //    var e = $(input).parents(".group-staff");
+    //    var sum = DSSignContract;
+    //    var percent = currencyToNumber($(e).find(".item-percent").val());
+    //    var sign = currencyToNumber($(e).find(".item-sign").val());
+    //    var real = currencyToNumber($(e).find(".item-real").val());
+    //    var ny = currencyToNumber($(e).find(".item-ny").val());
+    //    var other = currencyToNumber($(e).find(".item-other").val());
+    //    if(sign > sum || real > sum || ny > sum || other > sum){
+    //        alertMessage("Doanh số nhập vào lớn hơn DS ký trên HĐ !");
+    //        hideAllInput();
+    //        $(input).val(0);
+    //        return;
+    //    }
+
+    //    if (type == "PERCENT") {
+    //        sign = sum * percent / 100;
+    //        real = sign - ny - other;
+    //        other = sign - real - ny;
+    //        ny = sign - real - other;
+    //    }
+    //    if(type == "SIGN"){
+    //        ny = sign - real - other;
+    //        other = sign - real - ny;
+    //    }
+    //    if(type == "REAL"){
+    //        real = sign - ny - other;
+    //        other = sign - real - ny;
+    //    }
+    //    if(type == "NY"){
+    //        real = sign - ny - other;
+    //        other = sign - real - ny;
+    //    }
+    //    if (type == "OTHER") {
+    //        real = sign - ny - other;
+    //        ny = sign - real - other;
+    //    }
+    //    //if (percent <= 0 || sign <= 0) {
+    //    //    alertMessage("Chưa có doanh số ký !");
+    //    //    $(input).val(0);
+    //    //    hideAllInput();
+    //    //}
+    //    $(e).find(".item-percent").val(numberToCurrency(percent));
+    //    $(e).find(".item-sign").val(numberToCurrency(sign));
+    //    $(e).find(".item-real").val(numberToCurrency(real));
+    //    $(e).find(".item-ny").val(numberToCurrency(ny));
+    //    $(e).find(".item-other").val(numberToCurrency(other));
+    //    var success = resetValueStaff(input);
+        
+    //}
+    //function resetValueStaff(inp) {
+    //    var sum = DSSignContract;
+    //    var sumPercent = 0;
+    //    var sumSign = 0;
+    //    var sumReal = 0;
+    //    var sumNy = 0;
+    //    var sumOther = 0;
+    //    $("#ListStaffDraff .group-staff").each(function () {
+    //        var percent = currencyToNumber($(this).find(".item-percent").val());
+    //        var sign = currencyToNumber($(this).find(".item-sign").val());
+    //        var real = currencyToNumber($(this).find(".item-real").val());
+    //        var ny = currencyToNumber($(this).find(".item-ny").val());
+    //        var other = currencyToNumber($(this).find(".item-other").val());
+    //        sumPercent += percent;
+    //        sumSign += sign;
+    //        sumReal += real;
+    //        sumNy += ny;
+    //        sumOther += other;
+    //    })
+
+    //    $("#group-sum-money .item-percent").text(numberToCurrency(sumPercent));
+    //    $("#group-sum-money .item-sign").text(numberToCurrency(sumSign));
+    //    $("#group-sum-money input[name='StrDSSign']").val(numberToCurrency(sumSign));
+    //    $("#group-sum-money .item-real").text(numberToCurrency(sumReal));
+    //    $("#group-sum-money input[name='StrDSReal']").val(numberToCurrency(sumReal));
+    //    $("#group-sum-money .item-ny").text(numberToCurrency(sumNy));
+    //    $("#group-sum-money input[name='StrDSNextYear']").val(numberToCurrency(sumNy));
+    //    $("#group-sum-money .item-other").text(numberToCurrency(sumOther));
+    //    $("#group-sum-money input[name='StrDSOther']").val(numberToCurrency(sumOther));
+
+    //    if (!inp && sumPercent < 100) {
+    //        alertMessage("Tỉ lệ < 100% !");
+    //        return false;
+    //    }
+    //    if (sumPercent > 100) {
+    //        alertMessage("Tỉ lệ > 100% !");
+    //        $(inp).val(0);
+    //        resetRow(inp, "PERCENT");
+    //        hideAllInput();
+    //        return false;
+    //    }
+    //    if (sumSign > sum) {
+    //        alertMessage("Doanh số ký BKBS > DS ký HĐ !");
+    //        return false;
+    //    }
+    //    hideAllInput();
+    //    return true;
+    //}
+    
+</script>

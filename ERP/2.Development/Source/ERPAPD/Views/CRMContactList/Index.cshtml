@@ -1,0 +1,488 @@
+﻿@model IEnumerable<ERPAPD.Models.ERPAPD_Contacts>
+@{
+    ViewBag.Title = "Danh sách thông tin người liên hệ";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    var listStatus = new List<Object>();
+    listStatus.Add(new { ID = "HOAT_DONG", Name = "Hoạt động" });
+    listStatus.Add(new { ID = "KHONG_HOAT_DONG", Name = "Không hoạt động" });
+    ViewBag.listStatus = listStatus;
+
+    var listDay = new List<int>();
+    for (int i = 1; i <= 31; i++)
+    {
+        listDay.Add(i);
+    }
+    var listMonth = new List<int>();
+    for (int i = 1; i <= 12; i++)
+    {
+        listMonth.Add(i);
+    }
+    var listYear = new List<int>();
+    for (int i = DateTime.Now.Year; i > DateTime.Now.Year - 120; i--)
+    {
+        listYear.Add(i);
+    }
+}
+
+<style>
+    label.error {
+        border: none !important;
+        background-color: #fff !important;
+        color: #ff0000;
+    }
+
+    .chosen-container {
+        width: 100% !important;
+    }
+
+    .chosen-drop {
+        width: 99% !important;
+    }
+
+    .chosen-results {
+        width: 98% !important;
+    }
+
+    .chosen-container-single .chosen-search:after {
+        top: 10px;
+    }
+
+    .chosen-search input {
+        width: 88% !important;
+        height: 18px !important;
+    }
+
+    .filter input {
+        width: 99% !important;
+        height: 25px !important;
+    }
+     .cats {
+        float: right;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="span3">
+            <div class="control-group">
+                <div class="controls">
+                    <input id="txtInfoFilter" class="span12" type="text" placeholder="Họ, tên đệm, tên, điện thoại, email, chức vụ" />
+                </div>
+            </div>
+        </div>
+        <div class="span3">
+            <div class="control-group">
+                <div class="controls filter">
+                    <select name="Category" id="listsearchCats" class=" chosen-select">
+                        <option value="" selected>Nhóm hàng (s)</option>
+                        @foreach (var item in ViewBag.listCategory)
+                        {
+                            <optgroup label="@item.Value">
+                                @foreach (var subitem in ViewBag.listSubCategory)
+                                {
+                                    if (item.HierarchyID == subitem.ParentID)
+                                    {
+                                        <option value="@subitem.HierarchyID">@subitem.Value</option>
+                                    }
+                                }
+                            </optgroup>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="span3">
+            <div class="control-group">
+                <div class="controls filter">
+                    <select name="Customer" id="listsearchCustomer" class=" chosen-select">
+                        <option value="" selected>Khách hàng (s)</option>
+                        @foreach (var item in ViewBag.listCustomer)
+                        {
+                            <option value="@item.CustomerID"> @item.CustomerName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="span2">
+            <button type="button" class="btn btn-small btn-primary pull-left" onclick="filter()"> @Resources.Multi.Filter</button>
+        </div>
+    </div>
+
+</div>
+@Html.Partial("_permission_custom")
+@Html.Partial("_popup_confirm")
+@Html.Partial("_form_contact")
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+        .Grid(Model)
+        .Name("Grid")
+        .Editable()
+        .Columns(columns =>
+        {
+            try
+            {
+                var json_permission = "";
+                if (ViewBag.listColumnsCookie != null)
+                {
+                    json_permission = ViewBag.listColumnsCookie.Value;
+                }
+                if (ViewBag.listColumnsUserConfig != null)
+                {
+                    json_permission = ViewBag.listColumnsUserConfig[0].CustomerInfo;
+                }
+                var cols = Json.Decode(json_permission);
+                for (var i = 0; i < cols.Length; i++)
+                {
+                    int val = Convert.ToInt32(cols[i].value);
+                    if (cols[i].name == "PKContactID" && val == 1)
+                    {
+                        columns.Bound(p => p.PKContactID)
+                        .HeaderTemplate("<input style='text-align:center' type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />")
+                        .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=PKContactID#'  />")
+                        .Width(15)
+                        .Filterable(false)
+                        .Sortable(false);
+                    }
+                    if (cols[i].name == "TelephoneHome" && val == 1)
+                    {
+                        columns.Bound(p => p.TelephoneHome).Width(40).Title("").ClientTemplate(
+                         "<span><button data-rel='tooltip' data-placement='right' data-original-title='Gọi' type ='button' class=' btn btn-mini btn-success tooltip-success'><i class='icon-phone'></i></button></span>"
+                             );
+                    }
+                    if (cols[i].name == "CustomerID" && val == 1)
+                    {
+                        columns.Bound(p => p.CustomerName).Width(120).Title("Khách hàng");
+
+                    }
+                    if (cols[i].name == "Name" && val == 1)
+                    {
+                        columns.Bound(p => p.PKContactID).Width(120).Title("Người liên hệ").ClientTemplate(
+                        "<span><a href='javascript:void(0)' onclick='showFormContact(1,this)'>#=Name#</a></span><br>"
+                        );
+                    }
+                    if (cols[i].name == "DMYOfBirth" && val == 1)
+                    {
+                        columns.Bound(p => p.DMYOfBirth).Width(100).Title("Ngày sinh");//.Format("{0:" + Resources.Multi.DateFormat + "}");
+                    }
+                    if (cols[i].name == "Mobile" && val == 1)
+                    {
+                        columns.Bound(p => p.TelephoneHome).Width(200).Title("Điện thoại").ClientTemplate(
+                      " <span class='mobile-format'> #=Mobile#</span><br>"
+                     + "<span> Văn phòng: #=TelephoneOffice#</span><br>"
+                     + "<span> Nhà riêng: #=TelephoneHome#</span>"
+                      );
+
+                    }
+                    if (cols[i].name == "Email" && val == 1)
+                    {
+                        columns.Bound(p => p.Email).Width(120).Title("Email");
+                    }
+                    if (cols[i].name == "Title" && val == 1)
+                    {
+                        columns.Bound(p => p.Title).Width(100).Title("Chức vụ");
+                    }
+                    if (cols[i].name == "Category" && val == 1)
+                    {
+                        columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listSubCategory, "HierarchyID", "Value").Title("Nhóm ngành").Width(100);
+                    }
+                    if (cols[i].name == "Decided" && val == 1)
+                    {
+                        columns.Bound(p => p.Decided).Width(70).Title("Người quyết định").ClientTemplate(
+                          "#if(Decided==1){# <input style='text-align:center ;   margin-left: 40%;'  type='checkbox' checked='checked'  /> #} "
+                          + " else {# <input style='text-align:center;     margin-left: 40%;'  type='checkbox'  /> #} # <br>"
+                         );
+                    }
+                    if (cols[i].name == "FKCustomerID" && val == 1)
+                    {
+                        columns.ForeignKey(p => p.CustomerID, (System.Collections.IEnumerable)ViewBag.listCustomer, "CustomerID", "CustomerName").Title("Khách hàng").Width(100);
+                    }
+                    if (cols[i].name == "Notes" && val == 1)
+                    {
+                        columns.Bound(p => p.Notes).Width(100).Title("Ghi chú");
+                    }
+                    if (cols[i].name == "RowCreatedAt" && val == 1)
+                    {
+                        columns.Bound(p => p.RowCreatedAt).Width(100).Title("Ngày tạo").Format("{0:" + Resources.Multi.DateFormat + "}");
+                    }
+                    if (cols[i].name == "CustomerID" && val == 1)
+                    {
+                        columns.Bound(p => p.CustomerID).Hidden();
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                columns.Bound(p => p.PKContactID)
+                        .HeaderTemplate("<input style='text-align:center' type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />")
+                        .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=PKContactID#'  />")
+                        .Width(15)
+                        .Filterable(false)
+                        .Sortable(false);
+                columns.Bound(p => p.TelephoneHome).Width(40).Title("").ClientTemplate(
+                        "<span><button data-rel='tooltip' data-placement='right' data-original-title='Gọi' type ='button' class=' btn btn-mini btn-success tooltip-success'><i class='icon-phone'></i></button></span>"
+                            );
+                columns.Bound(p => p.PKContactID).Width(120).Title("Người liên hệ").ClientTemplate(
+                                               "<span><a href='javascript:void(0)' onclick='showFormContact(1,this)'>#=Name#</a></span><br>"
+                                               );
+                columns.Bound(p => p.CustomerName).Width(120).Title("Khách hàng");
+                columns.Bound(p => p.DMYOfBirth).Width(100).Title("Ngày sinh");//.Format("{0:" + Resources.Multi.DateFormat + "}");
+                columns.Bound(p => p.TelephoneHome).Width(200).Title("Điện thoại").ClientTemplate(
+                                              " <span class='mobile-format'> Cá nhân: #=Mobile#</span><br>"
+                                             + "<span> Văn phòng: #=TelephoneOffice#</span><br>"
+                                             + "<span> Nhà riêng: #=TelephoneHome#</span>"
+                                              );
+                columns.Bound(p => p.Email).Width(120).Title("Email");
+                columns.Bound(p => p.Title).Width(100).Title("Chức vụ");
+                columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listSubCategory, "HierarchyID", "Value").Title("Nhóm ngành").Width(100);
+                columns.Bound(p => p.Decided).Width(70).Title("Người quyết định").ClientTemplate(
+                                                 "#if(Decided==1){# <input style='text-align:center ;   margin-left: 40%;'  type='checkbox' checked='checked'  /> #} "
+                                                 + " else {# <input style='text-align:center;     margin-left: 40%;'  type='checkbox'  /> #} # <br>"
+                                                );
+                columns.ForeignKey(p => p.CustomerID, (System.Collections.IEnumerable)ViewBag.listCustomer, "CustomerID", "CustomerName").Title("Khách hàng").Width(100);
+                columns.Bound(p => p.Notes).Width(100).Title("Ghi chú");
+                columns.Bound(p => p.RowCreatedAt).Width(100).Title("Ngày tạo").Format("{0:" + Resources.Multi.DateFormat + "}");
+                columns.Bound(p => p.CustomerID).Hidden();
+            }
+        })
+        .ToolBar(toolbar =>
+        {
+            if (AllowUpdate)
+            {
+                toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-success btn-small" href="javascript:void(0)" onclick="showFormContact(0,this)"> @*onclick="onOpenPopup(0,this)"*@
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                    </a>
+                  
+                }
+                @if (AllowDelete)
+                {
+                    <a class="btn btn-danger btn-small" href="javascript:void(0)" id="btnGridDelete" onclick="showConfirmPopup()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                    </a>
+                }
+                <a href="#myModal" role="button" class="btn btn-small btn-inverse" data-toggle="modal">Tùy chỉnh hiển thị</a>
+
+            </div>
+                </text>);
+            }
+        })
+        .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.PopUp))
+        .Scrollable(scrollable => scrollable.Virtual(false))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .Events(events => { events.DataBound("dataBound"); })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(50)
+        .Sort(s=> { s.Add("PKContactID").Descending(); })
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.PKContactID);
+        })
+
+        .Read("CRMContactList_Read", "CRMContactList")
+        .Create("CRMContactList_Create", "CRMContactList")
+        // .Update("CRMContactList_Update", "CRMContactList")
+        )
+        )
+    </div>
+</div>
+
+<script>
+    var eventHotKey = false;
+    var keyAction = 0;
+    //popup
+    function onOpenPopup(key, obj) {
+        eventHotKey = true;
+        var popup = $('#popup').data("kendoWindow");
+        popup.center().open();
+        if (key == 0) {     // Create
+            keyAction = key;
+            popup.title('Thêm');
+            $("#formPopup")[0].reset();
+        }
+        else {// Update
+            keyAction = -1;
+            debugger;
+            $("#formPopup")[0].reset();
+            popup.title('Chỉnh sửa');
+            var id = $(obj).data('id');
+            var currentRow = $(obj).closest("tr");
+            var dataItem = $("#Grid").data("kendoGrid").dataItem(currentRow);
+            onBindDataToForm(dataItem);
+            var checkDecided = dataItem.Decided == 1 ? true : false;
+            var checkStatus = dataItem.Status == "HOAT_DONG" ? true : false;
+            $("#Decided2").prop("checked", checkDecided);
+            $("#Status2").prop("checked", checkStatus);
+            $("#Category").val(dataItem.Category).trigger("chosen:updated");
+            $("#CustomerID").val(dataItem.CustomerID).trigger("chosen:updated");
+            setTimeout(function () {
+                $("#Name").focus();
+            }, 500);
+        }
+    }
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem) {
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+    }
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        // var $exportLink = grid.element.find('.exportClass');
+        // var href = $exportLink.attr('href');
+        //  href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //  href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //  $exportLink.attr('href', href);
+        formatHTMLPhone();
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterInfor = { logic: "or", filters: [] };
+        debugger
+        var searchCats = $("#listsearchCats").val();
+        var searchCustomer = $("#listsearchCustomer").val();
+        var searchInfor = $("#txtInfoFilter").val().trim();
+        if (searchInfor) {
+            filterInfor.filters.push({ field: "MiddleName", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "FirstName", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "LastName", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "Name", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "TelephoneOffice", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "TelephoneHome", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "Email", operator: "contains", value: searchInfor });
+            filterInfor.filters.push({ field: "Title", operator: "contains", value: searchInfor });
+            filter.filters.push(filterInfor);
+        }
+        if (searchCats) {
+            filter.filters.push({ field: "Category", operator: "contains", value: searchCats });
+        }
+        if (searchCustomer) {
+            filter.filters.push({ field: "CustomerID", operator: "contains", value: searchCustomer });
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#search-infor').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    
+    function formatHTMLPhone() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listdataPhone = jQuery.parseJSON(row.Mobile);
+                if (typeof listdataPhone == 'object') {
+                    // It is JSON
+                    var listPhone = '';
+                    $.each(listdataPhone, function (index, value) {
+                        listPhone += '<span> ' + value + ' </span> - ';
+                    })
+
+                    $('tr[data-uid="' + row.uid + '"] td').find('span.mobile-format').html('Cá nhân:' + listPhone.substring(0, listPhone.length - 2));
+                }
+            } catch (e) {
+                // It not JSON
+                $('tr[data-uid="' + row.uid + '"] td').find('span.mobile-format').html('Cá nhân: ' + row.Mobile);
+            }
+        })
+
+    }
+
+</script>

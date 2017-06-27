@@ -1,0 +1,883 @@
+﻿<style>
+    .profile-info-name {
+        line-height: 10px !important;
+    }
+
+    .profile-info-value {
+        line-height: 10px !important;
+    }
+
+    .inline-edit-width input {
+        min-width: 150px !important;
+        border-radius: 0 !important;
+        color: #858585;
+        background-color: #fff;
+        height: 20px;
+        padding: 4px 6px;
+        margin-bottom: 0px;
+        font-size: 11px;
+        line-height: 20px;
+    }
+
+    .inline-edit-width select {
+        max-width: 150px !important;
+        height: 24px;
+    }
+
+    .inline-edit-width button {
+        background-color: #87b87f !important;
+        border-color: #87b87f;
+        padding: 0 8px;
+        line-height: 24px;
+        border-width: 4px;
+        font-size: 13px;
+        display: inline-block;
+        color: #fff !important;
+        text-shadow: 0 -1px 0 rgba(0,0,0,.25) !important;
+        background-image: none !important;
+        border: 5px solid;
+        border-radius: 0;
+        box-shadow: none !important;
+        transition: all ease .15s;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+
+    #GridOrderHistory .k-grid-content {
+        min-height: 180px !important;
+    }
+
+    #GridTicketHistory .k-grid-content {
+        min-height: 180px !important;
+    }
+</style>
+<script type="text/x-kendo-template" id="CustomerInfoTemplate">
+    @using (Html.BeginForm("SaveCustomerInfo", "CustomerSupport", FormMethod.Post, new { @class = "form-horizontal", id = "UpdateCustomerInfoForm", style = "margin:0;display:none;" }))
+    {
+        <input type="hidden" name="CustomerID" value="#=(Customer.CustomerID == null)?'':Customer.CustomerID#" />
+        <input type="hidden" name="Fullname" value="#=(Customer.Fullname == null)?'':Customer.Fullname#" />
+        <input type="hidden" name="CustomerRanking" value="#=(Customer.CustomerRanking == null)?'':Customer.CustomerRanking#" />
+        <input type="hidden" name="Phone" value="#=(Customer.Phone == null)?'':Customer.Phone#" />
+        <input type="hidden" name="Email" value="#=(Customer.Email == null)?'':Customer.Email#" />
+        <input type="hidden" name="Gender" value="#=(Customer.Gender == null)?'':Customer.Gender#" />
+        <input type="hidden" name="Birthday" value="#=(Customer.Birthday == null)?'':kendo.toString(kendo.parseDate(Customer.Birthday),'yyyy-MM-dd') #" />
+        <input type="hidden" name="Marital" value="#=(Customer.Marital == null)?'':Customer.Marital#" />
+        <input type="hidden" name="PhysicalID" value="#=(Customer.PhysicalID == null)?'':Customer.PhysicalID#" />
+        <input type="hidden" name="TaxID" value="#=(Customer.TaxID == null)?'':Customer.TaxID#" />
+        <input type="hidden" name="CompanyID" value="#=Customer.CompanyID#" />
+        <input type="hidden" name="CompanyName" value="#=(Customer.CompanyName == null)?'':Customer.CompanyName#" />
+        <input type="hidden" name="Department" value="#=(Customer.Department == null)?'':Customer.Department#" />
+        <input type="hidden" name="Position" value="#=(Customer.Position == null)?'':Customer.Position#" />
+        <input type="hidden" name="SourceType" value="#=(Customer.SourceType == null)?'':Customer.SourceType#" />
+        <input type="hidden" name="Representative" value="#=(Customer.Representative == null)?'':Customer.Representative#" />
+        <input type="hidden" name="MobilePhone" value="#=(Customer.MobilePhone == null)?'':Customer.MobilePhone#" />
+        <input type="hidden" name="HomePhone" value="#=(Customer.HomePhone == null)?'':Customer.HomePhone#" />
+        <input type="hidden" name="OfficePhone" value="#=(Customer.OfficePhone == null)?'':Customer.OfficePhone#" />
+        <input type="hidden" name="Address" value="#=(Customer.Address == null)?'':Customer.Address#" />
+        <input type="hidden" name="Address1" value="#=(Customer.Address1 == null)?'':Customer.Address1#" />
+        <input type="hidden" name="Address2" value="#=(Customer.Address2 == null)?'':Customer.Address2#" />
+        <input type="hidden" name="CustomerType" value="#=(Customer.CustomerType == null)?'':Customer.CustomerType#" />
+        <input type="hidden" name="DataSource" value="#=Customer.DataSource#" />
+    }
+    <div class="row-fluid">
+        <div class="span12" style="margin: 0px 5px 7px 0px; padding-right: 5px; padding-bottom: 7px; border-bottom: 1px dotted \\#ccc; ">
+            <div class="btn-group dropdown">
+                <button class="btn btn-mini btn-danger" data-phone="#=(Customer.Phone == null)?'':Customer.Phone#" onclick="callFromCS(this)"> <i class="icon-phone"></i>Gọi điện</button>
+                <button data-toggle="dropdown" class="btn btn-mini btn-danger dropdown-toggle">
+                    <span class="caret"></span>
+                </button>
+                #if(Customer.MobilePhone!=null && Customer.MobilePhone.trim() != '' || Customer.HomePhone!=null && Customer.HomePhone.trim() != ''|| Customer.OfficePhone!=null && Customer.OfficePhone.trim() != ''){#
+                <ul class="dropdown-menu">
+                    #if(Customer.MobilePhone!=null && Customer.MobilePhone.trim() != ''){#
+
+                    #for(var i =0; i < Customer.MobilePhone.split(',').length;i++){ var thisphone = Customer.MobilePhone.split(',')[i].trim(); #
+                    <li>
+                        <a style="cursor:pointer" data-phone="#=thisphone#" onclick="callFromCS(this)">#=thisphone# (@Resources.Multi.MobilePhone)</a>
+                    </li>
+                    #}#
+                    #}#
+
+                    #if(Customer.HomePhone!=null && Customer.HomePhone.trim() != ''){#
+
+                    #for(var i =0; i < Customer.HomePhone.split(',').length;i++){ var thisphone = Customer.HomePhone.split(',')[i].trim(); #
+                    <li>
+                        <a style="cursor:pointer" data-phone="#=thisphone#" onclick="callFromCS(this)">#=thisphone# (@Resources.Multi.HomePhone)</a>
+                    </li>
+                    #}#
+                    #}#
+
+                    #if(Customer.OfficePhone!=null && Customer.OfficePhone.trim() != ''){#
+
+                    #for(var i =0; i < Customer.OfficePhone.split(',').length;i++){ var thisphone = Customer.OfficePhone.split(',')[i].trim(); #
+                    <li>
+                        <a style="cursor:pointer" data-phone="#=thisphone#" onclick="callFromCS(this)">#=thisphone# (@Resources.Multi.OfficePhone)</a>
+                    </li>
+                    #}#
+                    #}#
+                </ul>
+                #}#
+            </div>
+            <button class="btn btn-mini btn-success" data-mobilephone="#=Customer.MobilePhone#" data-homephone="#=Customer.HomePhone#" data-officephone="#=Customer.OfficePhone#" onclick="OpenSMSSend(this)"><i class="icon-comments-alt"></i>&nbsp; @Resources.Multi.Send SMS</button>
+            <a class="btn btn-mini btn-primary" href="mailto:#=Customer.Email#"><i class="icon-envelope"></i>&nbsp; @Resources.Multi.Send Mail</a>
+            <button class="btn btn-mini btn-purple" data-name="#=Customer.Fullname#" data-phone="#=Customer.Phone#" data-customerid="#=Customer.CustomerID#" data-physicalid="#=Customer.PhysicalID#" data-email="#=Customer.Email#" data-datasource="#=Customer.DataSource#" onclick="OpenChooseSurveyPopup(this)"><i class="icon-bullhorn"></i>&nbsp; @Resources.Multi.Survey</button>
+        </div>
+    </div>
+    <div class="row-fluid" style="padding-bottom: 7px; border-bottom: 1px dotted \\#ccc; margin-bottom: 10px;" id="divCustomerInfo">
+        <div class="span6">
+            <div class="para-info">
+                <span class="info-name">@Resources.Multi.Customer: </span>
+                #if(Customer.DataSource=='potentialCustomer' || Customer.DataSource=='anonymousCustomer'){#
+                <span><b>[Chưa có mã]</b></span>
+                #}else{#
+                <span><b>#=Customer.CustomerID# - </b></span>
+                #}#
+                <span class="editable editable-click" style="font-weight:bold;" data-name="Fullname"> #=(Customer.Fullname == null)?'N/A':Customer.Fullname#</span>
+            </div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Rank: </span><span style="font-weight:bold;" data-name="CustomerRanking"> #=(Customer.CustomerRanking == null)?'N/A':Customer.CustomerRanking#</span></div>
+            <div class="para-info" style="color:\\#08c"><span class="info-name">@Resources.Multi.Phone @Resources.Multi.Registry.ToLower():</span><span class="editable editable-click" data-name="Phone"> #=(Customer.Phone == null)?'N/A':Customer.Phone#</span></div>
+            <div class="para-info" style="color:\\#08c"><span class="info-name">@Resources.Multi.Email:</span><span class="editable editable-click" data-name="Email"> #=(Customer.Email == null)?'N/A': Customer.Email#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Gender:</span><span class="editable-gender editable-click" data-name="Gender"> #=(Customer.Gender == null)?'N/A':Customer.Gender#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Birthday:</span><span class="editable-date editable-click" data-name="Birthday"> #=kendo.toString(kendo.parseDate(Customer.Birthday),'dd/MM/yyyy')#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.StatusMarriage:</span> <span class="editable-marital editable-click" data-name="Marital"> #=(Customer.Marital == null)?'N/A':Customer.Marital#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.ID:</span> <span class="editable editable-click" data-name="PhysicalID"> #=(Customer.PhysicalID == null)?'N/A':Customer.PhysicalID#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.TaxCode:</span><span class="editable editable-click" data-name="TaxID"> #=(Customer.TaxID == null)?'N/A':Customer.TaxID#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.WorkPlace:</span><span class="editable-company editable-click" data-name="CompanyName"> #=(Customer.CompanyName == null)?'N/A':Customer.CompanyName#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Department:</span><span class="editable editable-click" data-name="Department"> #=(Customer.Department == null)?'N/A':Customer.Department#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Position:</span><span class="editable editable-click" data-name="Position"> #=(Customer.Position == null)?'N/A':Customer.Position#</span></div>
+
+            <div class="para-info"><span class="info-name">@Resources.Multi.Agent:</span><span class="editable editable-click" data-name="Representative">  #=(Customer.Representative == null)?'N/A':Customer.Representative#</span></div>
+        </div>
+        <div class="span6">
+            <div><b>@Resources.Multi.ContactPhone</b></div>
+
+            #if(Customer.MobilePhone!=null && Customer.MobilePhone.trim() != ''){#
+            @* vong lap render cac so dien thoai *@
+            #for(var i =0; i < Customer.MobilePhone.split(',').length;i++){#
+            @* neu la dong cua so dt dau tien, them dau + , them title *@
+            #if(i==0){#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">@Resources.Multi.MobilePhone: </span>
+                <span class="" data-name="MobilePhone" data-fullvalue="#=Customer.MobilePhone#" data-oldvalue="#=Customer.MobilePhone.split(',')[i]#"> #=Customer.MobilePhone.split(',')[i]#</span>
+                <span class="editablea-add-phone" data-name="MobilePhone" style="margin-left:10px"><i class="icon-plus-sign-alt bigger-110"></i></span>
+            </div>
+            #}else{ var thisphone = Customer.MobilePhone.split(',')[i].trim()#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <span class="editable-phone editable-click" data-name="MobilePhone" data-fullvalue="#=Customer.MobilePhone#" data-oldvalue="#=Customer.MobilePhone.split(',')[i]#"> #=Customer.MobilePhone.split(',')[i]#</span>
+                <span style="margin-left: 10px; color:\\#b74635"><i class="icon-minus-sign-alt bigger-110" onclick="deletePhone('#=thisphone#','MobilePhone')"></i></span>
+            </div>
+            #}#
+            #}#
+            #}else{#
+            <div class="para-info" style="color:\\#08c"><span class="info-name">@Resources.Multi.MobilePhone: </span><span>N/A</span></div>
+            #}#
+            #if(Customer.HomePhone!=null && Customer.HomePhone.trim() != ''){#
+            @* vong lap render cac so dien thoai *@
+            #for(var i =0; i < Customer.HomePhone.split(',').length;i++){#
+            @* neu la dong cua so dt dau tien, them dau + , them title *@
+            #if(i==0){  var thisphone = Customer.HomePhone.split(',')[i].trim()#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">@Resources.Multi.HomePhone: </span>
+                <span class="editable-phone editable-click" data-name="HomePhone" data-fullvalue="#=Customer.HomePhone#" data-oldvalue="#=Customer.HomePhone.split(',')[i]#"> #=Customer.HomePhone.split(',')[i]#</span>
+                <span style="margin-left: 10px; color: \\#b74635"><i class="icon-minus-sign-alt bigger-110" onclick="deletePhone('#=thisphone#','HomePhone')"></i></span>
+                <span class="editablea-add-phone" data-name="HomePhone" style="margin-left:10px"><i class="icon-plus-sign-alt bigger-110"></i></span>
+            </div>
+            #}else{ var thisphone = Customer.HomePhone.split(',')[i].trim()#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <span class="editable-phone editable-click" data-name="HomePhone" data-fullvalue="#=Customer.HomePhone#" data-oldvalue="#=Customer.HomePhone.split(',')[i]#"> #=Customer.HomePhone.split(',')[i]#</span>
+                <span style="margin-left: 10px; color: \\#b74635"><i class="icon-minus-sign-alt bigger-110" onclick="deletePhone('#=thisphone#','HomePhone')"></i></span>
+            </div>
+            #}#
+            #}#
+            #}else{#
+            <div class="para-info" style="color:\\#08c"><span class="info-name">@Resources.Multi.HomePhone: </span><span class="editable-phone editable-click" data-name="HomePhone" data-fullvalue="" data-oldvalue=""></span></div>
+            #}#
+            #if(Customer.OfficePhone!=null && Customer.OfficePhone.trim() != ''){#
+            @* vong lap render cac so dien thoai *@
+            #for(var i =0; i < Customer.OfficePhone.split(',').length;i++){#
+            @* neu la dong cua so dt dau tien, them dau + , them title *@
+            #if(i==0){ var thisphone = Customer.OfficePhone.split(',')[i].trim()#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">@Resources.Multi.OfficePhone: </span>
+                <span class="editable-phone editable-click" data-name="OfficePhone" data-fullvalue="#=Customer.OfficePhone#" data-oldvalue="#=Customer.OfficePhone.split(',')[i]#"> #=Customer.OfficePhone.split(',')[i]#</span>
+                <span style="margin-left: 10px; color: \\#b74635;"><i class="icon-minus-sign-alt bigger-110" onclick="deletePhone('#=thisphone#','OfficePhone')"></i></span>
+                <span class="editablea-add-phone" data-name="OfficePhone" style="margin-left:10px"><i class="icon-plus-sign-alt bigger-110"></i></span>
+            </div>
+            #}else{ var thisphone = Customer.OfficePhone.split(',')[i].trim()#
+            <div class="para-info" style="color:\\#08c">
+                <span class="info-name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <span class="editable-phone editable-click" data-name="OfficePhone" data-fullvalue="#=Customer.OfficePhone#" data-oldvalue="#=Customer.OfficePhone.split(',')[i]#"> #=Customer.OfficePhone.split(',')[i]#</span>
+                <span style="margin-left: 10px; color: \\#b74635;"><i class="icon-minus-sign-alt bigger-110" onclick="deletePhone('#=thisphone#','OfficePhone')"></i></span>
+            </div>
+            #}#
+            #}#
+            #}else{#
+            <div class="para-info" style="color:\\#08c"><span class="info-name">@Resources.Multi.OfficePhone: </span><span class="editable-phone editable-click" data-name="OfficePhone" data-fullvalue="" data-oldvalue=""></span></div>
+            #}#
+            <div class="para-info"><b>@Resources.Multi.ContactAdress</b></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Address 1: </span><span class="editable editable-click" data-name="Address"> #=(Customer.Address == null)?'N/A':Customer.Address#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Address 2: </span><span class="editable editable-click" data-name="Address1"> #=(Customer.Address1 == null)?'N/A':Customer.Address1#</span></div>
+            <div class="para-info"><span class="info-name">@Resources.Multi.Address 3: </span><span class="editable editable-click" data-name="Address2"> #=(Customer.Address2 == null)?'N/A':Customer.Address2#</span></div>
+            <div class="para-info">
+                <div class="span12" style="display:inline-flex">
+                    <label>
+                        #if(typeof Customer.CustomerType =='undefined' || Customer.CustomerType==null || Customer.CustomerType.indexOf("@Resources.Multi.Personal")< 0){#
+                        <input name="checkboxCustomerType" type="checkbox" value="@Resources.Multi.Personal" onchange="SaveCustomerType()" class="ace">
+                        #}else{#
+                        <input name="checkboxCustomerType" type="checkbox" value="@Resources.Multi.Personal" onchange="SaveCustomerType()" class="ace" checked>
+                        #}#
+                        <span class="lbl"> @Resources.Multi.Personal</span>
+                    </label>
+                    <label style="margin-left:20px;">
+                        #if(typeof Customer.CustomerType =='undefined' || Customer.CustomerType==null || Customer.CustomerType.indexOf("@Resources.Multi.Organization")< 0){#
+                        <input name="checkboxCustomerType1" type="checkbox" value="@Resources.Multi.Organization" onchange="SaveCustomerType()" class="ace">
+                        #}else{#
+                        <input name="checkboxCustomerType1" type="checkbox" value="@Resources.Multi.Organization" onchange="SaveCustomerType()" class="ace" checked>
+                        #}#
+                        <span class="lbl"> @Resources.Multi.Organization</span>
+                    </label>
+                </div>
+            </div>
+            <div class="para-info">
+                <div class="para-info">
+                    <span class="info-name">@Resources.Multi.Datasource:</span>
+                    #if(Customer.DataSource =='ocmcustomer'){#
+                    <span><b>portal</b></span>
+                    #}else if(Customer.DataSource == 'anonymousCustomer'){#
+                    <span><b>ocm</b></span>
+                    #} else{#
+                    <span><b>portal</b></span>
+                    #}#
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="divTabHistoryTemplate">
+    <div class="row-fluid">
+        <div class="tabbable">
+            <ul class="nav nav-tabs tab-color-blue" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="\\#tabOrderHistory">
+                        <i class="icon-calendar"></i>
+                       @Resources.Multi.TransactionHistory
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="\\#tabTicketHistory">
+                        <i class="icon-exchange"></i>
+                        @Resources.Multi.InteractiveHistory
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="\\#tabSMSHistory">
+                        <i class="icon-comments-alt"></i>
+                       @Resources.Multi.MessageHistory
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content" style="padding: 0 0px 0px 0px;">
+                <div id="tabOrderHistory" class="tab-pane active">
+                    @(Html.Kendo()
+                        .Grid<ERPAPD.Models.DC_OCM_Order>()
+                        .Name("GridOrderHistory")
+                        .Columns(columns =>
+                        {
+                            columns.ForeignKey(p => p.FKMerchantID, (System.Collections.IEnumerable)ViewData["ListMerchant"], "PKMerchantID", "MerchantName").Title(Resources.Multi.OrderCode).ClientTemplate("<b>\\#=OrderID\\#</b><br/>\\#=kendo.toString(CreatedDate,'dd/MM/yyyy HH:mm')\\# <br/>Shop: \\#=ShowMerchanName(data)\\#");
+                            columns.Bound(p => p.OrderID).Title(Resources.Multi.OrderInfo).ClientTemplate(Resources.Multi.MerchantCost + ": \\#=kendo.toString(ItemAmt,'N0')\\#" + Resources.Multi.CurrentUnit + " <br/>" + Resources.Multi.Transproter + ": \\#=Carrier\\# -" + Resources.Multi.Cost + ": \\#=kendo.toString(DeliveryFeeAmt,'N0')\\#" + Resources.Multi.CurrentUnit + " <br/>" + Resources.Multi.OrderCost + ": \\#=kendo.toString(TotalAmt,'N0')\\#" + Resources.Multi.CurrentUnit);
+                            columns.ForeignKey(p => p.OrderStatus, (System.Collections.IEnumerable)ViewData["ListStatus"], "RefID", "Name").Title(Resources.Multi.Status).ClientTemplate(Resources.Multi.Payment + ": \\#=ShowPaymentStatus(data)\\# <br/> " + Resources.Multi.Order + ": \\#=ShowOrderStatus(data)\\#  <br/>" + Resources.Multi.Delivery + ": \\#=ShowDeliveryStatus(data)\\#");
+                            columns.Bound(p => p.DeliveryStatus).Width(80).ClientTemplate("<a class='btn btn-info btn-minier' href='https://mst.deca.vn/ocm2012/don_hang_201409/dsp_chi_tiet_1_don_hang?hdn_item_id=\\#=PKOrder\\#' target='_blank' style='width:50px;'>" + Resources.Multi.Detail + "</a><button class='btn btn-primary btn-minier' data-orderid='\\#=OrderID\\#' style='width:50px;margin-top:2px;' onclick='SendOrderIDToTicket(this)'>Ticket</button>").Title("");
+                        })
+                            //.HtmlAttributes(new { @style = "height:200px" })
+                        .Scrollable()
+                        .Events(e => e.DataBound("ResizeOrderHistoryGrid"))
+                        .Pageable(pageable => pageable.ButtonCount(5))
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(20)
+                        .Sort(sort => sort.Add(a => a.CreatedDate).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.PKOrder);
+                        }).Read(read => read
+                        .Action("OrderHistoryRead", "CustomerSupport", new { CustomerID = "#=CustomerID#", DataSource = "#=DataSource#" })
+                        )).ToClientTemplate()
+                    )
+                </div>
+                <div id="tabTicketHistory" class="tab-pane">
+                    @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_RT_Ticket>()
+                        .Name("GridTicketHistory")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.TicketID).Width(270).Title("").ClientTemplate("<a target='_blank' href='\\#=getTicketLink(data)\\#'><b>\\#=TicketID\\#</b></a><b> -\\#=Title\\#</b><br/> \\#=RowCreatedUser\\# - <span style='color:grey'>" + Resources.Multi.CreatedBy + ":</span> \\#=kendo.toString(RowCreatedTime,'HH:mm dd/MM/yyyy')\\#"); ;
+                            columns.Bound(p => p.Detail).Width(270).Title("").ClientTemplate("\\#=Detail\\# <hr/><span style='color:grey'>Xử lý cuối:</span> \\#:LastActivities\\#");
+                            columns.ForeignKey(p => p.TypeID, (System.Collections.IEnumerable)ViewData["TicketType"], "Value", "Text").Title("").ClientTemplate("\\#=ShowTicketType(data)\\# <br/> \\#=Status\\#").Width(100);
+                        })
+                            //.HtmlAttributes(new { @style = "height:200px" })
+                        .Scrollable()
+                        .Pageable(pageable => pageable.ButtonCount(5))
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(20)
+                        .Sort(sort => sort.Add(a => a.RowCreatedTime).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.TicketID);
+                        }).Read(read => read
+                        .Action("TicketHistoryRead", "CustomerSupport", new { CustomerID = "#=CustomerID#", CustomerSource = "#=DataSource#" })
+                        )).ToClientTemplate()
+                    )
+                </div>
+                <div id="tabSMSHistory" class="tab-pane">
+                    @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_SMS_SO>()
+                        .Name("GridSendSMS")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.CreatedAt).Width(100).Title(Resources.Multi.SentTime).Format("{0:dd/MM/yyyy HH:mm}");
+                            columns.Bound(p => p.Status).Width(90).Title(Resources.Multi.Status);
+                            columns.Bound(p => p.Content).Width(200).Title(Resources.Multi.Content);
+                            columns.Bound(p => p.Phone).Width(100).Title(Resources.Multi.Phone);
+                            columns.Bound(p => p.CreatedBy).Width(100).Title(Resources.Multi.Sender);
+                        })
+                            //.HtmlAttributes(new { @style = "height:200px" })
+                        .Scrollable(scrollable => scrollable.Virtual(false))
+                        .Pageable(pageable => pageable.ButtonCount(5))
+                        .Resizable(resize => resize.Columns(true))
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(8)
+                        .Sort(sort => sort.Add(a => a.CreatedAt).Descending())
+                            //.Events(events => { events.Error("error_handlerCustomerAssignment"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.ID);
+                        }).Read(read => read
+                                .Action("SendSMSRead", "CustomerSupport", new { CustomerID = "#=CustomerID#", CustomerSource = "#=DataSource#" })
+                        )).ToClientTemplate()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="SendSMSTemplate">
+    @using (Html.BeginForm("SendSMSFromCustomerSupport", "CustomerSupport", FormMethod.Post, new { @class = "form-horizontal", id = "SendSMSForm", style = "margin:0;" }))
+    {
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <input type="hidden" name="TemplateID" value="0" />
+                    <input type="hidden" name="CustomerID" value="#=CustomerID#" />
+                    <input type="hidden" name="CustomerSource" value="#=CustomerSource#" />
+                </div>
+                <div class="row-fluid">
+                    <label for="sendPhone">Resources.Multi.Phone</label>
+                    <select id="sendPhone" class="span12" name="Phone">
+                        #for(var i =0;i< listPhone.length;i++){#
+                        #if(i==0){#
+                        <option value="#=listPhone[i]#" selected>#=listPhone[i]#</option>
+                        #}else{#
+                        <option value="#=listPhone[i]#">#=listPhone[i]#</option>
+                        #}#
+                        #}#
+                    </select>
+                </div>
+                <div class="row-fluid">
+                    <label for="Follower">@Resources.Multi.SMScontentSearch</label>
+                    <textarea maxlength="160" class="span12" rows="5" placeholder="@Resources.Multi.SMScontentSearch..." onkeyup="ChangeContent()" name="Content" id="SMSContent" />
+                </div>
+                <label style="float:right" id="countContent">0/160</label>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" id="btnSendSMS" class="btn btn-mini btn-success pull-right" style="margin-left:5px;"> @Resources.Multi.Send @Resources.Multi.Message.ToLower()</button>
+            <a class="btn btn-mini btn-grey pull-right" onclick="$('\\#SendSMSWindow').data('kendoWindow').close();">@Resources.Multi.Cancel</a>
+        </div>
+    }
+</script>
+@( Html.Kendo().Window().Name("SendSMSWindow")
+      .Title(Resources.Multi.Send +" "+ Resources.Multi.Message.ToLower())
+      .Visible(false)
+      .Modal(true)
+      .Draggable(false)
+      .Width(400)
+)
+<script>
+    var SendSMSTemplate = kendo.template($("#SendSMSTemplate").html());
+    var dataCompany = {};
+    $.post(r + "/CustomerSupport/GetListCompany", function (data) {
+        if (data.success) {
+            for (var i = 0; i < data.data.length; i++) {
+                var comp = data.data[i];
+                dataCompany[comp.Id] = comp.ShortName;
+            }
+        }
+    })
+    function deletePhone(value, currentName) {
+        var isConfirm = confirm("@Resources.Multi.DeletePhoneConfirm");
+        if (isConfirm) {
+            var current = $("#UpdateCustomerInfoForm input[name='" + currentName + "']").val().trim();
+            if (current) {
+                if (current.split(",").length > 1)
+                    current = current.replace("," + value, "");
+                else
+                    current = current.replace(value, "");
+            }
+            current = current.replace("," + value, "");
+            SetValueForFormData(current, currentName);
+        }
+    }
+    function SaveCustomerType() {
+        var isCaNhan = $("input[name='checkboxCustomerType']").is(':checked');
+        var isToChuc = $("input[name='checkboxCustomerType1']").is(':checked');
+        var result = '';
+        if (isCaNhan && isToChuc)
+            result = '@Resources.Multi.Personal,@Resources.Multi.Organization';
+        else {
+            if (isCaNhan)
+                result = "@Resources.Multi.Personal";
+            if (isToChuc)
+                result = "@Resources.Multi.Organization";
+        }
+        SetValueForFormData(result, 'CustomerType');
+    }
+    function initEditable(DataSource) {
+        //Phone
+        //add phone
+        $(".editablea-add-phone").editable(function (value, settings) {
+            if (value.trim()) {
+                var name = $(this).data("name");
+                var current = $("#UpdateCustomerInfoForm input[name='" + name + "']").val().trim();
+                if (current)
+                    current = current + ',' + value.trim();
+                else
+                    current = value.trim();
+                SetValueForFormData(current, name);
+                return ('@Resources.Multi.Saving...');
+            }
+            else return ('@Resources.Multi.Saving...');
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            data: function (value, settings) {
+                return '';
+            },
+            cssclass: 'inline-edit-width',
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "click",
+            style: "inherit",
+        });
+        //edit phone
+        $(".editable-phone").editable(function (value, settings) {
+            var oldValue = $(this).data("oldvalue");
+            if (value.trim()) {
+                var fullValue = $(this).data("fullvalue");
+                var newValue = "";
+                //set gia tri moi vao form input
+                if (oldValue)
+                    newValue = fullValue.replace(oldValue, value.trim());
+                else newValue = value.trim();
+                SetValueForFormData(newValue, $(this).data("name"));
+                return ('@Resources.Multi.Saving...');
+            }
+            else return oldValue;
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-edit-width',
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            style: "inherit",
+        });
+        //text
+        $(".editable").editable(function (value, settings) {
+            //check neu Name = Phone, thì sửa lại giá trị đầu của thằng MobilePhone = Value.
+            if ($(this).data("name") == 'Phone') {
+                var currentMobile = $("#UpdateCustomerInfoForm input[name='MobilePhone']").val();
+                // neu mobile da co gia tri moi chinh sua
+                if (currentMobile.trim()) {
+                    //check so mobile hien tai dang co
+                    if (currentMobile.split(",").length > 1) {
+                        //hien tai co >= 2 so mobile, xoa so mobile dau, thay bang value
+                        //check value co rong hay ko
+                        if (value.trim()) {
+                            //value != rong. replace so dt dau = value
+                            currentMobile = currentMobile.replace(currentMobile.split(",")[0], value.trim());
+                        } else {
+                            //value = rong, xoa so dt dau
+                            currentMobile = currentMobile.replace(currentMobile.split(",")[0] + ',', '');
+                        }
+                    } else {
+                        //co 1 so mobile, thay bang value
+                        currentMobile = currentMobile.replace(currentMobile, value);
+                    }
+                    $("#UpdateCustomerInfoForm input[name='MobilePhone']").val(currentMobile);
+                }
+            }
+            SetValueForFormData(value.trim(), $(this).data("name"));
+            return ('@Resources.Multi.Saving...');
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-edit-width',
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            style: "inherit",
+        });
+        // birthday
+        $(".editable-date").editable(function (value, settings) {
+            SetValueForFormData(kendo.toString(kendo.parseDate(value, 'dd/MM/yyyy'), 'yyyy-MM-dd'), $(this).data("name"));
+            return ('@Resources.Multi.Saving...');
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-edit-width',
+            type: "masked",
+            mask: "99/99/9999",
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            style: "inherit",
+        });
+        //gioi tinh
+        $(".editable-gender").editable(function (value, settings) {
+            // var vl = $(this).find("form").find('select[name="value"] option:selected').text();
+            SetValueForFormData(value.trim(), $(this).data("name"));
+            return ('@Resources.Multi.Saving...');
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-edit-width',
+            type: "select",
+            submit: 'OK',
+            data: " {'Nam':'Nam','Nữ':'Nữ'}",
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            style: "inherit",
+        });
+        //hạng
+        //$(".editable-ranking").editable(function (value, settings) {
+        //    // var vl = $(this).find("form").find('select[name="value"] option:selected').text();
+        //    SetValueForFormData(value.trim(), $(this).data("name"));
+        //    return ('@Resources.Multi.Saving...');
+        //}, {
+        //    indicator: "@Resources.Multi.Saving...",
+        //    cssclass: 'inline-edit-width',
+        //    type: "select",
+        //    submit: 'OK',
+        //    data: " {'N/A':'--N/A--','Kim cương':'Kim cương','Vàng':'Vàng','Bạc':'Bạc','Đồng':'Đồng'}",
+        //    tooltip: "@Resources.Multi.ClickToEdit...",
+        //    event: "dblclick",
+        //    style: "inherit",
+        //});
+
+        //tin trang hon nhan
+        $(".editable-marital").editable(function (value, settings) {
+            // var vl = $(this).find("form").find('select[name="value"] option:selected').text();
+            SetValueForFormData(value.trim(), $(this).data("name"));
+            return ('@Resources.Multi.Saving...');
+        }, {
+            indicator: "@Resources.Multi.Saving...",
+            cssclass: 'inline-edit-width',
+            type: "select",
+            submit: 'OK',
+            data: " {'@Resources.Multi.Single':'@Resources.Multi.Single','@Resources.Multi.Married':'@Resources.Multi.Married'}",
+            tooltip: "@Resources.Multi.ClickToEdit...",
+            event: "dblclick",
+            style: "inherit",
+        });
+
+        //company
+        if (DataSource == "ocmcustomer") {
+            $(".editable-company").editable(function (value, settings) {
+                SetValueForFormData(value.trim(), $(this).data("name"));
+                return ('@Resources.Multi.Saving...');
+            }, {
+                indicator: "@Resources.Multi.Saving...",
+                cssclass: 'inline-edit-width',
+                tooltip: "@Resources.Multi.ClickToEdit...",
+                event: "dblclick",
+                style: "inherit",
+            });
+        } else {
+            $(".editable-company").editable(function (value, settings) {
+                var vl = $(this).find("form").find('select[name="value"] option:selected').text();
+                $("#UpdateCustomerInfoForm input[name='CompanyID']").val(value.trim());
+                SetValueForFormData(vl, $(this).data("name"));
+                return (vl);
+            }, {
+                indicator: "@Resources.Multi.Saving...",
+                cssclass: 'inline-edit-width',
+                type: "select",
+                submit: 'OK',
+                data: dataCompany,
+                tooltip: "@Resources.Multi.ClickToEdit...",
+                event: "dblclick",
+                style: "inherit",
+            });
+        }
+
+        $("#UpdateCustomerInfoForm").validate({
+            // Rules for form validation
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    beforeSend: function () {
+                        //$("#btnSaveCallLog").attr("disabled", "disabled")
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            $.gritter.add({
+                                title: '@Resources.Multi.Success',
+                                text: data.message,
+                                class_name: 'gritter-success'
+                            });
+                        }
+                        else {
+                            $.gritter.add({
+                                // (string | mandatory) the heading of the notification
+                                title: "@Resources.Multi.Error",
+                                // (string | mandatory) the text inside the notification
+                                text: data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                    },
+                    complete: function () {
+                        loadData(false);
+                    }
+                });
+                return false;
+            }
+        });
+    }
+    function AddIncomingPhoneToCustomer(Phone, Type) {
+        if (Phone) {
+            $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            var current = $("#UpdateCustomerInfoForm input[name='" + Type + "']").val().trim();
+            if (current) {
+                //dang co so.
+                if (current.split(",").length > 1)
+                    current += "," + Phone;
+                else
+                    current += ',' + Phone;
+            } else {
+                current = Phone;
+            }
+            SetValueForFormData(current, Type);
+        }
+    }
+    function SetValueForFormData(value, name) {
+        $("#UpdateCustomerInfoForm input[name='" + name + "']").val(value.trim());
+        $("#UpdateCustomerInfoForm").submit();
+    }
+    function SendOrderIDToTicket(obj) {
+        var OrderID = $(obj).data("orderid");
+        $("#CreateTicketForm input[name='OrderID']").val(OrderID);
+        $("#CreateTicketForm input[name='Title']").focus();
+        $.gritter.add({
+            // (string | mandatory) the heading of the notification
+            title: '@Resources.Multi.Infomation',
+            // (string | mandatory) the text inside the notification
+            text: '@Resources.Multi.SendOrderToTicketMessage.',
+            class_name: 'gritter-info'
+        });
+    }
+    function ChangeContent() {
+        var content = $('#SMSContent').val();
+        $('#SMSContent').val(locdau(content));
+        $('#countContent').text(content.length + "/160");
+    }
+    function OpenSMSSend(obj) {
+        //// khóa chức năng.
+        //$.gritter.add({
+        //    title: "Thông tin",
+        //    text: "Chức năng này hiện chưa được phép sử dụng.",
+        //    class_name: 'gritter-info',
+        //});
+        //return;
+        ////end khoa chuc nang
+
+        var MobilePhone = $(obj).data("mobilephone");
+        var HomePhone = $(obj).data("homephone");
+        var OfficePhone = $(obj).data("officephone");
+        var strPhone = "";
+        if (MobilePhone) {
+            strPhone += MobilePhone;
+        }
+        if (HomePhone) {
+            strPhone += "," + HomePhone;
+        }
+        if (OfficePhone) {
+            strPhone += "," + OfficePhone;
+        }
+        if (strPhone.trim()) {
+            var listPhone = strPhone.split(",");
+            var data = {
+                listPhone: listPhone,
+                CustomerID: CustomerID,
+                CustomerSource: DataSource,
+            };
+            var wnd = $("#SendSMSWindow").data("kendoWindow");
+            wnd.content(SendSMSTemplate(data));
+            wnd.center().open();
+            $("#SendSMSForm").validate({
+                // Rules for form validation
+                submitHandler: function (form) {
+                    $(form).ajaxSubmit({
+                        beforeSend: function () {
+                            $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                            $("#btnSendSMS").attr("disabled", "disabled");
+                        },
+                        success: function (data) {
+                            if (!data.error) {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Success",
+                                    text: "@Resources.Multi.Send SMS  @Resources.Multi.Success.ToLower()!",
+                                    class_name: 'gritter-success',
+                                });
+                                $('#SendSMSWindow').data('kendoWindow').close();
+                                $("#GridSendSMS").data("kendoGrid").dataSource.read();
+                                $("#btnSendSMS").removeAttr("disabled");
+                            }
+                            else {
+                                $.gritter.add({
+                                    title: "@Resources.Multi.Error",
+                                    text: data.message,
+                                    class_name: 'gritter-error',
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $("#btnSendSMS").removeAttr("disabled");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+            //  $("#TypeID").html($("#listTypedata").html());
+            //$("#Priority").html($("#listPrioritydata").html());
+            //$("#Impact").html($("#listImpactdata").html());
+            //$("#preAssignee").html($("#listAssigneedata").html());
+
+            // $("#preAssignee").val(currentuser);
+
+            // $("#preAssignee").chosen();
+            $("#SendSMSWindow").closest(".k-window").css("top", "50px");
+            // $(".k-popup-edit-form").css("overflow", "inherit");
+
+        }
+        else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: "@Resources.Multi.Error",
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.CustomerNoPhone.',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    var collection;
+    //get's the text by value
+    function ShowMerchanName(data) {
+        var grid = $("#GridOrderHistory").data("kendoGrid");
+        //change the index of the column with your index
+        valuesCollection = grid.options.columns[0].values;
+
+        //if the collection is empty - get it from the grid
+        if (!collection) {
+            collection = {};
+            //Set the correct FKColumn index
+            for (var value in valuesCollection) {
+                collection[valuesCollection[value].value] = valuesCollection[value].text;
+            }
+        }
+        return collection[data.FKMerchantID];
+    }
+    var orderStatusCollection;
+    function ShowOrderStatus(data) {
+        var grid = $("#GridOrderHistory").data("kendoGrid");
+        //change the index of the column with your index
+        valuesCollection = grid.options.columns[2].values;
+        //if the collection is empty - get it from the grid
+        if (!orderStatusCollection) {
+            orderStatusCollection = {};
+            //Set the correct FKColumn index
+            for (var value in valuesCollection) {
+                orderStatusCollection[valuesCollection[value].value] = valuesCollection[value].text;
+            }
+        }
+        return orderStatusCollection[data.OrderStatus];
+    }
+
+    var ticketTypeCollection;
+    function ShowTicketType(data) {
+        var grid = $("#GridTicketHistory").data("kendoGrid");
+        //change the index of the column with your index
+        valuesCollection = grid.options.columns[2].values;
+        //if the collection is empty - get it from the grid
+        if (!ticketTypeCollection) {
+            ticketTypeCollection = {};
+            //Set the correct FKColumn index
+            for (var value in valuesCollection) {
+                ticketTypeCollection[valuesCollection[value].value] = valuesCollection[value].text;
+            }
+        }
+        return ticketTypeCollection[data.TypeID];
+    }
+
+    function ShowPaymentStatus(data) {
+        //change the index of the column with your index
+        if (data.PaymentStatus == 1) {
+            return "@Resources.Multi.Paymented";
+        } else return "@Resources.Multi.NotYetPayment";
+    }
+    function getTicketLink(data) {
+        return r + '/ticket/?TicketID=' + data.TicketID;
+    }
+    function ShowDeliveryStatus(data) {
+        //change the index of the column with your index
+        if (data.DeliveryStatus == 0) return "@Resources.Multi.NotYetDelievery";
+        else if (data.DeliveryStatus == 1) return "@Resources.Multi.Delievrying";
+        else if (data.DeliveryStatus == 2) return "@Resources.Multi.Deliveryed";
+        else if (data.DeliveryStatus == 3) return "@Resources.Multi.WaitGetMerchandise";
+        else if (data.DeliveryStatus == 4) return "@Resources.Multi.Tranfer";
+        else if (data.DeliveryStatus == 5) return "@Resources.Multi.Tranfered";
+        else if (data.DeliveryStatus == 6) return "@Resources.Multi.Cancel";
+    }
+    function ResizeOrderHistoryGrid() {
+        var offsetbottom;
+        //check tab nào đang hiển thị
+        if (parseInt($('#GridOrderHistory').offset().top) > 0) {
+            //tab thông báo đang hiển thị
+            offsetbottom = parseInt($(window).height()) - parseInt($('#GridOrderHistory').offset().top);
+            var gridElement = $("#GridOrderHistory");
+            dataArea = gridElement.find(".k-grid-content"),
+      otherElements = gridElement.children().not(".k-grid-content"),
+      otherElementsHeight = 0;
+            otherElements.each(function () {
+                otherElementsHeight += $(this).outerHeight();
+            });
+            $("#GridOrderHistory .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+            $("#GridTicketHistory .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+            $("#GridSendSMS .k-grid-content").height(offsetbottom - otherElementsHeight - 24);
+        }
+    }
+    function callFromCS(obj) {
+        var phone = $(obj).data("phone");
+        if (phone) {
+            XliteCall(phone);
+        }
+        else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: "@Resources.Multi.Error",
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Updatephone',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+</script>

@@ -1,0 +1,58 @@
+﻿@{
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+<div class="tabbable-custom">
+    <ul class="nav nav-tabs">
+        <li class="active">
+            <a href="\\#tabLocationList" data-toggle="tab" aria-expanded="true">@Html.Raw(Resources.Global._warehouse_location_info)</a>
+        </li>
+        <li class="">
+            <a href="\\#tabLocationForm" data-toggle="tab" aria-expanded="false" onclick="createLocation('#=id#')">@Html.Raw(Resources.Global._create_update)</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane" id="tabLocationForm" >
+            #if(id>0){#
+            <form action="@Url.Content("~/Merchant_Warehouse/CreateUpdateLocation")" method="post" id="LocationForm" novalidate="novalidate">    
+                <input type="hidden" name="ten_kho" value="#=ten_kho#" />
+                <input type="hidden" name="ma_kho" value="#=ma_kho#" />
+                <div class="EditLocation"></div>
+            </form>
+            #}#
+        </div>
+        <div class="tab-pane active" id="tabLocationList">
+            
+            <div class="row">
+                <div class="col-md-12 text-right pull-right">
+                    <div style="float:right;margin-left:10px;">
+                        <div class="input-icon input-icon-sm right">
+                            <i class="icon-magnifier"></i>
+                            <input type="text" class="form-control form-control-solid input-circle input-sm" onkeyup="SearchLocation(this, '#=id#')" placeholder="@Html.Raw(Resources.Global._search)...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix">
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_LocationWarehouse>()
+                    .Name("listViewLocation")
+                    .TagName("div")
+                    .HtmlAttributes(new { @class = "row", @style = "border-style:none;box-shadow:none;margin:0;margin-top:10px" })
+                    .ClientTemplateId("templateLocation")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("ReadLocation", "Merchant_Warehouse", new { ma_kho = "#=ma_kho#" }));
+                        dataSource.PageSize(10);
+                    })
+                    .Pageable().ToClientTemplate()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

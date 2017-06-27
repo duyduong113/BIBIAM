@@ -1,0 +1,36 @@
+﻿@{
+    Layout = null;
+    int STTPayPal = ViewBag.countID;
+}
+<tr class="group-schedule-paypal">
+    <td><input disabled type="number" value="@STTPayPal" /></td>
+    <td>
+        <input class="schedule-pk_gmoney_next" type="hidden" value="0" />
+        <input class="input-small date-picker schedule-paypal-contract-date" type="text" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <input onchange="changeMoney()" class="input-small schedule-paypal-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="changeMoney()" class="input-small schedule-paypal-money-soon currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+    </td>
+    <td>
+        <input onchange="changeMoney()" class="input-small date-picker schedule-paypal-date" type="text" data-date-format="dd/mm/yyyy" />
+    </td>
+    <td>
+        <select class="schedule-paypal-status">
+            <option value=""></option>
+            @foreach (var its in ViewBag.listStatusPaypal)
+            {
+                    <option value="@its.Code">@its.Name</option>
+            }
+        </select>
+    </td>
+    
+    <td>
+        <input class="schedule-paypal-note" type="text" value="" />
+    </td>
+    <td>
+        <button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupSchedulePaypal(this)"><i class="icon-minus"></i></button>
+    </td>
+</tr>

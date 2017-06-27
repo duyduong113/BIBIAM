@@ -1,0 +1,755 @@
+﻿<fieldset>
+    @{
+        int glb = 0;
+    }
+    <b class="title-ctr">Danh sách các vị trí thuộc hợp đồng</b>
+    <div class="row-fluid">
+        <table id="list-hdt-service" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    @*<th style="width:2%">
+                        <button class="btn btn-minier success" type="button" onclick="ShowConfirm()">OQC</button>
+                    </th>*@
+                    <th style="width:10%">Web</th>
+                    <th style="width:10%">Loại SP</th>
+                    <th style="width:10%">Chuyên mục</th>
+                    <th style="width:10%">Vị trí</th>
+                    <th style="width:10%">Tính chất</th>
+                    <th style="width:5%">SL</th>
+                    <th style="width:8%">Giá public</th>
+                    <th style="width:9%">Giá TT</th>
+                    <th style="width:10%">Tổng tiền</th>
+                    <th style="width:8%">DS chuyển</th>
+                    <th style="width:8%">KM</th>
+                    <th style="width:5%">
+                        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroup()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.ProductHDT != null && ViewBag.ProductHDT.Count > 0)
+                {
+                    foreach (var item in ViewBag.ProductHDT)
+                    {
+                        <tr class="group-hdt-service">
+                            @*<td>
+                                <input class="input-small item-chk" type="checkbox" />
+                            </td>*@
+                            <td>
+                                <input type="hidden" class="item-PKContractProduct" value="@item.PKContractProduct" />
+                                <input class="input-value-suggess item-web" type="hidden" value="@item.Website" />
+                                @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập tên Web")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "input-large", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.WebsiteName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-type" type="hidden" value="@item.ProductType" />
+                                @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập loại SP")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "input-large", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 19 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.ProductTypeName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-category" type="hidden" value="@item.Category" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập chuyên mục")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.CategoryName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-location" type="hidden" value="@item.Location" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập vị trí")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.LocationName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-nature" type="hidden" value="@item.Nature" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập tính chất")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 25 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.NatureName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small item-qty" value="@item.Number" type="number" />
+                            </td>
+                            <td>
+                                <input class="input-small item-price-public currency" type="text" value="@item.PricePublic.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small item-price-tt currency" value="@item.PriceCharged.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup('price')" class="input-small item-money-sum currency" value="@item.Price.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup('price')" class="input-small item-switch currency" value="@item.MoneyNextYear.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input class="input-small item-km" type="text" value="@item.Promotion" />
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroup(this,'@item.PKContractProduct')"><i class="icon-minus"></i></button>
+                            </td>
+                        </tr>
+                                        }
+                                    }
+            </tbody>
+        </table>
+    </div>
+</fieldset>
+<fieldset>
+    <b class="title-ctr">Ngày lên ngày xuống theo hợp đồng</b>
+    <div class="row-fluid">
+        <table id="list-hdt-by-date" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:15%">Web</th>
+                    <th style="width:15%">Chuyên mục</th>
+                    <th style="width:20%">Vị trí</th>
+                    <th style="width:15%">Tính chất</th>
+                    <th style="width:10%">Ngày lên</th>
+                    <th style="width:10%">Ngày xuống</th>
+                    <th style="width:10%">Thời gian</th>
+                    <th style="width:5%">Số lượng</th>
+                    <th style="width:3%">
+                        <button data-rel="tooltip" data-placement="left" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupDate()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.bannerUpdate != null && ViewBag.bannerUpdate.Count > 0)
+                {
+                    foreach (var item in ViewBag.bannerUpdate)
+                    {
+                        <tr class="group-hdt-by-date">
+                            <td>
+                                <input type="hidden" class="item-pk-update" value="@item.pk_update" />
+                                <input class="input-value-suggess item-web" type="hidden" value="@item.c_website" />
+                                @(Html.Kendo().AutoComplete()
+                                                                .Name("txt-AdvChannel-" + glb)
+                                                                .DataTextField("Name")
+                                                                .Placeholder("Nhập tên Web")
+                                                                .Filter("contains")
+                                                                .MinLength(1)
+                                                                .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-channel", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                                            .Data("onAdditionalDataChannel");
+                                                                    })
+                                                                    .ServerFiltering(true);
+                                                                })
+                                                                .Events(e =>
+                                                                {
+                                                                    e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                                })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.WebsiteName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-category" type="hidden" value="@item.c_category" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập chuyên mục")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small cpm-position", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.CategoryName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-location" type="hidden" value="@item.c_location" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập vị trí")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small cpm-position", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.LocationName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input class="input-value-suggess item-nature" type="hidden" value="@item.c_nature" />
+                                @(Html.Kendo().AutoComplete()
+                                                            .Name("txt-AdvChannel-" + glb)
+                                                            .DataTextField("Name")
+                                                            .Placeholder("Nhập tính chất")
+                                                            .Filter("contains")
+                                                            .MinLength(1)
+                                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                                            .DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 25 })
+                                                                        .Data("onAdditionalDataChannel");
+                                                                })
+                                                                .ServerFiltering(true);
+                                                            })
+                                                            .Events(e =>
+                                                            {
+                                                                e.Select("onSelectChannelItem").Change("onChangeValueSuggest");
+                                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.NatureName)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                @{ 
+                                    string update = "";
+                                    string downdate = "";
+                                    if (item.c_update.ToString("dd/MM/yyyy")  != "01/01/1900")
+                                    {
+                                        update = item.c_update.ToString("dd/MM/yyyy");
+                                    }
+                                    if (item.c_downdate.ToString("dd/MM/yyyy") != "01/01/1900")
+                                    {
+                                        downdate = item.c_downdate.ToString("dd/MM/yyyy");
+                                    }
+                                }
+                                <input onchange="resetWeekDay(this)" disabled="disabled" class="date-picker input-small item-update" type="text" value="@update" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input onchange="resetWeekDay(this)" disabled="disabled" class="date-picker input-small item-downdate" type="text" value="@downdate" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input class="item-week-time-hidden" type="hidden" />
+                                <input class="input-small item-week-time" type="text" disabled value="@item.c_time" />
+                            </td>
+                            <td>
+                                <input class="input-small item-qty" type="number" value="@item.c_number" />
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupDate(this,'@item.pk_update')"><i class="icon-minus"></i></button>
+                            </td>
+
+                        </tr>
+                                        }
+                                    }
+            </tbody>
+        </table>
+    </div>
+</fieldset>
+<script>
+    $(document).ready(function () {
+        ResetcountDays();
+        resetValueGroup();
+        
+    });
+
+    function ResetcountDays() {
+        var loop = true;
+        $("#list-hdt-by-date .group-hdt-by-date").each(function (i) {
+            //debugger;
+            var startDate = $(this).find(".item-update").val();
+            var endDate = $(this).find(".item-downdate").val();
+            if (startDate != "" && endDate != "") {
+                var days = getDateRange(startDate, endDate);
+                if (days) {
+                    var nweek = nsnl = "";
+                    week = parseInt(days / 7);
+                    if (week > 0) {
+                        nweek = week + " tuần ";
+                    }
+                    snl = days % 7;
+                    if (snl > 0) {
+                        nsnl = snl + " ngày";
+                    }
+                    $(this).find(".item-week-time").val(nweek + nsnl);
+                    $(this).find(".item-week-time-hidden").val(days);
+
+                } else {
+                    return;
+                }
+            }
+        });
+        if (!loop) {
+            return false;
+        }
+    }
+    var listProducts = "";
+    var PKContract = $("#formContract").attr("data-contract");
+
+    function ShowConfirm() {
+        var loop = true;
+        listProducts = "";
+        $("#list-hdt-service .group-hdt-service").each(function (index) {
+            if ($(this).find(".item-chk").prop('checked')) {
+                listProducts += $(this).find(".item-PKContractProduct").val() + "@@@@";
+            }
+        });
+        if (!loop) {
+            return false;
+        }
+        if (listProducts == "") {
+            alertMessage("Chưa chọn dịch vụ !");
+
+        }
+        else {
+            $('#popup-confirm').modal('show');
+        }
+
+    }
+    function allSaveInContract(chk) {
+        var rs1 = saveHdt(chk);
+        var rs2 = saveDateInContract(chk);
+        if (rs1 && rs2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    var c = parseInt("@glb");
+    var chGlb = 0;
+    var typeContract = '@ViewBag.typeContract';
+    function setGlobalChannel(k) {
+        chGlb = k;
+    }
+    function onAdditionalDataChannel() {
+        return {
+            text: $("#txt-AdvChannel-" + chGlb).val()
+        };
+    }
+    function saveHdt(check) {
+        // debugger;
+        var arr = [];
+        var loop = true;
+        $("#list-hdt-service .group-hdt-service").each(function (index) {
+            var obj = {};
+            obj.PKContractProduct = $(this).find(".item-PKContractProduct").val();
+            obj.FkContract = $("#formContract").attr("data-contract");
+            if ('@ViewBag.typeContract' == 'GOI') {
+                obj.Website = '24';
+                obj.ProductType = 'DB';
+                obj.Category = 'KHAC';
+            }
+            else if ('@ViewBag.typeContract' == 'PHIEUPR') {
+                obj.Website = $(this).find("input.item-web").val();
+                if (obj.Website == "") {
+                    alertMessage("Tên Website không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.ProductType = $(this).find("input.item-type").val();
+                if (obj.ProductType == "") {
+                    alertMessage("Loại sảm phẩm không được để trống !");
+                    loop = false;
+                    return false;
+                }
+            }
+            else{
+                obj.Website = $(this).find("input.item-web").val();
+                if (obj.Website == "") {
+                    alertMessage("Tên Website không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.ProductType = $(this).find("input.item-type").val();
+                if (obj.ProductType == "") {
+                    alertMessage("Loại sảm phẩm không được để trống !");
+                    loop = false;
+                    return false;
+                }
+
+                obj.Category = $(this).find("input.item-category").val();
+                if (obj.Category == "") {
+                    alertMessage("Tên chuyên mục không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.Location = $(this).find("input.item-location").val();
+                if (obj.Location == "") {
+                    alertMessage("Tên vị trí không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.Nature = $(this).find(".item-nature").val();
+                if (obj.Nature == "") {
+                    alertMessage("Tính chất không được để trống !");
+                    loop = false;
+                    return false;
+                }
+            }
+            obj.PricePublic = currencyToNumber($(this).find(".item-price-public").val());
+            if (obj.PricePublic == "") {
+                alertMessage("Đơn giá public không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.PriceCharged = currencyToNumber($(this).find(".item-price-tt").val());
+            if (obj.PriceCharged == "") {
+                alertMessage("Đơn giá TT không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Number = currencyToNumber($(this).find(".item-qty").val());
+            if (obj.Number == "") {
+                alertMessage("Số lượng không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Price = currencyToNumber($(this).find(".item-money-sum").val());
+            obj.PricePublic = currencyToNumber($(this).find(".item-price-public").val());
+            obj.Promotion = $(this).find(".item-km").val();
+            obj.MoneyNextYear = currencyToNumber($(this).find(".item-switch").val());
+            arr[index] = obj;
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (arr.length == 0) {
+            alertMessage("Chưa có sản phẩm dịch vụ !");
+            return false;
+        }
+        if (check) {
+            return loop;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/ContractProduct_Save",
+            type: 'POST',
+            data: { listProduct: arr },
+            async: true,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    alertMessage(data.message);
+                    loop = false;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage("Lỗi Cập nhật !");
+            }
+        });
+        return loop;
+    }
+    //change $, so luong dich vuf
+    function resetValueGroup(focus) {
+        var sum = 0;
+        var sumMny = 0;
+        var loop = true;
+        $("#list-hdt-service .group-hdt-service").each(function (index) {
+            var unitPrice = currencyToNumber($(this).find(".item-price-tt").val());
+            var quantity = currencyToNumber($(this).find(".item-qty").val());
+            var price = currencyToNumber($(this).find(".item-money-sum").val());
+            var mny = currencyToNumber($(this).find(".item-switch").val());
+            if (unitPrice == 0 || quantity == 0) {
+                loop = false;
+            }
+            sumMny = sumMny + mny;
+            var totalAmt = unitPrice * quantity;
+            sum = sum + totalAmt;
+            $(this).find(".item-money-sum").val(numberToCurrency(totalAmt));
+            //Bảo comment
+            //if (focus == "price") {
+            //    sum = sum + price;
+            //    sumMny = sumMny + mny;
+            //} else {
+            //    var totalAmt = unitPrice * quantity;
+            //    sum = sum + totalAmt;
+            //    $(this).find(".item-money-sum").val(numberToCurrency(totalAmt));
+            //}
+        })
+
+        sumMoneyGroup = sum;
+        moneyBeforeVat = sum;
+        sumMoneyNextYear = sumMny; //Doanh so chuyen nam sau
+        if(loop){
+            resetRevenus();
+        }
+    }
+
+    function minusGroup(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        resetValueGroup();
+        if (pk) {
+            addTaskList("PDNORMAL", pk);
+        }
+    }
+    function plusGroup() {
+        $.post(r + "/Ajax/GetInputSuggestService/", { incree: parseInt(c), Type: typeContract }, function (data) {
+            $("#list-hdt-service tbody.list").append(data);
+            c = c + 5;
+            addEventAfter();
+        })
+        return;
+    }
+    
+    function plusGroupDate() {
+        $.post(r + "/Ajax/GetInputSuggestService/", { incree: parseInt(c), Type: "HD_THUONG_DATE" }, function (data) {
+            $("#list-hdt-by-date tbody.list").append(data);
+            c = c + 4;
+            addEventAfter();
+        })
+        return;
+    }
+    function minusGroupDate(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("DATENORMAL", pk);
+        }
+    }
+    function saveDateInContract(check) {
+
+        var arr = [];
+        var loop = true;
+        $("#list-hdt-by-date .group-hdt-by-date").each(function (index) {
+            var obj = {};
+            obj.pk_update = $(this).find(".item-pk-update").val();
+            obj.fk_contract = $("#formContract").attr("data-contract");
+            if ('@ViewBag.typeContract' == 'GOI') {
+                obj.c_website = '24';
+                obj.c_category = 'KHAC';
+            }
+            else if ('@ViewBag.typeContract' == 'PHIEUPR') {
+                obj.c_website = $(this).find("input.item-web").val();
+                if (obj.c_website == "") {
+                    alertMessage("Tên Website không được để trống !");
+                    loop = false;
+                    return false;
+                }
+            }
+            else{
+                obj.c_website = $(this).find("input.item-web").val();
+                if (obj.c_website == "") {
+                    alertMessage("Tên Website không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.c_category = $(this).find("input.item-category").val();
+                if (obj.c_category == "") {
+                    alertMessage("Tên chuyên mục không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.c_location = $(this).find("input.item-location").val();
+                if (obj.c_location == "") {
+                    alertMessage("Tên vị trí không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.c_nature = $(this).find(".item-nature").val();
+                if (obj.c_nature == "") {
+                    alertMessage("Tính chất không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.StrUpdate = convertDate($(this).find("input.item-update").val());
+                if (obj.StrUpdate == "") {
+                    alertMessage("Ngày lên không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.StrDowndate = convertDate($(this).find(".item-downdate").val());
+                if (obj.c_downdate == "") {
+                    alertMessage("Ngày xuống không được để trống !");
+                    loop = false;
+                    return false;
+                }
+                obj.c_number = $(this).find(".item-qty").val();
+                if (obj.c_number == "") {
+                    alertMessage("Số lượng không được để trống !");
+                    loop = false;
+                    return false;
+                }
+            }
+
+            obj.c_time = $(this).find(".item-week-time").val();
+            arr[index] = obj;
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (arr.length == 0) {
+            return true;
+        }
+        if (check) {
+            return loop;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/ContractProductTime_Save",
+            type: 'POST',
+            data: { listTime: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                    loop = false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+
+    }
+</script>

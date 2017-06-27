@@ -1,0 +1,318 @@
+﻿@using BIBIAM.Core.Entities;
+@using BIBIAM.Core
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._invenmana);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var GDN = ViewBag.GDN == null ? new Merchant_StockOutHeader() : ViewBag.GDN;
+}
+
+<style>
+    #StockOutGrid {
+        height: 300px;
+    }
+
+    .input-icon.has-error > i {
+        color: #ed6b75;
+    }
+
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        text-align: center;
+    }
+</style>
+<div class="row stockHeader">
+    <div class="col-md-12">
+        <div class="text-left">
+            <span>Gian hàng:</span>
+            <span>Tên gian hàng</span>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="text-center text-uppercase bold text-primary">
+            <h2>Phiếu nhập kho</h2>
+        </div>
+        <div class="formHeader">
+        </div>
+    </div>
+</div>
+@Html.Partial("_popup_create_rows")
+<div class="row stockDetail">
+    <div class="toolbar col-md-12">
+        @if (GDN.trang_thai != AllConstant.trang_thai.DANG_SU_DUNG)
+        {
+            <a class="btn btn-sm btn-success" href="javascript:void(0)" onclick="$('#popup-add-rows').modal('show')"><i class="fa fa-plus"></i> Thêm dòng mới </a>
+            <a class="btn btn-sm btn-danger" href="javascript:void(0)" onclick="Validate()"><i class="fa fa-remove"></i> Kiểm tra </a>
+            <a class="btn btn-sm btn-default" href="javascript:void(0)" onclick="Cancel()"><i class="fa fa-undo"></i> @Html.Raw(Resources.Global._cancel) </a>
+            <a class="btn btn-sm blue" href="javascript:void(0)" onclick="$('#EditForm').submit()"><i class="fa fa-save"></i> @Html.Raw(Resources.Global._save) </a>
+        }
+        <a class="btn btn-sm yellow" href="javascript:void(0)" onclick="Import()"><i class="fa fa-save"></i> @Html.Raw(Resources.Global._export) </a>
+    </div>
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<Merchant_StockOutDetail>()
+            .Name("StockOutGrid")
+            .Columns(columns =>
+            {
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'><i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                columns.ForeignKey(p => p.ma_san_pham, (System.Collections.IEnumerable)ViewBag.ds_san_pham, "ma_san_pham", "ten_san_pham")
+                    .ClientFooterTemplate("<div>Tổng sản phẩm <span id='check_san_pham' class='text-success'>0</span>/#=count#</div>")
+                    .Title(@Html.Raw(Resources.Global._product).ToString()).Width(200).HtmlAttributes(new { @class = "editable" });
+                columns.Bound(p => p.vi_tri).Width(100).HtmlAttributes(new { @class = "text-center" }).Title("Vị trí");
+                columns.ForeignKey(p => p.don_vi_tinh, (System.Collections.IEnumerable)ViewBag.units, "Value", "Name")
+                    .Title("Đơn vị tính").Width(80).HtmlAttributes(new { @class = "text-center editable" });
+                columns.Bound(p => p.so_luong_yeu_cau).Width(120).HtmlAttributes(new { @class = "text-right" }).Title("Số lượng yêu cầu").Format("{0:n0}")
+                    .ClientFooterTemplate("<span class='pull-right'>Total #= kendo.format('{0:n0}',sum )#</span>");
+                columns.Bound(p => p.so_luong_thuc_te).Width(120).HtmlAttributes(new { @class = "text-right" }).Title("Số lượng thực tế").Format("{0:n0}")
+                    .ClientFooterTemplate("<span class='pull-right'>Total #= kendo.format('{0:n0}',sum )#</span>");
+                columns.Bound(p => p.ghi_chu).Width(120).HtmlAttributes(new { @class = "text-left" }).Title(@Html.Raw(Resources.Global._note).ToString());
+            })
+                    .Events(events => { events.Save("onSave"); })
+                    .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                    .Pageable()
+                    .Navigatable()
+                    .Scrollable()
+                    .Sortable()
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .HtmlAttributes(new { @class = "" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .Events(events => { events.DataBound("onDatabound"); events.DetailExpand("detailExpand"); })
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .ServerOperation(false)
+                        .Aggregates(aggregates =>
+                        {
+                            aggregates.Add(p => p.ma_san_pham).Count();
+                            aggregates.Add(p => p.so_luong_yeu_cau).Sum();
+                            aggregates.Add(p => p.so_luong_thuc_te).Sum();
+                        })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.don_vi_tinh).DefaultValue("cai");
+                            model.Field(p => p.so_luong_yeu_cau).DefaultValue(1);
+                            model.Field(p => p.so_luong_thuc_te).DefaultValue(1);
+                        })
+                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                        .Read(c => c.Action("Read", "Merchant_StockOut", new { ma_phieu = GDN.ma_phieu_xuat_kho}))
+                    )
+        )
+    </div>
+</div>
+@Html.Partial("_GDN_Partial");
+<script>
+    $(document).ready(function () {        
+    });
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(GDN))'));
+    function loadForm(data) {
+        debugger
+        var EditTemplate = kendo.template($("#StockOutHeader").html());
+        $(".formHeader").html(EditTemplate(data));
+        $(".date-picker").datepicker({
+            rtl: App.isRTL(), autoclose: !0,
+        });
+        loadValidate();
+    }
+    function loadValidate() {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ma_don_hang: { minlength: 4, required: !0, maxlength: 50 },
+                        nguoi_nhan: { minlength: 4, required: !0, maxlength: 500 },
+                        ngay_xuat_kho: { required: !0 },
+                        ten_kho: { minlength: 4, required: !0 },
+                        dia_diem: { required: !0, maxlength: 500 },
+                        thu_kho: { required: !0, maxlength: 500 },
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {                    
+                    $(e).closest(".input-icon").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(e).closest(".input-icon").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    kendo.toString(kendo.parseDate($("#EditForm input[name='ngay_xuat_kho']").val()), 'yyyy/MM/dd');
+                    var obj = getDataFromGrid();
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: { details: obj },
+                        dataType: 'json',
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')      
+                                $("#StockOutGrid").data("kendoGrid").dataSource.read();
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }    
+    function onDatabound(e) {
+        var count = 0;
+        $.each($("#StockOutGrid").data("kendoGrid").dataSource.data(), function () {
+            if (this.ma_san_pham)
+                count++;
+        });
+        $("#check_san_pham").text(count)
+    }
+    function detailExpand() {
+
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            if (e.errors) {
+                var message = "\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                toastr.error(message)
+            }
+        }
+    }
+    function onRequestEnd(e) {
+        if ((e.type == "create") && !e.response.Errors) {
+            toastr.success("@Html.Raw(Resources.Global._save_successfully)")
+        }
+    }
+    function DLonChange(e) {
+        if (e.sender.dataItem()) {
+            $("#EditForm input[name='thu_kho']").val(e.sender.dataItem().thu_kho)
+            $("#EditForm input[name='dia_diem']").val(e.sender.dataItem().dia_chi)
+        }
+
+    }
+    function onSave(data) {
+        if (data.values.so_luong_thuc_te || data.values.so_luong_thuc_te == 0) {
+            if (data.values.so_luong_thuc_te < 1 || data.values.so_luong_thuc_te > 1000000) {
+                data.preventDefault();
+                toastr.warning(data.values.so_luong_thuc_te < 1 ? 'Số lượng tối thiểu là 1' : 'Số lượng tối đa là 1,000,000');
+            }
+        }
+        else if ((data.values.so_luong_yeu_cau || data.values.so_luong_yeu_cau == 0) && (data.values.so_luong_yeu_cau < 1 || data.values.so_luong_yeu_cau > 1000000)) {
+            data.preventDefault();
+            toastr.warning(data.values.so_luong_yeu_cau < 1 ? 'Số lượng tối thiểu là 1' : 'Số lượng tối đa là 1,000,000');
+        }
+        $("#StockOutGrid").data("kendoGrid").refresh();
+    }
+    function deleteRow(e) {
+        var data = $("#StockOutGrid").data("kendoGrid").dataItem($(e).parents('tr'));
+        if (data)
+            $("#StockOutGrid").data("kendoGrid").dataSource.remove(data);
+    }
+    function getDataFromGrid() {
+        Validate();
+        var obj = [];
+        $.each($("#StockOutGrid").data("kendoGrid").dataSource.data(), function () {
+            if (!this.ma_san_pham) {
+                return;
+            }
+            var detail = new Object();
+            detail.ma_san_pham = this.ma_san_pham;
+            detail.vi_tri = this.vi_tri;
+            detail.don_vi_tinh = this.don_vi_tinh;
+            detail.so_luong_yeu_cau = this.so_luong_yeu_cau;
+            detail.so_luong_thuc_te = this.so_luong_thuc_te;
+            detail.ghi_chu = this.ghi_chu;
+            obj.push(detail);
+        });
+        return obj;
+    }
+    function ImportGrid() {
+    }
+    function Cancel() {
+        if ($('#StockOutGrid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#StockOutGrid').data('kendoGrid').cancelChanges();
+        }        
+    }
+    function Validate() {
+        for (var i = 0; i < $("#StockOutGrid").data("kendoGrid").dataSource.data().length; i++) {
+            var dataItem = $("#StockOutGrid").data("kendoGrid").dataSource.data()[i];
+            if (dataItem.ma_san_pham == '' || dataItem.ma_san_pham == null) {
+                $("#StockOutGrid").data("kendoGrid").dataSource.remove(dataItem);
+                i--;
+            }                
+        }
+    }
+    function errorsDatabound(e) {
+        var wrapper = this.wrapper;
+        wrapper.scrollTop(wrapper[0].scrollHeight);
+    }
+</script>

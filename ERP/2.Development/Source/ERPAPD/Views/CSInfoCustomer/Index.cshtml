@@ -1,0 +1,567 @@
+﻿@{
+    ViewBag.Title = "Information Customer";
+}
+<style type="text/css">
+    .hidecredit {
+        display: none;
+    }
+
+    .header {
+        margin-bottom: 0px !important;
+        margin-top: 0px !important;
+        padding-bottom: 0px !important;
+        font-size: 13px !important;
+        font-weight: bold;
+    }
+
+    .cscustomer li {
+        line-height: 10px !important;
+    }
+
+    .cscustomer ul {
+        margin-bottom: -8px !important;
+    }
+
+    .spaced > li {
+        margin-top: 5px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .label-info-popup {
+        color: #9D9D9D;
+    }
+
+    .OrganizationInfo b {
+        color: #9D9D9D;
+        font-weight: normal;
+        line-height: 20px;
+        font-size: 12px;
+    }
+
+    .newlistOrg .chosen-container {
+        width: 280px !important;
+    }
+
+    .chosen-container .chosen-results {
+        max-height: 100px !important;
+    }
+    .nav-tabs > li > a, .nav-pills > li > a {
+        padding-right: 7px !important;
+        padding-left: 7px !important;
+    }
+</style>
+
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="span8">
+            <input type="text" id="txtCustomerIDSearchForteleSale" class="span4" placeholder="Name, Phone, CustomerID, PhysicalID, EmployeeID " />
+            <button type="button" id="btnSearchCustomerIDSearchForteleSale" class="btn btn-mini btn-purple " style="border-radius: 15px;padding: 0px 10px 0px 10px;" onclick="filterCustomerSearchForTeleSale()">Search</button>
+            <div style="float:right;display:none;" id="formbutton">
+                <button type="button" class="btn btn-mini btn-success" style="border-radius: 15px; padding: 0px 8px 0px 8px;" onclick="showpopup()">Send SMS</button>
+                <button type="button" class="btn btn-mini btn-primary" style="border-radius: 15px; padding: 0px 8px 0px 8px;" onclick="show1()">Add Order To Track</button>
+                <button type="button" class="btn btn-mini btn-inverse" style="border-radius: 15px; padding: 0px 8px 0px 8px;" id="btnAddPreOrder">Submit Pre-Order</button>
+                <button type="button" class="btn btn-mini btn-pink" onclick="OpenPopupSendRequestTicket()" style="padding: 0px 8px 0px 8px; border-radius: 15px;">Send Request</button>
+                <button type="button" class="btn btn-mini btn-purple" onclick="LogCall()" style="padding: 0px 8px 0px 8px; border-radius: 15px;">Log Call</button>
+            </div>
+            <div style="display:none;" id="InfoForm">
+                @Html.Partial("CustomerInfo")
+
+                @Html.Partial("_HistoryForCustomer")
+            </div>
+        </div>
+        <div class="span4">
+            @Html.Partial("_AnnouncementForTelesale")
+        </div>
+    </div>
+</div>
+
+
+@Html.Partial("_LogCall")
+
+
+@*@Html.Partial("Article")*@
+
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowOrganizationPopupTeleSaleByOrganizationID")
+    .Title("Organization Infomation")
+    .Content(
+    @<text>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid OrganizationInfo">
+                    <b>OrganizationID: </b><span id="Org_OrganizationID"></span><br />
+                    <b>LongName:</b> <span id="Org_LongName111"></span><br />
+                    <b>Address:</b> <span id="Org_Address1"></span> <br />
+                    <b>Allow Service:</b>
+                    <span id="AirTimeOrg"></span>
+                    <span id="Cash2HomeOrg"></span>
+                    <span id="PhysicalGoodsOrg"></span>
+                    <span id="ServicesOrg"></span>
+                    <br />
+                    <b>Area:</b> <span id="Org_AreaName1"></span><br />
+                    <b>Region:</b> <span id="Org_Region111"></span><br />
+                    <b>Branch:</b> <span id="Org_Branch"></span><br />
+                    <b>Registration:</b> <span id="Org_Registration1"></span><br />
+                    <b>Payment Type:</b> <span id="Org_DebtCollection1"></span><br />
+                    <b>OnsiteSchedule:</b> <span id="Org_OnsiteSchedule1"></span><br />
+                    <b>RegionalBD:</b> <span id="Org_RegionalBD"></span><br />
+                    <b>RegionalBD Email:</b> <span id="Org_RegionalBDEmail"></span><br />
+                    <b>RegionalBD Phone:</b> <span id="Org_RegionalBDPhone"></span><br />
+                    <b>PD:</b> <span id="Org_PD1"></span><br />
+                    <b>PD Email:</b> <span id="Org_PDEmail1"></span><br />
+                    <b>PD Phone:</b> <span id="Org_PDPhone1"></span><br />
+
+                    <b>Icare Center:</b> <span id="Org_IcareCenter"></span><br />
+                    <b>Icare Address:</b> <span id="Org_IcareAddress"></span><br />
+                    <b>Icare MainContact:</b> <span id="Org_IcareMainContact"></span><br />
+                    <b>Icare Phone:</b> <span id="Org_IcarePhone"></span><br />
+                    <b>Contract Stauts:</b> <span id="Org_ContractStauts"></span><br />
+
+                    <b>Settlement Date:</b> <span id="Org_SettlementDate"></span><br />
+                    <b>Credit Limit Rules:</b> <span id="Org_CreditLimitRules"></span><br />
+                    <b>Note:</b> <span id="Org_NotebyCS"></span><br />
+                    <hr class="red" />
+                </div>
+            </div>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Width(970)
+    .Actions(actions => actions.Close())
+)
+
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowOrganizationPopupEdit")
+    .Title("Organization Edit")
+    .Content(
+    @<text>
+        <table class="newlistOrg " style="line-height: 38px;">
+            <tr>
+                <td>Registration:</td>
+                <td>
+                    <select id="DrRegistration" multiple class='chosen-select span2'>
+                        @foreach (var item1 in ViewBag.Registration)
+                        {
+                            <option value="@item1.RegisId">@item1.Content</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Note:</td>
+                <td>
+                    <textarea id="txtNoteCS" style="width: 266px;height:100px;" placeholder="Note"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="btn btn-small btn-success" onclick="SaveEditOrg()">Save</button>
+                    <button class="btn btn-small btn-danger" onclick="CloseWindowEdit()">Cancel</button>
+                </td>
+            </tr>
+        </table>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(440)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+)
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowPopupRequestTicket")
+    .Title("Send Request")
+    .Content(
+    @<text>
+        <div class="row-fluid">
+            <div class="span12">
+                <table>
+                    <tr style="height: 40px;">
+                        <td>Title: </td>
+                        <td><input id="txtTitleTicket" placeholder="(*)" style="width:400px;" type="text" /></td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td>Detail: </td>
+                        <td><textarea id="txtDetailTicket" placeholder="(*)" style="width:400px;"></textarea></td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td>Follower: </td>
+                        <td>
+                            <select id="Follower" name="select" class="k-invalid chosen-select" style="width:270px;" multiple>
+                                @foreach (var item1s in ViewBag.listUSer)
+                                {
+                                    <option value="@item1s.UserName">@item1s.UserName</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td>Category: </td>
+                        <td>
+                            <select id="Category" class="k-invalid" style="width:270px;" onchange="getlisttype('')">
+                                <option value="">Please select Category</option>
+                                @foreach (var item1 in ViewBag.listCategory)
+                                {
+                                    <option value="@item1.CategoryID">@item1.Name</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td>TypeID: </td>
+                        <td>
+                            <select id="TypeIDTicket" class="k-invalid" style="width:270px;" onchange="changeTypeCredit()">
+                                <option value="">Please select TypeID</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr class="hidecredit">
+                        <td>Type:  </td>
+                        <td>
+                            <select id="Type1" style="width:270px;" onchange="Type1ChangeText()">
+                                <option value="">Please select Type</option>
+                                <option value="Điều chỉnh hạn mức">Điều chỉnh hạn mức</option>
+                                <option value="Nâng hạn mức để mua hàng">Nâng hạn mức để mua hàng</option>
+                                <option value="Nâng DueLimit để mua hàng">Nâng DueLimit để mua hàng</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="hidecredit">
+                        <td id="lbType">New Credit:</td>
+                        <td>
+                            <input type="text" placeholder="(*)" style="width:400px;" id="NewCredit1" />
+                        </td>
+                    </tr>
+                    <tr class="hidecredit">
+                        <td>Note:</td>
+                        <td>
+                            <textarea id="Note1" placeholder="(*)" style="width:400px;"></textarea>
+                        </td>
+                    </tr>
+
+                    <tr style="height: 40px;">
+                        <td>Priority: </td>
+                        <td>
+                            <select class="k-invalid" style="width:270px;" id="PriorityTicket">
+                                <option value="TPRI001">Urgent</option>
+                                <option value="TPRI002" selected>Medium</option>
+                                <option value="TPRI003">High</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td>Impact: </td>
+                        <td>
+                            <select class="k-invalid" style="width:270px;" id="ImpactTicket">
+                                <option value="TIMP001">Low</option>
+                                <option value="TIMP002" selected>Medium</option>
+                                <option value="TIMP003">High</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    
+
+                    <tr style="height: 40px;">
+                        <td></td>
+                        <td>
+                            <button class="btn btn-small btn-success" onclick="SaveRequestTicket()"><i class="icon-envelope-alt"></i>Send </button>
+                            <button class="btn btn-small btn-danger" onclick="ClosePopupSendRequestTicket()"><i class="icon-reply"></i>Cancel</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Width(500)
+)
+
+<script type="text/javascript">
+    function SaveEditOrg() {
+        var listRegistration = $("#DrRegistration option:selected");
+        var listDebtCollection = $("#DrDebtCollection option:selected");
+        var data = ""; var data1 = "";
+        for (var i = 0; i < listRegistration.length; i++) {
+            var option = listRegistration[i].value;
+            data += option + ",";
+        }
+        for (var i = 0; i < listDebtCollection.length; i++) {
+            var option = listDebtCollection[i].value;
+            data1 += option + ",";
+        }
+
+        $.post(r + "/CSInfoCustomer/SaveOrganization", { listRegistration: data, Note: $("#txtNoteCS").val(), organization: $("#Org_OrgID").text() }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+                GetDataOrganizationInfoForTeleSale($("#Org_OrgID").text());
+                $("#windowOrganizationPopupEdit").data("kendoWindow").close();
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function OrganizationEdit() {
+        $("#DrDebtCollection,#DrRegistration").chosen();
+        $("#windowOrganizationPopupEdit").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            visible: false /*don't show it yet*/,
+        }).data("kendoWindow").center().open();
+
+        $("#DrDebtCollection").val("");
+        $("#DrDebtCollection").trigger("chosen:updated");
+
+        $("#DrRegistration").val("");
+        $("#DrRegistration").trigger("chosen:updated");
+        $("#txtNoteCS").val("");
+
+        $.post(r + "/CSInfoCustomer/GetOrganizationByID", { organization: $("#Org_OrgID").text() }, function (data) {
+            if (data.success) {
+                $("#DrRegistration option").removeAttr('selected');
+                var dataRegis = data.dataRegistration.split(",");
+                for (var i = 0; i < dataRegis.length; i++) {
+                    $("#DrRegistration option[value=" + dataRegis[i] + "]").attr('selected', 'selected');
+                }
+                $("#DrRegistration").trigger("chosen:updated");
+
+                $("#txtNoteCS").val(data.dataNote);
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+    function CloseWindowEdit() {
+        $("#windowOrganizationPopupEdit").data("kendoWindow").close();
+    }
+
+
+    //-----------------------------------------------Send Ticket-------------------------------------------------------------------------------------------------------------
+    function OpenPopupSendRequestTicket() {
+        $("#windowPopupRequestTicket").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            //Height: "355px", // if you need full screen give 100% for both height and width
+            //width: "1355px", // if you need the window to fix to your content remove H & W
+            draggable: true,
+            modal: true,
+            resizable: false,
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        $("#txtTitleTicket").val('');
+        $("#txtDetailTicket").val('');
+        $("#TypeIDTicket").val($("#TypeIDTicket option:first").val());
+        $("#PriorityTicket").val($("#PriorityTicket ").val());
+        $("#ImpactTicket").val($("#ImpactTicket").val());
+        $("#windowPopupRequestTicket_wnd_title").text("Send Request: " + $("#Cus_EmployeeID").text() + " - " + $("#Cus_FullName").text() + "");
+        $("#windowPopupRequestTicket_wnd_title").css("font-size", "12px");
+
+        $("#Follower").val("");
+        $("#Follower").trigger("chosen:updated");
+        $("#Follower").chosen();
+    }
+
+    function ClosePopupSendRequestTicket() {
+        $(".hidecredit").hide();
+        $("#windowPopupRequestTicket").data("kendoWindow").close();
+    }
+    function SaveRequestTicket() {
+        if ($("#Category").val() == "TCAT0001" && $("#TypeIDTicket").val() == "TIC0092") {
+            if ($('#Type1').val() == "" || $('#Note1').val() == "" || $('#NewCredit1').val() == "") {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: 'Please input data',
+                    class_name: 'gritter-error'
+                });
+                return false;
+            }
+        }
+        var data1 = "";
+        var list = $("#Follower option:selected");
+        for (var i = 0; i < list.length; i++) {
+            var option = list[i].value;
+            data1 += option + ",";
+        }
+
+        $.post(r + "/TelesalePluginCode/Ticket_Create", {
+            OrgID: $("#Org_OrgID").text(), CusID: $("#Cus_EmployeeID").text(), Title: $("#txtTitleTicket").val(), Detail: $("#txtDetailTicket").val(),
+            TypeID: $("#TypeIDTicket").val(), Priority: $("#PriorityTicket").val(), Impact: $("#ImpactTicket").val(), Category: $("#Category").val(), Followers: data1
+        }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+                //create credit request if Category = TCAT0001 &&  TypeIDTicket = TIC0092
+                if ($("#Category").val() == "TCAT0001" && $("#TypeIDTicket").val() == "TIC0092") {
+                    if ($('#NewCredit1').val() == "" || $('#NewCredit1').val() == null || $('#Note1').val() == "" || $('#Note1').val() == null) {
+                        $.gritter.add({
+                            // (string | mandatory) the heading of the notification
+                            title: '',
+                            // (string | mandatory) the text inside the notification
+                            text: 'Please insert OrganizationID first to enable auto fill function!',
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                    var option = $("#Org_OrgID").text() + "&CustomerID=" + $("#Cus_EmployeeID").text();
+                    $.ajax({
+                        type: "POST",
+                        url: r + "/CreditRequest/GetEmployee/?OrganizationID=" + option,
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (datas) {
+                            var datacus = JSON.parse(datas);
+                            if (datacus == "fail") {
+                                $.gritter.add({
+                                    // (string | mandatory) the heading of the notification
+                                    title: '',
+                                    // (string | mandatory) the text inside the notification
+                                    text: 'Please insert OrganizationID first to enable auto fill function!',
+                                    class_name: 'gritter-error'
+                                });
+                                return false;
+                            }
+                            $.ajax({
+                                type: "POST",
+                                url: r + "/CreditRequest/SaveNewRequest/",
+                                data: {
+                                    OrganizationID: datacus.OrganizationID,
+                                    CustomerID: datacus.CustomerID,
+                                    MobilePhone: datacus.MobilePhone,
+                                    Salary: datacus.Salary,
+                                    Email: datacus.Email,
+                                    Gender: datacus.Gender,
+                                    DCStatus: datacus.DCStatus,
+                                    TeamBD: datacus.BD,
+                                    StartWorkDate: datacus.StartWorkDate,
+                                    Type: $('#Type1').val(),
+                                    CurrentCredit: datacus.CreditLimit,
+                                    DueLimit: datacus.DueLimit,
+                                    NewCredit: $('#NewCredit1').val(),
+                                    Note: $('#Note1').val(),
+                                    Status: datacus.Status,
+                                    ticketID: data.ticketID
+                                },
+                                success: function (datacredit) {
+                                    if (datacredit.success) {
+                                        $.gritter.add({
+                                            // (string | mandatory) the heading of the notification
+                                            title: '',
+                                            // (string | mandatory) the text inside the notification
+                                            text: 'Add new request success ',
+                                            class_name: 'gritter-success'
+                                        });
+                                        $("#NewCredit1").val("");
+                                        $("#Note1").val("");
+                                    }
+                                    else {
+                                        $.gritter.add({
+                                            // (string | mandatory) the heading of the notification
+                                            title: '',
+                                            // (string | mandatory) the text inside the notification
+                                            text: datacredit,
+                                            class_name: 'gritter-error'
+                                        });
+                                    }
+                                }
+                            });
+                        },
+                        error: function (msg) {
+                            //alert(msg.status + ' ' + msg.statusText);
+                        }
+                    });
+                }
+
+                ClosePopupSendRequestTicket();
+            } else {
+                $.gritter.add({
+                    // (string | mandatory) the heading of the notification
+                    title: '',
+                    // (string | mandatory) the text inside the notification
+                    text: data.error,
+                    class_name: 'gritter-error'
+                });
+            };
+        });
+    }
+
+    function changeTypeCredit() {
+        var type = $("#TypeIDTicket").val();
+        if (type == "TIC0092") {
+            $(".hidecredit").show();
+        }
+        else {
+            $(".hidecredit").hide();
+        }
+    }
+
+    function Type1ChangeText() {
+        var t = $('#Type1').val();
+        if (t == "Nâng DueLimit để mua hàng") {
+            $('#lbType').text('DueLimit');
+        }
+        else {
+            $('#lbType').text('New Credit');
+        }
+    }
+
+    function getlisttype(typeid) {
+        var cat = $("#Category").val();
+        if (cat != null && cat != "") {
+            $.post(r + "/Ticket/Ticket_GetType", { categoryid: cat }, function (data) {
+                if (!data.Errors) {
+                    var html = " <option selected value='' requirecustomerid=''> Please select Type</option>";
+                    $.each(data.Data, function (i, row) {
+                        html += "<option value='" + row.TypeID + "' requirecustomerid='" + row.RequireCustomerID + "'>" + row.Name + "</option>";
+                    });
+                    $("#TypeIDTicket").html(html);
+                    if (typeid != '') {
+                        $("#TypeIDTicket").val(typeid);
+                        getlistassignee();
+                    }
+                }
+            });
+        }
+
+        if ($("#Category").val() != "TCAT0001") {
+            $(".hidecredit").hide();
+
+        }
+    }
+    //-----------------------------------------------Send Ticket-------------------------------------------------------------------------------------------------------------
+</script>

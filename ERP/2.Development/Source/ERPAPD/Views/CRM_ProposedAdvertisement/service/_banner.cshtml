@@ -1,0 +1,807 @@
+﻿@{
+    int glb_banner = 0;
+    int glb_counter = 0;
+    int glb_stt = 1;
+}
+<div class="row-fluid" id="banner-wrapper">
+    <label>
+        @if (ViewBag.typeService != null && ViewBag.typeService == 1)
+        {
+            <input id="ckb-banner" name="form-field-checkbox" type="checkbox" class="ace" checked="checked">
+        }
+        else
+        {
+            <input id="ckb-banner" name="form-field-checkbox" type="checkbox" class="ace">
+        }
+        <span class="lbl" style="font-weight:bold"> Đăng banner</span>
+    </label>
+    <div class="row-fluid" id="banner-table" style="display:none">
+        <div class="span12">
+            <table style="width:100%" class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr style="text-align:center">
+                        <td rowspan="2">#</td>
+                        <td rowspan="2">STT</td>
+                        <td rowspan="2">Mã book</td>
+                        <td colspan="4">Thời hạn HĐ</td>
+                        <td rowspan="2">Website</td>
+                        <td rowspan="2">Chuyên mục</td>
+                        <td colspan="2">Vị trí QC</td>
+                        <td colspan="3">Thông tin Banner</td>
+                        <td rowspan="2">Đơn giá sau CK/1 tuần</td>
+                        <td rowspan="2">KM</td>
+                        <td rowspan="2">Nhãn hàng</td>
+                        <td rowspan="2">Ghi chú</td>
+                        <td rowspan="2">Add Link counter</td>
+                    </tr>
+                    <tr style="text-align:center">
+                        <td>Bắt đầu</td>
+                        <td>Số tuần</td>
+                        <td>Kết thúc</td>
+                        <td>Thời gian</td>
+                        <td>Hiển thị</td>
+                        <td>Tính chất</td>
+                        <td>SL</td>
+                        <td>Size</td>
+                        <td>Format</td>
+                    </tr>
+
+                </thead>
+                <tfoot>
+                    <tr>
+                        <td colspan="12" style="text-align:center">
+                            <input type="hidden" id="pk_services" value="0" />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Chọn vị trí" onclick="showPPListBookingbanner()" />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Nhân bản" onclick="CloneBanner()" />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Xuất CNPS " />
+                            <input type="button" class="btn btn-small btn-success pull-left" value="Tham khảo KPI " />
+                        </td>
+                        <td colspan="12">
+                            @if (ViewBag.listInfoOrders != null)
+                            {
+                                <p class="pull-left" style="font-size:15px;color:red">Hạn mức cho phép xuất bản QC: <span id="dm_chophep_banner">@ViewBag.listInfoOrders.c_han_muc_bn.ToString("#,##0")</span></p>
+                            }
+                            else
+                            {
+                                <p class="pull-left" style="font-size:15px;color:red">Hạn mức cho phép xuất bản QC: <span id="dm_chophep_banner">0</span></p>
+
+                            }
+                            <p class="pull-right" style="font-size:15px;color:red"> Tổng tiền đăng đợt này: <span id="tong_tien_dang_dot_banner">0</span></p>
+
+                        </td>
+                    </tr>
+                </tfoot>
+
+                @if (ViewBag.listBanner != null && ViewBag.listBanner.Count > 0)
+                {
+                    <tbody>
+                        @foreach (var item in ViewBag.listBanner)
+                        {
+
+                            <tr class="banner" data-pkservice="@item.pk_services">
+                                <td><input class="edit" type="checkbox"></td>
+                                <td>@glb_stt</td> @{glb_stt++;}
+                                <td><input type="text" class="input-mini  book-code" value="@item.c_book_code" /></td>
+                                <td>
+                                    <input type="hidden" class="input-mini  fk_adv" value="@item.fk_adv" />
+                                    <input type="hidden" class="input-mini  c_dot_order" value="@item.c_dot_order" />
+                                    <input type="hidden" class="input-mini  pk_services" value="@item.pk_services" />
+                                    <input type="hidden" class="input-mini  total-days" value="0"/>
+                                    <input onchange="resetWeekDay(this)" class="date-picker input-mini dateUp" type="text" placeholder="Bắt đầu" value="@item.c_ngay_len.ToString("dd/MM/yyyy")" style="width:65px">
+                                </td>
+                                <td><input onchange="resetWeekDay(this,1)" class="input-mini numWeek" type="text" placeholder="Số tuần"></td>
+                                <td><input onchange="resetWeekDay(this)" class="date-picker input-mini dateDown" type="text" placeholder="Kết thúc" value="@item.c_ngay_xuong.ToString("dd/MM/yyyy")" style="width:65px"></td>
+                                <td><input onchange="resetWeekDay(this,0)" class="input-small duration" type="text" placeholder="Thời gian"></td>
+                                <td>
+                                    <input class="input-value-suggess item-web" type="hidden" value="@item.c_website" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Banner-" + glb_banner)
+                                        .DataTextField("Name")
+                                        .Placeholder("Website")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web-name", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                    .Data("onDataBanner");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectBannerItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.c_website_name)");
+                                    </script>
+                                    @{glb_banner++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-category" type="hidden" value="@item.c_category" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Banner-" + glb_banner)
+                                        .DataTextField("Name")
+                                        .Placeholder("Chuyên mục")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                    .Data("onDataBanner");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectBannerItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.c_category_name)");
+                                    </script>
+                                    @{glb_banner++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-location" type="hidden" value="@item.c_location" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Banner-" + glb_banner)
+                                                .DataTextField("Name")
+                                        .Placeholder("Hiển thị")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                    .Data("onDataBanner");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectBannerItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.c_location_name)");
+                                    </script>
+                                    @{glb_banner++;}
+                                </td>
+                                <td>
+                                    <input class="input-value-suggess item-nature" type="hidden" value="@item.c_nature" />
+                                    @(Html.Kendo().AutoComplete()
+                                        .Name("txt-Adv-Banner-" + glb_banner)
+                                        .DataTextField("PKList")
+                                        .Placeholder("Cơ chế")
+                                        .Filter("contains")
+                                        .MinLength(1)
+                                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-nature-name", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                    .Data("onDataBanner");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectBannerItem");
+                                        })
+                                    )
+                                    <script>
+                                        $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.c_nature_name)");
+                                    </script>
+                                    @{glb_banner++;}
+                                </td>
+                                <td><input class="input-mini qty" type="text" value="@item.c_so_luong" placeholder="Số lượng"></td>
+                                <td><input class="input-mini size" type="text" value="@item.c_size" placeholder="Size"></td>
+                                <td><input class="input-mini format" type="text" value="@item.c_format" placeholder="Format"></td>
+                                <td><input onchange="SumMoneyServiceBanner()" class="input-small currency unitPriceAfterTax" type="text" value="@item.c_don_gia_sau_ck.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá sau CK"></td>
+                                <td>
+                                    @if (item.c_km == 1)
+                                    {
+                                        <input name="form-field-checkbox" type="checkbox" class="ace km" checked="checked" value="1">
+                                        <span class="lbl"></span>
+                                    }
+                                    else
+                                    {
+                                        <input name="form-field-checkbox" type="checkbox" class="ace km" value="0">
+                                        <span class="lbl"></span>
+                                    }
+                                </td>
+                                <td><input class="input-small label-banner" type="text" value="@item.c_label" placeholder="Nhãn hàng"></td>
+                                <td><input class="input-small note" type="text" value="@item.c_note" placeholder="Ghi chú"></td>
+                                <td>
+                                    <button type="button" onclick="minusBanner(this)" class="btn btn-minier btn-danger"><i class="icon-minus"></i></button>
+                                    <button type="button" onclick="plusLink(this)" class="btn btn-minier btn-success pushLink"><i class="icon-plus"></i></button>
+                                </td>
+                            </tr>
+
+                    }
+                    </tbody>
+                }
+                else{
+                    if (ViewBag.listServices != null && ViewBag.listServices.Count > 0){
+                        <tbody>
+                            @foreach (var item in ViewBag.listServices)
+                            {
+                                <tr class="banner" data-pkservice="@item.pk_services">
+                                    <td><input class="edit" type="checkbox"></td>
+                                    <td>@glb_stt</td> @{glb_stt++;}
+                                    <td><input type="text" class="input-mini  book-code" value="@item.c_book_code" /></td>
+                                    <td>
+                                        <input type="hidden" class="input-mini  pk_services" value="0" />
+                                        <input type="hidden" class="input-mini  c_dot_order" value="0" />
+                                        <input type="hidden" class="input-mini  fk_adv" value="0" />
+                                        <input onchange="resetWeekDay(this)" class="date-picker input-mini dateUp" type="text" placeholder="Bắt đầu" value="@item.NgayLen.ToString("dd/MM/yyyy")" style="width:65px">
+                                    </td>
+                                    <td><input onchange="resetWeekDay(this,1)" class="input-mini numWeek" type="text" placeholder="Số tuần"></td>
+                                    <td><input onchange="resetWeekDay(this)" class="date-picker input-mini dateDown" type="text" placeholder="Kết thúc" value="@item.NgayXuong.ToString("dd/MM/yyyy")" style="width:65px"></td>
+                                    <td><input onchange="resetWeekDay(this,0)" class="input-small duration" type="text" placeholder="Thời gian"></td>
+                                    <td>
+                                        <input class="input-value-suggess item-web" type="hidden" value="@item.WebsiteID" />
+                                        @(Html.Kendo().AutoComplete()
+                                            .Name("txt-Adv-Banner-" + glb_banner)
+                                            .DataTextField("Name")
+                                            .Placeholder("Website")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                                        .Data("onDataBanner");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectBannerItem");
+                                            })
+                                        )
+                                        <script>
+                                            $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.WebsiteName)");
+                                        </script>
+                                        @{glb_banner++;}
+                                    </td>
+                                    <td>
+                                        <input class="input-value-suggess item-category" type="hidden" value="@item.CategoryID" />
+                                        @(Html.Kendo().AutoComplete()
+                                            .Name("txt-Adv-Banner-" + glb_banner)
+                                            .DataTextField("Name")
+                                            .Placeholder("Chuyên mục")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                        .Data("onDataBanner");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectBannerItem");
+                                            })
+                                        )
+                                        <script>
+                                            $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.CategoryName)");
+                                        </script>
+                                        @{glb_banner++;}
+                                    </td>
+                                    <td>
+                                        <input class="input-value-suggess item-location" type="hidden" value="@item.LocationID" />
+                                        @(Html.Kendo().AutoComplete()
+                                            .Name("txt-Adv-Banner-" + glb_banner)
+                                                    .DataTextField("Name")
+                                            .Placeholder("Hiển thị")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                        .Data("onDataBanner");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectBannerItem");
+                                            })
+                                        )
+                                        <script>
+                                            $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.LocationName)");
+                                        </script>
+                                        @{glb_banner++;}
+                                    </td>
+                                    <td>
+                                        <input class="input-value-suggess item-nature" type="hidden" value="@item.NatureID" />
+                                        @(Html.Kendo().AutoComplete()
+                                            .Name("txt-Adv-Banner-" + glb_banner)
+                                            .DataTextField("Name")
+                                            .Placeholder("Cơ chế")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + glb_banner + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                        .Data("onDataBanner");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectBannerItem");
+                                            })
+                                        )
+                                        <script>
+                                            $("#txt-Adv-Banner-@glb_banner").val("@Html.Raw(item.NatureName)");
+                                        </script>
+                                        @{glb_banner++;}
+                                    </td>
+                                    <td><input class="input-mini qty" type="text" value="@item.Number" placeholder="Số lượng"></td>
+                                    <td><input class="input-mini size" type="text" placeholder="Size"></td>
+                                    <td><input class="input-mini format" type="text" placeholder="Format"></td>
+                                    <td><input class="input-small currency unitPriceAfterTax" type="text" value="@item.PriceCharged" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá sau CK"></td>
+                                    <td>
+                                        <input name="form-field-checkbox" type="checkbox" class="ace km">
+                                        <span class="lbl"></span>
+                                    </td>
+                                    <td><input class="input-small label-banner" type="text" value="@item.Label" placeholder="Nhãn hàng"></td>
+                                    <td><input class="input-small note" type="text" placeholder="Ghi chú"></td>
+                                    <td>
+                                        <button type="button" onclick="minusBanner(this)" class="btn btn-minier btn-danger"><i class="icon-minus"></i></button>
+                                        <button type="button" onclick="plusLink(this)" class="btn btn-minier btn-success pushLink"><i class="icon-plus"></i></button>
+                                    </td>
+                                </tr>
+                         }
+                        </tbody>
+                       }
+                       else{
+                        <tbody></tbody>
+                        }
+               }
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(document).ready(function () {
+        countDays();
+        SumMoneyServiceBanner();
+    })
+    var tongSoNgay = 0;
+    function countDays() {
+        var loop = true;
+        $("#banner-table .banner").each(function (i) {
+            var startDate = $(this).find(".dateUp").val();
+            var endDate = $(this).find(".dateDown").val();
+            if (startDate != "" && endDate != "") {
+                var days = getDateRange(startDate, endDate);
+                if (days) {
+                    tongSoNgay = days;
+                    var nweek = nsnl = "";
+                    week = parseInt(days / 7);
+                    if (week > 0) {
+                        nweek = week + " tuần ";
+                    }
+                    snl = days % 7;
+                    if (snl > 0) {
+                        nsnl = snl + " ngày";
+                    }
+                    $(this).find(".duration").val(nweek + nsnl);
+                    $(this).find(".numWeek").val(week);
+                    $(this).find('.total-days').val(days);
+                } else {
+                    return;
+                }
+            }
+        });
+        if (!loop) {
+            return false;
+        }
+    }
+    function resetWeekDay(e, isDay) {
+        tongSoNgay = 0;
+        var week = snl = 0;
+        var parent = $(e).parents("tr.banner");
+        var startDate = parent.find(".dateUp").val();
+        var endDate = parent.find(".dateDown").val();
+        if (isDay == 0) {
+            var days = parent.find(".duration").val();
+            if (startDate == "") {
+                alertMessage('', 'Chưa đặt ngày lên !', false);
+                return;
+            }
+            endDate = moment(startDate, "DD/MM/YYYY").add('days', parseInt(days-1)).format("DD/MM/YYYY");
+            parent.find(".dateDown").val(endDate);
+            var nweek = nsnl = "";
+            week = parseInt(days / 7);
+            if (week > 0) {
+                nweek = week + " tuần ";
+            }
+            snl = days % 7;
+            if (snl > 0) {
+                nsnl = snl + " ngày";
+            }
+            tongSoNgay = days;
+            parent.find(".duration").val(nweek + nsnl);
+            parent.find(".numWeek").val(week);
+            parent.find(".total-days").val(days);
+            //parent.find(".numWeek").val(nweek + nsnl);
+            SumMoneyServiceBanner();
+            return;
+        }
+        if (isDay == 1) {
+            var days = parent.find(".numWeek").val() * 7;
+            if (startDate == "") {
+                alertMessage('', 'Chưa đặt ngày lên !', false)
+                return;
+            }
+            endDate = moment(startDate, "DD/MM/YYYY").add('days', parseInt(days-1)).format("DD/MM/YYYY");
+            parent.find(".dateDown").val(endDate);
+            var nweek = nsnl = "";
+            week = parseInt(days / 7);
+            if (week > 0) {
+                nweek = week + " tuần ";
+            }
+            snl = days % 7;
+            if (snl > 0) {
+                nsnl = snl + " ngày";
+            }
+            tongSoNgay = days;
+            parent.find(".duration").val(nweek + nsnl);
+            parent.find(".numWeek").val(week);
+            parent.find(".total-days").val(days);
+            //parent.find(".numWeek").val(nweek + nsnl);
+            SumMoneyServiceBanner();
+            return;
+        }
+        if (startDate != "" && endDate != "") {
+            var days = getDateRange(startDate, endDate);
+            if (days) {
+                var nweek = nsnl = "";
+                week = parseInt(days / 7);
+                if (week > 0) {
+                    nweek = week + " tuần ";
+                }
+                snl = days % 7;
+                if (snl > 0) {
+                    nsnl = snl + " ngày";
+                }
+                // parent.find(".duration").val(days);
+                parent.find(".duration").val(nweek + nsnl);
+                parent.find(".numWeek").val(week);
+                parent.find(".total-days").val(days);
+                tongSoNgay = days;
+                SumMoneyServiceBanner();
+            } else {
+                return;
+            }
+        }
+
+
+    }
+
+    function SaveBanner(pkadv,tracking) {
+        var arr = [];
+        var loop = true;
+        var fail = false;
+        var isValid = false;
+        $("#banner-table .banner").each(function (i) {
+            var obj = {};
+            obj.pk_services = $(this).attr('data-pkservice');
+            obj.fk_adv = pkadv;
+            obj.c_type = 1; //Banner
+            obj.c_ngay_lenString = convertDate($(this).find(".dateUp").val());
+            obj.c_book_code = $(this).find(".book-code").val();
+            if (obj.c_ngay_lenString == "") {
+                alertMessage('', 'Ngày bắt đầu không được để trống !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_ngay_xuongString = convertDate($(this).find(".dateDown").val());
+            if (obj.c_ngay_xuongString == "") {
+                alertMessage('', 'Ngày kết thúc không được để trống !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_website = $(this).find("input.item-web").val();
+            if (obj.c_website == "") {
+                alertMessage('', 'Tên website không được để trống !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_category = $(this).find("input.item-category").val();
+            if (obj.c_category == "") {
+                alertMessage('', 'Tên chuyên mục không được để trống !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_location = $(this).find("input.item-location").val();
+            if (obj.c_location == "") {
+                alertMessage('', 'Tên vị trí không được để trống  !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_nature = $(this).find("input.item-nature").val();
+            if (obj.c_location == "") {
+                alertMessage('', 'Tên tính chất không được để trống  !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_so_luong = $(this).find(".qty").val();
+            if (obj.c_so_luong == "") {
+                alertMessage('', 'Số thứ tự không được để trống !', false);
+                loop = false;
+                fail = true;
+                return false;
+            }
+            obj.c_size = $(this).find(".size").val();
+            if (obj.c_size == "") {
+                alertMessage('', 'Kích thước không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_format = $(this).find(".format").val();
+            if (obj.c_format == "") {
+                alertMessage('', 'Định dạng không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            obj.c_don_gia_sau_ck = currencyToNumber($(this).find(".unitPriceAfterTax").val());
+            if (obj.c_don_gia_sau_ck == "") {
+                alertMessage('', 'Đơn giá không được để trống !', false);
+                fail = true;
+                loop = false;
+                return false;
+            }
+            if ($(this).find(".km").prop('checked')) {
+                obj.c_km = 1;
+            }
+            else {
+                obj.c_km = 0;
+            }
+            obj.c_label = $(this).find(".label-banner").val();
+            obj.c_note = $(this).find(".note").val();
+            arr[i] = obj;
+            //console.log(obj);
+        })
+        //if (!loop) {
+        //    return false;
+        //}
+        if (arr.length > 0) {
+            if (!tracking) {
+                $.ajax({
+                    url: r + "/CRM_ProposedAdvertisement/SaveAdvService",
+                    type: 'POST',
+                    data: { avd: arr, c_dot_order: '@ViewBag.c_dot_order' },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.success) {
+                            $("#formAdv").attr("data-dot-order", data.c_dot_order);
+                            isValid = true;
+                            return true;
+                        }
+                        else {
+                            isValid = false;
+                            return false;
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alertMessage('Lỗi hệ thống', 'Lỗi cập nhật nhật - Mã TC: CPM01 !', false);
+                        isValid = false;
+                        return false;
+                    }
+                });
+                return isValid;
+            }
+            else {
+                return fail;
+            }
+        }
+        else {
+            //alertMessage('', 'Vui lòng chọn sản phẩm!', false);
+            return true;
+        }      
+    }
+
+    $('#ckb-banner').change(function () {
+        if ($(this).is(":checked")) {
+            $('#banner-table').css('display', 'inline')
+        } else {
+            $('#banner-table').css('display', 'none')
+        }
+    })
+
+    var chGlbBanner = 0;
+    var banner = parseInt("@glb_banner");
+    var sttBanner = parseInt("@glb_stt");
+    function setGlobalBanner(k) {
+        chGlbBanner = k;
+    }
+    function onDataBanner() {
+        return {
+            text: $("#txt-Adv-Banner-" + chGlbBanner).val()
+        };
+    }
+    function onSelectBannerItem(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents("td").find(".input-value-suggess").val(dataItem.PKList);
+    }
+
+    function plusBanner() {
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Banner/", { incree: parseInt(banner), stt: sttBanner }, function (data) {
+            $("#banner-table").find("table").find("tbody").append(data);
+            banner = banner + 4;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+        })
+        return;
+    }
+    function minusBanner(e) {
+        var pk = $(e).closest('tr').attr("data-pkservice");
+        $.ajax({
+            url: r + "/CRM_ProposedAdvertisement/DeleteService",
+            type: 'POST',
+            data: { pkservice: pk },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    alertMessage('Thành công', 'Xóa dữ liệu thành công !', true);
+                    $(e).closest('tr').remove();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage('Lỗi hệ thống', errorThrown, false);
+
+            }
+        });
+
+        var currentRow = $(e).closest('tr');
+        currentRow.next('.link-counter').remove();
+        currentRow.remove();
+
+        SumMoneyServiceBanner();
+    }
+
+    function showPPListBookingbanner() {
+        $('#banner-bookcode').val($('#txt-BookCode').val());
+        $('#popup-adv-list-booking-banner').modal('show');
+    }
+
+    function SumMoneyServiceBanner() {
+        var tong_tien_dang_dot_banner = 0;
+        $("#banner-table .banner").each(function (i) {
+            var totolrow = $(this).find(".total-days").val() * (currencyToNumber($(this).find(".unitPriceAfterTax").val()) / 7);
+            tong_tien_dang_dot_banner = tong_tien_dang_dot_banner + totolrow;
+        })
+        $("#total-qc-this-publish").html(kendo.toString(tong_tien_dang_dot_banner, "n0"));
+        $('#tong_tien_dang_dot_banner').html(kendo.toString(tong_tien_dang_dot_banner, "n0"));
+        if (!checkGiaTri()) {
+            alertMessage('Lỗi', 'Tổng tiền đăng đợt này lớn hơn giá trị HD trừ đã đăng QC', false);
+        }
+        return tong_tien_dang_dot_banner;
+    }
+
+</script>
+<script>
+    var counter = parseInt("@glb_counter");
+    var chGlbCounter = 0;
+    function setGlobalCounter(k) {
+        chGlbCounter = k;
+    }
+    function plusLink(e) {
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Counter/", { incree: parseInt(counter) }, function (data) {
+            $(e).parents("tr").after(data);
+            counter = counter + 1;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+            $(e).remove();
+        })
+    }
+    function minusLink(e) {
+        var currenRow = $(e).closest('tr');
+        var preRow = currenRow.prev('.banner');
+        preRow.find('td:last-child').append("<button type='button' onclick='plusLink(this)' class='btn btn-minier btn-success pushLink'><i class='icon-plus'></i></button>");
+        currenRow.remove();
+    }
+</script>
+<script>
+    function CloneBanner() {
+        // check row is checked:
+        var isRowChecked = $("#banner-table").find("table").find("tbody").find('tr').find('input.edit:checked');
+        // only one row checked to clone
+        if (isRowChecked.length == 0) {
+            alertMessage('Lỗi', 'Chưa chọn sản phẩm để nhân bản', false);
+
+        }
+        else {
+            if (isRowChecked.length > 1) {
+                alertMessage('Lỗi', 'Chỉ được chọn 1 sản phẩm để nhân bản', false);
+
+            }
+            else {
+                var $tr = $(isRowChecked).closest('tr');
+                var obj = {};
+                obj.c_book_code = $tr.find(".book-code").val();
+                obj.fk_adv = $tr.find(".fk_adv").val();
+                obj.c_dot_order = $tr.find(".c_dot_order").val();
+                obj.pk_services = $tr.find(".pk_services").val();
+                obj.c_ngay_lenString = $tr.find(".dateUp").val();
+                obj.c_ngay_xuongString = $tr.find(".dateDown").val();
+                obj.c_tuan = $tr.find(".numWeek").val();
+                obj.c_thoi_gian = $tr.find(".duration").val();
+                obj.c_website = $tr.find(".item-web").val();
+                obj.c_website_name = $tr.find("input.item-web-name").val();
+                obj.c_category = $tr.find(".item-category").val();
+                obj.c_category_name = $tr.find("input.item-category-name").val();
+                obj.c_location = $tr.find(".item-location").val();
+                obj.c_location_name = $tr.find("input.item-location-name").val();
+                obj.c_nature = $tr.find(".item-nature").val();
+                obj.c_nature_name = $tr.find("input.item-nature-name").val();
+                obj.c_so_luong = $tr.find(".qty").val();
+                obj.c_size = $tr.find(".size").val();
+                obj.c_format = $tr.find(".format").val();
+                obj.c_don_gia_sau_ck = currencyToNumber($tr.find(".unitPriceAfterTax").val());
+                obj.c_km = $tr.find(".km").val();
+                obj.c_label = $tr.find(".label-banner").val();
+                obj.c_note = $tr.find(".note").val();
+                obj.c_total_days = $tr.find(".total-days").val();
+                console.log(obj);
+                banner = banner + 4;
+                $.ajax({
+                    url: r + "/Ajax/DNDQC_CloneService_Banner",
+                    type: 'POST',
+                    data: { incree: parseInt(banner),sttBanner:sttBanner, service: obj },
+                    async: false,
+                    success: function (data, textStatus, jqXHR) {
+                        $("#banner-table").find("table").find("tbody").append(data);
+                        banner = banner + 4;
+                        sttBanner = sttBanner + 1;
+                        $('.date-picker').datepicker();
+                        $('.currency').maskMoney();
+                        SumMoneyServiceBanner();
+                       
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alertMessage('Lỗi hệ thống', errorThrown, false);
+                    }
+                });
+            }
+
+        }
+    }
+</script>

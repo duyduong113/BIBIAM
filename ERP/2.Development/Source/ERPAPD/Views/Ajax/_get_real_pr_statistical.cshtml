@@ -1,0 +1,39 @@
+﻿@{
+    Layout = null;
+}
+<div class="row-fluid">
+    <table id="" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:20%">Web</th>
+                <th style="width:30%">Chuyên mục</th>
+                <th style="width:25%">Vị trí</th>
+                <th style="width:15%">Tổng tiền đã XB</th>
+                <th style="width:10%">Tổng</th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.realPR != null && ViewBag.realPR.Count > 0)
+            {
+                foreach (var item in ViewBag.realPR)
+                {
+                    <tr onclick="detailReal('REAL_PR','@item.Website','@item.Category','@item.Location','')" class="">
+                        <td class="first">
+                            @Html.Raw(item.WebsiteName)
+                        </td>
+                        <td>
+                            @Html.Raw(item.CategoryName)
+                        </td>
+                        <td>
+                            @Html.Raw(item.LocationName)
+                        </td>
+                        <td>
+                            @item.DonGia.ToString("#,##0")
+                        </td>
+                        <td>@item.SoLuong.ToString("#,##0")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

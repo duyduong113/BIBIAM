@@ -1,0 +1,405 @@
+﻿
+@{
+    if (ViewBag.type == "1")
+    {
+        ViewBag.Title = "Book PR Báo";
+    }
+    else
+    {
+        ViewBag.Title = "Book PR Mới";
+    }
+}
+<style>
+    .columndate {
+        min-width: 25px;
+        text-align: center;
+        background-color: #32A9AF;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .lockcolumn {
+        padding: 4px;
+        font-weight: bold;
+    }
+
+    .columngroupfee {
+        display: inline-block;
+    }
+
+    .fixrow {
+        position: fixed;
+    }
+    .divgridhint {
+        position: absolute;
+        z-index: 10;
+        background-color: #fff;
+        top: 0px;
+        left: 0px;
+    }
+     .divgridhint2 {
+        position: absolute;
+        z-index: 20;
+        background-color: #fff;
+        top: 0px;
+        left: 0px;
+    }
+    .JobStatus1 {
+        background-color: #FFC107;
+    }
+
+    .book-denied {
+        background-color: #080!important;
+    }
+
+    .book-new {
+        background-color: #fee188 !important;
+    }
+
+    .book-approved {
+        background-color: #4169E1 !important;
+    }
+
+    .book-up {
+        background-color: #ff0000 !important;
+    }
+
+    .book-empty {
+        background-color: #fff;
+    }
+
+    .curUser {
+        /*border: #6A1B9A solid;
+        border-right: hidden;*/
+    }
+
+    .curUser2 {
+        /*border: #6A1B9A solid;*/
+    }
+
+  
+</style>
+<input type="hidden" id="type" value="@ViewBag.type" />
+<div class="row-fluid">
+    <div class="span12">
+        <div class="span2">
+            <select id="listWebsite" class="select" data-placeholder="Website" onchange="changeWebsite()" style="width:100%">
+                <option value="">-- Chọn Website--</option>
+                @foreach (var item in ViewBag.listWebsite)
+            {
+                    <option value="@item.Code">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="span2">
+            <select id="listCategory" class="select" data-placeholder="Chuyên mục" style="width:100%">
+                <option value="">-- Chọn chuyên mục--</option>
+                @foreach (var item in ViewBag.listCategory)
+            {
+                    <option value="@item.Code">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="span2">
+            <div class="controls">
+                <input type="text" class="input-xs" id="range-date" placeholder="Từ ngày - Đến ngày" />
+            </div>
+        </div>
+        <div class="span2">
+            <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none;" onclick="filter()">Tìm kiếm</button>
+        </div>
+        
+    </div>
+    
+   
+</div>
+<div class="row-fluid" style="margin-top:5px;margin-bottom:5px">
+    <div style="display:inline;">
+        <div class="book-approved" style="width: 40px; display: inline-block;">&nbsp;</div> Đã duyệt &nbsp;&nbsp;&nbsp;
+        <div class="book-up" style="width: 40px; display: inline-block; ">&nbsp;</div> Đã lên &nbsp;&nbsp;&nbsp;
+        <div class="book-denied" style="width: 40px; display: inline-block; ">&nbsp;</div> Thời gian cấm &nbsp;&nbsp;&nbsp;
+    </div>
+</div>
+
+<div class="row-fluid">
+    <div id="divData" style="display:inline-block; width:100%; overflow:scroll;position:relative;" onscroll="ondivDataScroll()"></div>
+</div>
+<script>
+    var bookingdata;
+    var config;
+    var RegionID;
+    var currentUser = "@HttpContext.Current.User.Identity.Name";
+    $(document).ready(function () {
+        $("#listWebsite,#listCategory,#listLocation").chosen();
+        $('#range-date').daterangepicker({
+            ranges: {
+                'Hôm nay': [moment(), moment()],
+                'Hôm qua': [moment().subtract('days', 1), moment().subtract('days', 1)],
+                '7 ngày trước': [moment().subtract('days', 6), moment()],
+                '30 ngày trước': [moment().subtract('days', 29), moment()],
+                'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+                'Tháng trươc': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+            },
+            format: 'YYYY/MM/DD',
+            locale: {
+                applyLabel: 'Xác nhận',
+                cancelLabel: 'Đóng lại',
+                fromLabel: 'Từ',
+                toLabel: 'Đến',
+                customRangeLabel: 'Tuỳ chọn',
+                daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                firstDay: 1,
+            }
+        });
+    })
+
+    function changeWebsite() {
+        var web = $('#listWebsite').val();
+        if (web != "") {
+            $.post(r + "/CRM_BookingPR/GetListCategory", { web: web }, function (data) {
+
+                if (data.success) {
+                    // append data
+                    var strOption = '<option value = ""> -- Chuyên mục --  </option>';
+                    $.each(data.listCategory, function (i, v) {
+                        strOption += "<option value = '" + v.Code + "'> " + v.Name + "</option>";
+                    })
+                    $('#listCategory').chosen('destroy');
+                    $('#listCategory').html(strOption);
+                    $('#listCategory').chosen();
+                }
+            })
+        }
+    }
+    function filter() {
+       
+        if ($('#listWebsite').val() == "" || $('#listCategory').val() == "") {
+            $.gritter.add({
+                text: 'Vui lòng chọn Website & Chuyên mục',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+
+        var rangedate = $('#range-date').val();
+        var s_date;
+        var s_date;
+        if (rangedate == "") {
+            // lấy 3 tháng mặc định
+            date = new Date();
+            s_date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            date.setMonth(date.getMonth() + 2);
+            var e_date = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        }
+        else {
+            // lấy theo ngày được chọn
+            s_date = new Date(rangedate.split('-')[0].trim());
+            e_date = new Date(rangedate.split('-')[1].trim());
+        }
+      
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        $.post(r + "/CRM_BookingPR/GetDataReportPRBao", { website: $('#listWebsite').val(), category: $('#listCategory').val(),type : $('#type').val() }, function (data) {
+            if (!data.success) {
+                bookingdata = null;
+            }
+            else {
+                initTable(s_date, e_date, data);
+                bookingdata = data.data;
+                drawcolor();
+            }
+        });
+
+
+    }
+
+    var serverDate = "@DateTime.Now.ToString("yyyy-MM-dd")";
+    function initTable(startDate, endDate, data) {
+        var current_month = startDate.getMonth(), colspan = 0;
+        $("#divData").height($(window).height() - 180);
+        var html = '<div id="divtable" style="position: absolute" ><table border ="1" >';
+        // draw header:
+        var html_header_month = '<tr class="lockrow"><td class="lockrowcolumn lockcolumn columndate"  style="min-width:80px;" >Vị trí</td> ';
+        var html_header_day = '<tr class="lockrow"><td class="lockrowcolumn lockcolumn columndate"  style="min-width:80px;" > Ngày</td> ';
+        var today = new Date(serverDate + " 00:00");
+        for (var i = new Date(startDate) ; i <= endDate; i.setDate(i.getDate() + 1)) {
+            if (i.getDate() == new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())) {
+                html_header_day += '<td class="columndate" style="color:#D50000;background-color:#FFD6D6" >' + i.getDate() + '</td>';
+            }
+            else {
+                html_header_day += '<td class="columndate">' + i.getDate() + '</td>';
+            }
+
+            if (i.getMonth() == current_month) {
+                colspan++;
+            }
+            else {
+                current_month = i.getMonth();
+                html_header_month += '<td class="columndate" colspan="' + colspan + '">' + kendo.toString(new Date(i - 1), 'MM/yyyy') + '</td>';
+                colspan = 1;
+            }
+        }
+
+        html_header_month += '<td class="columndate" colspan="' + (colspan + 1) + '">' + kendo.toString(endDate, 'MM/yyyy') + '</td></tr>';
+        html_header_day += '</tr>';
+        html += html_header_month + html_header_day;
+
+        var colspan2 = 0;
+        $.each(data.listTime, function (t1, t2) {
+            var html1 = '<tr><td class="lockcolumn columnspot" style="background-color: #60D800;text-align:center"> ' + t2.Name + '</td>'
+            for (var y = new Date(startDate) ; y <= endDate; y.setDate(y.getDate() + 1)) {
+                colspan2++;
+            }
+            html1 += '<td class="columndate" colspan="' + (colspan2) + '" style="background-color: #ddd"></td>';
+            html += '</tr>';
+            html += html1;
+
+            $.each(data.location, function (l1, l2) {
+                var html_DM = '<tr><td class="lockcolumn columnspot" style="text-align:center">' + l2.Name + '</td>'
+                for (var y = new Date(startDate) ; y <= endDate; y.setDate(y.getDate() + 1)) {
+                    if (kendo.toString(y, 'yyyy-MM-dd') < serverDate) {
+                        html_DM += '<td data-time="' + t2.Code + '" data-location="' + l2.Code + '" data-date="' + kendo.toString(y, 'yyyy-MM-dd') + '" class="book-denied"></td>';
+                    }
+                    else {
+                        html_DM += '<td data-time="' + t2.Code + '" data-location="' + l2.Code + '" data-date="' + kendo.toString(y, 'yyyy-MM-dd') + '" ondblclick="showDetailBook(this)"></td>';
+                    }
+                }
+                html += '</tr>';
+                html += html_DM;
+            })
+        })
+
+        html += '</table></div> ';
+
+        $("#divData").scrollLeft(0);
+        $("#divData").scrollTop(0);
+        $('#divData').html(html);
+
+        initlockrow();
+        initlockcolumn();
+        initlockrowcolumn();
+    }
+
+    function initlockrowcolumn() {
+        $("#divlockrowcolumn").remove();
+        var data = $("#divtable .lockrowcolumn");
+        var wi = $(data[0]).outerWidth() + 1;
+        var html = "<div id='divlockrowcolumn' class='divgridhint2'><table border='1' style='width:" + wi + "px;' >";
+        $.each(data, function (i, row) {
+            html += "<tr>" + $(row).prop("outerHTML");
+            html += "</tr>";
+        });
+
+        html += "</table></div> ";
+        $('#divData').append(html);
+        $("#divlockrowcolumn").css("top", 0).css("left", 0);
+    }
+    function initlockcolumn() {
+        $("#divlockcolumn").remove();
+        var data = $("#divtable .lockcolumn");
+        var wi = $(data[0]).outerWidth() + 1;
+        var html = "<div id='divlockcolumn' class='divgridhint'><table border='1' style='width:" + wi + "px;' >";
+        $.each(data, function (i, row) {
+            html += "<tr>" + $(row).prop("outerHTML");
+            html += "</tr>";
+        });
+
+        html += "</table></div> ";
+        $('#divData').append(html);
+        //  $("#divlockcolumn").css("top", $(".lockrowcolumn").outerHeight());
+    }
+    function initlockrow() {
+        $("#divlockrow").remove();
+        var data = $("#divtable .lockrow");
+        var html2 = "";
+        $.each(data, function (i, row) {
+            html2 += $(row).prop("outerHTML");
+        });
+
+        html2 += "</table></div> ";
+        var html = "<div id='divlockrow'  class='divgridhint'><table border='1'   >";
+        $('#divData').append(html + html2);
+
+    }
+    function ondivDataScroll() {
+        var l = $("#divData").scrollLeft();
+        $("#divlockcolumn").css("left", l);
+
+        var t = $("#divData").scrollTop();
+        $("#divlockrow").css("top", t);
+        $("#divlockrowcolumn").css("top", t).css("left", l);
+
+    }
+
+    function showDetailBook(target) {
+        var bookingid = $(target).data('pkbook');
+        if (!bookingid) {
+            if ($('#listWebsite').val() == "" && $('#listCategory').val() == "" && $(target).data('location') == "") {
+                $.gritter.add({
+                    text: 'Vui lòng chọn đầy đủ thông tin để tìm kiếm',
+                    class_name: 'gritter-error'
+                });
+                return false;
+            }
+        }
+        //$('#create-booking-pr').modal('show');
+    }
+
+
+
+    function drawcolor() {
+        $.each(bookingdata, function (z, row) {
+            console.log(bookingdata);
+            var list = $("#divtable [data-time =" + row.GioLen + "]");
+            row.NgayLen = kendo.toString(kendo.parseDate(row.NgayLen), 'yyyy-MM-dd');
+            //row.EndDate = kendo.toString(kendo.parseDate(row.EndDate), 'yyyy-MM-dd');
+            $.each(list, function (l, td) {
+                if ((td.attributes["data-date"].value >= row.NgayLen && td.attributes["data-date"].value <= row.NgayLen) && td.attributes["data-location"].value == row.Location) {
+
+                    $(td).removeClass('time-denied').addClass('book-new').attr('data-pkbook', row.PKBookPR);
+                    //if (row.RowCreatedBy == currentUser) {
+                    //    if (td.attributes["date"].value == row.BookingTo) {
+                    //        $(td).addClass('curUser2');
+                    //    }
+                    //    else {
+                    //        $(td).addClass('curUser');
+                    //    }
+                    //}
+
+                    if (row.Status == 0) {
+                        $(td).removeClass().addClass('book-new');
+                    }
+                    if (row.Status == 1) {
+                        $(td).removeClass().addClass('book-approved');
+                    }
+
+                    //if (td.attributes["data-date"].value == row.EndDate) {
+                    //    $(td).addClass('curUser2');
+                    //}
+                    //else {
+                    //    $(td).addClass('curUser');
+                    //}
+
+                    var content = "Khách hàng : " + row.CustomerName + "</br>";
+                    content += "NVKD : " + row.EmployeeName + "</br>";;
+                    content += "Thời gian : " + row.GioLen + "h." + row.NgayLen + "</br>";
+                    content += "Số hợp đồng : " + row.ContractCode + "</br>";
+                    content += "Mã book : " + row.Code + "</br>";
+                    content += "Link : " + row.Link + "</br>";
+
+                    $(td).attr("data-rel", "popover");
+                    $(td).attr("data-trigger", "hover");
+                    $(td).attr("data-placement", "right");
+                    $(td).attr("data-content", content);
+                    $(td).attr("title", "");
+                    $(td).attr("data-original-title", "Chi tiết đặt chỗ");
+
+                    $('[data-rel=tooltip]').tooltip();
+                    $('[data-rel=popover]').popover({ html: true });
+
+                }
+              
+            });
+        });
+    }
+</script>

@@ -1,0 +1,261 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<!--[if !IE]><!-->
+<html idmmzcc-ext-docid="1044750336" lang="en">
+<!--<![endif]-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset= UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="content-language" content="vi">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title> Thiết bị nhanh </title>
+    <meta name="keywords" content="New Boutique Theme, DKT, Bizweb">
+    <meta name="robots" content="noodp,index,follow">
+    <meta name="revisit-after" content="1 days">
+    <meta name="language" content="vietnamese">
+    <link href="~/Content/Default/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <link href="~/Content/Default/css/all_styles.css" rel="stylesheet" />
+    <link href="~/Content/Default/css/settings.css" rel="stylesheet" />
+    <link href="~/Content/Default/css/font-awesome.css" rel="stylesheet" />
+    <link href="~/Content/Default/css/font-face.css" rel="stylesheet" />
+    <link href="~/Content/Default/css/landingpage.css" rel="stylesheet" />
+    <link href="~/Content/Default/css/animate.css" rel="stylesheet" />
+
+
+    <!--[if lt IE 9]>
+    <script src="//bizweb.dktcdn.net/100/087/870/themes/114793/assets/html5shiv.min.js?1474095946393"></script>
+    <script src="//bizweb.dktcdn.net/100/087/870/themes/114793/assets/respond.min.js?1474095946393"></script>
+    <![endif]-->
+    <script>
+        window.money_format = "{{amount_no_decimals_with_comma_separator}} VND";
+        var enable_lazy_loading = true,
+         enable_ajax_cart = true,
+         change_image = false;
+        change_image = true;
+    </script>
+    <!-- FIRST JS -->
+    <script src="~/Content/Default/js/important_plugin.js" type="text/javascript"></script>
+</head>
+<body id="landingpage">
+    <header id="home" class="col-full-hd header-page bg-img-header-1">
+        <div class="tagert-menu">
+            <div class="commont-menu navi-type-1 clor-navi-1 padding-top-30">
+                <a class="logo-company" href="#" title="Home">
+                </a><!-- end logo -->
+                <!-- menu top page -->
+                <nav class="menu-head-page menu menu--viola">
+
+                    <ul class="menu-des menu__list clor-type-1 js-dynamic-menu-des">
+
+                        <li class="menu__item menu__item--current clor-type-1"><a href="#home" class="menu__link clor-type-1">@Resources.Global._page_MenuMain_Home</a></li>
+                        <!-- <li class="menu__item clor-type-1"><a href="#whoweare" class="menu__link clor-type-1 " data-wow-delay="2s">@Resources.Global._page_MenuMain_Who_are_you</a></li>
+                        <li class="menu__item clor-type-1"><a href="#whatwedo" class="menu__link clor-type-1" data-wow-delay="2s">@Resources.Global._page_MenuMain_What_we_do</a></li>
+                        <li class="menu__item clor-type-1"><a href="#team" class="menu__link clor-type-1" data-wow-delay="2s">@Resources.Global._page_MenuMain_Team</a></li>
+                        <li class="menu__item clor-type-1"><a href="#funfact" class="menu__link clor-type-1" data-wow-delay="2s">@Resources.Global._page_MenuMain_Funfacts</a></li>-->
+                        <li class="menu__item clor-type-1"><a href="#contact" class="menu__link clor-type-1" data-wow-delay="2s">@Resources.Global._page_MenuMain_Contact</a></li>
+                        <li class="menu__item clor-type-1"><a href="#login" onclick="funLogin('@BIBIAM.Core.AppConfigs.Url',1)" class="menu__link clor-type-1" data-wow-delay="2s">@Resources.Global._page_MenuMain_Sign_in</a></li>
+                    </ul>
+
+                   
+                </nav><!-- end menu top page -->
+                <div id="nav-toggle" title="menu"><span></span></div>
+            </div><!-- end menu option 1 -->
+        </div>
+        <div class="clearAll"></div>
+        <!-- content header -->
+        <div class="block-content-header h-option-1">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="perfect-landing mb-fix">
+                            <p class="wow fadeInDown">@Resources.Global._page_ALL_YOU_NEAD_title</p>
+                            <br />
+                            <p class="wow fadeInUp">@Resources.Global._page_ALL_YOU_NEAD_content </p>
+                        </div><!-- perfect landing -->
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="block-gg-wd-app">
+                            <button onclick="funLogin('@BIBIAM.Core.AppConfigs.Url',0)" class="readmore">@Resources.Global._page_Open_Shop_Now</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <figure>
+                            <a href="#" class="downread"><i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                        </figure>
+                    </div>
+                </div>
+
+            </div><!-- end container -->
+        </div><!-- end content header -->
+    </header>
+    <div class="clearAll"></div>
+
+    <footer id="footer">
+
+        <p>
+            @{
+                var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant();
+            }
+
+            @using (Html.BeginForm("ChangeCulture", "Default", FormMethod.Post, new { id = "cultureForm", @style = "display:none;" }))
+            {
+                @Html.Hidden("returnUrl", Request.RawUrl)
+                if (culture == "vi")
+                {
+                    <input name="culture" value="en-us" type="text" />
+                }
+                else
+                {
+                    <input name="culture" value="vi" type="text" />
+                }
+            }
+
+            @if (culture == "vi")
+            {
+                <div class="text-left" style="margin-top:20px; font-size: 11px;">
+                    <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 300;">
+                        <i class="fa fa-globe"></i> @Resources.Global._page_English | &copy; 2016 bibiam corp. All right Reserved
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="text-left" style="margin-top: 20px; font-size: 11px;">
+                    <a href="javascript: document.getElementById('cultureForm').submit()" style="font-size: 13px; font-weight: 300; ">
+                        <i class="fa fa-globe"></i> @Resources.Global._page_Vietnamese | &copy; 2016 bibiam corp. All right Reserved
+                    </a>
+                </div>
+            }
+        </p>
+
+
+    </footer>
+
+    <div class="modal fade" id="login-modal" role="dialog" aria-lebelledby="Login">
+        <div class="modal-container">
+            <h2 class="login_title">Đăng nhập</h2>
+            <p>Đăng nhập để nhận những ưu đại đặc biệt từ cửa hàng chúng tôi.</p>
+            <form class="new_user">
+                <div class="form-field">
+                    <label>
+                        Email:
+                        <span class="required">*</span>
+                    </label>
+                    <input class="input-control type_1" type="" name="Email">
+                </div>
+                <div class="form-field">
+                    <label>
+                        Mật khẩu:
+                        <span class="required">*</span>
+                    </label>
+                    <input class="input-control type_1" type="" name="Email">
+                </div>
+                <div class="form-field">
+                    <a href="#">Quên mật khẩu?</a>
+                    <a href="/account/register" class="pull-right">Đăng ký tài khoản</a>
+                </div>
+                <br>
+                <button type="button" class="button blue">Đăng nhập</button>
+            </form>
+        </div>
+    </div>
+    <div class="modal fade toolbox" id="contact-box" role="dialog" aria-labelledby="Liên hệ">
+        <div class="modal-container">
+            <div class="entry-modal">
+                @Resources.Global._page_Feedback_Title
+                <form accept-charset="UTF-8" action="/contact" id="contact" method="post">
+                    <input name="FormType" value="contact" type="hidden">
+                    <input name="utf8" value="true" type="hidden">
+                    <div class="form-group">
+                        <input name="contact[Name]" class="input-control" placeholder="@Resources.Global._page_Feedback_FullName" type="text">
+                    </div>
+                    <div class="form-group">
+                        <input name="contact[email]" class="input-control" placeholder="Email..." type="email">
+                    </div>
+                    <div class="form-group">
+                        <textarea name="contact[Body]" class="input-control" placeholder="@Resources.Global._page_Message"></textarea>
+                    </div>
+                    <button class="button transparent"> @Resources.Global._page_Send </button>
+                </form>
+            </div>
+            <div class="footerbox">
+                <a href="#" class="close-modal" data-dismiss="modal" aria-label="Đóng"> @Resources.Global._page_Close </a>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade toolbox" id="hotline-box" role="dialog" aria-labelledby="Liên hệ">
+        <div class="modal-container">
+            <div class="entry-modal">
+                <h3 style="text-align: center;margin-bottom:15px"><span style="font-size:18px;"><strong>@Resources.Global._page_Hotline_Title</strong></span></h3>
+                <p style="text-align: center;">@Resources.Global._page_Hotline_Content_1</p>
+                <p style="text-align: center;"><span style="color:#FF8C00;"><span style="font-size:20px;"><strong><span style="background-color:#FFFFFF;">0123456789</span></strong></span></span></p>
+                <p font-size:14px="" style="text-align: center;&gt;&lt;em&gt;&lt;span style="><em>@Resources.Global._page_Hotline_Content_2</em></p>
+            </div>
+            <div class="footerbox">
+                <a href="#" class="close-modal" data-dismiss="modal" aria-label="Đóng">@Resources.Global._page_Close</a>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade toolbox" id="address-box" role="dialog" aria-labelledby="Liên hệ">
+        <div class="modal-container">
+            <div id="gmap"></div>
+            <div class="entry-modal">
+                @Resources.Global._page_map_Content: <b>bibiam@gmail.com</b>
+            </div>
+            <div class="footerbox">
+                <a href="#" class="close-modal" data-dismiss="modal" aria-label="Đóng">@Resources.Global._page_Close</a>
+            </div>
+        </div>
+    </div>
+    <div id="toolbox">
+        <ul class="list-unstyled">
+            <li>
+                <a href="javascript:;" id="back-top"><i class="fa fa-long-arrow-up"></i></a>
+                <span class="tooltip">@Resources.Global._page_toolbox_1</span>
+            </li>
+            <li>
+                <a href="javascript:void(0);" data-toggle="modal" data-target="#address-box"><i class="fa fa-map-marker"></i></a>
+                <span class="tooltip">@Resources.Global._page_toolbox_2</span>
+            </li>
+            <li>
+                <a href="javascript:void(0);" data-toggle="modal" data-target="#contact-box"><i class="fa fa-envelope-o"></i></a>
+                <span class="tooltip">@Resources.Global._page_toolbox_3</span>
+            </li>
+            <li title="" data-original-title="" data-toggle="tooltip">
+                <a href="javascript:void(0);" data-toggle="modal" data-target="#hotline-box" class="mobile"><i class="fa fa-mobile"></i></a>
+                <span class="tooltip">@Resources.Global._page_toolbox_4</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Begin quick-view-template -->
+
+
+    <script src="~/Content/Default/js/jquery_003.js"></script>
+    <script src="~/Content/Default/js/gmap.js"></script>
+    <script src="~/Content/Default/js/plugin_necessary.js"></script>
+    <script src="~/Content/Default/js/main.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCKFsR-ZQgHn2dlr38hphpLSkZWpipu2qw" type="text/javascript"></script>
+    <script src="~/Content/Default/js/landingpage.js"></script>
+    <!-- header -->
+    <script src="~/Content/Default/js/classie.js"></script>
+    <script src="~/Content/Default/js/wow.min.js"></script>
+    <script src="~/Content/Default/js/header_js.js"></script>
+    <script>
+            function funLogin(link,type)
+            {
+                if(type==1){
+                    window.location =  link + '/Account/Login';
+                }
+                else
+                {
+                    window.location =  link + '/Account/Register';
+                }
+            }
+    </script>
+</body>
+</html>

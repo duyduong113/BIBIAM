@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "Theo dõi phản hồi từ người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="span5">
+                        <input type="text" id="questionf2" style="width:96%" placeholder="@Resources.Multi.Search @Resources.Multi.Follow.ToLower() @Resources.Multi.Content.ToLower() ..." />
+                    </div>
+                    <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none"> Tìm kiếm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@(Html.Kendo()
+    .Grid<ERPAPD.Models.CRM_FAQ_Comment>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id)
+           .Width(30).Filterable(false).Sortable(false).Groupable(false)
+           .HeaderTemplate("<input type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+           .ClientTemplate("<input class='checkvalue' type='checkbox' data-id= '#=Id#' id='#=Id#' />")
+           .HtmlAttributes(new { style = "text-align: center" })
+           .HeaderHtmlAttributes(new { style = "text-align: center" });
+        columns.ForeignKey(p => p.QuestionId, (System.Collections.IEnumerable)ViewBag.listFAQ, "Id", "Question").Title(Resources.Multi.Question).Width(200);
+        columns.Bound(p => p.Content).Width(300).Title(Resources.Multi.Content).ClientTemplate("#=htmlDecode(Content)#");
+        columns.Bound(p => p.Published).Width(80).Title("Trạng thái").ClientTemplate("#if(Published == true){#Hoạt động#}else{#Ngưng hoạt động#}#");
+        columns.Bound(p => p.CreatedAt).Width(110).Format("{0:" + Resources.Multi.DateFormat + " HH:mm}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#").HtmlAttributes(new { style = "text-align: right" }); ;
+        columns.Bound(p => p.CreatedBy).Width(100).Title(Resources.Multi.CreatedBy);
+        columns.Bound(p => p.UpdatedAt).Width(110).Format("{0:" + Resources.Multi.DateFormat + " HH:mm}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HtmlAttributes(new { style = "text-align: right" }); ;
+    })
+   .ToolBar(toolBar =>
+    {
+        toolBar.Template(@<text>
+            <div class="pull-left">
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" onclick="showConfirmPopup(1, 'FB')">
+                    @*<i class="icon-plus"></i>*@ Hoạt động
+                </a>
+                <a class="btn btn-warning btn-small" href="javascript:void(0)" onclick="showConfirmPopup(2, 'FB')">
+                    @*<i class="icon-plus"></i>*@ Ngưng hoạt động
+                </a>
+                <a class="btn btn-danger btn-small" href="javascript:void(0)" onclick="showConfirmPopup(3, 'FB')">
+                    @*<i class="icon-plus"></i>*@ Xóa
+                </a>
+            </div>
+        </text>);
+    })
+    .Events(events => { events.DataBound("dataBound"); })
+    .Sortable()
+    .Scrollable()
+    .Navigatable()
+    //.Filterable()
+    //.ColumnMenu()
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))    
+    .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+    .Read(read => read.Action("ReadComment", "CRMFAQManagement"))
+    )
+)
+
+@Html.Partial("_popup")
+
+<script>
+    $("#questionf2").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function dataBound() {
+        resizeGrid();
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+    function htmlDecode(value) {
+        if (value) {
+            return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+        } else {
+            return "";
+        }
+    }
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var questionf = $('#questionf2').val();
+        var filter = { logic: "and", filters: [] };
+
+        if (questionf) {
+            filter.filters.push({ field: "Content", operator: "contains", value: questionf });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#grid').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }   
+    
+</script>

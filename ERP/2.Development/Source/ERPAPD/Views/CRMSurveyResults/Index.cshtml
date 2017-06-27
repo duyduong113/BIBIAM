@@ -1,0 +1,169 @@
+﻿@{
+    ViewBag.Title ="Kết quả khảo sát";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<style>
+    #GridCustomer .k-grid-content {
+        height: 300px !important;
+    }
+
+    #GridQuestion .k-grid-content {
+        height: 300px !important;
+    }
+
+    #GridActionUser .k-grid-content {
+        height: 300px !important;
+    }
+</style>
+@Html.Partial("_SurveyResult")
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div id="newlistICareID" style="display: inline-block;" class="newlistOrg">
+                <input type="text" id="txtName" name="txtName" placeholder="@Resources.Multi.Filter @Resources.Multi.Follow.ToLower() @Resources.Multi.Title.ToLower(), @Resources.Multi.Desc.ToLower()..." style="width: 350px;" />
+                <select name="select" id="slStatus" class='chosen-select span2' style="width:250px;" multiple data-placeholder="@Resources.Multi.Select @Resources.Multi.Status.ToLower()...">
+                    <option value="Mới">@Resources.Multi.New</option>
+                    <option value="Đang thực hiện">@Resources.Multi.InProcess</option>
+                    <option value="Kết thúc">@Resources.Multi.End</option>
+                </select>
+            </div>
+            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @* </ Hiện thị thông tin> *@
+        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.CRM_Survey_Management>()
+                    .Name("Grid")
+                    .Columns(columns =>
+                    {
+                        //columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#'  />").Width(35).Filterable(false).Sortable(false);
+                        //                        columns.Bound(p => p.Id).Width(160).Title("").ClientTemplate(@"
+                        //                        <button class='btn btn-primary btn-minier' data-id='#=Id#' data-title='#=Title#' data-detail='#=Detail#' data-status='#=Status#' data-start='#=kendo.toString(StartDate,'dd/MM/yyyy')#' data-end='#=kendo.toString(EndDate,'dd/MM/yyyy')#' data-target='#=Target#' data-actual='#=Actual#' data-count='#=QuestionCount#' onclick='showDetail(this)'>" + Resources.Multi.Detail + @"</button>
+                        //                        #if(Status!='Mới'){#<button class='btn btn-warning btn-minier' data-id='#=Id#' onclick='showResult(this)'>" + Resources.Multi.Result + @"</button> #}#
+                        //                        <button class='btn btn-purple btn-minier' data-id='#=Id#' onclick='startSurvey(this)'>" + Resources.Multi.Begin + @"</button>
+                        //                        ");
+                        columns.Bound(p => p.Id).Width(60).Title("").ClientTemplate(@"
+                        #if(Status!='Mới'){#<button class='btn btn-primary btn-minier' data-id='#=Id#' onclick='showResult(this)'>" + Resources.Multi.Result + @"</button> #}#
+                        ");
+                        columns.Bound(p => p.Title).Title(Resources.Multi.Title).Width(200);//.HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.Detail).Title(Resources.Multi.Desc).Width(300).EditorTemplateName("Textarea");//.HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.StartDate).Format("{0:" + Resources.Multi.DateFormat + "}").EditorTemplateName("DateTime").Width(100).Title(Resources.Multi.StartDate);//.HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.EndDate).Format("{0:" + Resources.Multi.DateFormat + "}").EditorTemplateName("DateTime").Width(100).Title(Resources.Multi.EndDate);//.HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+
+                        // columns.Bound(p => p.StartDate).Width(60).Title(Resources.Multi.Begin).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).ClientTemplate((
+                        //@Html.Kendo().DatePicker()
+                        //.Name("#=StartDate#")
+                        //.Value("#=StartDate#")
+                        //.Format("{0:dd/MM/yyyy}")
+                        //.ToClientTemplate()).ToHtmlString());
+
+                        //columns.Bound(p => p.StartDate).Width(105).EditorTemplateName("DateTime").Format("{0:dd/MM/yyyy HH:mm}").Title(Resources.Multi.End).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });//.ClientTemplate("#=ConvertTimeZone(EndDate," + Constants.TIME_ZONE + ")#");
+                        columns.Bound(p => p.Status).Title(Resources.Multi.Status).Width(100);
+                        columns.Bound(p => p.Target).Title("Target").Width(70).Format("{0:N0}");//.HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.Actual).Title("Actual").Width(70).Format("{0:N0}");
+                        columns.Bound(p => p.Percent).Title("%").Width(40);
+                        columns.Bound(p => p.QuestionCount).Title(Resources.Multi.QuestionNumber).Width(70).Format("{0:N0}");
+                        columns.Bound(p => p.CreatedBy).Width(100).Title(Resources.Multi.CreatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                        columns.Bound(p => p.CreatedAt).Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#if(kendo.toString(CreatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(CreatedAt,'" + Resources.Multi.DateFormat + "') #" + "#}#");
+                        columns.Bound(p => p.UpdatedBy).Width(100).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                        columns.Bound(p => p.UpdatedAt).Format("{0:" + Resources.Multi.DateFormat + "}").Width(100).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(UpdatedAt,'" + Resources.Multi.DateFormat + "') #" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                    })
+                    .ToolBar(toolbar =>
+                    {
+
+                        // toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                        //  toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                        ////  toolbar.Custom()
+                        //  .Text(Resources.Multi.Delete)
+                        //  .HtmlAttributes(new { @id = "btnDelete", @class = "btn btn-danger", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteSurveyManagement()" });
+
+                    })
+                    .Events(events => { events.DataBound("dataBound"); })
+                    .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+                    .Navigatable()
+                // .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                        //.Filter(f => { f.Add(a => a.Status).IsEqualTo(true); })
+                    .Batch(true)
+                    .PageSize(50)
+                   // .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).Editable(false);
+                        model.Field(p => p.Active).DefaultValue(true);
+                        model.Field(p => p.Status).DefaultValue("Mới").Editable(false);
+                        model.Field(p => p.CreatedBy).Editable(false);
+                        model.Field(p => p.QuestionCount).Editable(false);
+                        model.Field(p => p.Actual).Editable(false);
+                        model.Field(p => p.Percent).Editable(false);
+                        model.Field(p => p.CreatedAt).Editable(false);
+                        model.Field(p => p.UpdatedAt).Editable(false);
+                        model.Field(p => p.UpdatedBy).Editable(false);
+                    })
+                       .Read("SurveyManagement_Read", "CRMSurveyResults")
+                                        
+                    )
+
+        )
+    </div>
+</div>
+
+<script>
+    function dataBound(e) {
+        resizeGrid();
+        // drawcolor();
+        var grid = this;
+        // Get the export link as jQuery object
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 10);
+    }
+
+    $("#txtName").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    $("#slStatus").chosen();
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var Status = $("#slStatus option:selected");
+        var Name = $('#txtName').val();
+        var filter = { logic: "and", filters: [] };
+        var filterStatus = { logic: "or", filters: [] };
+        var filtertext = { logic: "or", filters: [] };
+        debugger;
+        if (Status.length > 0) {
+            for (var i = 0; i < Status.length; i++) {
+                var option = Status[i].value;
+                filterStatus.filters.push({ field: "Status", operator: "eq", value: option });
+            }
+            filter.filters.push(filterStatus);
+        }
+        if (Name) {
+            filtertext.filters.push({ field: "Title", operator: "contains", value: Name });
+            filtertext.filters.push({ field: "Detail", operator: "contains", value: Name });
+            filter.filters.push(filtertext);
+        }
+        grid.dataSource.filter(filter);
+    }
+</script>

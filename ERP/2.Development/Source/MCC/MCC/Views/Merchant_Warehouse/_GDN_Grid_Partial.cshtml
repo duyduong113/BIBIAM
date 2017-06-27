@@ -1,0 +1,68 @@
+﻿@using BIBIAM.Core.Entities
+<script type="text/x-kendo-template" id="StockOutDetailGrid">
+    <div class="toolbar col-md-12">
+        #if (trang_thai != "Aproved"){#
+        <a class="btn btn-sm btn-success" href="javascript:void(0)" onclick="Create()"><i class="fa fa-plus"></i> @Html.Raw(Resources.Global._create) </a>
+        <a class="btn btn-sm btn-default" href="javascript:void(0)" onclick="Cancel()"><i class="fa fa-undo"></i> @Html.Raw(Resources.Global._cancel) </a>
+        <a class="btn btn-sm btn-primary" href="javascript:void(0)" onclick="Upsert()"><i class="fa fa-save"></i> @Html.Raw(Resources.Global._save) </a>
+        #}#
+    </div>
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<Merchant_StockOutDetail>()
+         .ToolBar(tools => tools.Excel())
+         .Excel(excel => excel
+         .FileName("Xuatkho.xlsx"))
+        .Name("StockDetailGrid")
+        .Columns(columns =>
+        {
+            columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'></i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+            // columns.ForeignKey(p => p.ma_san_pham, (System.Collections.IEnumerable)ViewBag.ds_san_pham, "ma_san_pham", "ten_san_pham")
+            //     .ClientFooterTemplate("<div>Tổng sản phẩm <span id='check_san_pham' class='text-success'>0</span>\\#=count\\#</div>")
+            //     .Title(@Html.Raw(Resources.Global._product).ToString()).Width(200).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ma_san_pham).Width(120).Title(@Html.Raw(Resources.Global._product).ToString());
+            columns.Bound(p => p.ghi_chu).Width(120).HtmlAttributes(new { @class = "text-left" }).Title(@Html.Raw(Resources.Global._note).ToString());
+            columns.ForeignKey(p => p.vi_tri, (System.Collections.IEnumerable)ViewBag.ds_vi_tri, "ten_vi_tri", "ten_vi_tri")
+                .Title("Vị trí").Width(80).EditorTemplateName("WarehouseLocation").HtmlAttributes(new { @class = "text-center editable" });
+            columns.ForeignKey(p => p.don_vi_tinh, (System.Collections.IEnumerable)ViewBag.units, "Value", "Name")
+                .Title("Đơn vị tính").Width(80).HtmlAttributes(new { @class = "text-center editable" });
+            columns.Bound(p => p.so_luong_yeu_cau).Width(120).HtmlAttributes(new { @class = "text-right" }).Title("Số lượng yêu cầu").Format("{0:n0}")
+                .ClientFooterTemplate("<span class='pull-right'>Total \\#= kendo.format('{0:n0}',sum )\\#</span>");
+            columns.Bound(p => p.so_luong_thuc_te).Width(120).HtmlAttributes(new { @class = "text-right" }).Title("Số lượng thực tế").Format("{0:n0}")
+                .ClientFooterTemplate("<span class='pull-right'>Total \\#= kendo.format('{0:n0}',sum )\\#</span>");
+            columns.Bound(p => p.ghi_chu).Width(120).HtmlAttributes(new { @class = "text-left" }).Title(@Html.Raw(Resources.Global._note).ToString());
+        })
+        .Events(events => { events.Save("onSave"); })
+        .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+        .Pageable()
+        .Navigatable()
+        .Scrollable()
+        .Sortable()
+        .Reorderable(reorderable => reorderable.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .HtmlAttributes(new { @class = "" })
+        .Resizable(resizable => resizable.Columns(true))
+        .Events(events => { events.DataBound("GridPartialonDatabound"); })
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(20)
+            .ServerOperation(false)
+            .Aggregates(aggregates =>
+            {
+                aggregates.Add(p => p.ma_san_pham).Count();
+                aggregates.Add(p => p.so_luong_yeu_cau).Sum();
+                aggregates.Add(p => p.so_luong_thuc_te).Sum();
+            })
+            .Model(model =>
+            {
+                model.Id(p => p.id);
+                model.Field(p => p.don_vi_tinh).DefaultValue("cai");
+                model.Field(p => p.so_luong_yeu_cau).DefaultValue(1);
+                model.Field(p => p.so_luong_thuc_te).DefaultValue(1);
+            })
+            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+            .Read(c => c.Action("Read", "Merchant_StockOut", new { ma_phieu = "#=ma_phieu#" }))
+            ).ToClientTemplate()
+        )
+    </div>
+</script>

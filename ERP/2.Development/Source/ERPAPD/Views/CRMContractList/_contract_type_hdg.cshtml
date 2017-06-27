@@ -1,0 +1,327 @@
+﻿@*<fieldset>
+    <b>Dịch vụ đăng ký mua</b>
+    <div class="row-fluid">
+        <div class="span1">
+            <div class="control-group">
+                <div class="controls">
+                    <label>
+                        <input onchange="changeTypeService()" name="TypeService" value="BANNER" type="radio" class="ace" checked>
+                        <span class="lbl"> Banner</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="span1">
+            <div class="control-group">
+                <div class="controls">
+                    <label>
+                        <input onchange="changeTypeService()" name="TypeService" value="GOI" type="radio" class="ace">
+                        <span class="lbl"> Gói</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</fieldset>*@
+<fieldset>
+    @*<b>Thông tin dịch vụ</b>*@
+    <table id="list-hdg" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:43%">Tên gói</th>
+                <th style="width:10%">Ngày bắt đầu</th>
+                <th style="width:10%">Ngày kết thúc</th>
+                <th style="width:15%">Giá trị</th>
+                <th style="width:5%">CK</th>
+                <th style="width:10%">Thành tiền</th>
+                <th style="width:5%"><button data-rel="tooltip" data-placement="left" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupHDG()"><i class="icon-plus"></i></button></th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (ViewBag.ProductHDG != null && ViewBag.ProductHDG.Count > 0)
+            {
+
+                foreach (var item in ViewBag.ProductHDG)
+                {
+                    <tr class="group-hdg">
+                       <td>
+                           <input class="hdg-PKPacket" type="hidden" value="@item.PKPacket" />
+                           <input value="@item.Name" class="hdg-name" type="text" />
+                       </td>
+                        <td>
+                            <input class="date-picker hdg-start-date" type="text" value="@item.DateUp.ToString("dd/MM/yyyy")" />
+                        </td>
+                        <td>
+                            <input class="date-picker hdg-end-date" type="text" value="@item.DateDown.ToString("dd/MM/yyyy")" />
+                        </td>
+                        <td>
+                            <input onchange="resetGroupProduct()" class="hdg-unit currency" value="@item.UnitPrice.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            <input onchange="resetGroupProduct()" class="hdg-discount currency" value="@item.Discount" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            <input class="hdg-total currency" type="text" value="@item.Total.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                        </td>
+                        <td>
+                            <button data-rel="tooltip" data-placement="left" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupHDG(this, '@item.PKPacket')"><i class="icon-minus"></i></button>
+                            <button data-rel="tooltip" data-placement="bottom" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRow(this)"><i class="fa fa-clone"></i></button>
+                        </td>
+                    </tr>
+                 }
+            }
+        </tbody>
+        <tbody>
+            <tr style="font-size:1.4em" >
+                <td colspan="3"></td>
+                <td colspan="2"><b>Tổng cộng</b></td>
+                <td><span class="red" id="hdg-sum-money"></span></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</fieldset>
+@Html.Partial("_discount_infomation")
+
+<div class="row-fluid">
+    @if (ViewBag.itemdraff != null)
+    {
+        if (!string.IsNullOrEmpty(ViewBag.itemdraff.GhiChu))
+        {
+    <fieldset>
+        <b>Thông tin bổ sung</b>
+        <div class="row-fluid">
+            @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(ViewBag.itemdraff.GhiChu)
+            )
+        </div>
+    </fieldset>
+        }
+        else
+        {
+            foreach (var item in ViewBag.Terms)
+            {
+                if (item.NameID == "GOI_THONG_TIN_BO_SUNG")
+                {
+    <fieldset>
+        <b>@item.Title</b>
+        <div class="row-fluid">
+            @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+            )
+        </div>
+    </fieldset>
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        foreach (var item in ViewBag.Terms)
+        {
+            if (item.NameID == "GOI_THONG_TIN_BO_SUNG")
+            {
+    <fieldset>
+        <b>@item.Title</b>
+        <div class="row-fluid">
+            @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+            )
+        </div>
+    </fieldset>
+                break;
+            }
+        }
+    }
+</div>
+<script>
+    $(document).ready(function () {
+        //resetGroupProduct();
+        formatDateDisplay();
+
+    })
+    function saveServiceSupport() {
+        var result = saveHDG();
+        return result;
+    }
+    var sumG = 0;
+    function plusGroupHDG(obj) {
+        if (!obj) {
+            var obj = {};
+            obj.Name = '';
+            obj.DateUpString = '';
+            obj.DateDownString = '';
+            obj.UnitPrice = 0;
+            obj.Discount = 0;
+            obj.Total = 0;
+        }
+        var html = '';
+        html += '<tr class="group-hdg">'
+        html += '  <td>'
+        html += '       <input class="hdg-PKPacket" type="hidden" value="" />'
+        html += '       <input value="" class="hdg-name" type="text" value="' + obj.Name + '"/>'
+        html += '  </td>'
+        html += '   <td><input class="date-picker hdg-start-date" type="text" value="' + obj.DateUpString + '"/></td>'
+        html += '   <td><input class="date-picker hdg-end-date" type="text" value="' + obj.DateDownString + '"/></td>'
+        html += '   <td><input onchange="resetGroupProduct()" class="hdg-unit currency" value="' + obj.UnitPrice + '" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        html += '   <td><input onchange="resetGroupProduct()" class="hdg-discount currency" value="' + obj.Discount + '" type="text" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        html += '   <td><input class="hdg-total currency" type="text" value="' + obj.Total + '" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        html += '   <td>'
+        html += '       <button data-rel="tooltip" data-placement="left" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupHDG(this)"><i class="icon-minus"></i></button>'
+        html += '       <button data-rel="tooltip" data-placement="bottom" data-original-title="Nhân bản" type="button" class="btn btn-minier btn-default" onclick="cloneRow(this)"><i class="fa fa-clone"></i></button>'
+        html += '  </td>'
+        html += '</tr>'
+        $('#list-hdg tbody.list').append(html);
+        addEventAfter();
+
+    }
+    function saveHDG() {
+        var arr = [];
+        var loop = true;
+        $("#list-hdg .group-hdg").each(function (index) {
+            var obj = {};
+            obj.PKPacket = $(this).find(".hdg-PKPacket").val();
+            obj.FKContract = $("#formContract").attr("data-contract");
+            obj.Name = $(this).find("input.hdg-name").val();
+            obj.Type = $("input[name='TypeService']:checked").val();
+
+            if (obj.Name == "") {
+                alert("Tên gói không được để trống !");
+                loop = false;
+                return false;
+            }
+
+            obj.DateUpString = convertDate($(this).find(".hdg-start-date").val());
+            if (obj.DateUpString == "") {
+                alert("Ngày bắt đầu không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.DateDownString = convertDate($(this).find(".hdg-end-date").val());
+            if (obj.DateDownString == "") {
+                alert("Ngày kết thúc không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.UnitPrice = currencyToNumber($(this).find(".hdg-unit").val());
+            if (obj.UnitPrice == "") {
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+
+            obj.Discount = currencyToNumber($(this).find(".hdg-discount").val());
+            obj.Total = currencyToNumber($(this).find(".hdg-total").val());
+            arr[index] = obj;
+
+        })
+        if (!loop) {
+            return false;
+        }
+        $.ajax({
+            url: r + "/CRMContractList/ContractProductHDG_Save",
+            type: 'POST',
+            data: { listProductHDG: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    loop = false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi cập nhật - Mã TC: GOI01 !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    //change $, gia tri dich vu
+    function resetGroupProduct() {
+        var sum = 0;
+        $("#list-hdg .group-hdg").each(function (index) {
+            var unitPrice = currencyToNumber($(this).find(".hdg-unit").val());
+            var discount = currencyToNumber($(this).find(".hdg-discount").val());
+            var total = unitPrice - (unitPrice * discount / 100);
+            sum = sum + total;
+            console.log(sum);
+            $(this).find(".hdg-total").val(numberToCurrency(total));
+        })
+        sumMoneyProduct = sum;
+        $("#hdg-sum-money").text(numberToCurrency(sum));
+        //$("#txtTongTienHD").val(sum);
+        resetSum(true);
+    }
+    function minusGroupHDG(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("PDPACKET", pk);
+        }
+        resetGroupProduct();
+    }
+
+    function formatDateDisplay() {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    }
+    function cloneRow(btn) {
+        var e = $(btn).parents(".group-hdg");
+        var obj = {};
+        obj.Name = $(e).find("input.hdg-name").val();
+        obj.DateUpString = $(e).find(".hdg-start-date").val();
+        obj.DateDownString = $(e).find(".hdg-end-date").val();
+        obj.UnitPrice = $(e).find(".hdg-unit").val();
+        obj.Discount = $(e).find(".hdg-discount").val();
+        obj.Total = $(e).find(".hdg-total").val();
+        plusGroupHDG(obj);
+        resetGroupProduct();
+        addEventAfter();
+    }
+    //BaoHV add
+    function copyServices() {
+        $("#list-hdg .group-hdg").each(function (index) {
+            $(this).find(".hdg-PKPacket").val('');
+        });    
+    }
+</script>

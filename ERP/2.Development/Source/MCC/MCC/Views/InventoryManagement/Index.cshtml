@@ -1,0 +1,455 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._invenmana);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new tw_VINManagement();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        text-align: center;
+    }
+</style>
+
+<div>
+    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._invenmana_list)</span>
+    <form method="post" id="FilterForm" novalidate="novalidate">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._invenmana_carname)</label>
+                    <div class="input-icon right clearfix">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" name="carname" id="carname" placeholder="@Html.Raw(Resources.Global._invenmana_carname_type)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._vin_warehouse)</label>
+                    @(Html.Kendo().DropDownList()
+                    .Name("warehouseIdF")
+                    .Value("FordCRMWareHouse0001")
+                    .Events(e => e.Change("changeWarehouse"))
+                    .HtmlAttributes(new { style = "width:100%" })
+                    .OptionLabel(Html.Raw(Resources.Global._vin_warehouse) + "...")
+                    .DataTextField("Name")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeMaster", "CustomData", new { type = "FordCRMWareHouse" });
+                        });
+                    })
+                    )
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._car_branchtype)<span class="required"> * </span></label>
+                    @(Html.Kendo().DropDownList()
+                                                  .Name("typeIdF")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel(Html.Raw(Resources.Global._car_branchtype) + "...")
+                                                  .DataTextField("name")
+                                                  .DataValueField("id")
+                            //.Filter("contains")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("getCarTypeBranch", "CustomData");
+                                                      }).ServerFiltering(true);
+                                                  })
+                    )
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._car_serial)<span class="required"> * </span></label>
+                    @(Html.Kendo().DropDownList()
+                                                  .Name("serialIdF")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel(Html.Raw(Resources.Global._car_serial) + "...")
+                                                  .DataTextField("name")
+                                                  .DataValueField("id")
+                            //.Filter("contains")
+                                                  .Enable(false)
+                                                  .AutoBind(false)
+                                                  .CascadeFrom("typeIdF")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("getCarSerial", "CustomData").Data("filtertypeCodeS");
+                                                      }).ServerFiltering(true);
+                                                  })
+                    )
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-actions" style="margin-top:22px;">
+                    <a onclick="filter()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="form-actions">
+            <a href="@Url.Content("~/InventoryManagement/ExportData?filter=~&sort=~&warehouseId=~")" class="btn default btn-sm btn-circle blue export">@Html.Raw(Resources.Global._invenmana_export)</a>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<MCC.Models.tw_Inventory_Get>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.id).Hidden();
+                //columns.Template(@<text></text>).Locked(true).ClientTemplate("#if(code == '' || code == null){#" + "<a class='btn blue btn-xs' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='showAssginVINForm(this)'>" + @Html.Raw(Resources.Global._mapcontract_assignVIN) + "</a>" + "#}else{#" + "<a class='btn red btn-xs' data-vin='#=VIN#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='RemoveVIN(this)'>" + @Html.Raw(Resources.Global._mapcontract_removeVIN) + "</a>" + "#}#" + "&nbsp; <a class='btn yellow btn-xs' data-vin='#=VIN#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='StockOut(this)'>" + @Html.Raw(Resources.Global._mapcontract_stockout) + "</a>").Width(150).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.carCode).Width(100).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._invenmana_carcode).ToString());
+                columns.Bound(p => p.name).Width(250).Title(@Html.Raw(Resources.Global._invenmana_carname).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+                columns.Bound(p => p.actualInventory).Width(80).HtmlAttributes(new { style = "text-align:right;" }).Title(@Html.Raw(Resources.Global._invenmana_actual).ToString());
+                columns.Bound(p => p.availableInventory).Width(90).HtmlAttributes(new { style = "text-align:right;" }).Title(@Html.Raw(Resources.Global._invenmana_available).ToString());
+                columns.Bound(p => p.shippingNo).Width(90).HtmlAttributes(new { style = "text-align:right;" }).Title(@Html.Raw(Resources.Global._invenmana_shipping).ToString());
+                columns.Bound(p => p.OK2SNo).Width(90).HtmlAttributes(new { style = "text-align:right;" }).Title(@Html.Raw(Resources.Global._invenmana_OK2S).ToString());
+                columns.Bound(p => p.whosalesNo).Width(90).HtmlAttributes(new { style = "text-align:right;" }).Title(@Html.Raw(Resources.Global._invenmana_whosales).ToString());
+            })
+                //.Events(events => { events.Edit("onEdit"); })
+                //.Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                .Pageable()
+                .Navigatable()
+                .ClientDetailTemplateId("templatePO")
+                .Scrollable()
+                .HtmlAttributes(new { @style = "min-height:300px;" })
+                .Resizable(resizable => resizable.Columns(true))
+                .Events(events => { events.DataBound("onDatabound"); events.DetailExpand("detailExpand"); })
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .Model(model =>
+                {
+                    //model.Id(p => p.id);
+                    model.Field(p => p.createdAt).Editable(false);
+                    model.Field(p => p.createdBy).Editable(false);
+                    model.Field(p => p.updatedAt).Editable(false);
+                    model.Field(p => p.updatedBy).Editable(false);
+                    //model.Field(p => p.status).Editable(false);
+                    //model.Field(p => p.id).Editable(false);
+                })
+                    //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                    //.Read("Read", "InventoryManagement")
+                .Read(read => read.Action("Read", "InventoryManagement"))
+                //.Update("Update", "VINManagement")
+                )
+        )
+    </div>
+</div>
+
+<script id="templatePO" type="text/kendo-tmpl">
+    <div>
+        <div class="row">
+            @*<div class="col-md-3">
+                    <div class="form-group">
+                        <label>@Html.Raw(Resources.Global._invenmana_inoutdate)</label>
+                        <div class="input-group" id="rangeInOutDate">
+                            <input type="text" class="form-control input-sm" id="inoutdateRangeF" value="@DateTime.Now.AddDays(-30).ToString("yyyy/MM/dd") - @DateTime.Now.ToString("yyyy/MM/dd")">
+                            <span class="input-group-btn input-group-sm">
+                                <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                    <i class="fa fa-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>*@
+            <div class="col-md-3">
+                <label>@Html.Raw(Resources.Global._inventory_typetran)</label>
+                <select style="height:32px; width: 100%" name="typeF" id="typeF" class="max100">
+                    <option value="" selected>Tất cả</option>
+                    <option value="In">Nhập kho</option>
+                    <option value="Out">Xuất kho</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-actions" style="margin-top:27px;">
+                    <a onclick="filterInven()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 10px;">
+        @(Html.Kendo().Grid<tw_PO_Get>()
+            .Name("grid_#=id#")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.carId).Hidden();
+                columns.Bound(o => o.typeName).Width(80).Title(@Html.Raw(Resources.Global._invenmana_type).ToString());
+                columns.Bound(o => o.goalsOrderNo).Width(100).Title(@Html.Raw(Resources.Global._invenmana_refno).ToString());
+                columns.Bound(o => o.VIN).Width(100).Title(@Html.Raw(Resources.Global._invenmana_vin).ToString());
+                columns.Bound(o => o.statusvalue).Width(80).Title(@Html.Raw(Resources.Global._invenmana_status).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(o => o.inventoryDateF).Width(80).Title(@Html.Raw(Resources.Global._invenmana_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(o => o.warehouseName).Width(150).Title(@Html.Raw(Resources.Global._invenmana_warehouse).ToString());
+                columns.Bound(o => o.engineNo).Width(100).Title(@Html.Raw(Resources.Global._invenmana_engineno).ToString());
+                columns.Bound(o => o.carCode).Width(100).Title(@Html.Raw(Resources.Global._invenmana_code).ToString());
+                columns.Bound(o => o.descriptionCode).Width(100).Title(@Html.Raw(Resources.Global._invenmana_modelcode).ToString());
+                columns.Bound(o => o.carColor).Width(100).Title(@Html.Raw(Resources.Global._invenmana_estcolor).ToString());
+                columns.Bound(o => o.descriptionColor).Width(100).Title(@Html.Raw(Resources.Global._invenmana_estcolordes).ToString());
+            })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("ReadPOInfo", "InventoryManagement", new { carId = "#=id#" }))
+                )
+            .Pageable()
+            .Sortable()
+            .ToClientTemplate()
+        )
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 40px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._invenmana_lower) @Html.Raw(Resources.Global._yet)</div>
+    </div>
+</script>
+
+
+<script>
+    var expandedRow, curunitid, ware;
+    function detailExpand(e) {
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#grid').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#grid').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.id;
+        ware = masterDataItem.warehouseId;
+        carId = masterDataItem.id;
+        var griddetail = $("#grid_" + curunitid).data("kendoGrid");
+        //if (warehouseId != null && warehouseId != "")
+        //{
+        console.log(ware + " - " + carId);
+        griddetail.dataSource.transport.options.read.url = r + "/InventoryManagement/ReadPOInfo?warehouseId=" + ware + "&carId=" + carId;
+        griddetail.dataSource.read();
+        ///}
+    }
+    function filter() {
+        grid = $("#grid").data("kendoGrid");
+
+        //var warehouseIdF = $("#warehouseIdF").val();
+        var carname = $("#carname").val();
+        var typeIdF = $("#typeIdF").val();
+        var serialIdF = $("#serialIdF").val();
+
+        var filter = { logic: "and", filters: [] };
+
+        //var filterWarehouseIdF = { logic: "or", filters: [] };
+        var filterCarname = { logic: "or", filters: [] };
+        var filterTypeIdF = { logic: "or", filters: [] };
+        var filterSerialIdF = { logic: "or", filters: [] };
+
+
+        //if (warehouseIdF != "FordCRMWareHouse0001") {
+        //    filterWarehouseIdF.filters.push({ field: "warehouseId", operator: "eq", value: warehouseIdF });
+        //    filter.filters.push(filterWarehouseIdF);
+        //}
+        //else {
+        //    filterWarehouseIdF.filters.push({ field: "warehouseId", operator: "eq", value: "NULL" });
+        //    filter.filters.push(filterWarehouseIdF);
+        //}
+
+        if (carname) {
+            filterCarname.filters.push({ field: "name", operator: "contains", value: carname });
+            filter.filters.push(filterCarname);
+        }
+
+        if (typeIdF) {
+            filterTypeIdF.filters.push({ field: "typeId", operator: "eq", value: typeIdF });
+            filter.filters.push(filterTypeIdF);
+        }
+
+        if (serialIdF) {
+            filterSerialIdF.filters.push({ field: "serialId", operator: "eq", value: serialIdF });
+            filter.filters.push(filterSerialIdF);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function filterInven() {
+        gridcar = $("#grid_" + curunitid).data("kendoGrid");
+
+        //var inoutdateRangeF = $("#inoutdateRangeF").val();
+        var typeF = $("#typeF").val();
+
+        var filtercar = { logic: "and", filters: [] };
+
+        //var filterInoutdateRangeF = { logic: "or", filters: [] };
+        var filterTypeF = { logic: "or", filters: [] };
+
+        if (typeF) {
+            filterTypeF.filters.push({ field: "type", operator: "eq", value: typeF });
+            filtercar.filters.push(filterTypeF);
+        }
+
+        //if (inoutdateRangeF) {
+        //    var startdate = inoutdateRangeF.split('-')[0].trim();
+        //    var enddate = inoutdateRangeF.split('-')[1].trim();
+        //    var todate = new Date(enddate);
+        //    todate.setDate(todate.getDate() + 1);
+        //    filtercar.filters.push({ field: "inventoryDate", operator: "gte", value: startdate });
+        //    filtercar.filters.push({ field: "inventoryDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        //}
+
+        gridcar.dataSource.filter(filtercar);
+    }
+
+    //$("#rangeInOutDate").daterangepicker(
+    //{
+    //    opens: App.isRTL() ? "left" : "right",
+    //    format: "MM/DD/YYYY",
+    //    separator: " to ",
+    //    startDate: moment().subtract("days", 29),
+    //    endDate: moment(),
+    //    //minDate: "01/01/2012",
+    //    //maxDate: "12/31/2018"
+    //}, function (t, e) {
+    //    $("#rangeInOutDate input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    //})
+
+
+    function onDatabound(e) {
+        //initPlugins();
+        resizeGrid();
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+
+            //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            var warehouseId = $("#warehouseIdF").val();
+            href = href.replace(/warehouseId=([^&]*)/, 'warehouseId=' + (warehouseId || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(".k-grid-pager").css("display", "none");
+            $(this.element).find("tbody").html(NoItemsTemplate({}));
+            $(this.element).css("border", "none");
+        } else {
+            $(".k-grid-pager").css("display", "block");
+            $(this.element).css("border", "1px solid #ccc");
+        }
+
+        //if (this.dataSource.total() == 0) {
+        //    var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+        //    $(".k-grid-pager").remove();
+        //    $(this.element).find("tbody").html(NoItemsTemplate({}));
+        //    $(this.element).css("border", "none");
+        //}
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+
+    function filtertypeCodeS() {
+        return {
+            typeCode: $("#typeIdF").val()
+        };
+    }
+
+    $(document).keypress(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function changeWarehouse(e) {
+        var grid = $("#grid").data("kendoGrid");
+        var warehouseId = $("#warehouseIdF").val();
+        //if (warehouseId != null && warehouseId != "")
+        //{
+        grid.dataSource.transport.options.read.url = r + "/InventoryManagement/Read?warehouseId=" + warehouseId;
+        grid.dataSource.read();
+        ///}
+    };
+</script>

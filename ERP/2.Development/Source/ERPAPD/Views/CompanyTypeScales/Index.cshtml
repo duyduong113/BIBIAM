@@ -1,0 +1,3187 @@
+﻿@model IEnumerable<ERPAPD.Models.DC_Company_Type>
+
+@{
+    /// tạo
+    ViewBag.Title = "Master Data";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<script src="@Url.Content("~/Scripts/underscore.js")"></script>
+<div id="hidePopupStart" onclick="ClosePopupEnd('#hidePopupStart')"></div>
+
+<div class="tabbable">
+    <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab4">
+        <li class="active">
+            <a data-toggle="tab" href="#home1">@Resources.Multi.Catagory</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#home2">@Resources.Multi.Scale</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#home3">@Resources.Multi.Result</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#Stage">@Resources.Multi.Stage</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#Step">@Resources.Multi.Step</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#checklist">@Resources.Multi.CheckList</a>
+        </li>
+       
+        <li>
+            <a data-toggle="tab" href="#Buyer">@Resources.Multi.Buyer</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" style="padding-top: 0px;">
+        @*Company Type*@
+        <div id="home1" class="tab-pane active">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-body" style="border: none">
+                            <div class="widget-main">
+                                <div id="">
+                                    <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="TypeName" placeholder="@Resources.Multi.Name" />
+                                    <button type="button" style="height: 30px; width:110px" id="btnSearch1" class="btn btn-primary btn-mini"  onclick="filter()">@Resources.Multi.Filter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Company_Type>()
+                                .Name("GridCompanyType")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.TypeID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllType(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=TypeID#'  />").Width(25).Filterable(false).IncludeInMenu(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.TypeID).Width(100).Hidden();
+                                    columns.Bound(p => p.TypeName).Title(Resources.Multi.Name).Width(300).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}");
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>");
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Width(100).Title(Resources.Multi.UpdatedBy);
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                 .Text("Export To Excel")
+                                    //                 .HtmlAttributes(new { @class = "exporttype" })
+                                    //                 .Url(Url.Action("Export_Type", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importType", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                  .HtmlAttributes(new { @id = "btnActive",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveType()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteType", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteType()" });
+
+                                })
+                                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                .Events(events => { events.DataBound("dataBound"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.TypeID).Editable(false);
+                                                model.Field(p => p.TypeName).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                                        .Create(update => update.Action("SaveCompanyType", "CompanyTypeScales"))
+                                                                            .Read(read => read.Action("CompanyType_Read", "CompanyTypeScales"))
+                                                                            .Update(update => update.Action("UpdateCompanyType", "CompanyTypeScales"))
+                                                            )
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*Company Scale*@
+        <div id="home2" class="tab-pane">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div class="widget-box">
+                                <div class="widget-body" style="border: none">
+                                    <div class="widget-main">
+                                        <div class="">
+                                            <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="ScaleName" placeholder="@Resources.Multi.Name" />
+                                            <button type="button" style="height: 30px; width:110px" id="btnSearch1" class="btn btn-primary btn-mini" onclick="filter1()">@Resources.Multi.Filter</button>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Company_Scale>()
+                                .Name("GridCompanyScale")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.ScalesID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllScale(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ScalesID#'  />").Width(25).Filterable(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.ScalesID).Width(100).Hidden();
+                                    columns.Bound(p => p.ScalesName).Title(Resources.Multi.Name).Width(200).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}"); ;
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>"); ;
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(100);
+                                })
+                               .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                 .Text("Export To Excel")
+                                    //                 .HtmlAttributes(new { @class = "exportscale" })
+                                    //                 .Url(Url.Action("Export_Scale", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importScale", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                 .HtmlAttributes(new { @id = "btnActiveScale",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveScale()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteScale", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteScale()" });
+
+                                })
+                                 .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                .Events(events => { events.DataBound("dataBound1"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.ScalesID).Editable(false);
+                                                model.Field(p => p.ScalesName).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                     .Create(update => update.Action("SaveCompanyScale", "CompanyTypeScales"))
+                                                     .Read(read => read.Action("CompanyScales_Read", "CompanyTypeScales"))
+                                                     .Update(update => update.Action("UpdateCompanyScale", "CompanyTypeScales"))
+                                               )
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*Company Result*@
+        <div id="home3" class="tab-pane">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div class="widget-box">
+                                <div class="widget-body" style="border: none">
+                                    <div class="widget-main">
+                                        <div class="">
+                                            <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="ResultName" placeholder="@Resources.Multi.Name" />
+                                            <button type="button" style="height: 30px; width:110px" id="btnSearch2" class="btn btn-primary btn-mini" onclick="filter2()">@Resources.Multi.Filter</button>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Company_Result>()
+                                .Name("GridCompanyResult")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.ResultID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllResult(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ResultID#'  />").Width(25).Filterable(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.ResultID).Width(100).Hidden();
+                                    columns.Bound(p => p.ResultName).EditorTemplateName("TextArea").Title(Resources.Multi.Name).Width(250).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}");
+                                    columns.Bound(p => p.Recommand).EditorTemplateName("TextArea").Title("Recommend").Width(400).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}");
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>"); ;
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(100);
+                                })
+                               .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                .Text("Export To Excel")
+                                    //                .HtmlAttributes(new { @class = "exportResult" })
+                                    //                .Url(Url.Action("Export_Result", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importResult", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                 .HtmlAttributes(new { @id = "btnDeleteResult", @class="btn btn-warning" ,@style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveResult()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteResult", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteResult()" });
+
+                                })
+                                 .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                .Events(events => { events.DataBound("dataBound2"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.ResultID).Editable(false);
+                                                model.Field(p => p.ResultName).Editable(true);
+                                                model.Field(p => p.Recommand).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                             .Create(update => update.Action("SaveCompanyResult", "CompanyTypeScales"))
+                                                             .Read(read => read.Action("CompanyResult_Read", "CompanyTypeScales"))
+                                                             .Update(update => update.Action("UpdateCompanyResult", "CompanyTypeScales"))
+                                               )
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*Stage Definition*@
+        <div id="Stage" class="tab-pane ">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-body" style="border: none">
+                            <div class="widget-main">
+                                <div id="">
+                                    <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="StageName" placeholder="@Resources.Multi.Desc" />
+                                    <button type="button" style="height: 30px; width:110px" id="btnSearchStage" class="btn btn-primary btn-mini" onclick="filterStage()">@Resources.Multi.Filter</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Stage_Definition>()
+                                .Name("GridStageDefinition")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.StageID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllStage(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=StageID#'  />").Width(25).Filterable(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.StageID).Width(100).Hidden();
+                                    columns.Bound(p => p.Description).Title(Resources.Multi.Desc).Width(200).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}"); ;
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>"); ;
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Width(100).Title(Resources.Multi.UpdatedBy);
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                 .Text("Export To Excel")
+                                    //                 .HtmlAttributes(new { @class = "exportStage" })
+                                    //                 .Url(Url.Action("Export_StageDefinition", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importStage", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                   .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                  .HtmlAttributes(new { @id = "btnActive",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveStage()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteStage", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteStage()" });
+
+                                })
+                                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                        .Events(events => { events.DataBound("dataBoundStage"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.StageID).Editable(false);
+                                                model.Field(p => p.Description).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                                        .Create(update => update.Action("SaveStageDefinition", "CompanyTypeScales"))
+                                                                            .Read(read => read.Action("StageDefinition_Read", "CompanyTypeScales"))
+                                                                            .Update(update => update.Action("UpdateStageDefinition", "CompanyTypeScales"))
+                                                            )
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="col-lg-12">
+                </div>
+            </div>
+        </div>
+
+        @*Step Definition*@
+        <div id="Step" class="tab-pane ">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-body" style="border: none">
+                            <div class="widget-main">
+                                <div id="">
+                                    <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="StepName" placeholder="@Resources.Multi.Desc" />
+                                    <button type="button" style="height: 30px; width:110px" id="btnSearchStep" class="btn btn-primary btn-mini" onclick="filterStep()">@Resources.Multi.Filter</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Step_Definition>()
+                                .Name("GridStepDefinition")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.StepID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllStep(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=StepID#'  />").Width(25).Filterable(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.StepID).Width(100).Hidden();
+                                    columns.Bound(p => p.Description).EditorTemplateName("TextArea").Title(Resources.Multi.Desc).Width(400).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}");
+                                    columns.ForeignKey(p => p.StageID, (System.Collections.IEnumerable)ViewData["StageData"], "StageID", "Description").EditorTemplateName("GridNullableForeignKey").Width(140).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}").Title("Stage");
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>"); ;
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Width(100).Title(Resources.Multi.UpdatedBy);
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                 .Text("Export To Excel")
+                                    //                 .HtmlAttributes(new { @class = "exportStep" })
+                                    //                 .Url(Url.Action("Export_StepDefinition", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importStep", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                   .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                  .HtmlAttributes(new { @id = "btnActive",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveStep()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteStep", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteStep()" });
+
+                                })
+                                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                        .Events(events => { events.DataBound("dataBoundStep"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.StepID).Editable(false);
+                                                model.Field(p => p.Description).Editable(true);
+                                                model.Field(p => p.StageID).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                                        .Create(update => update.Action("SaveStepDefinition", "CompanyTypeScales"))
+                                                                            .Read(read => read.Action("StepDefinition_Read", "CompanyTypeScales"))
+                                                                            .Update(update => update.Action("UpdateStepDefinition", "CompanyTypeScales"))
+                                                            )
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="col-lg-12">
+                </div>
+            </div>
+        </div>
+        @*  //checklist*@
+        <div id="checklist" class="tab-pane ">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-body" style="border: none">
+                            <div class="widget-main">
+                                <div id="">
+                                    <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="txtCheckList" placeholder="@Resources.Multi.Desc" />
+                                    <button type="button" style="height: 30px; width:110px" id="btnSearchCheckList" class="btn btn-primary btn-mini" onclick="filterCheckList()">@Resources.Multi.Filter</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_CheckList_Definition>()
+                    .Name("GridCheckList")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.ChecklistID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllCheckList'  onClick='checkAllCheckList(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ChecklistID#'  />").Width(25).Filterable(false).Sortable(false);
+                        columns.Bound(p => p.ChecklistID).Width(40).Title("ID");
+                        columns.Bound(p => p.ChecklistID).Width(100).Hidden();
+                        columns.Bound(p => p.Name).Title(Resources.Multi.Name).Width(300).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.IsDefault).Title("isDefault").Width(50).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                        columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>");
+                        columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                        columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                        columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                        columns.Bound(p => p.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(100);
+                    })
+                    .ToolBar(toolbar =>
+                    {
+                        //toolbar.Custom()
+                        //                .Text("Export To Excel")
+                        //                .HtmlAttributes(new { @class = "exportCheckList" })
+                        //                .Url(Url.Action("ExportExcelCheckList", "CompanyTypeScales", new { filter = "~", sort = "~", ChecklistID = "~" }));
+                        //toolbar.Custom()
+                        //                .Text("Import From Excel")
+                        //                .HtmlAttributes(new { id = "importCheckList", Href = "javascript:void(o)" });
+                        toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                        toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                        toolbar.Custom()
+                                         .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                        .HtmlAttributes(new { @id = "btnChangeCheckList",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveCheckList()" });
+                        toolbar.Custom()
+                                        .Text(Resources.Multi.Delete)
+                                        .HtmlAttributes(new { @id = "btnDeleteCheckList", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteCheckList()" });
+
+                    })
+                    .Events(events => { events.DataBound("dataBoundCheckList"); events.DetailExpand("detailExpand"); })
+                    .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                    .Navigatable()
+                    .ColumnMenu()
+                    .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .Sortable()
+                    .Scrollable(scrollable => scrollable.Virtual(false))
+                    .Sortable()
+                    .Filterable()
+                    .Resizable(resize => resize.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .PageSize(50)
+                    .Events(events => { events.Error("error_handlerCheckList"); events.RequestEnd("onRequestEndCheckList"); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.RowID);
+                        model.Field(p => p.ChecklistID).Editable(false);
+                        model.Field(p => p.Active).Editable(false);
+                        model.Field(p => p.RowCreatedUser).Editable(false);
+                        model.Field(p => p.RowCreatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                        model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                        model.Field(p => p.Active).DefaultValue(true);
+                    })
+                        .Create(update => update.Action("CheckList_Create", "CompanyTypeScales"))
+                        .Read(read => read.Action("CheckList_Read", "CompanyTypeScales"))
+                        .Update(update => update.Action("CheckList_Update", "CompanyTypeScales"))
+                        )
+                        .ClientDetailTemplateId("BDTeamDetails")
+
+                    )
+                </div>
+            </div>
+        </div>
+      
+        @*Buyer*@
+        <div id="Buyer" class="tab-pane">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="widget-box">
+                        <div class="widget-body" style="border: none">
+                            <div class="widget-main">
+                                <div id="">
+                                    <input style="width: 250px; height: 20px; " name="date-range-picker span2" type="text" id="BuyerName" placeholder="@Resources.Multi.Desc" />
+                                    <button type="button" style="height: 30px; width:110px" id="btnSearchBuyer" class="btn btn-primary btn-mini" onclick="filterBuyer()">@Resources.Multi.Filter</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @(Html.Kendo()
+                                .Grid<ERPAPD.Models.DC_Buyer_Definition>()
+                                .Name("GridBuyer")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(p => p.BuyerID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllBuyer(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=BuyerID#'  />").Width(25).Filterable(false).Sortable(false);
+                                    columns.Bound(p => p.RowID).Width(135).Hidden();
+                                    columns.Bound(p => p.BuyerID).Width(100).Hidden();
+                                    columns.Bound(p => p.BuyerName).Title(Resources.Multi.Name).Width(200).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Format("{0:N0}");
+                                    columns.Bound(p => p.Active).Title(Resources.Multi.Active).Width(60).ClientTemplate("<span>&nbsp;   #=Active ? '&#x2713;' :  '' # </span>");
+                                    columns.Bound(p => p.RowCreatedTime).Title(Resources.Multi.CreatedAt).Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                                    columns.Bound(p => p.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(100);
+                                    columns.Bound(p => p.RowLastUpdatedTime).Width(140).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') #" + "#}#");
+                                    columns.Bound(p => p.RowLastUpdatedUser).Width(100).Title(Resources.Multi.UpdatedBy);
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Custom()
+                                    //                 .Text("Export To Excel")
+                                    //                 .HtmlAttributes(new { @class = "exportBuyer" })
+                                    //                 .Url(Url.Action("Export_Buyer", "CompanyTypeScales", new { filter = "~", sort = "~" }));
+                                    //toolbar.Custom()
+                                    //              .Text("Import From Excel")
+                                    //              .HtmlAttributes(new { id = "importBuyer", Href = "javascript:void(o)" });
+                                    toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                    toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                    toolbar.Custom()
+                                                   .Text(Resources.Multi.Change + " " + Resources.Multi.Active.ToLower())
+                                                  .HtmlAttributes(new { @id = "btnActive",@class="btn btn-warning", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:ActiveBuyer()" });
+                                    toolbar.Custom()
+                                                  .Text(Resources.Multi.Delete)
+                                                  .HtmlAttributes(new { @id = "btnDeleteBuyer", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteBuyer()" });
+
+                                })
+                                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                .Events(events => { events.DataBound("dataBoundBuyer"); })
+                                .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+                                .Navigatable()
+                                .ColumnMenu()
+                                .Sortable()
+                                .Scrollable(scrollable => scrollable.Virtual(false))
+                                .Filterable()
+                                .Resizable(resize => resize.Columns(true))
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                        .Batch(true)
+                                            .PageSize(50)
+                                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Model(model =>
+                                            {
+                                                model.Id(p => p.RowID);
+                                                model.Field(p => p.BuyerID).Editable(false);
+                                                model.Field(p => p.BuyerName).Editable(true);
+                                                model.Field(p => p.Active).Editable(false);
+                                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+
+                                            })
+                                                                        .Create(update => update.Action("SaveBuyer", "CompanyTypeScales"))
+                                                                            .Read(read => read.Action("Buyer_Read", "CompanyTypeScales"))
+                                                                            .Update(update => update.Action("UpdateBuyer", "CompanyTypeScales"))
+                                                            )
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="col-lg-12">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*Import CompanyType*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportType")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformType" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_Type")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadType" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportType" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadType" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*Import CompanyScale*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportScale")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformScale" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_Scale")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadScale" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportScale" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadScale" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*Import CompanyResult*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportResult")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformResult" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_Result")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadResult" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportResult" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadResult" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*Import Stage Definition*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportStage")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformStage" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_StageDefinition")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadStage" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportStage" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadStage" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*Import Step Definition*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportStep")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformStep" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_StepDefinition")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadStep" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportStep" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadStep" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*CheckList*@
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportCheckList")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformCheckList" action="@Url.Content("~/CompanyTypeScales/ImportFromExcelCheckList")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadCheckList" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportCheckList" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadCheckList" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+@*Import Buyer*@
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportBuyer")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformBuyer" action="@Url.Content("~/CompanyTypeScales/ImportFromExcel_Buyer")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadBuyer" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportBuyer" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadBuyer" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+
+)
+
+
+<style>
+    .btnPopup {
+        width: 70px;
+        text-align: center;
+    }
+
+    .hide {
+        display: none;
+    }
+
+    .controls {
+        margin-left: 20px;
+    }
+
+    #showdatatobay {
+        margin-left: 20px;
+        line-height: 32px;
+    }
+
+    #hidePopupStart {
+        display: none;
+        z-index: 999;
+        opacity: 0.5;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+    }
+
+    .height_35px {
+        height: 35px;
+    }
+
+    .setWidthDr .chosen-container {
+        width: 200px !important;
+        margin-right: 20px;
+    }
+
+    .k-window {
+        width: 500px;
+    }
+
+    .newlistExam .chosen-choices {
+        width: 800px;
+    }
+
+    .newlistExam .chosen-drop {
+        width: 800px;
+    }
+
+    .newlistExam .chosen-container {
+        width: 800px !important;
+    }
+</style>
+@*bbb*@
+<script id="BDTeamDetails" type="text/kendo-tmpl">
+    <div class="span12">
+        @(Html.Kendo()
+        .TabStrip()
+        .HtmlAttributes(new { @style = "width:100%;" })
+        .Name("tabStrip_#=ChecklistID#")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Apply for").Content(@<text>
+                <span>
+                    <input id="ListCom_Org_#=ChecklistID#" style="width: 600px" multiple />
+                </span>
+                <div style="display:inline-block">
+                    <a onclick='SaveOrg()' class='btn btn-success btn-small' style="width: 70px;">@Resources.Multi.Add</a>
+                </div>
+                <div style="display:inline-block">
+                    <a onclick='DeleteOrg()' class='btn btn-danger btn-small ' style="width:70px;">@Resources.Multi.Remove</a>
+                </div>
+                @(Html.Kendo()
+        .Grid<ERPAPD.Models.DC_CheckList_ApplyFor>()
+        .Name("GirdCheckListSub_#=ChecklistID#")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ChecklistSubID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllCheckListSub'  onClick='checkAllCheckListSub(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=ChecklistSubID\\#'  />").Width(30).Filterable(false).Sortable(false);
+            columns.Bound(o => o.CompanyName).Title("CompanyName").Width(150);
+            columns.Bound(o => o.OrganizationID).Title("OrganizationID").Width(150);
+            columns.Bound(o => o.CompanyPhone).Width(100).Title("CompanyPhone");
+            columns.Bound(o => o.NoOfEmployee).Width(80).Title("NoOfEmployee");
+            columns.Bound(o => o.Address).Width(200).Title("Address");
+            columns.Bound(o => o.RowCreatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110).Title(Resources.Multi.CreatedAt);
+            columns.Bound(o => o.RowCreatedUser).Width(110).Title(Resources.Multi.CreatedBy);
+        })
+        .ToolBar(toolBar =>
+            {
+
+            })
+            .Events(events => { events.DataBound("dataBoundGirdCheckListSub"); })
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(50)
+            .Model(model =>
+            {
+                model.Id(p => p.ChecklistSubID);
+            })
+            .Read(read => read.Action("CheckListSub_Read", "CompanyTypeScales", new { ChecklistID = "#=ChecklistID#" }))
+            )
+            .Pageable(pager => pager
+            .PageSizes(new[] { 50, 100, 200, 300 }))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Filterable()
+            .ColumnMenu()
+            .ToClientTemplate())
+            </text>);
+            items.Add().Text("Steps").Content(@<text>
+                <div id="newlistStep_#=ChecklistID#" class="newlistExam" style="display:inline-block;width:800px;">
+                    <select name="select" id="listStep_#=ChecklistID#" class='chosen-select span2' style="width:800px;" multiple></select>
+                </div>
+                <div style="display:inline-block">
+                    <a onclick='SaveStep()' class='btn btn-success btn-small' style="width: 70px;">@Resources.Multi.Add</a>
+                </div>
+                <div style="display:inline-block">
+                    <a onclick='CheckListDeleteStep()' class='btn btn-danger btn-small ' style="width:70px;">@Resources.Multi.Remove</a>
+                </div>
+                @(Html.Kendo()
+        .Grid<ERPAPD.Models.DC_CheckList_Definition_Step>()
+        .Name("GirdCheckListStep_#=ChecklistID#")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ChecklistSubID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllCheckListStep'  onClick='checkAllCheckListStep(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=ChecklistSubID\\#'  />").Width(30).Filterable(false).Sortable(false);
+
+            columns.Bound(o => o.Order).Width(40).Title("Order").HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+            columns.Bound(o => o.Description).Title(Resources.Multi.Desc).Width(300);
+            columns.Bound(o => o.Stage).Title("Stage").Width(100);
+            columns.Bound(o => o.RowCreatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110).Title(Resources.Multi.CreatedAt);
+            columns.Bound(o => o.RowCreatedUser).Width(110).Title(Resources.Multi.CreatedBy);
+            columns.Bound(p => p.RowLastUpdatedTime).Width(110).Title(Resources.Multi.UpdatedAt).Format("{0:" + Resources.Multi.DateFormat + "}").ClientTemplate("\\#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){\\#" + "\\#= kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy HH:mm:ss') \\#" + "\\#}\\#");
+            columns.Bound(p => p.RowLastUpdatedUser).Width(110).Title(Resources.Multi.UpdatedBy);
+        })
+        .ToolBar(toolBar =>
+            {
+                toolBar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate || AllowCreate ? "inline-block" : "none") });
+                //toolBar.Custom().Text("Edit Record")
+                //.HtmlAttributes(new { id = "btnedit3", @class = "btn-danger", @style = "display:" + (AllowDelete ? "inline-block" : "none") + ";color:white", @Href = "javascript:edit3()" });
+            })
+            .Events(events => { events.DataBound("dataBoundGirdCheckListStep"); })
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(50)
+            .Events(events => { events.Error("error_handlerCheckListStep"); events.RequestEnd("onRequestEndCheckListStep"); })
+            .Model(model =>
+            {
+                model.Id(p => p.ChecklistSubID);
+                model.Field(p => p.ChecklistSubID).Editable(false);
+                model.Field(p => p.Description).Editable(false);
+                model.Field(p => p.Stage).Editable(false);
+                model.Field(p => p.RowCreatedTime).Editable(false);
+                model.Field(p => p.RowCreatedUser).Editable(false);
+                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+            })
+            .Update("CheckListStep_Update", "CompanyTypeScales")
+            .Read(read => read.Action("CheckListStep_Read", "CompanyTypeScales", new { ChecklistID = "#=ChecklistID#" }))
+            )
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .Pageable(pager => pager
+            .PageSizes(new[] { 50, 100, 200, 300 }))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Filterable()
+            .ColumnMenu()
+            .ToClientTemplate())
+            </text>);
+        }).ToClientTemplate())
+    </div>
+</script>
+<script>
+    $('#txtCheckList').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterCheckList();
+        }
+    });
+
+    function filterCheckList() {
+        grid = $("#GridCheckList").data("kendoGrid");
+
+        var TypeName = $('#txtCheckList').val();
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+        if (TypeName) {
+            filtercusinfo.filters.push({ field: "Name", operator: "contains", value: TypeName });
+            filter.filters.push(filtercusinfo);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#FileUploadCheckList').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importCheckList').bind('click', function () {
+        $("#windowimportCheckList").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportCheckList').bind('click', function () {
+        $('#importformCheckList').submit();
+    });
+    (function () {
+        $("#importformCheckList").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportCheckList").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridCheckList").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportCheckList").data("kendoWindow").open();
+                        $('#btndownloadCheckList').css('display', 'inline-block');
+                        $('#btndownloadCheckList').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadCheckList').css('display', 'none');
+                        $('#btndownloadCheckList').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+    })();
+
+    function CheckListDeleteStep() {
+        var listrowid = "";
+        $('#GirdCheckListStep_' + curunitid).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/CheckListStepDelete", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GirdCheckListStep_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckListStep').prop('checked', false);
+                        CheckListGetStep();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GirdCheckListStep_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckListStep').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function CheckListGetStep() {
+        $.post(r + "/CompanyTypeScales/CheckListGetStep", { ChecklistID: curunitid }, function (data) {
+            if (!data.Errors) {
+                $('#newlistStep_' + curunitid).html('');
+                var html = " <select name='select' id='listStep_" + curunitid + "' class='chosen-select span2' style='width:800px;' multiple >";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.StepID + "'>" + row.Description + "</option>";
+                });
+                html += "</select>";
+                $('#newlistStep_' + curunitid).html(html);
+                $('#listStep_' + curunitid).chosen();
+            }
+        });
+    }
+    function SaveStep() {
+        var listorg = $("#listStep_" + curunitid + " option:selected");
+        var data = "";
+        if (listorg.length > 0) {
+            for (var i = 0; i < listorg.length; i++) {
+                data += listorg[i].value + "@@@@";
+            }
+        }
+        if (data != null && data != "") {
+            $.post(r + "/CompanyTypeScales/CheckListSaveStep", { data: data, ChecklistID: curunitid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    $("#GirdCheckListStep_" + curunitid).data("kendoGrid").dataSource.read();
+                    CheckListGetStep();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function dataBoundGirdCheckListSub(e) {
+        var g = $("#GirdCheckListSub_" + curunitid).data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+    }
+    function dataBoundGirdCheckListStep(e) {
+        var g = $("#GirdCheckListStep_" + curunitid).data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+    }
+    function DeleteOrg() {
+        var listrowid = "";
+        $('#GirdCheckListSub_' + curunitid).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/CheckListSubDelete", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GirdCheckListSub_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckListSub').prop('checked', false);
+                        //CheckListGetOrg();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GirdCheckListSub_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckListSub').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function SaveOrg() {
+        @*var listorg = $("#listOrg_" + curunitid + " option:selected");
+        var data = "";
+        if (listorg.length > 0) {SaveOrg
+            for (var i = 0; i < listorg.length; i++) {
+                data += listorg[i].value + "@@@@";
+            }
+        }*@
+        var data = $("#ListCom_Org_" + curunitid).val();
+        if (data != null && data != "") {
+            $.post(r + "/CompanyTypeScales/CheckListSaveOrg", { data: data, ChecklistID: curunitid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    $("#GirdCheckListSub_" + curunitid).data("kendoGrid").dataSource.read();
+                    $("#ListCom_Org_" + curunitid).val('');
+                    //CheckListGetOrg();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    //var ComID;
+    var expandedRow;
+    var curunitid;
+    function detailExpand(e) {
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#GridCheckList').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#GridCheckList').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.ChecklistID;
+        //CheckListGetOrg();
+        CheckListGetStep();
+        $("#ListCom_Org_" + curunitid).val("");
+        if ($("#ListCom_Org_" + curunitid).attr('aria-autocomplete') != 'list') {
+            //AutoComplete Tab CheckList
+            $("#ListCom_Org_" + curunitid).kendoAutoComplete({
+                dataTextField: "ContactToName",
+                filter: "contains",
+                //separator: ", ",
+                minLength: 1,
+                placeholder: "Company/Organization",
+                dataSource: {
+                    type: "jsonp",
+                    serverFiltering: true,
+                    transport: {
+                        read: {
+                            url: r + "/CompanyTypeScales/DrListCompany",
+                            data: {
+                                companyID: function () {
+                                    var com = $("#ListCom_Org_" + curunitid).val();
+                                    //var pieces = com.split(/[\s,]+/);
+                                    return com;
+                                },
+                                orgID: function () {
+                                    var org = $("#ListCom_Org_" + curunitid).val();
+                                    //var pieces = org.split(/[\s,]+/);
+                                    return org;
+                                }
+                            }
+                        }
+                    }
+                },
+                template: function (data) {
+                    //ComID = data.ContactToID;
+                    return data.ContactToName;
+                },
+            });
+        }
+        //end
+
+    }
+    @*function CheckListGetOrg() {
+        $.post(r + "/CompanyTypeScales/CheckListGetOrg", { ChecklistID: curunitid }, function (data) {
+            if (!data.Errors) {
+                $('#newlistICare_' + curunitid).html('');
+                var html = " <select name='select' id='listOrg_" + curunitid + "' class='chosen-select span2' style='width:800px;' multiple >";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.OrganizationID + "'>" + row.OrganizationID + "</option>";
+                });
+                html += "</select>";
+                $('#newlistICare_' + curunitid).html(html);
+                $('#listOrg_' + curunitid).chosen();
+            }
+        });
+    }*@
+
+    function DeleteCheckList() {
+        var listrowid = "";
+        $('#GridCheckList').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        }); confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+        if (listrowid != null && listrowid != "") {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/CheckListDelete", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCheckList").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckList').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCheckList").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckList').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function ActiveCheckList() {
+        var listrowid = "";
+        $('#GridCheckList').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/CheckListChangeActive", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCheckList").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckList').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCheckList").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllCheckList').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function checkAllCheckList(e) {
+        var x = $(e).prop('checked');
+        $('#GridCheckList').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllCheckListSub(e) {
+        var x = $(e).prop('checked');
+        $('#GirdCheckListSub_' + curunitid).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllCheckListStep(e) {
+        var x = $(e).prop('checked');
+        $('#GirdCheckListStep_' + curunitid).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function dataBoundCheckList(e) {
+        resizeGrid();
+        var g = $("#GridCheckList").data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        //var $exportLink = grid.element.find('.exportCheckList');
+        //var href = $exportLink.attr('href');
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //$exportLink.attr('href', href);
+    }
+    function error_handlerCheckListStep(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEndCheckListStep(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GirdCheckListStep_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GirdCheckListStep_" + curunitid).data("kendoGrid").dataSource.read();
+        }
+    }
+    function error_handlerCheckList(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEndCheckList(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridCheckList").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridCheckList").data("kendoGrid").dataSource.read();
+        }
+    }
+</script>
+<script>
+    var clickh2 = false;
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href");
+        if (target == '#home2' && !clickh2) {
+            clickh2 = true;
+            $("#GridCompanyType").data("kendoGrid").dataSource.transport.options.read.url = r + '/CompanyTypeScales/CompanyType_Read';
+            $("#GridCompanyType").data("kendoGrid").dataSource.read();
+            resizeGrid1();
+            resizeGrid2();
+
+        }
+        resizeGrid();
+        resizeGrid2();
+    });
+
+    $(document).ready(function () {
+        //called when key is pressed in textbox
+        $(".validatenumber").keypress(function (e) {
+            //if the letter is not digit then display error and don't type anything
+            if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                return false;
+            }
+        });
+        resizeGrid();
+    });
+
+    function ClosePopupEnd(id) {
+        $('#divPopup_Type').hide();
+        $('#divPopup_Scale').hide();
+        $(id).hide();
+        ClearData();
+    }
+
+    $('#DrActiveFilterType').chosen();
+    $('#btnCancelCompanyType').bind('click', function () {
+        $('#divPopup_Type').hide();
+        ClosePopupEnd('#hidePopupStart');
+    })
+    $('#DrActiveFilterScale').chosen();
+    $('#btnCancelCompanyScale').bind('click', function () {
+        $('#divPopup_Scale').hide();
+        ClosePopupEnd('#hidePopupStart');
+    })
+
+    function ClearData() {
+        $('#DrActivityType').empty();
+        $('#DrContactType').val('');
+        $('#DrContactTo').val('');
+        $('#txtContent').val('');
+        $('#DrResult').val('');
+        $('#DrAssignee').val('');
+        $('#txtDate').val('');
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid1();
+        }, 500)
+    });
+
+    //Search Company Type
+    $('#TypeName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+    $('#btnSearch3').bind('click', function () {
+        filter();
+    })
+
+    function filter() {
+        grid = $("#GridCompanyType").data("kendoGrid");
+
+        var TypeName = $('#TypeName').val();
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (TypeName) {
+            filtercusinfo.filters.push({ field: "TypeName", operator: "contains", value: TypeName });
+            filter.filters.push(filtercusinfo);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    //Search Company Scale
+    $('#ScaleName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter1();
+        }
+    });
+    $('#btnSearch1').bind('click', function () {
+        filter1();
+    })
+
+    function filter1() {
+        grid = $("#GridCompanyScale").data("kendoGrid");
+
+        var ScaleName = $('#ScaleName').val();
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (ScaleName) {
+            filtercusinfo.filters.push({ field: "ScalesName", operator: "contains", value: ScaleName });
+            filter.filters.push(filtercusinfo);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    //Search Company Result
+    $('#ResultName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter2();
+        }
+    });
+    $('#btnSearch2').bind('click', function () {
+        filter2();
+    })
+
+    function filter2() {
+        grid = $("#GridCompanyResult").data("kendoGrid");
+
+        var ResultName = $('#ResultName').val();
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (ResultName) {
+            filtercusinfo.filters.push({ field: "ResultName", operator: "contains", value: ResultName });
+            filter.filters.push(filtercusinfo);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    //Search Buyer
+    $('#BuyerName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterBuyer();
+        }
+    });
+    $('#btnSearchBuyer').bind('click', function () {
+        filterBuyer();
+    })
+
+    function filterBuyer() {
+        grid = $("#GridBuyer").data("kendoGrid");
+
+        var BuyerName = $('#BuyerName').val();
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (BuyerName) {
+            filtercusinfo.filters.push({ field: "BuyerName", operator: "contains", value: BuyerName });
+            filter.filters.push(filtercusinfo);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exporttype');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        // Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+    function dataBound1(e) {
+        resizeGrid();
+        var grid = $("#GridCompanyScale").data("kendoGrid");
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        //// Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportscale');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+    function dataBound2(e) {
+        resizeGrid();
+        var grid = $("#GridCompanyResult").data("kendoGrid");
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        //// Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportResult');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+
+  
+    function dataBoundBuyer(e) {
+        resizeGrid();
+        var grid = $("#GridBuyer").data("kendoGrid");
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportBuyer');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+        resizeGrid1();
+        resizeGrid2();
+    });
+    function resizeGrid2() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridCompanyResult').offset().top);
+        var gridElement = $("#GridCompanyResult"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function resizeGrid1() {
+
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridCompanyType').offset().top);
+        var gridElement = $("#GridCompanyType"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+        //Stage Definition
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridStageDefinition').offset().top);
+        var gridElement = $("#GridStageDefinition"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+        //Step Definition
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridStepDefinition').offset().top);
+        var gridElement = $("#GridStepDefinition"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridCheckList').offset().top);
+        var gridElement = $("#GridCheckList"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+        //Buyer Definition
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridBuyer').offset().top);
+        var gridElement = $("#GridBuyer"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+
+
+        //GridCompanyScale
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridCompanyScale').offset().top);
+        var gridElement = $("#GridCompanyScale"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#GridCompanyType").data("kendoGrid").dataSource.read();
+            $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+            $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+            $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+            $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+            $("#GridBuyer").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#GridCompanyType").data("kendoGrid").dataSource.read();
+            $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+            $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+            $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+            $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+            $("#GridBuyer").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    //Script check box in Grid
+    function checkAllType(e) {
+        var x = $(e).prop('checked');
+        $('#GridCompanyType').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllScale(e) {
+        var x = $(e).prop('checked');
+        $('#GridCompanyScale').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllResult(e) {
+        var x = $(e).prop('checked');
+        $('#GridCompanyResult').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+
+    function checkAllBuyer(e) {
+        var x = $(e).prop('checked');
+        $('#GridBuyer').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    //end
+
+    function DeleteType() {
+        var listrowid = "";
+        $('#GridCompanyType').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteType", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s) because this used.',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function DeleteScale() {
+        var listrowid = "";
+        $('#GridCompanyScale').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteScale", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s) because this used.',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function DeleteResult() {
+        var listrowid = "";
+        $('#GridCompanyResult').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteResult", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s) because this used.',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function DeleteBuyer() {
+        var listrowid = "";
+        $('#GridBuyer').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteBuyer", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridBuyer").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s) because this used.',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridBuyer").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridBuyer").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    //Script Import Companny Type
+    $('#FileUploadType').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importType').bind('click', function () {
+        $("#windowimportType").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportType').bind('click', function () {
+        $('#importformType').submit();
+    });
+    (function () {
+        $("#importformType").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportType").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportType").data("kendoWindow").open();
+                        $('#btndownloadType').css('display', 'inline-block');
+                        $('#btndownloadType').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadType').css('display', 'none');
+                        $('#btndownloadType').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+    //Script Import Company Scale
+    $('#FileUploadScale').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importScale').bind('click', function () {
+        $("#windowimportScale").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportScale').bind('click', function () {
+        $('#importformScale').submit();
+    });
+    (function () {
+        $("#importformScale").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportScale").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportScale").data("kendoWindow").open();
+                        $('#btndownloadScale').css('display', 'inline-block');
+                        $('#btndownloadScale').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadScale').css('display', 'none');
+                        $('#btndownloadScale').attr('href', "");
+                    }
+
+
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+    //Script Import Company Result
+    $('#FileUploadResult').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importResult').bind('click', function () {
+        $("#windowimportResult").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportResult').bind('click', function () {
+        $('#importformResult').submit();
+    });
+    (function () {
+        $("#importformResult").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportResult").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportResult").data("kendoWindow").open();
+                        $('#btndownloadResult').css('display', 'inline-block');
+                        $('#btndownloadResult').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadResult').css('display', 'none');
+                        $('#btndownloadResult').attr('href', "");
+                    }
+
+
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+
+    //Script Import Buyer
+    $('#FileUploadBuyer').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importBuyer').bind('click', function () {
+        $("#windowimportBuyer").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportBuyer').bind('click', function () {
+        $('#importformBuyer').submit();
+    });
+    (function () {
+        $("#importformBuyer").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportBuyer").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridBuyer").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportBuyer").data("kendoWindow").open();
+                        $('#btndownloadBuyer').css('display', 'inline-block');
+                        $('#btndownloadBuyer').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadBuyer').css('display', 'none');
+                        $('#btndownloadBuyer').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+    function ActiveType() {
+        var listrowid = "";
+        $('#GridCompanyType').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function ActiveScale() {
+        var listrowid = "";
+        $('#GridCompanyScale').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive_Scale", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyScale").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyType").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function ActiveResult() {
+        var listrowid = "";
+        $('#GridCompanyResult').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive_Result", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridCompanyResult").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function ActiveBuyer() {
+        var listrowid = "";
+        $('#GridBuyer').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive_Buyer", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridBuyer").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridBuyer").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    //Stage Definition
+
+    function dataBoundStage(e) {
+        resizeGrid();
+        var grid = $("#GridStageDefinition").data("kendoGrid");
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        //// Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportStage');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+
+    function checkAllStage(e) {
+        var x = $(e).prop('checked');
+        $('#GridStageDefinition').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    //Search Stage
+    $('#StageName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterStage();
+        }
+    });
+    $('#btnSearchStage').bind('click', function () {
+        filterStage();
+    })
+
+    function filterStage() {
+        grid = $("#GridStageDefinition").data("kendoGrid");
+
+        var StageName = $('#StageName').val();
+        var filter = { logic: "and", filters: [] };
+        var filterDes = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (StageName) {
+            filterDes.filters.push({ field: "Description", operator: "contains", value: StageName });
+            filter.filters.push(filterDes);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    function DeleteStage() {
+        var listrowid = "";
+        $('#GridStageDefinition').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteStageDefinition", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s) because this used.',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    //Script Import Stage Definition
+    $('#FileUploadStage').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importStage').bind('click', function () {
+        $("#windowimportStage").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportStage').bind('click', function () {
+        $('#importformStage').submit();
+    });
+    (function () {
+        $("#importformStage").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportStage").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportStage").data("kendoWindow").open();
+                        $('#btndownloadStage').css('display', 'inline-block');
+                        $('#btndownloadStage').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadStage').css('display', 'none');
+                        $('#btndownloadStage').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+    })();
+
+    function ActiveStage() {
+        var listrowid = "";
+        $('#GridStageDefinition').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive_Stage", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridStageDefinition").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    //End Stage
+
+    //Step Definition
+
+    function dataBoundStep(e) {
+        resizeGrid();
+        var grid = $("#GridStepDefinition").data("kendoGrid");
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        //// Get the export link as jQuery object
+        //var $exportLink = grid.element.find('.exportStep');
+
+        //// Get its 'href' attribute - the URL where it would navigate to
+        //var href = $exportLink.attr('href');
+
+        //// Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //// Update the 'sort' parameter with the grid's current sort descriptor
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //// Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //// Update the 'href' attribute
+        //$exportLink.attr('href', href);
+    }
+
+    function checkAllStep(e) {
+        var x = $(e).prop('checked');
+        $('#GridStepDefinition').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    //Search Step
+    $('#StepName').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterStep();
+        }
+    });
+    $('#btnSearchStep').bind('click', function () {
+        filterStep();
+    })
+
+    function filterStep() {
+        grid = $("#GridStepDefinition").data("kendoGrid");
+
+        var StepName = $('#StepName').val();
+        var filter = { logic: "and", filters: [] };
+        var filterDes = { logic: "or", filters: [] };
+
+        var filterActive = { logic: "or", filters: [] };
+
+        if (StepName) {
+            filterDes.filters.push({ field: "Description", operator: "contains", value: StepName });
+            filter.filters.push(filterDes);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+    function DeleteStep() {
+        var listrowid = "";
+        $('#GridStepDefinition').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/DeleteStepDefinition", { data: listrowid, }, function (data) {
+                    if (data.success && data.totalError == 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else if (data.success && data.totalError > 0) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete ' + data.totalSuccess + ' record(s) @Resources.Multi.Successfully.</br>  @Resources.Multi.Error  : ' + data.totalError + ' record(s)  @Resources.Multi.Because   @Resources.Multi.Used.ToLower() .',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    //Script Import Step Definition
+    $('#FileUploadStep').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importStep').bind('click', function () {
+        $("#windowimportStep").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportStep').bind('click', function () {
+        $('#importformStep').submit();
+    });
+    (function () {
+        $("#importformStep").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportStep").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportStep").data("kendoWindow").open();
+                        $('#btndownloadStep').css('display', 'inline-block');
+                        $('#btndownloadStep').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadStep').css('display', 'none');
+                        $('#btndownloadStep').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+    })();
+
+    function ActiveStep() {
+        var listrowid = "";
+        $('#GridStepDefinition').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+
+            var c = confirm("@Resources.Multi.AreYouSure @Resources.Multi.Change.ToLower() @Resources.Multi.Status [ @Resources.Multi.Active] ?");
+            if (c == true) {
+                $.post(r + "/CompanyTypeScales/ChangeStatusActive_Step", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridStepDefinition").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() data.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+</script>
+
+
+
+

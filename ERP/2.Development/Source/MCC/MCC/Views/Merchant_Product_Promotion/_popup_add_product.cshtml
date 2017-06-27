@@ -1,0 +1,213 @@
+﻿@using BIBIAM.Core.Entities
+@{
+    var data = ViewBag.data == null ? new Merchant_Product_Promotion() : ViewBag.data;
+}
+<link href="~/Content/assets/global/plugins/icheck/skins/minimal/_all.css" rel="stylesheet" />
+<script src="~/Content/assets/global/plugins/icheck/icheck.min.js"></script>
+<style>    
+    .search {
+    }
+    .box-search {
+        margin-bottom:15px;
+    }
+    .search .box-search>span {
+        display: inline-block;            
+        width: 100px;            
+    }
+    .search .box-search .k-multiselect {
+        display: inline-block;
+        width: 70%;
+    }
+    .box-search .k-multiselect .k-button {
+        color: #fff;
+        border-color: #6dbd35;
+        background-color: #42ca45;
+        border-radius: 8px !important;
+    }          
+    .search .box-search> input {                    
+        display: inline-block;            
+        width: 70%;        
+    }
+    .search > button {
+        position: absolute;
+        right: 5%;
+        top: 20px;
+    }
+</style>
+<div id="popup-add-product" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Thêm sản phẩm</h4>
+            </div>
+            <div class="modal-body">
+                <div class="search">
+                    <div class="box-search">
+                        <span>Cây phân cấp:</span>
+                        @(Html.Kendo().MultiSelect()
+                            .Name("cay_phan_cap")
+                            .MaxSelectedItems(5)      
+                            .Placeholder(@Html.Raw(Resources.Global._all).ToString())
+                            //.OptionLabel(Resources.Global._please_choose_data + "...")
+                            .DataTextField("ten_cay_phan_cap_3")
+                            .DataValueField("ma_cay_phan_cap_3")
+                            .Filter("contains")
+                            .DataSource(source => 
+                            { 
+                                source.Read(read => { read.Action("GetAll", "Merchant_Product_Hierarchy"); }).ServerFiltering(false); 
+                            })
+                            .ItemTemplate("#=data.ten_cay_phan_cap_1?'<span class=\"text-primary\">'+data.ten_cay_phan_cap_1+'</span>->':''#" +
+                                    "#=data.ten_cay_phan_cap_2?'<span class=\"text-danger\">'+data.ten_cay_phan_cap_2+'</span>->':''#" +
+                                    "#=data.ten_cay_phan_cap_3?'<span class=\"text-warning bold\">'+data.ten_cay_phan_cap_3+'</span>':''#")
+                            .TagTemplate("#=data.ten_cay_phan_cap_3?'<span class=\"text-white bold\">'+data.ten_cay_phan_cap_3+'</span>':''#")
+                        )                        
+                    </div>
+                    <div class="box-search">
+                        <span>Tên sản phẩm :</span>
+                        <input type="text" id="search_product_name" name="search_product_name" class="fourper form-control" placeholder="@Html.Raw(Resources.Global._all).ToString()">
+                    </div>
+                    <div class="box">
+                        <div class="checkbox-nice">
+                            @*<input type="checkbox" id="checkbox-isNotPromotion">*@
+                            <label for="checkbox-isNotPromotion"></label>
+                        </div>
+                    </div>
+                    <button class="search_promotion btn btn-primary" onclick="SearchProducts()">Tìm kiếm</button>
+
+
+                </div>
+                <div class="magin">
+                    @(Html.Kendo().Grid<Merchant_Product_Promotion_Detail>()
+                    .Name("ProductGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.id)
+                            .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllProduct(this)' />")
+                            .ClientTemplate("<div class='checkrowid icheckbox_minimal-orange' style='position: relative;' onclick='checked(this)'><input id='#=id#' type='checkbox' class='icheck' style='position: absolute; opacity: 0;'><ins class='iCheck-helper' style='position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;'></ins></div>")
+                            .Width(25).Filterable(false).HtmlAttributes(new { @class = "text-center" }).Sortable(false);
+                        columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._picture).ToString().ToUpper()).Width(60).HtmlAttributes(new { @class = "editable" })
+                            .ClientTemplate("<img src=#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image'# class='img-responsive' style='display:inline; height:50px;'>");
+                        columns.Bound(p => p.part_no).Title(@Html.Raw(Resources.Global._part_number).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.ten_san_pham).Title(@Html.Raw(Resources.Global._product).ToString().ToUpper()).Width(120).HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.don_gia).Title(@Html.Raw(Resources.Global._access_price).ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+                        columns.Bound(p => p.gia_si ).Title(@Html.Raw(Resources.Global._price+" sỉ").ToString().ToUpper()).Width(120).Format("{0:N0}").HtmlAttributes(new { @class = "editable" });
+                    })                    
+                    .Scrollable()
+                    .Navigatable()         
+                    .AutoBind(false)           
+                    .Events(events => { events.DataBound("onDataBound"); })
+                    .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .ServerOperation(false) 
+                        .Events(events => { events.Error("error_handler"); })
+                        .Model(model =>
+                        {
+                            model.Id(p => p.id);
+                            model.Field(p => p.ma_san_pham).Editable(false);
+                            model.Field(p => p.ten_san_pham).Editable(false);
+                        })
+                        .Read(c => c.Action("Search", "Merchant_Product_Promotion_Detail"))
+                        )
+                    )
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary center-block" id="btnAddProductToPromotion">Xong</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>    
+    function showModal() {
+        $("label[for='checkbox-isNotPromotion']").text('Tìm sản phẩm không có khuyến mãi từ ngày ' + $("#ngay_bat_dau").val() + " - " + $("#ngay_ket_thuc").val());
+        $("#popup-add-product").modal('show');
+    }
+    function checkAllProduct(e) {
+        var x = $(e).prop('checked');
+        $(e).parents('div.k-grid').find(".checkrowid").each(function () {
+            if (x)
+                $(this).addClass('checked').children('input.icheck').prop("checked", x);
+            else
+                $(this).removeClass('checked').children('input.icheck').prop("checked", x)
+            //$(this).hasClass('checked') ? $(this).removeClass('checked').children('input.icheck').prop("checked", x) : $(this).addClass('checked').children('input.icheck').prop("checked", x);
+        });
+    }
+    function addProductToPromotion() {        
+        $('#ProductGrid').find(".checkrowid").each(function () {
+            var dataItem = $("#ProductGrid").data("kendoGrid").dataSource.getByUid($(this).parents('tr').attr("data-uid"));
+            if (dataItem && $(this).find('input.icheck').prop('checked') == true) {                
+                if (dataItem) {
+                    var obj = new Object();
+                    obj.ma_san_pham = dataItem.ma_san_pham;
+                    obj.part_no = dataItem.part_no;
+                    obj.ten_san_pham = dataItem.ten_san_pham;
+                    obj.don_gia = dataItem.don_gia;
+                    obj.gia_si = dataItem.gia_si;
+                    obj.gia_tri = currencyToNumber($("input[name='gia_tri']").val());
+                    obj.loai = $("input[name='loai']:checked").val();
+                    obj.don_gia_sau_km = obj.loai == 'tien' ? obj.don_gia - obj.gia_tri : obj.don_gia * (1 - obj.gia_tri / 100);
+                    obj.gia_si_sau_km = obj.loai == 'tien' ? obj.gia_si - obj.gia_tri : obj.gia_si * (1 - obj.gia_tri / 100);
+                    obj.url = dataItem.url;
+                    if (!isExistsProduct(obj))
+                        $("#PromotionGrid").data("kendoGrid").dataSource.add(obj)
+                }                
+            }
+            else if (dataItem)
+            {                
+                var dataItem = $("#ProductGrid").data("kendoGrid").dataSource.getByUid($(this).parent().parent().attr("data-uid"));
+                $.each($("#PromotionGrid").find('span.text-danger.bold'), function () {                    
+                    var data = $("#PromotionGrid").data("kendoGrid").dataSource.getByUid($(this).parents('tr').attr("data-uid"));
+                    if (data && data.ma_san_pham == dataItem.ma_san_pham) {
+                        $("#PromotionGrid").data("kendoGrid").dataSource.remove(data);
+                        return;
+                    }
+                });
+                    
+            }
+        });
+        review();
+    }
+    function isExistsProduct(Item) {
+        var flag = false;
+        $.each($("#PromotionGrid").data("kendoGrid").dataSource.data(), function () {
+            if (this.ma_san_pham == Item.ma_san_pham)
+            {
+                flag = true;
+                return;
+            }
+        });
+        return flag;
+    }
+    $("#btnAddProductToPromotion").bind("click", function () {
+        addProductToPromotion();
+        $("#popup-add-product").modal('hide');
+    });
+    function SearchProducts() {
+        if (ValidatePromotion()) {
+            //0:makm,1:gia_tri,2:loai,3:ten_san_pham,4:(bool)checkbox sp chua dc km
+            var gia_tri = currencyToNumber($("#EditForm input[name='gia_tri']").val());            
+            var loai = $("#EditForm input[name='loai']:checked").val();
+            var condition = [];
+            condition.push(JSON.parse('@Html.Raw(Json.Encode(data))').ma_chuong_trinh_km);
+            condition.push(gia_tri);
+            condition.push(loai);
+            condition.push($("#search_product_name").val());
+            condition.push("TRUE");
+            condition.push(convertDate($("#ngay_bat_dau").val()));
+            condition.push(convertDate($("#ngay_ket_thuc").val()));
+            var hierarchies = $("#cay_phan_cap").val();
+            var time = [];            
+            $("#ProductGrid").data("kendoGrid").dataSource.read({ condition: condition, hierarchies: hierarchies });
+        }
+        else {
+            toastr.options = { positionClass: 'toast-top-center' }
+            toastr.warning("Loại khuyến mãi hoặc giá trị khuyến mãi không hợp lệ!")
+            toastr.options = { positionClass: 'toast-top-right' }
+        }
+    }
+</script>

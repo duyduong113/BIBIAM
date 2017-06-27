@@ -1,0 +1,1921 @@
+﻿@{
+    //ViewBag.Title = "Đơn vị kinh doanh/Phòng ban/Nhóm/Chức vụ";
+
+    ViewBag.Title = Resources.Multi.BusinessUnit + "/" + Resources.Multi.Department + "/" + Resources.Multi.Team + "/" + Resources.Multi.Position;
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<style>
+    .k-window {
+        width: 500px;
+    }
+
+    .newlistOrg .chosen-choices {
+        width: 800px;
+    }
+
+    .newlistPD .chosen-choices {
+        width: 600px;
+    }
+
+    .newlistPD .chosen-drop {
+        width: 600px;
+    }
+
+    .newlistPD .chosen-container {
+        width: 600px !important;
+    }
+
+    .newlistOrg .chosen-drop {
+        width: 800px;
+    }
+
+    .newlistOrg .chosen-container {
+        width: 800px !important;
+    }
+
+    .popupdeit2 .chosen-choices {
+        height: 185px;
+    }
+
+    .popupdeit2 .chosen-drop {
+        height: 185px;
+    }
+
+    .popupdeit2 .chosen-results {
+        height: 150px;
+    }
+
+    .newlistCity .chosen-drop {
+        width: 220px;
+    }
+
+    .newlistCity .chosen-container {
+        width: 220px !important;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="tabbable">
+            <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="#Business" id="btnBusiness">
+                        @*Đơn vị kinh doanh*@
+                        @Resources.Multi.BusinessUnit
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#RegisteredNew" id="btnRegis">
+                        @Resources.Multi.Department
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#Revenue" id="btnRevenue">
+                        @Resources.Multi.Team
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#TelesaleTeamRev" id="btnTelesaleTeam">
+                        @Resources.Multi.Position
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content" style="overflow: hidden !important;">
+                <div id="Business" class="tab-pane in active">
+                    <div class="row-fluid">
+                        <input id="txtBusiness" class="span2" placeholder="@Resources.Multi.Search @Resources.Multi.Name..." />
+                        <button type="button" id="btnSearchBusiness" class="btn btn-primary btn-small" onclick="SearchBusiness();">@Resources.Multi.Filter</button>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            @* </ Hiện thị thông tin> *@
+                            @(Html.Kendo().Grid<ERPAPD.Models.Deca_Business_Unit>()
+                        .Name("GridBusiness")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.BusinessID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllBusiness'  onClick='checkAllBusiness(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=BusinessID#'  />").Width(35).Filterable(false).Sortable(false);
+                            columns.Bound(p => p.BusinessID).Width(50).Title("ID");
+                            columns.Bound(p => p.Name).Width(200).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title(Resources.Multi.Name);
+                            columns.ForeignKey(o => o.Owner, (System.Collections.IEnumerable)ViewBag.listOwner, "UserName", "UserName").EditorTemplateName("GridNullableForeignKey").Title("Owner").Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.Phone).Format("{0:N0}").Width(120).Title(Resources.Multi.Phone);
+                            columns.Bound(p => p.Email).Width(160).Title(Resources.Multi.Email);
+                            //columns.Bound(p => p.Fax).Width(120).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.Description).Title(Resources.Multi.Desc).Width(230).EditorTemplateName("TextArea").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.Active).Width(100).Title(Resources.Multi.Active).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.RowCreatedUser).Width(90).Title(Resources.Multi.CreatedBy);
+                            //columns.Bound(p => p.RowCreatedTime).Width(90).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#if(kendo.toString(RowCreatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RowCreatedTime,'" + Resources.Multi.DateFormat + " HH:mm:ss') #" + "#}#");
+                            columns.Bound(p => p.RowCreatedTime).Width(90).ClientTemplate("#=ConvertTimeZone(RowCreatedTime,"+ Constants.TIME_ZONE +")#").Title(Resources.Multi.CreatedAt);
+                            columns.Bound(p => p.RowLastUpdatedUser).Width(90).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                            columns.Bound(p => p.RowLastUpdatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(90).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(RowLastUpdatedTime," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                            toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                            toolbar.Custom()
+                            .Text(Resources.Multi.Delete)
+                            .HtmlAttributes(new { @id = "btnDeleteLibrary", @class="btn btn-danger", @style = "background-color:#d3413b;color:white;display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteBusiness()" });
+
+                        })
+                        .Events(events => { events.DataBound("dataBoundBusiness"); events.DetailExpand("detailExpand"); })
+                        .Editable(editable => editable.Mode(GridEditMode.InCell))
+                        .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                        .Scrollable()
+                        .Sortable()
+                                    //.Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+                        .Resizable(resize => resize.Columns(true))
+                                    //.ClientDetailTemplateId("listDetails")
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .PageSize(20)
+                            .Batch(true)
+                            .Events(events => { events.Error("error_handlerBusiness"); events.RequestEnd("onRequestEndBusiness"); })
+                            .Model(model =>
+                            {
+                                model.Id(p => p.BusinessID);
+                                model.Field(p => p.BusinessID).Editable(false);
+                                model.Field(p => p.Phone).Editable(false);
+                                model.Field(p => p.Email).Editable(false);
+                                model.Field(p => p.RowCreatedUser).Editable(false);
+                                model.Field(p => p.RowCreatedTime).Editable(false);
+                                model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                                model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                                model.Field(p => p.Active).DefaultValue(true);
+
+                            })
+                            .Read("BusinessUnit_Read", "Department")
+                            .Create("BusinessUnit_Create", "Department")
+                            .Update("BusinessUnit_Update", "Department")
+                            )
+                           .ClientDetailTemplateId("BusinessDetails")
+)
+                        </div>
+                    </div>
+                </div>
+                <div id="RegisteredNew" class="tab-pane">
+                    <div class="row-fluid">
+                        <input id="txtdepartment" class="span2" placeholder="Phòng ban..." />
+                        <button type="button" id="btnSearchDepartment" class="btn btn-primary btn-small">@Resources.Multi.Filter</button>
+                    </div>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Grid<ERPAPD.Models.Deca_Department>()
+                            .Name("GridDepartment")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(p => p.DepartmentID).Width(20).Title("ID");
+                                columns.Bound(p => p.Department).Width(100).Title(Resources.Multi.Department).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                columns.Bound(p => p.Active).Width(50).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title(Resources.Multi.Active);
+                                //columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.LastUpdatedUser).Width(85).Title("LastUpdatedUser");
+                                //columns.Bound(p => p.CreatedDatetime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.CreatedUser).Width(85).Title("LastUpdatedUser");
+
+                                //columns.Bound(p => p.Manager).Width(90).Title(Resources.Multi.Manager);
+                                columns.ForeignKey(p => p.Manager, (System.Collections.IEnumerable)ViewBag.listOwner, "UserName", "UserName").EditorTemplateName("GridNullableForeignKey").Title(Resources.Multi.Manager).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                columns.Bound(p => p.CreatedUser).Width(90).Title(Resources.Multi.CreatedBy);
+                                columns.Bound(p => p.CreatedDatetime).Width(90).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedDatetime," + Constants.TIME_ZONE + ")#");
+                                columns.Bound(p => p.LastUpdatedUser).Width(90).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                                columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(90).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(LastUpdatedDateTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(LastUpdatedDateTime," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                toolbar.Custom()
+                            .Text(Resources.Multi.Export)
+                                       .HtmlAttributes(new { @class = "exportregis btn btn-info" })
+                                       .Url(Url.Action("Export_Department", "Department", new { filter = "~", sort = "~", organizationId = "~" }));
+                                toolbar.Custom()
+                                       .Text(Resources.Multi.Import)
+                                       .HtmlAttributes(new { id = "import",@class="btn btn-purple", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+                            })
+                            .Editable(editable => editable.Mode(GridEditMode.InCell))
+                            .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                            .Scrollable()
+                            .Pageable()
+                            .Sortable()
+                            .Navigatable()
+                                    .Events(events => { events.DataBound("dataBoundRegis"); })
+                            .Resizable(resize => resize.Columns(true))
+                            .Scrollable(scrollable => scrollable.Virtual(false))
+                                //.HtmlAttributes(new { style = "height:300px;" })
+                            .DataSource(dataSource => dataSource
+                                                    .Ajax().Batch(true)
+                                                    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                    .PageSize(20)
+                                                    .Model(model =>
+                                                    {
+                                                        model.Field(p => p.Department);
+                                                        model.Field(p => p.Active);
+                                                        model.Field(p => p.LastUpdatedDateTime).Editable(false);
+                                                        model.Field(p => p.LastUpdatedUser).Editable(false);
+                                                        model.Field(p => p.CreatedUser).Editable(false);
+                                                        model.Field(p => p.CreatedDatetime).Editable(false);
+                                                        model.Field(p => p.DepartmentID).Editable(false);
+                                                        model.Id(p => p.DepartmentID);
+                                                        model.Field(p => p.Active).DefaultValue(true);
+                                                    })
+                                                    .Create(update => update.Action("Department_Create", "Department"))
+                                                    .Read(read => read.Action("Department_Read", "Department"))
+                                                    .Update(update => update.Action("Department_Update", "Department"))
+                                                    )
+                        )
+                    </div>
+                </div>
+
+                <div id="Revenue" class="tab-pane">
+                    <div class="row-fluid">
+                        <input id="txtTeam" class="span2" placeholder="Tên nhóm..." />
+                        <button type="button" id="btnSearchTeam" class="btn btn-primary btn-small">@Resources.Multi.Filter</button>
+                    </div>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Grid<ERPAPD.Models.Deca_Team>()
+                            .Name("GridTeam")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(p => p.TeamID).Width(20).Title("ID");
+                                columns.Bound(p => p.TeamName).Width(250).Title(Resources.Multi.Team).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                columns.Bound(p => p.Active).Width(50).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                //columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.LastUpdatedUser).Width(85).Title("LastUpdatedUser");
+                                //columns.Bound(p => p.CreatedDatetime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.CreatedUser).Width(85).Title("LastUpdatedUser");
+
+                                columns.Bound(p => p.CreatedUser).Width(90).Title(Resources.Multi.CreatedBy);
+                                columns.Bound(p => p.CreatedDatetime).Width(90).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedDatetime," + Constants.TIME_ZONE + ")#");
+                                columns.Bound(p => p.LastUpdatedUser).Width(90).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                                columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(90).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(LastUpdatedDateTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(LastUpdatedDateTime," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                toolbar.Custom()
+                                        .Text(Resources.Multi.Export)
+                                       .HtmlAttributes(new { @class = "exportrevenue btn btn-info" })
+                                       .Url(Url.Action("Export_Team", "Department", new { filter = "~", sort = "~", organizationId = "~" }));
+                                toolbar.Custom()
+                                       .Text(Resources.Multi.Import)
+                                       .HtmlAttributes(new { id = "importTeam",@class="btn btn-purple" ,@style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+                            })
+                            .Editable(editable => editable.Mode(GridEditMode.InCell))
+                            .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                            .Pageable()
+                            .Sortable()
+                            .ColumnMenu()
+                                            .Events(events => { events.DataBound("dataBoundRevenue"); })
+                            .Filterable()
+                            .Navigatable()
+                            .Resizable(resize => resize.Columns(true))
+                            .Scrollable(scrollable => scrollable.Virtual(true))
+                            .DataSource(dataSource => dataSource
+                                                    .Ajax().Batch(true)
+                                                    .PageSize(20)
+                                                    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                    .Model(model =>
+                                                    {
+                                                        model.Field(p => p.TeamName);
+                                                        model.Field(p => p.Active);
+                                                        model.Field(p => p.LastUpdatedDateTime).Editable(false);
+                                                        model.Field(p => p.LastUpdatedUser).Editable(false);
+                                                        model.Field(p => p.CreatedUser).Editable(false);
+                                                        model.Field(p => p.CreatedDatetime).Editable(false);
+                                                        model.Field(p => p.TeamID).Editable(false);
+                                                        model.Id(p => p.TeamID);
+                                                        model.Field(p => p.Active).DefaultValue(true);
+                                                    })
+                                                    .Create(update => update.Action("Team_Create", "Department"))
+                                                    .Read(read => read.Action("Team_Read", "Department"))
+                                                    .Update(update => update.Action("Team_Update", "Department"))
+                                                    )
+                        )
+                    </div>
+                </div>
+
+                <div id="TelesaleTeamRev" class="tab-pane">
+                    <div class="row-fluid">
+                        <input id="txtPosition" class="span2" placeholder="@Resources.Multi.Position..." />
+                        <button type="button" id="btnSearchPosition" class="btn btn-primary btn-small">@Resources.Multi.Filter</button>
+                    </div>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Grid<ERPAPD.Models.Deca_Position>()
+                            .Name("GridPosition")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(p => p.PositionID).Width(30).Title("ID");
+                                columns.Bound(p => p.PositionName).Width(250).Title(Resources.Multi.Position).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                columns.Bound(p => p.Active).Width(50).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                                //columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.LastUpdatedUser).Width(85).Title("LastUpdatedUser");
+                                //columns.Bound(p => p.CreatedDatetime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(85).Title("LastUpdatedTime");
+                                //columns.Bound(p => p.CreatedUser).Width(85).Title("LastUpdatedUser");
+
+                                columns.Bound(p => p.CreatedUser).Width(90).Title(Resources.Multi.CreatedBy);
+                                columns.Bound(p => p.CreatedDatetime).Width(90).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedDatetime," + Constants.TIME_ZONE + ")#");
+                                columns.Bound(p => p.LastUpdatedUser).Width(90).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                                columns.Bound(p => p.LastUpdatedDateTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(90).Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(LastUpdatedDateTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(LastUpdatedDateTime," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                                toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                                toolbar.Custom()
+                                    .Text(Resources.Multi.Export)
+                                       .HtmlAttributes(new { @class = "exporttelesaleteam btn btn-info" })
+                                       .Url(Url.Action("Export_Position", "Department", new { filter = "~", sort = "~", organizationId = "~" }));
+                                toolbar.Custom()
+                                       .Text(Resources.Multi.Import)
+                                       .HtmlAttributes(new { id = "importPosition", @class="btn btn-purple", @style = "display:" + (AllowUpdate ? "inline-block" : "none"), Href = "javascript:void(0)" });
+                            })
+                            .Editable(editable => editable.Mode(GridEditMode.InCell))
+                            .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200, 300 }))
+                            .Pageable()
+                            .Sortable()
+                            .ColumnMenu()
+                            .Filterable()
+                            .Navigatable()
+                            .Events(events => { events.DataBound("dataBoundTelesaleTeam"); })
+                            .Events(events => { events.DetailExpand("detailExpandPosition"); })
+                            .Resizable(resize => resize.Columns(true))
+                            .Scrollable(scrollable => scrollable.Virtual(true))
+                                //.HtmlAttributes(new { style = "height:300px;" })
+                            .DataSource(dataSource => dataSource
+                            .Ajax().Batch(true)
+                            .PageSize(20)
+                            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                            .Model(model =>
+                            {
+                                model.Field(p => p.PositionName);
+                                model.Field(p => p.Active);
+                                model.Field(p => p.LastUpdatedDateTime).Editable(false);
+                                model.Field(p => p.LastUpdatedUser).Editable(false);
+                                model.Field(p => p.CreatedUser).Editable(false);
+                                model.Field(p => p.CreatedDatetime).Editable(false);
+                                model.Field(p => p.PositionID).Editable(false);
+                                model.Id(p => p.PositionID);
+                                model.Field(p => p.Active).DefaultValue(true);
+                            })
+                            .Create(update => update.Action("Position_Create", "Department"))
+                            .Read(read => read.Action("Position_Read", "Department"))
+                            .Update(update => update.Action("Position_Update", "Department"))
+                            )
+                            .ClientDetailTemplateId("DetailExpandPosition")
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="DetailExpandPosition" type="text/kendo-tmpl">
+    @(Html.Kendo()
+        .TabStrip()
+        .HtmlAttributes(new { @style = "width:1200px;" })
+        .Name("tabStrip_#=PositionID#")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text(Resources.Multi.Position).Content(@<text>
+                @(Html.Kendo()
+                .Grid<ERPAPD.Models.DC_Position_Level>()
+                .Name("GridLevel_#=PositionID#")
+                .HtmlAttributes(new { @style = "width:1000px;" })
+                .Columns(columns =>
+                {
+                    //columns.Bound(p => p.GeneralID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllGeneral'  onClick='checkAllGeneral(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=GeneralID\\#'  />").Width(30).Filterable(false).Sortable(false);
+                    //columns.Bound(p => p.Name).Width(180).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.Bound(p => p.Description).Width(230).EditorTemplateName("TextArea").HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.Bound(p => p.StartDate).Title("Start times").Format("{0:" + Resources.Multi.DateFormat + "}").Width(100).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.Bound(p => p.EndDate).Title("End times").Format("{0:" + Resources.Multi.DateFormat + "}").Width(100).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.Bound(p => p.LimitServeyPeople).Title("Limi tServey People").Width(130).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.Bound(p => p.QuestionFrequency).Title("Question Frequency").Width(130).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    //columns.ForeignKey(p => p.Customer, (System.Collections.IEnumerable)ViewBag.listCustomer, "Name", "Name").Title("Target Customer").Width(180).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" }).EditorTemplateName("GridNullableForeignKey");
+                    columns.Bound(p => p.LevelID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllLevel'  onClick='checkAllLevel(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=LevelID\\#'  />").Width(30).Filterable(false).Sortable(false);
+                    columns.Bound(p => p.LevelID).Width(60).Title(Resources.Multi.Code);
+                    columns.Bound(p => p.Description).Title(Resources.Multi.Desc).Width(250).HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71)" });
+                    columns.Bound(o => o.RowCreatedTime).Title(Resources.Multi.CreatedAt).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110);
+                    columns.Bound(o => o.RowCreatedUser).Title(Resources.Multi.CreatedBy).Width(110);
+                    columns.Bound(o => o.RowLastUpdatedTime).Title(Resources.Multi.UpdatedAt).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110).ClientTemplate("\\#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){\\#" + "\\#= ConvertTimeZone(RowLastUpdatedTime," + Constants.TIME_ZONE + ") \\#" + "\\#}\\#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                    columns.Bound(o => o.RowLastUpdatedUser).Title(Resources.Multi.UpdatedBy).Width(110);
+                })
+                .ToolBar(toolBar =>
+                {
+                    toolBar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                    toolBar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                    toolBar.Custom()
+                    .Text(Resources.Multi.Delete)
+                    .HtmlAttributes(new { @id = "btnDelete", @class = "btn btn-danger btn-small", @style = "display:" + (AllowDelete ? "inline-block" : "none"), @Href = "javascript:DeleteLevel();" });
+
+                })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                        //.Events(events => { events.DataBound("dataBound3"); })
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .Events(events => { events.Error("error_handler_Level"); events.RequestEnd("onRequestEndLevel"); })
+                .PageSize(20)
+                .Model(model =>
+                {
+                    model.Id(p => p.PositionID);
+                    model.Field(p => p.RowCreatedUser).Editable(false);
+                    model.Field(p => p.RowCreatedTime).Editable(false);
+                    model.Field(p => p.RowLastUpdatedUser).Editable(false);
+                    model.Field(p => p.RowLastUpdatedTime).Editable(false);
+                    model.Field(p => p.LevelID).Editable(false);
+                })
+                .Read(read => read.Action("Level_Read", "Department", new { PositionID = "#=PositionID#" }))
+                .Create("Level_Create", "Department", new { PositionID = "#=PositionID#" })
+                .Update("Level_Update", "Department", new { PositionID = "#=PositionID#" })
+                )
+                .Pageable(pager => pager
+                .PageSizes(new[] { 20, 100, 200, 300 }))
+                .Resizable(resize => resize.Columns(true))
+                .Sortable()
+                .ToClientTemplate())
+            </text>);
+
+        }).ToClientTemplate())
+</script>
+<script id="BusinessDetails" type="text/kendo-tmpl">
+    <div class="span4">
+        @(Html.Kendo()
+        .TabStrip()
+        .HtmlAttributes(new { @style = "width:1100px;" })
+        .Name("tabStrip_#=BusinessID#")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text(Resources.Multi.Manager).Content(@<text>
+                <div id="newlistOrg_#=BusinessID#" class="newlistOrg" style="display:inline-block;width:800px;">
+                    <select name="select" id="listOrg_#=BusinessID#" class='chosen-select span2' style="width:700px;" multiple></select>
+                </div>
+                <div class='controls' style="display:inline-block">
+                    <a onclick='SaveManager()' class='btn btn-success btn-small' style="width:70px; ">@Resources.Multi.Add</a>
+                </div>
+                <div class='controls' style="display:inline-block">
+                    <a onclick='DeleteManager()' class='btn btn-delete btn-small' style="width:70px; background-color:\\#d15b47!important; border-color:\\#d15b47!important;">@Resources.Multi.Remove</a>
+                </div>
+                @(Html.Kendo()
+        .Grid<ERPAPD.Models.Deca_Business_Unit_Manager>()
+        .Name("GridManager_#=BusinessID#")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.UserID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllManager'  onClick='checkAllManager(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=UserID\\#'  />").Width(30).Filterable(false).Sortable(false);
+            columns.Bound(p => p.UserID).Width(250);
+            columns.Bound(p => p.RowCreatedUser).Width(110).Title(Resources.Multi.CreatedBy);
+            columns.Bound(p => p.RowCreatedTime).Width(110).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(RowCreatedTime," + Constants.TIME_ZONE + ")#");
+            columns.Bound(p => p.RowLastUpdatedUser).Width(110).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.RowLastUpdatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110).Title(Resources.Multi.UpdatedAt).ClientTemplate("\\#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){\\#" + "\\#= ConvertTimeZone(RowLastUpdatedTime," + Constants.TIME_ZONE + ") \\#" + "\\#}\\#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+        })
+        .ToolBar(toolBar =>
+            {
+                //toolBar.Custom().Text("Edit Record")
+                //.HtmlAttributes(new { id = "btnedit3", @class = "btn-danger", @style = "display:" + (AllowDelete ? "inline-block" : "none") + ";color:white", @Href = "javascript:edit3()" });
+            })
+            .Events(events => { events.DataBound("dataBoundManager"); })
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(50)
+            .Model(model =>
+            {
+                model.Id(p => p.BusinessID);
+            })
+            .Read(read => read.Action("Manager_Read", "Department", new { BusinessID = "#=BusinessID#" }))
+            )
+            .Pageable(pager => pager
+            .PageSizes(new[] { 50, 100, 200, 300 }))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Filterable()
+            .ColumnMenu()
+            .ToClientTemplate())
+            </text>);
+            items.Add().Text(Resources.Multi.Department).Content(@<text>
+                <div id="newlistDepart_#=BusinessID#" class="newlistOrg" style="display:inline-block;width:800px;">
+                    <select name="select" id="listDepart_#=BusinessID#" class='chosen-select span2' style="width:700px;" multiple></select>
+                </div>
+                <div class='controls' style="display:inline-block">
+                    <a onclick='SaveDepartment()' class='btn btn-success btn-small' style="width:70px; ">@Resources.Multi.Add</a>
+                </div>
+                <div class='controls' style="display:inline-block">
+                    <a onclick='DeleteDepartment()' class='btn btn-delete btn-small' style="width:70px; background-color:\\#d15b47!important; border-color:\\#d15b47!important;">@Resources.Multi.Remove</a>
+                </div>
+                @(Html.Kendo()
+        .Grid<ERPAPD.Models.Deca_Business_Unit_Department>()
+        .Name("GridDepartment_#=BusinessID#")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.DepartmentID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllDepartment'  onClick='checkAllDepartment(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='\\#=DepartmentID\\#'  />").Width(30).Filterable(false).Sortable(false);
+            columns.Bound(p => p.Department).Width(250);
+            columns.Bound(p => p.RowCreatedUser).Width(110).Title(Resources.Multi.CreatedBy);
+            columns.Bound(p => p.RowCreatedTime).Width(110).Format("{0:" + Resources.Multi.DateFormat + "}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(RowCreatedTime," + Constants.TIME_ZONE + ")#");
+            columns.Bound(p => p.RowLastUpdatedUser).Width(110).Title(Resources.Multi.UpdatedBy).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+            columns.Bound(p => p.RowLastUpdatedTime).Format("{0:" + Resources.Multi.DateFormat + "}").Width(110).Title(Resources.Multi.UpdatedAt).ClientTemplate("\\#if(kendo.toString(RowLastUpdatedTime,'dd/MM/yyyy') != '01/01/1900'){\\#" + "\\#= ConvertTimeZone(RowLastUpdatedTime," + Constants.TIME_ZONE + ") \\#" + "\\#}\\#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+
+        })
+        .ToolBar(toolBar =>
+            {
+                //toolBar.Custom().Text("Edit Record")
+                //.HtmlAttributes(new { id = "btnedit3", @class = "btn-danger", @style = "display:" + (AllowDelete ? "inline-block" : "none") + ";color:white", @Href = "javascript:edit3()" });
+            })
+            .Events(events => { events.DataBound("dataBoundDepartment"); })
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(50)
+            .Model(model =>
+            {
+                model.Id(p => p.BusinessID);
+            })
+            .Read(read => read.Action("Department_Reads", "Department", new { BusinessID = "#=BusinessID#" }))
+            )
+            .Pageable(pager => pager
+            .PageSizes(new[] { 50, 100, 200, 300 }))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Filterable()
+            .ColumnMenu()
+            .ToClientTemplate())
+            </text>);
+        }).ToClientTemplate())
+    </div>
+</script>
+@(Html.Kendo()
+      .Window()
+      .Name("window")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importform" action="@Url.Content("~/Department/ImportFromExcel_Department")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImport" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                @(Html.Kendo()
+           .Grid<ERPAPD.Models.Deca_Department>()
+          .Name("gridImport")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.DepartmentID).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+              columns.Bound(p => p.Department).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+          })
+          .Sortable()
+          .ColumnMenu()
+          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                )
+            </div>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownload" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowTeam")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importformTeam" action="@Url.Content("~/Department/ImportFromExcel_Team")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload1" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportTeam" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                @(Html.Kendo()
+           .Grid<ERPAPD.Models.Deca_Team>()
+                  .Name("gridImportTeam")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.TeamID).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+              columns.Bound(p => p.TeamName).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+          })
+          .Sortable()
+          .ColumnMenu()
+          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                )
+            </div>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadTeam" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowPosition")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <form id="importformPosition" action="@Url.Content("~/Department/ImportFromExcel_Position")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUpload2" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportPosition" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                @(Html.Kendo()
+                   .Grid<ERPAPD.Models.Deca_Position>()
+                          .Name("gridImportPosition")
+          .Columns(columns =>
+          {
+              columns.Bound(p => p.PositionID).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+              columns.Bound(p => p.PositionName).Width(100).HtmlAttributes(new { @style = "background-color:\\#d15b47;color:white;" });
+          })
+          .Sortable()
+          .ColumnMenu()
+          .Selectable(selectable => selectable.Mode(GridSelectionMode.Single).Type(GridSelectionType.Row))
+          .Scrollable()
+          .Filterable()
+          .Navigatable()
+          .Resizable(resize => resize.Columns(true))
+          .DataSource(dataSource => dataSource
+                                              .Ajax()
+                                              .ServerOperation(false))
+                )
+            </div>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadPosition" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+
+@(Html.Kendo()
+      .Window()
+      .Name("windowimportBusiness")
+      .Title("ImportForm")
+      .Content(@<text>
+        <div class="row-fluid">
+            <div class="span7">
+                <form id="importformBusiness" action="@Url.Content("~/Department/BusinessImportFromExcel")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+                    <input type="file" id="FileUploadBusiness" name="FileUpload" />
+                </form>
+            </div>
+            <button type="button" id="btnImportBusiness" class="btn btn-purple btn-small span2" style="float: right;">Import</button>
+        </div>
+        <div class="row-fluid">
+            <a id="btndownloadBusiness" style="display: none" class="btn btn-warning btn-small">@Resources.Multi.DownloadTemplateError</a>
+        </div>
+    </text>)
+      .Draggable()
+      .Resizable()
+      .Visible(false)
+      .Width(1000)
+      .Actions(actions => actions.Close())
+)
+<script>
+    function DeleteLevel() {
+        var listrowid = "";
+        $("#GridLevel_" + curunitid2).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/Department/DeleteLevel", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridLevel_" + curunitid2).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllLevel').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridLevel_" + curunitid2).data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function checkAllLevel(e) {
+        var x = $(e).prop('checked');
+        $('#GridLevel_' + curunitid2).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function error_handler_Level(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+    function onRequestEndLevel(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridLevel_" + curunitid2).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridLevel_" + curunitid2).data("kendoGrid").dataSource.read();
+        }
+    }
+    // Import excel for department
+    $('#import').bind('click', function () {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImport').bind('click', function () {
+        $('#importform').submit();
+    });
+
+    (function () {
+        $("#importform").ajaxForm({
+            beforeSend: function () {
+                $("#window").data("kendoWindow").close();
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                    $("#GridDepartment").data("kendoGrid").dataSource.read();
+
+
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.data.length > 0) {
+                        $("#gridImport").data("kendoGrid").dataSource.transport.options.read.url = r + '/Department/ImportFromExcel_Department_read?data=' + JSON.stringify(data.data);
+                        $("#gridImport").data("kendoGrid").dataSource.read();
+                        $("#window").data("kendoWindow").open();
+                        var listorgId = '';
+                        for (var i = 0; i < data.data.length; i++) {
+                            listorgId += data.data[i].split('-')[0] + ",";
+                        }
+                        $('#btndownload').css('display', 'inline-block');
+                        $('#btndownload').attr('href', r + '/Department/ExportError?listOrgId=' + listorgId);
+                    }
+                }
+            },
+            complete: function (xhr) {
+            }
+        });
+
+    })();
+
+
+    // Import excel for Team
+    $('#importTeam').bind('click', function () {
+        $("#windowTeam").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportTeam').bind('click', function () {
+        $('#importformTeam').submit();
+    });
+
+    (function () {
+        $("#importformTeam").ajaxForm({
+            beforeSend: function () {
+                $("#windowTeam").data("kendoWindow").close();
+
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                    $("#GridTeam").data("kendoGrid").dataSource.read();
+
+
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.data.length > 0) {
+                        $("#gridImportTeam").data("kendoGrid").dataSource.transport.options.read.url = r + '/Department/ImportFromExcel_Team_read?data=' + JSON.stringify(data.data);
+                        $("#gridImportTeam").data("kendoGrid").dataSource.read();
+                        $("#windowTeam").data("kendoWindow").open();
+                        var listorgId = '';
+                        for (var i = 0; i < data.data.length; i++) {
+                            listorgId += data.data[i].split('-')[0] + ",";
+                        }
+                        $('#btndownloadTeam').css('display', 'inline-block');
+                        $('#btndownloadTeam').attr('href', r + '/Department/ExportError?listOrgId=' + listorgId);
+                    }
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+
+    // Import excel for Position
+    $('#importPosition').bind('click', function () {
+        $("#windowPosition").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+    $('#btnImportPosition').bind('click', function () {
+        $('#importformPosition').submit();
+    });
+
+    (function () {
+        $("#importformPosition").ajaxForm({
+            beforeSend: function () {
+                $("#windowPosition").data("kendoWindow").close();
+
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+
+                    $("#GridPosition").data("kendoGrid").dataSource.read();
+
+
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.data.length > 0) {
+                        $("#gridImportPosition").data("kendoGrid").dataSource.transport.options.read.url = r + '/Department/ImportFromExcel_Position_read?data=' + JSON.stringify(data.data);
+                        $("#gridImportPosition").data("kendoGrid").dataSource.read();
+                        $("#windowPosition").data("kendoWindow").open();
+                        var listorgId = '';
+                        for (var i = 0; i < data.data.length; i++) {
+                            listorgId += data.data[i].split('-')[0] + ",";
+                        }
+                        $('#btndownloadPosition').css('display', 'inline-block');
+                        $('#btndownloadPosition').attr('href', r + '/Department/ExportError?listOrgId=' + listorgId);
+                    }
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+</script>
+
+<script>
+
+    $('#FileUpload').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+
+
+    $('#importrevenue').bind('click', function () {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+
+
+
+    function dataBoundRegis(e) {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition");
+
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exportregis');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        href = href.replace(/year=([^&]*)/, 'year=' + ($("#Year").val() || ''));
+
+        href = href.replace(/factor=([^&]*)/, 'factor=Registered New');
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+
+    $('#btnRevenue').click(function () {
+        setTimeout(function () {
+            resizeGrid("GridBusiness");
+            resizeGrid("GridDepartment");
+            resizeGrid("GridTeam");
+            resizeGrid("GridPosition");
+        }, 200);
+    })
+
+
+    $('#btnRegis').click(function () {
+        setTimeout(function () {
+            resizeGrid("GridBusiness");
+            resizeGrid("GridDepartment");
+            resizeGrid("GridTeam");
+            resizeGrid("GridPosition");
+        }, 200)
+    })
+
+    $('#btnTelesaleTeam').click(function () {
+        setTimeout(function () {
+            resizeGrid("GridBusiness");
+            resizeGrid("GridDepartment");
+            resizeGrid("GridTeam");
+            resizeGrid("GridPosition");
+        }, 200)
+    })
+
+
+    function dataBoundRevenue(e) {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition");
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exportrevenue');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        href = href.replace(/year=([^&]*)/, 'year=' + ($("#YearRevenue").val() || ''));
+        href = href.replace(/factor=([^&]*)/, 'factor=Revenue');
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+
+    function dataBoundTelesaleTeam(e) {
+        resizeGrid("GridBusiness");resizeGrid("GridDepartment");resizeGrid("GridTeam");resizeGrid("GridPosition");
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exportTelesaleRevenue');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        href = href.replace(/year=([^&]*)/, 'year=' + ($("#YearTelesaleRevenue").val() || ''));
+
+        href = href.replace(/factor=([^&]*)/, 'factor=Telesale Team Rev');
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+
+
+    function resizeGrid(gridName) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridName).offset().top);
+        var gridElement = $("#" + gridName);
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 45);
+
+    }
+
+
+
+    $(window).resize(function () {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition");
+        
+    });
+    function onRequestEnd(e) {
+     
+        if (e.type == "update" && !e.response.Errors) {
+            $("#GridTeam").data("kendoGrid").dataSource.read();
+            $("#GridDepartment").data("kendoGrid").dataSource.read();
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $("#GridTeam").data("kendoGrid").dataSource.read();
+            $("#GridDepartment").data("kendoGrid").dataSource.read();
+            $("#GridPosition").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+        //if (e.response.Errors) {
+        //    $.jGrowl("<i class='icon16 i-cancel-circle'></i> Something terrible is happen here.", {
+        //        group: 'error',
+        //        closeTemplate: '<i class="icon16 i-close-2"></i>',
+        //        animateOpen: {
+        //            width: 'show',
+        //            height: 'show'
+        //        }
+        //    });
+        //}
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    $('#txtdepartment').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterDepartment();
+        }
+    });
+    $('#btnSearchDepartment').bind('click', function () {
+        filterDepartment();
+    });
+
+
+
+    function filterDepartment() {
+     
+        grid = $("#GridDepartment").data("kendoGrid");
+        var department = $("#txtdepartment").val();
+
+        var filter = { logic: "and", filters: [] };
+
+        if (department) {
+            filter.filters.push({ field: "Department", operator: "contains", value: department });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+
+    $('#txtTeam').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterTeam();
+        }
+    });
+    $('#btnSearchTeam').bind('click', function () {
+        filterTeam();
+    });
+
+    function filterTeam() {
+      
+        grid = $("#GridTeam").data("kendoGrid");
+        var team = $("#txtTeam").val();
+
+        var filter = { logic: "and", filters: [] };
+
+        if (team) {
+            filter.filters.push({ field: "TeamName", operator: "contains", value: team });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+
+    $('#txtPosition').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterPosition();
+        }
+    });
+    $('#btnSearchPosition').bind('click', function () {
+        filterPosition();
+    });
+
+    function filterPosition() {
+      
+        grid = $("#GridPosition").data("kendoGrid");
+        var position = $("#txtPosition").val();
+
+        var filter = { logic: "and", filters: [] };
+
+        if (position) {
+            filter.filters.push({ field: "PositionName", operator: "contains", value: position });
+        }
+        grid.dataSource.filter(filter);
+    }
+
+</script>
+<script>
+    $('#FileUploadTelesale').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+        //whitelist:'gif|png|jpg|jpeg'
+        //blacklist:'exe|php'
+        //onchange:''
+        //
+    });
+
+    $('#importTelesale').bind('click', function () {
+        $("#window").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+
+
+
+    //$('#import').attr('data-toggle', 'modal');
+    $('#btnImportTelesale').bind('click', function () {
+        $('#importformTelesale').submit();
+    });
+
+    (function () {
+        $("#importformTelesale").ajaxForm({
+            beforeSend: function () {
+                $("#window").data("kendoWindow").close();
+                //  $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+
+                if (data.success) {
+                    // $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+                    if (data.factor == 'Telesale Team Rev') {
+                        $("#GridTelesaleTeam").data("kendoGrid").dataSource.read();
+                    } else {
+                        $("#GridRevenue").data("kendoGrid").dataSource.read();
+                        $("#GridRegis").data("kendoGrid").dataSource.read();
+                    }
+
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    //if (data.data.length > 0) {
+                    //    var ds = new kendo.data.DataSource();
+                    //    ds.data(data.data);
+                    //    $("#gridImportTelesale").data("kendoGrid").setDataSource(ds);
+                    //    //$("#gridImportOrganization").data("kendoGrid").dataSource.read();
+                    //    $("#window").data("kendoWindow").open();
+                    //    $('#btndownload').css('display', 'inline-block');
+                    //    $('#btndownload').click(function () {
+                    //        window.location = r + "/CustomerCreationRequest/Download?file=" + data.link;
+                    //    })
+                    //}
+                } else {
+                    //  $.unblockUI;
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: 'Import fail!',
+                        // (string | mandatory) the text inside the notification
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+
+            }
+        });
+
+    })();
+
+
+    $('#YearTelesaleTeam').change(function () {
+        $("#GridTelesaleTeamRev").data("kendoGrid").dataSource.read();
+    })
+
+
+    function additionalDataTelesale() {
+        //alert('Hitting javascript')
+        return {
+            yearTelesaleRevenue: $("#YearTelesaleTeam").val(),
+        };
+    }
+
+    function dataBoundTelesaleTeam(e) {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition");
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exporttelesaleteam');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        //update filter descriptor with the filters applied
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        href = href.replace(/year=([^&]*)/, 'year=' + ($("#YearTelesaleTeam").val() || ''));
+
+        href = href.replace(/factor=([^&]*)/, 'factor=Telesale Team Rev');
+        // Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+
+
+    $('#btnTelesaleTeam').click(function () {
+        setTimeout(function () {
+            resizeGrid("GridBusiness");
+            resizeGrid("GridDepartment");
+            resizeGrid("GridTeam");
+            resizeGrid("GridPosition");
+        }, 200)
+    })
+
+    $(window).resize(function () {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition");
+    });
+</script>
+<script>
+    function SaveDepartment() {
+        var listorg = $("#listDepart_" + curunitid + " option:selected");
+        var data = "";
+        if (listorg.length > 0) {
+            for (var i = 0; i < listorg.length; i++) {
+                data += listorg[i].value + "@@@@";
+            }
+            $.post(r + "/Department/SaveDepartment", { BusinessID: curunitid, data: data }, function (data) {
+                if (!data.Errors) {
+                    $.gritter.add({
+                        title: '',
+                        text: "Save Changes success",
+                        class_name: 'gritter-success'
+                    });
+                    $("#GridDepartment_" + curunitid).data("kendoGrid").dataSource.read();
+                    GetlistDepartment();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    $("#GridDepartment_" + curunitid).data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function DeleteDepartment() {
+        var listrowid = "";
+        $('#GridDepartment_' + curunitid).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/Department/DeleteDepartment", { data: listrowid, BusinessID: curunitid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridDepartment_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllDepartment').prop('checked', false);
+                        GetlistDepartment();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridDepartment_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllDepartment').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function SaveManager() {
+        var listorg = $("#listOrg_" + curunitid + " option:selected");
+        var data = "";
+        if (listorg.length > 0) {
+            for (var i = 0; i < listorg.length; i++) {
+                data += listorg[i].value + "@@@@";
+            }
+            $.post(r + "/Department/SaveManager", { BusinessID: curunitid, data: data }, function (data) {
+                if (!data.Errors) {
+                    $.gritter.add({
+                        title: '',
+                        text: "Save Changes success",
+                        class_name: 'gritter-success'
+                    });
+                    $("#GridManager_" + curunitid).data("kendoGrid").dataSource.read();
+                    GetListManager();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    $("#GridManager_" + curunitid).data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function DeleteManager() {
+        var listrowid = "";
+        $('#GridManager_' + curunitid).find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/Department/DeleteManager", { data: listrowid, BusinessID: curunitid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridManager_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllManager').prop('checked', false);
+                        GetListManager();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridManager_" + curunitid).data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllManager').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    function GetListManager() {
+        $.post(r + "/Department/GetlistUser", { BusinessID: curunitid }, function (data) {
+            if (!data.Errors) {
+                $('#newlistOrg_' + curunitid).html('');
+                var html = " <select name='select' id='listOrg_" + curunitid + "' class='chosen-select span2' style='width:700px;' multiple >";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.UserName + "'>" + row.UserName + "</option>";
+                });
+                html += "</select>";
+                $('#newlistOrg_' + curunitid).html(html);
+                $('#listOrg_' + curunitid).chosen();
+            }
+        });
+    }
+    function GetlistDepartment() {
+        $.post(r + "/Department/GetlistDepartment", { BusinessID: curunitid }, function (data) {
+            if (!data.Errors) {
+                $('#newlistDepart_' + curunitid).html('');
+                var html = " <select name='select' id='listDepart_" + curunitid + "' class='chosen-select span2' style='width:700px;' multiple >";
+                $.each(data.Data, function (i, row) {
+                    html += "<option value='" + row.DepartmentID + "'>" + row.Department + "</option>";
+                });
+                html += "</select>";
+                $('#newlistDepart_' + curunitid).html(html);
+                $('#listDepart_' + curunitid).chosen();
+            }
+        });
+    }
+
+    function dataBoundManager(e) {
+        var g = $("#GridManager_" + curunitid).data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+    }
+    function dataBoundDepartment(e) {
+        var g = $("#GridDepartment_" + curunitid).data("kendoGrid");
+        g.thead.find("[data-field=RowID]>.k-header-column-menu").remove();
+    }
+    var expandedRow;
+    var curunitid;
+    var curunitid2;
+    function detailExpand(e) {
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#GridBusiness').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#GridBusiness').data('kendoGrid').dataItem(expandedRow);
+        curunitid = masterDataItem.BusinessID;
+        GetListManager();
+        GetlistDepartment();
+    }
+    function detailExpandPosition(e) {
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#GridPosition').data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var masterDataItem = $('#GridPosition').data('kendoGrid').dataItem(expandedRow);
+        curunitid2 = masterDataItem.PositionID;
+    }
+    function dataBoundBusiness(e) {
+        resizeGrid("GridBusiness");
+        resizeGrid("GridDepartment");
+        resizeGrid("GridTeam");
+        resizeGrid("GridPosition"); var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        //var $exportLink = grid.element.find('.exportClass');
+        //var href = $exportLink.attr('href');
+        //href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        //href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        //$exportLink.attr('href', href);
+    }
+    function error_handlerBusiness(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#GridBusiness").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        } else {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+        }
+    }
+
+    function onRequestEndBusiness(e) {
+      
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridBusiness").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#GridBusiness").data("kendoGrid").dataSource.read();
+        }
+    }
+    $('#btnBusiness').click(function () {
+        setTimeout(function () {
+            resizeGrid("GridBusiness");
+            resizeGrid("GridDepartment");
+            resizeGrid("GridTeam");
+            resizeGrid("GridPosition");
+        }, 200)
+    })
+    function checkAllBusiness(e) {
+        var x = $(e).prop('checked');
+        $('#GridBusiness').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllManager(e) {
+        var x = $(e).prop('checked');
+        $("#GridManager_" + curunitid).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function checkAllDepartment(e) {
+        var x = $(e).prop('checked');
+        $("#GridDepartment_" + curunitid).find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    function DeleteBusiness() {
+        var listrowid = "";
+        $('#GridBusiness').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/Department/DeleteDeBusiness", { data: listrowid }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#GridBusiness").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllBusiness').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#GridBusiness").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAllBusiness').prop('checked', false);
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please choose data!',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+    $('#txtBusiness').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            SearchBusiness();
+        }
+    });
+
+    function SearchBusiness() {
+     
+        grid = $("#GridBusiness").data("kendoGrid");
+        var Name = $("#txtBusiness").val();
+        var filter = { logic: "and", filters: [] };
+        var filterName = { logic: "or", filters: [] };
+        if (Name) {
+            for (var i = 0; i < Name.split(';').length; i++) {
+                filterName.filters.push({ field: "Name", operator: "contains", value: Name.split(';')[i] });
+            }
+            filter.filters.push(filterName);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#FileUploadBusiness').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false //| true | large
+    });
+    $('#importOther').bind('click', function () {
+        $("#windowimportBusiness").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            height: "300px",
+            modal: true,
+            resizable: false,
+            width: "500px",
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+    });
+    $('#btnImportBusiness').bind('click', function () {
+        $('#importformBusiness').submit();
+    });
+    (function () {
+        $("#importformBusiness").ajaxForm({
+            beforeSend: function () {
+                $("#windowimportBusiness").data("kendoWindow").close();
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                if (data.success) {
+                    $("#GridBusiness").data("kendoGrid").dataSource.read();
+                    $.unblockUI;
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import successfully ' + data.total + ' record(s)',
+                        class_name: 'gritter-success'
+                    });
+                    if (data.totalError > 0) {
+                        $("#windowimportBusiness").data("kendoWindow").open();
+                        $('#btndownloadBusiness').css('display', 'inline-block');
+                        $('#btndownloadBusiness').attr('href', r + "/PotentialCustomer/Download?file=" + data.link);
+                    }
+                    else {
+                        $('#btndownloadBusiness').css('display', 'none');
+                        $('#btndownloadBusiness').attr('href', "");
+                    }
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: 'Import Error',
+                        class_name: 'gritter-error'
+                    });
+                    $.unblockUI;
+                }
+            },
+            complete: function (xhr) {
+            }
+        });
+    })();
+</script>

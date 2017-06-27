@@ -1,0 +1,55 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<form id="payment_form" action="@Url.Content("~/PaymentVT/SignedData")" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="access_key" value="4f77130d0fbc3c2eb053275d1ce96ddd">
+    <input type="hidden" name="profile_id" value="F38A7374-585C-4C32-A8F2-2FBD63EC7E2E">
+    <input type="hidden" name="transaction_uuid" value="@Guid.NewGuid()">
+    <input type="hidden" name="signed_field_names" value="access_key,profile_id,transaction_uuid,signed_field_names,unsigned_field_names,signed_date_time,locale,transaction_type,reference_number,amount,currency,payment_method,bill_to_forename,bill_to_surname,bill_to_email,bill_to_phone,bill_to_address_line1,bill_to_address_city,bill_to_address_state,bill_to_address_country,bill_to_address_postal_code">
+    <input type="hidden" name="unsigned_field_names" value="card_type,card_number,card_expiry_date">
+    <input type="hidden" name="signed_date_time" value="@DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")">
+    <input type="hidden" name="locale" value="en">
+    <fieldset>
+        <legend>Signed Data Fields</legend>
+        These fields will be POSTed to your server for signing using the Security file included in the <br> sample script.  The name of each signed field should be included in the signed_field_names.<br></BR>
+        <div id="paymentDetailsSection" class="section">
+            <span>transaction_type:</span><input type="text" name="transaction_type" size="25"><br />
+            <span>reference_number:</span><input type="text" name="reference_number" size="25"><br />
+            <span>amount:</span><input type="text" name="amount" size="25"><br />
+            <span>currency:</span><input type="text" name="currency" size="25"><br />
+            <span>payment_method:</span><input type="text" name="payment_method"><br />
+            <span>bill_to_forename:</span><input type="text" name="bill_to_forename"><br />
+            <span>bill_to_surname:</span><input type="text" name="bill_to_surname"><br />
+            <span>bill_to_email:</span><input type="text" name="bill_to_email"><br />
+            <span>bill_to_phone:</span><input type="text" name="bill_to_phone"><br />
+            <span>bill_to_address_line1:</span><input type="text" name="bill_to_address_line1"><br />
+            <span>bill_to_address_city:</span><input type="text" name="bill_to_address_city"><br />
+            <span>bill_to_address_state:</span><input type="text" name="bill_to_address_state"><br />
+            <span>bill_to_address_country:</span><input type="text" name="bill_to_address_country"><br />
+            <span>bill_to_address_postal_code:</span><input type="text" name="bill_to_address_postal_code"><br />
+        </div>
+    </fieldset>
+    <input type="submit" id="submit" value="Submit" />
+</form>
+<script>
+    //var d = new Date();
+    //var n = d.toISOString();
+    //$("input[name='signed_date_time']").val(n);
+
+    $("input[name='transaction_type']").val("authorization");
+    $("input[name='reference_number']").val(new Date().getTime());
+    $("input[name='amount']").val("100.00");
+    $("input[name='currency']").val("USD");
+    $("input[name='payment_method']").val("card");
+    $("input[name='bill_to_forename']").val("John");
+    $("input[name='bill_to_surname']").val("Doe");
+    $("input[name='bill_to_email']").val("null@cybersource.com");
+    $("input[name='bill_to_phone']").val("02890888888");
+    $("input[name='bill_to_address_line1']").val("1 Card Lane");
+    $("input[name='bill_to_address_city']").val("My City");
+    $("input[name='bill_to_address_state']").val("CA");
+    $("input[name='bill_to_address_country']").val("US");
+    $("input[name='bill_to_address_postal_code']").val("94043");
+</script>
+

@@ -1,0 +1,351 @@
+﻿@{
+            int n = 0;
+            int glb = 0;
+}
+<fieldset>
+    <b>Danh sách các vị trí thuộc hợp đồng</b>
+    <div class="row-fluid">
+        <table id="list-cpm-service" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:3%">
+                        <button class="btn btn-minier success" type="button" onclick="ShowConfirmCPM()">OQC</button>
+                    </th>
+                    <th style="width:10%">Tên kênh</th>
+                    <th style="width:10%">Chuyên mục</th>
+                    <th style="width:15%">Vị trí</th>
+                    <th style="width:10%">Ngày bắt đầu</th>
+                    <th style="width:10%">Ngày kết thúc</th>
+                    <th style="width:10%">Đơn giá/CPM</th>
+                    <th style="width:5%">Số lượng</th>
+                    <th style="width:5%">Chiết khấu</th>
+                    <th style="width:10%">Thành tiền</th>
+                    <th style="width:10%">Doanh số chuyển</th>
+                    <th style="width:3%">
+                        <button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupCPM()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="list">
+                @if (ViewBag.ProductCPM != null && ViewBag.ProductCPM.Count > 0)
+                {
+                    foreach (var item in ViewBag.ProductCPM)
+                    {
+                        <tr class="group-cpm-service">
+                           <td>
+                               <input class="input-small item-chk-cpm" type="checkbox" />
+                           </td>
+                            <td>
+                                <input type="hidden" class="cpm-PKCpm" value="@item.PKCpm" />
+                                @(Html.Kendo().AutoComplete()
+                                            .Name("txt-AdvChannel-" + glb)
+                                            .DataTextField("Name")
+                                            .Placeholder("Nhập tên kênh")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-channel", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 83 })
+                                                        .Data("onAdditionalDataChannel");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectChannelItem");
+                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(@item.AdvChannel)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                @(Html.Kendo().AutoComplete()
+                                            .Name("txt-AdvChannel-" + glb)
+                                            .DataTextField("Name")
+                                            .Placeholder("Nhập tên chuyên mục")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-large cpm-categories", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                                        .Data("onAdditionalDataChannel");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectChannelItem");
+                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.Category)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                @(Html.Kendo().AutoComplete()
+                                            .Name("txt-AdvChannel-" + glb)
+                                            .DataTextField("Name")
+                                            .Placeholder("Nhập vị trí")
+                                            .Filter("contains")
+                                            .MinLength(1)
+                                            .HtmlAttributes(new { style = "width:100%", @class = "input-small cpm-position", @onfocus = "setGlobalChannel(" + glb + ")" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                                        .Data("onAdditionalDataChannel");
+                                                })
+                                                .ServerFiltering(true);
+                                            })
+                                            .Events(e =>
+                                            {
+                                                e.Select("onSelectChannelItem");
+                                            })
+                                )
+                                <script>
+                                    $("#txt-AdvChannel-@glb").val('@Html.Raw(item.Location)');
+                                </script>
+                                @{glb++;}
+                            </td>
+                            <td>
+                                <input style="text-align:right;" class="input-small date-picker cpm-start-date" type="text" data-date-format="dd/mm/yyyy" value="@item.DateUp.ToString("dd/MM/yyyy")" />
+                            </td>
+                            <td>
+                                <input style="text-align:right;" class="input-small date-picker cpm-end-date" type="text" data-date-format="dd/mm/yyyy" value="@item.DateDown.ToString("dd/MM/yyyy")" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small cpm-unit currency" type="text" value="@item.UnitPrice.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small cpm-qty currency" type="text" value="@item.Quantity.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small cpm-discount currency" type="text" value="@item.Discount.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup('price')" class="input-small cpm-total currency" type="text" value="@item.TotalAmt.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <input onchange="resetValueGroup()" class="input-small cpm-next-year currency" type="text" value="@item.DSChuyen.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="top" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupCPM(this,@item.PKCpm)"><i class="icon-minus"></i></button>
+                            </td>
+                        </tr>
+                                        }
+                                    }
+            </tbody>
+        </table>
+    </div>
+    
+    @*<div class="row-fluid">
+        <p style="margin-right:75px;font-size:1.4em" class="pull-right">
+            <b>Tổng cộng : <span class="red" id="cpm-sum-money"></span></b>
+        </p>
+    </div>*@
+</fieldset>
+@Html.Partial("product/_popup")
+<script> 
+    $(document).ready(function () {
+        resetValueGroup();
+    });
+    var listProducts = "";
+    var PKContract = $("#formContract").attr("data-contract");
+    function ShowConfirmCPM() {
+        var loop = true;
+        listProducts = "";
+        $("#list-cpm-service .group-cpm-service").each(function (index) {
+            if ($(this).find(".item-chk-cpm").prop('checked')) {
+                listProducts += $(this).find(".cpm-PKCpm").val() + "@@@@";
+            }
+        });
+        if (!loop) {
+            return false;
+        }
+        if (listProducts == "") {
+            $.gritter.add({
+                title: 'Lỗi',
+                text: 'Chưa chọn dịch vụ',
+                class_name: 'gritter-error'
+            });
+        }
+        else {
+
+            $('.modal').modal('show');
+        }
+
+    }
+
+    function allSaveInContract(chk) {
+        var rs = saveCpm(chk);
+        return rs;
+    }
+    var c2 = parseInt("@glb");
+    var chGlb = 0;
+    var sumCPM = 0;
+    function setGlobalChannel(k) {
+        chGlb = k;
+    }
+    function onSelectChannelItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+    }
+    function onAdditionalDataChannel() {
+        return {
+            text: $("#txt-AdvChannel-" + chGlb).val()
+        };
+    }
+
+    function saveCpm(check) {
+        var arr = [];
+        var loop = true;
+        $("#list-cpm-service .group-cpm-service").each(function (index) {
+            var obj = {};
+            obj.PKCpm = $(this).find(".cpm-PKCpm").val();
+            obj.FkContract = $("#formContract").attr("data-contract");
+            obj.AdvChannel = $(this).find("input.cpm-channel").val();
+            if (obj.AdvChannel == "") {
+                alert("Tên kênh không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Category = $(this).find("input.cpm-categories").val();
+            if (obj.Category == "") {
+                alert("Tên chuyên mục không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Location = $(this).find("input.cpm-position").val();
+            if (obj.Location == "") {
+                alert("Tên vị trí không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrDateUp = convertDate($(this).find(".cpm-start-date").val());
+
+            if (obj.DateUp == "") {
+                alert("Ngày bắt đầu không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.StrDateDown = convertDate($(this).find(".cpm-end-date").val());
+            if (obj.DateDown == "") {
+                alert("Ngày kết thúc không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.UnitPrice = currencyToNumber($(this).find(".cpm-unit").val());
+            if (obj.UnitPrice == "") {
+                alert("Đơn giá không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.Quantity = currencyToNumber($(this).find(".cpm-qty").val());
+            if (obj.Quantity == "") {
+                alert("Số lượng không được để trống !");
+                loop = false;
+                return false;
+            }
+            obj.DsChuyen = currencyToNumber($(this).find(".cpm-next-year").val());
+            obj.Discount = currencyToNumber($(this).find(".cpm-discount").val());
+            obj.TotalAmt = currencyToNumber($(this).find(".cpm-total").val());
+            arr[index] = obj;
+
+        })
+        if (!loop) {
+            return false;
+        }
+        if(arr.length == 0){
+            alert("Chưa có thông tin dịch vụ !");
+            return false;
+        }
+        console.log(arr);
+        if (check) {
+            return loop;
+        }
+        
+        //return;
+        $.ajax({
+            url: r+"/CRMMnContract/ContractProductCPM_Save",
+            type: 'POST',
+            data: { listProductCPM: arr },
+            async: true,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    return true;
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    //change $, so luong dich vu
+    function resetValueGroup(focus) {
+        var sum = 0;
+        var sumny = 0;
+        var loop = true;
+        $("#list-cpm-service .group-cpm-service").each(function (index) {
+            var unitPrice = currencyToNumber($(this).find(".cpm-unit").val());
+            var quantity = currencyToNumber($(this).find(".cpm-qty").val());
+            var discount = currencyToNumber($(this).find(".cpm-discount").val());
+            var price = currencyToNumber($(this).find(".cpm-total").val());
+            var ny = currencyToNumber($(this).find(".cpm-next-year").val());
+            if (unitPrice == 0 || quantity == 0) {
+                loop = false;
+            }
+            sumny = sumny + ny;
+            var totalAmt = (unitPrice * quantity) - parseFloat((unitPrice * quantity * discount / 100)).toFixed(2);;
+            sum = sum + totalAmt;
+            $(this).find(".cpm-total").val(numberToCurrency(totalAmt));           
+        })
+        sumMoneyGroup = sum;
+        moneyBeforeVat = sum;
+        sumMoneyNextYear = sumny;
+        if(loop){
+            resetRevenus();
+        }
+        $("#cpm-sum-money").text(numberToCurrency(sum));
+    }
+
+    function minusGroupCPM(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("CPM", pk);
+        }
+        resetValueGroupCPM();
+    }
+    function plusGroupCPM() {
+        $.post(r + "/Ajax/GetInputSuggestService/", { incree: parseInt(c2), Type: "CPM" }, function (data) {
+            $("#list-cpm-service tbody").append(data);
+            c2 = c2 + 3;
+            addEventAfter();
+        })
+        return;
+    }
+</script>

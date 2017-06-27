@@ -1,0 +1,269 @@
+﻿using BIBIAM.Core;
+using BIBIAM.Core.Data;
+using BIBIAM.Core.Data.DataObject;
+using BIBIAM.Core.Entities;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using MCC.Filters;
+using MCC.Helpers;
+using MCC.Models;
+using ServiceStack.OrmLite;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace MCC.Controllers
+{
+    [Authorize]
+    [CustomActionFilter(permission = "all,view,update,create")]
+    public class Merchant_Image_InfoController : CustomController
+    {
+        public ActionResult Index()
+        {
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                ViewBag.listStatus = GetListCode_Master_Json("TTSP");
+                ViewBag.listLoai = GetListCode_Master_Json("ImageType");
+                ViewBag.listStatusDuyet = GetListCode_Master_Json("TTDSP");
+                ViewBag.listStatusXuatBan = GetListCode_Master_Json("StatusPublish");
+                ViewBag.isAdmin = isAdmin;
+                ViewBag.ma_gian_hang = currentUser.ma_gian_hang;
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("NoAccess", "Error");
+            }
+        }
+
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, int loai = 1, string FolderName = "",string ma_gian_hang="")
+        {
+
+            if (accessDetail != null && (accessDetail.access["all"] || accessDetail.access["view"]))
+            {
+                using (IDbConnection db = OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                {
+                    if (!isAdmin)
+                    {
+                        if (!string.IsNullOrEmpty(FolderName.Trim()))
+                        {
+                            if (loai == -1)
+                                return Json(db.Select<Merchant_Image_Info>(s => s.ma_gian_hang == currentUser.ma_gian_hang && s.thu_muc == currentUser.ma_gian_hang + "/" + FolderName + "/").ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            else
+                                return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai && s.ma_gian_hang == currentUser.ma_gian_hang && s.thu_muc == currentUser.ma_gian_hang + "/" + FolderName + "/").ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                        }
+                        else
+                        {
+                            if (loai == -1)
+                                return Json(db.Select<Merchant_Image_Info>(s => s.ma_gian_hang == currentUser.ma_gian_hang).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            else
+                                return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai && s.ma_gian_hang == currentUser.ma_gian_hang).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(FolderName.Trim()))
+                        {
+                            if (loai == -1)
+                            {
+                                //if(ma_gian_hang.Count()>0)
+                                    return Json(db.Select<Merchant_Image_Info>(s => s.thu_muc.Contains(FolderName) && s.ma_gian_hang == ma_gian_hang).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                                //else
+                                //    return Json(db.Select<Merchant_Image_Info>(s => s.thu_muc.Contains(FolderName)).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            }
+                            else
+                            {
+                                //if(ma_gian_hang.Count()>0)
+                                    return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai && s.ma_gian_hang == ma_gian_hang && s.thu_muc.Contains(FolderName)).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                                //else
+                                //    return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai && s.thu_muc.Contains(FolderName)).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            }
+                               
+                        }
+                        else
+                        {
+                            if (loai == -1)
+                            {
+                                if(ma_gian_hang.Count()>0)
+                                    return Json(db.Select<Merchant_Image_Info>(s=>s.ma_gian_hang == ma_gian_hang).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                                else
+                                    return Json(db.Select<Merchant_Image_Info>().ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            } 
+                            else
+                            {
+                                if(ma_gian_hang.Count()>0)
+                                    return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai && s.ma_gian_hang == ma_gian_hang).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                                else
+                                    return Json(db.Select<Merchant_Image_Info>(s => s.loai == loai).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+                            }
+                                
+                        }
+                    }
+                }
+            }
+            else
+            {
+                return RedirectToAction("NoAccessRights", "Error");
+            }
+        }
+
+        public ActionResult Save(List<HttpPostedFileBase> files, string FolderName)
+        {
+            try
+            {
+                List<Merchant_Image_Info> list = new List<Merchant_Image_Info>();
+                List<string> listPath = new List<string>();
+
+                if (String.IsNullOrEmpty(FolderName.Trim()))
+                {
+                    FolderName = AllConstant.FoldderName_Merchant_Product;
+                    Merchant_Folder_Info item = new Merchant_Folder_Info();
+                    item.ma_gian_hang = currentUser.ma_gian_hang;
+                    item.ten_thu_muc = FolderName;
+                    item.nguoi_tao = currentUser.name;
+                    item.nguoi_cap_nhat = currentUser.name;
+                    string a = new Merchant_Folder_Info_DAO().Insert(item, AppConfigs.MCCConnectionString);
+                }
+
+                foreach (var file in files)
+                {
+                    string idref = currentUser.name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                    var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+
+                    var img = Image.FromStream(file.InputStream, true, true);
+                    var listType = new List<Code_Master>();
+                    var listExtension = listType;
+                    using (IDbConnection db = OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+                    {
+                        //db.ChangeDatabase(AllConstant.ERPDBName);
+                        listType = db.Select<Code_Master>(s => s.Type == "IMGResizeType");
+                        listExtension = db.Select<Code_Master>(s => s.Type == "IMGResizeFormat");
+                    }
+                    if (listType.Count == 0)
+                        return Json(new { success = false, message = "Không tìm thấy cấu hình" });
+                    foreach (Code_Master type in listType)
+                    {
+                        var refix = idref;
+                        Merchant_Image_Info item = new Merchant_Image_Info();
+                        img = AutoResize(img, type.Value);
+                        if (img == null)
+                            return Json(new { success = false, message = "Không tìm thấy cấu hình" });
+                        var i = 0;
+                        string FolderPath = Server.MapPath("~/Images/Merchant_Image_Info/" + currentUser.ma_gian_hang + "/" + FolderName + "/");
+                        var destinationPath = Path.Combine(FolderPath, refix);
+
+                        if (!Directory.Exists(FolderPath))
+                        {
+                            Directory.CreateDirectory(FolderPath);
+                        }
+                        var lastRefix = "_" + img.Width.ToString() + "x" + img.Height.ToString();
+                        string extension = ".jpg";
+                        foreach (var ex in listExtension)
+                        {
+                            if (ex.Value == type.Value)
+                            {
+                                extension = ex.Name;
+                                break;
+                            }
+                        }
+                        while (System.IO.File.Exists(destinationPath + i.ToString() + lastRefix + extension))
+                        {
+                            i++;
+                        }
+                        destinationPath += i.ToString() + lastRefix + extension;
+                        img.Save(destinationPath);
+
+                        listPath.Add(destinationPath);
+                        item.url = refix + i.ToString() + lastRefix + extension;
+                        item.ma_anh_goc = idref;
+                        item.chieu_rong = img.Width;
+                        item.chieu_cao = img.Height;
+                        item.dung_luong = new FileInfo(destinationPath).Length;
+                        item.thu_muc = currentUser.ma_gian_hang + "/" + FolderName + "/";
+                        //item.duong_dan_day_du = FolderPath + item.url;
+                        item.duong_dan_day_du = new AzureHelper().UploadFile(currentUser.ma_gian_hang, item.url, destinationPath);
+                        item.loai = Int16.Parse(type.Value);
+                        item.trang_thai = AllConstant.trang_thai.DANG_SU_DUNG;
+                        item.trang_thai_duyet = AllConstant.trang_thai_duyet.CHUA_DUYET;
+                        item.ten_anh = fileName;
+                        item.mo_ta = item.mo_ta_khong_dau = "";
+                        item.ma_gian_hang = currentUser.ma_gian_hang;
+                        list.Add(item);
+                    }
+                }
+                string result = new Merchant_Image_Info_DAO().UpSert(list, currentUser.name, AppConfigs.MCCConnectionString);
+
+                if (result != "true")
+                {
+                    foreach (var path in listPath)
+                        if (System.IO.File.Exists(path))
+                            System.IO.File.Delete(path);
+                    return Json(new { success = false, message = result });
+                }
+                else
+                    return Json(new { success = true, message = "Thành công" });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = e.Message });
+            }
+        }
+
+        private Image ResizeImage(Image img, int width, int height)
+        {
+            var newImage = new Bitmap(width, height);
+            using (var graphics = Graphics.FromImage(newImage))
+                graphics.DrawImage(img, 0, 0, width, height);
+            return newImage;
+        }
+
+        private Image AutoResize(Image img, string type)
+        {
+            using (IDbConnection db = OrmliteConnection.openConn(AppConfigs.MCCConnectionString))
+            {
+                //db.ChangeDatabase(AllConstant.ERPDBName);
+                var x = db.Select<Code_Master>(s => s.Type == "IMGAutoResize").OrderBy(s => s.Value);
+                int width = 0, height = 0;
+                foreach (Code_Master item in x)
+                {
+                    if (item.Value == type + "_WIDTH")
+                        width = Int16.Parse(item.Name);
+                    if (item.Value == type + "_HEIGHT")
+                        height = Int16.Parse(item.Name);
+                }
+                if (width * height != 0)
+                    return ResizeImage(img, width, height);
+                else
+                    return null;
+            }
+        }
+
+        public ActionResult CreateFolder(string foldername)
+        {
+            try
+            {
+                Merchant_Folder_Info item = new Merchant_Folder_Info();
+                item.ma_gian_hang = currentUser.ma_gian_hang;
+                item.ten_thu_muc = foldername.Trim();
+                item.nguoi_tao = currentUser.name;
+                item.nguoi_cap_nhat = currentUser.name;
+                string result = new Merchant_Folder_Info_DAO().Insert(item, AppConfigs.MCCConnectionString);
+                if (result != "true")
+                {
+                    return Json(new { success = false, message = result });
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = e.Message });
+            }
+        }
+    }
+}

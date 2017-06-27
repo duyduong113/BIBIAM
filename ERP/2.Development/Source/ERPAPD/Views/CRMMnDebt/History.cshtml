@@ -1,0 +1,358 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_Payment>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+    var listCustomerType = ViewBag.listCustomerType;
+    var listWeek = new List<int>();
+    for (int i = 1; i <= 53; i++)
+    {
+        listWeek.Add(i);
+    }
+
+}
+<!-- Include Date Range Picker -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+<script type="text/javascript" src="~/Scripts/daterangepicker.js"></script>
+<link rel="stylesheet" type="text/css" href="~/Scripts/assets/daterangepicker.css" />
+<style>
+    input,input[type="text"] {
+        width: 96%;
+    }
+
+    .margin-bottom-10 {
+        margin-bottom: 10px;
+    }
+
+    .row-fluid input-prepend .remove-date {
+        left: 205px;
+    }
+
+    .k-grid-header th.k-header {
+        vertical-align: middle !important;
+        padding: 0;
+        padding-top: 4px;
+    }
+    .k-grid-header th {
+       padding:10px 5px;
+        text-align: center !important;
+        font-weight: bold !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        vertical-align: top !important;
+    }
+    /*.screen-body {
+        margin: 20px 0;
+        padding: 20px 10px;
+        border: solid 1px #e7e7e7;
+    }*/
+
+    .btn-grid {
+        text-align: center;
+        width: 15px;
+        margin-top: 5px;
+        margin-left: 2px;
+    }
+
+    .hr-number {
+        border-top: solid 1px #000;
+        height: 20px;
+        background-color: #56bd6c;
+        line-height: 20px;
+    }
+    .screen-body .row-fluid{
+        margin-bottom:10px;
+    }
+    .daterangepicker .input-mini{
+        width:80%;
+    }
+    .applyBtn, .cancelBtn {
+        padding:0;
+        line-height:20px;
+        border-radius:3px;
+    }
+    .daterangepicker .calendar th, .daterangepicker .calendar td{
+        min-width:21px;
+    }
+     .daterangepicker.dropdown-menu{
+            background-color: #2e6589
+    }
+    .btncleardatetimepicker .remove-date{
+        left:93%;
+    }
+    .btncleardatetimepicker .remove-date a {
+    color: #b7b0b0;
+    }
+    .hr-number {
+        border-top: solid 1px #e7e7e7;
+        height: 20px;
+        background-color: #c3dabf;
+        line-height: 20px;
+        text-align: right;
+    }
+    .k-grid-header th {
+        background-color: #edf3f4  !important;
+        /*color: #fff !important;*/
+        text-align: center !important;
+        font-weight: bold !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        vertical-align: middle !important;
+    }
+    
+</style>
+<div class="row-fluid ">
+    <div class="span12 screen-body frame-search">
+        <div class="span4">
+            <div class="row-fluid">
+                <input id="txtsearch" type="text" placeholder="Mã KH, tên ngắn, tên pháp nhân, số điện thoại">
+            </div>
+            <div class="row-fluid">
+                <div class="span6">
+                    <input id="txtContractCode" type="text" placeholder="Mã HĐ">
+                </div>
+                <div class="span6">
+                    <select id="listDebtType" class="select-chosen" multiple data-placeholder="Trạng thái nợ" style="width:99%">
+                        @foreach (var user in ViewBag.listDebtType)
+                        {
+                            <option value="@user.ParamID">@user.Value</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="span4">
+            <div class="row-fluid btncleardatetimepicker">
+                <label class="span4">Ngày phải thanh toán</label>
+                <input id="txtPaymentDateSoon" type="text" class="span8 date-range-picker" placeholder="dd/mm/yyyy - dd/mm/yyyy"/>
+                <span class="remove-date"><a onclick="delExitsDate(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+
+            </div>
+            <div class="row-fluid btncleardatetimepicker">
+                <label class="span4">Ngày thanh toán</label>
+                <input id="txtPaymentDate" type="text" class="span8 date-range-picker" placeholder="dd/mm/yyyy - dd/mm/yyyy"/>
+                <span class="remove-date"><a onclick="delExitsDate(this)" href="javascript:void(0)"><i class="icon-remove"></i></a></span>
+
+            </div>
+        </div>
+      
+        <div class="span4">
+            <button type="button" class="btn btn-small btn-primary" onclick="setfilter()">Lọc dữ liệu</button>
+        </div>
+    </div>
+
+</div>
+<div class="row-fluid mn-list">
+        @(Html.Kendo().Grid(Model)
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.c_ngay_thanh_toan)
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .Title("Ngày thanh toán")
+                .Width(100).Format("{0:dd/MM/yyyy}");
+        columns.Bound(p => p.c_contract_code)
+                .Title("Mã HĐ")
+                .Width(100);
+        columns.Bound(p => p.c_customer_name)
+                .Title("Khách hàng")
+                .Width(200);
+        columns.Bound(p => p.c_number_receipt)
+                .Title("Sô phiếu thu")
+                .Width(100);
+        columns.Bound(p => p.c_tien_thanh_toan)
+                .Title("Số tiền").Format("{0:N0}")
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .Width(100);
+        columns.Bound(p => p.c_payment_form)
+                .Title("Hình thức thanh toán")
+                .Width(100);
+        columns.Bound(p => p.c_bank_name)
+                .Width(120)
+                .Title("Ngân hàng");
+        columns.ForeignKey(p => p.c_trang_thai_no, (System.Collections.IEnumerable)ViewBag.listDebtType, "ParamID", "Value").Title("Trạng thái nợ").Width(100);
+        columns.Bound(p => p.c_ngay_tt_theo_hd)
+                .Format("{0:dd/MM/yyyy}")
+                .Width(100)
+                .Title("Lịch thanh toán theo HĐ")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_ngay_du_kien_thu)
+                .Width(100)
+                .Title("Ngày phải thanh toán")
+                .Format("{0:dd/MM/yyyy}")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_so_ngay_qua_han)
+                .Width(100)
+                .Title("Quá hạn")
+                .ClientTemplate("<span>#if(c_so_ngay_qua_han < 0){#<span>0</span>#}else{#<span>#=c_so_ngay_qua_han# ngày</span>#}#</span>")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_ghi_chu)
+                .Title("Ghi chú")
+                .Width(150);
+        columns.Bound(p => p.RowCreatedAt)
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .Title("Created on")
+               .Format("{0:dd/MM/yyyy}")
+               .Width(100);
+        columns.Bound(p => p.RowCreatedUser)
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .Title("Created by")
+               .Width(100);
+    })
+    .Sortable()
+    .AutoBind(false)
+    .Excel(excel => excel
+        .FileName("list_lscn.xlsx")
+        .Filterable(true)
+        .AllPages(true)
+        // .ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+    )
+    .ToolBar(toolbar =>
+        {
+            toolbar.Custom()
+                .Text("Xuất Excel")
+                .HtmlAttributes(new { id = "In", @class = "exportClass btn btn-info", Href = "javascript:void(0)", @style = "margin-right: 10px;min-width: 70px;", onclick = "ExportExcel(this)" });
+            
+        })
+    .Pageable(pager => pager.PageSizes(new[] {50, 100, 200, 300, 500 }))
+    .Scrollable(scrollable => scrollable.Height(320))
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .Events(events => { events.DataBound("dataBound"); })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(50)
+
+    .Model(model =>
+    {
+        model.Id(p => p.rowid);
+    })
+    .Sort(a => a.Add(m => m.rowid).Descending()
+    )
+    .Read(read => read.Action("PaymentProccessRead", "CRMMnDebt"))
+                 )
+    )
+</div>
+
+<script>
+    function ExportExcel() {
+
+        var grid = $("#Grid").data("kendoGrid");
+        grid.saveAsExcel();
+    }
+    $(document).ready(function () {
+        try {
+            const url = location.search;
+            var c_code = /c_code=([^&]+)/.exec(url);
+            if (c_code) {
+                $('#txtContractCode').val(c_code[1]);
+            }
+            var customerCode = /CustomerCode=([^&]+)/.exec(url);
+            if (customerCode) {
+                $('#txtsearch').val(customerCode[1]);
+            }
+
+        }
+        catch (ex) {
+            $('#txtDateToDate').val($('#hiddenfilterDate').val());
+        }
+        setfilter();
+    });
+    $(function () {
+        $('.date-range-picker').daterangepicker({
+            ranges: {
+                'Hôm nay': [moment(), moment()],
+                'Hôm qua': [moment().subtract(1,'days'), moment().subtract(1,'days')],
+                '7 ngày trước': [moment().subtract(6,'days'), moment()],
+                '30 ngày trước': [moment().subtract(29,'days'), moment()],
+                'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+                'Tháng trươc': [moment().subtract(1,'month').startOf('month'), moment().subtract(1,'month').endOf('month')]
+            }, format: 'DD/MM/YYYY',
+            locale: {
+                format: 'DD/MM/YYYY',
+                applyLabel: 'Xác nhận',
+                cancelLabel: 'Đóng lại',
+                fromLabel: 'Từ',
+                toLabel: 'Đến',
+                customRangeLabel: 'Tuỳ chọn',
+                daysOfWeek: ['T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                firstDay: 1,
+            }
+        });
+        $('.date-range-picker').val('');
+    });
+    $('.date-range-picker').on('hide.daterangepicker', function (ev, picker) {
+        $(this).focus();
+    });
+    $(".select-chosen").chosen();
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+    }
+    function setfilter() {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        
+        var text = $('#txtsearch').val();
+        var filtertext = { logic: "or", filters: [] };
+        if (text) {
+            filtertext.filters.push({ field: "c_customer_code", operator: "eq", value: text });
+            filtertext.filters.push({ field: "c_customer_name", operator: "contains", value: text });
+            //filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        var txtContractCode = $('#txtContractCode').val();
+        if (txtContractCode) {
+            filter.filters.push({ field: "c_contract_code", operator: "eq", value: txtContractCode });
+        }
+       
+        var listDebtType = $('#listDebtType').val();
+        if (listDebtType) {
+            filter.filters.push({ field: "c_trang_thai_no", operator: "eq", value: listDebtType });
+        }
+        
+        var txtPayDay = $('#txtPaymentDate').val();
+        if (txtPayDay) {
+            try {
+                var d = txtPayDay.split('-');
+                var temp = d[0].trim().split('/');
+                s = temp[2] + '-' + temp[1] + '-' + temp[0];
+                temp = d[1].trim().split('/');
+                e = temp[2] + '-' + temp[1] + '-' + temp[0];
+                filter.filters.push({ field: "c_ngay_thanh_toan", operator: "gte", value: s });
+                filter.filters.push({ field: "c_ngay_thanh_toan", operator: "lte", value: e });
+            }
+            catch (e) {
+            }
+        }
+        var txtPayDaySoon = $('#txtPaymentDateSoon').val();
+        if (txtPayDaySoon) {
+            try {
+                var d = txtPayDaySoon.split('-');
+                var temp = d[0].trim().split('/');
+                s = temp[2] + '-' + temp[1] + '-' + temp[0];
+                temp = d[1].trim().split('/');
+                e = temp[2] + '-' + temp[1] + '-' + temp[0];
+                filter.filters.push({ field: "c_ngay_du_kien_thu", operator: "gte", value: s });
+                filter.filters.push({ field: "c_ngay_du_kien_thu", operator: "lte", value: e });
+            }
+            catch (e) {
+            }
+        }
+        grid.dataSource.filter(filter);
+    }
+    function delExitsDate(e) {
+        $(e).parents(".btncleardatetimepicker").find("input").val('');
+    }
+    $(".frame-search").keypress(function (e) {
+        if (e.keyCode == 13) {
+            setfilter();
+        }
+    });
+</script>

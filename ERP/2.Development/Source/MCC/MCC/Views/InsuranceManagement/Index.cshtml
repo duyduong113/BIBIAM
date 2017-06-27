@@ -1,0 +1,977 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._insu);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        text-align: center;
+    }
+</style>
+
+<div class="tabbable-line">
+    <ul class="nav nav-tabs">
+        <li class="active">
+            <a href="\\#tab_1_1" data-toggle="tab"> @Html.Raw(Resources.Global._insu_listhave) </a>
+        </li>
+        <li>
+            <a href="\\#tab_1_2" data-toggle="tab" onclick="changeTab();"> @Html.Raw(Resources.Global._insu_listnot) </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane in active" id="tab_1_1">
+            <div>
+                <form method="post" id="FilterForm" novalidate="novalidate">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_contractno)</label>
+                                <div class="input-icon right clearfix">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="contractnumber" id="contractnumber" placeholder="@Html.Raw(Resources.Global._mapcontract_contractno_f)">
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col-md-2">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._mapcontract_contractinfo)</label>
+                                    <div class="input-icon right clearfix">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="contractinfo" id="contractinfo" placeholder="@Html.Raw(Resources.Global._mapcontract_contractinfo_f)">
+                                    </div>
+                                </div>
+                            </div>*@
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_contractdate)</label>
+                                <div class="input-group" id="rangeContractDate">
+                                    <input type="text" class="form-control input-sm" id="contractdateRangeF">
+                                    <span class="input-group-btn input-group-sm">
+                                        <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_sale)</label>
+                                @(Html.Kendo().DropDownList()
+                                      .Name("saleF")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._mapcontract_sale) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                        //.Events(e => e.Change("changeLeader"))
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetUser", "CustomData");
+                                          }).ServerFiltering(true);
+                                      })
+                                )
+                            </div>
+                        </div>                        
+                        <div class="col-md-2">
+                            <div class="form-actions" style="margin-top:22px;">
+                                <a onclick="filter()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="row">
+                        <div class="col-md-3">
+                            @*<div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._insu_vatdate)</label>
+                                    <div class="input-group" id="rangeVATDate">
+                                        <input type="text" class="form-control input-sm" id="VATdateRangeF">
+                                        <span class="input-group-btn input-group-sm">
+                                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                                <i class="fa fa-calendar"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>*@
+                    @*</div>
+                            <div class="col-md-3">
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-actions" style="margin-top:22px;">
+                                    <a onclick="filter()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                                </div>
+                            </div>
+                        </div>*@
+                </form>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-actions">
+                        <a onclick="UpdateStatusInsurance()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._insu_btnupdate)</a>
+                        <a onclick="UpdateStatus()" class="btn default btn-sm btn-circle green">@Html.Raw(Resources.Global._insu_btnconfirm)</a>
+                        <a onclick="DeleteInsurance()" class="btn default btn-sm btn-circle red">@Html.Raw(Resources.Global._delete)</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-12">
+                    @(Html.Kendo().Grid<MCC.Models.tw_Insurance_Get>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.productId).Locked(true).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onClick='checkAll(this)' />").ClientTemplate("#if(status != 1 && status != -1){#" + "<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#' data-contract='#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#'/>" + "#}#").Width(40).Filterable(false).Sortable(false);
+                columns.Bound(p => p.productId).Locked(true).Hidden();
+                //columns.Template(@<text></text>).Locked(true).ClientTemplate("#if(code == '' || code == null){#" + "<a class='btn blue btn-xs' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='showAssginVINForm(this)'>" + @Html.Raw(Resources.Global._mapcontract_assignVIN) + "</a>" + "#}else{#" + "<a class='btn red btn-xs' data-vin='#=VIN#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='RemoveVIN(this)'>" + @Html.Raw(Resources.Global._mapcontract_removeVIN) + "</a>" + "#}#" + "&nbsp; <a class='btn yellow btn-xs' data-vin='#=VIN#' data-contractid='#=contractid#' data-carid='#=carid#' data-contractno='#=contractnumber#' onclick='StockOut(this)'>" + @Html.Raw(Resources.Global._mapcontract_stockout) + "</a>").Width(150).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.contractnumber).Locked(true).ClientTemplate("#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#").Width(100).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_contractno).ToString());
+                columns.Bound(p => p.contractday).Locked(true).Width(90).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._mapcontract_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.paymenttypeName).Locked(true).Width(120).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_paymenttype).ToString());
+                columns.Bound(p => p.statusInName).Locked(true).Width(100).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_statusin).ToString());
+                columns.Bound(p => p.contractstatus).Locked(true).Width(150).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_contractstatus).ToString());
+                columns.Bound(p => p.saleName).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_sale).ToString());
+                columns.Bound(p => p.fullname).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._insu_customer).ToString());
+                columns.Bound(p => p.phone).Width(120).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_phone).ToString());                
+                columns.Bound(p => p.name).Width(200).Locked(true).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_carname).ToString());
+                columns.Bound(p => p.productprice).ClientTemplate("#=kendo.format('{0:N0}',productprice)#").Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._insu_productprice).ToString());
+                columns.Bound(p => p.insuranceInfo).Width(200).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_info).ToString());
+                columns.Bound(p => p.insuranceCompany).Width(150).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_company).ToString());
+                columns.Bound(p => p.price).ClientTemplate("#=kendo.format('{0:N0}',price)#").Width(100).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_price).ToString());
+                columns.Bound(p => p.insuranceDate).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._insu_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.note).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._access_note_p).ToString());
+                columns.Bound(p => p.createdAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.createdBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+                columns.Bound(p => p.updatedAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+            })
+                            //.Events(events => { events.Edit("onEdit"); })
+                            //.Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                        .Pageable()
+                        .Navigatable()
+                        .Scrollable()
+                            .HtmlAttributes(new { @style = "min-height:300px;" })
+                        .Resizable(resizable => resizable.Columns(true))
+                        //.Events(events => { events.DataBound("onDatabound"); })
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Model(model =>
+                        {
+                            //model.Id(p => p.id);
+                            model.Field(p => p.createdAt).Editable(false);
+                            model.Field(p => p.createdBy).Editable(false);
+                            model.Field(p => p.updatedAt).Editable(false);
+                            model.Field(p => p.updatedBy).Editable(false);
+                            //model.Field(p => p.status).Editable(false);
+                            //model.Field(p => p.id).Editable(false);
+                        })
+                            //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                        .Read("Read", "InsuranceManagement")
+                            //.Update("Update", "VINManagement")
+                        )
+                    )
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="tab_1_2">
+            <div>
+                <form method="post" id="FilterFormNot" novalidate="novalidate">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_contractno)</label>
+                                <div class="input-icon right clearfix">
+                                    <i class="fa"></i>
+                                    <input type="text" class="form-control input-sm max100" name="contractnumberNot" id="contractnumberNot" placeholder="@Html.Raw(Resources.Global._mapcontract_contractno_f)">
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col-md-3">
+                                <div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._mapcontract_contractinfo)</label>
+                                    <div class="input-icon right clearfix">
+                                        <i class="fa"></i>
+                                        <input type="text" class="form-control input-sm max100" name="contractinfoNot" id="contractinfoNot" placeholder="@Html.Raw(Resources.Global._mapcontract_contractinfo_f)">
+                                    </div>
+                                </div>
+                            </div>*@
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_contractdate)</label>
+                                <div class="input-group" id="rangeContractDateNot">
+                                    <input type="text" class="form-control input-sm" id="contractdateRangeFNot">
+                                    <span class="input-group-btn input-group-sm">
+                                        <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_sale)</label>
+                                @(Html.Kendo().DropDownList()
+                                      .Name("saleFNot")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._mapcontract_sale) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                        //.Events(e => e.Change("changeLeader"))
+                                      .Filter("contains")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetUser", "CustomData");
+                                          }).ServerFiltering(true);
+                                      })
+                                )
+                            </div>
+                        </div>                        
+                        <div class="col-md-2">
+                            <div class="form-actions" style="margin-top:22px;">
+                                <a onclick="filterNot()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@Html.Raw(Resources.Global._mapcontract_contractdate)</label>
+                                <div class="input-group" id="rangeContractDateNot">
+                                    <input type="text" class="form-control input-sm" id="contractdateRangeFNot">
+                                    <span class="input-group-btn input-group-sm">
+                                        <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            @*<div class="form-group">
+                                    <label>@Html.Raw(Resources.Global._insu_vatdate)</label>
+                                    <div class="input-group" id="rangeVATDate">
+                                        <input type="text" class="form-control input-sm" id="VATdateRangeF">
+                                        <span class="input-group-btn input-group-sm">
+                                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                                <i class="fa fa-calendar"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>*@
+                    @*</div>
+                            <div class="col-md-3">
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-actions" style="margin-top:22px;">
+                                    <a onclick="filterNot()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                                </div>
+                            </div>
+                        </div>*@
+                </form>
+            </div>
+
+            @*<div class="row">
+                <div class="col-md-12">
+                    <div class="form-actions">
+                        <a onclick="UpdateStatusNotInsurance()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._insu_create)</a>
+                        @*<a onclick="UpdateStatus()" class="btn default btn-sm btn-circle green">@Html.Raw(Resources.Global._insu_btnconfirm)</a>*@
+            @*</div>
+                    </div>
+                </div>*@
+
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-12">
+                    @(Html.Kendo().Grid<MCC.Models.tw_Contract_Product_Meta_Get>()
+            .Name("gridNot")
+            .Columns(columns =>
+            {
+                //columns.Bound(p => p.contractnumber).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAllNot' onClick='checkAllNot(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' data-contract='#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#'/>").Width(40).Filterable(false).Sortable(false);
+                columns.Bound(p => p.id);
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn blue btn-xs' data-contractid='#=contractid#' data-productid='#=id#' data-contract='#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#' onclick='UpdateStatusNotInsurance(this)'>" + @Html.Raw(Resources.Global._insu_createinsu) + "</a>").Width(80).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.contractnumber).ClientTemplate("#=contractnumber.substring(0,4)#/#=contractnumber.substr(contractnumber.length - 4)#").Width(100).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_contractno).ToString());
+                columns.Bound(p => p.contractday).Width(100).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._mapcontract_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                columns.Bound(p => p.paymenttypeName).Width(120).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_paymenttype).ToString());
+                //columns.Bound(p => p.statusInName).Width(100).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_statusin).ToString());
+                columns.Bound(p => p.contractstatus).Width(150).HtmlAttributes(new { style = "text-align:center;" }).Title(@Html.Raw(Resources.Global._insu_contractstatus).ToString());
+                columns.Bound(p => p.name).Width(300).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_carname).ToString());
+                columns.Bound(p => p.salename).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_sale).ToString());
+                columns.Bound(p => p.fullname).Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._insu_customer).ToString());
+                columns.Bound(p => p.phone).Width(120).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._mapcontract_phone).ToString());
+                columns.Bound(p => p.note).Width(250).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._access_note_p).ToString());
+                columns.Bound(p => p.productprice).ClientTemplate("#=kendo.format('{0:N0}',productprice)#").Width(150).HtmlAttributes(new { style = "text-align:left;" }).Title(@Html.Raw(Resources.Global._insu_productprice).ToString());
+                //columns.Bound(p => p.insuranceInfo).Width(200).HtmlAttributes(new { style = "text-align:center; color:\\#468847" }).Title(@Html.Raw(Resources.Global._insu_info).ToString());
+                //columns.Bound(p => p.insuranceCompany).Width(150).HtmlAttributes(new { style = "text-align:center; color:\\#468847" }).Title(@Html.Raw(Resources.Global._insu_company).ToString());
+                //columns.Bound(p => p.price).ClientTemplate("#=kendo.format('{0:N0}',price)#").Width(100).HtmlAttributes(new { style = "text-align:center; color:\\#468847" }).Title(@Html.Raw(Resources.Global._insu_price).ToString());
+                //columns.Bound(p => p.insuranceDate).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._insu_date).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                //columns.Bound(p => p.createdAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                //columns.Bound(p => p.createdBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+                //columns.Bound(p => p.updatedAt).Width(120).Format("{0:dd/MM/yyyy}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString()).HtmlAttributes(new { style = "text-align:center;" });
+                //columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString()).HtmlAttributes(new { style = "text-align:left;" });
+            })
+                            //.Events(events => { events.Edit("onEdit"); })
+                            //.Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                                        .Pageable()
+                                        .Navigatable()
+                                        .Scrollable()
+                                            .HtmlAttributes(new { @style = "min-height:300px;" })
+                                        .Resizable(resizable => resizable.Columns(true))
+                                        //.Events(events => { events.DataBound("onDataboundNot"); })
+                                        .AutoBind(false)
+                                        .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .Batch(true)
+                                        .PageSize(20)
+
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.id);
+                                            model.Field(p => p.createdAt).Editable(false);
+                                            model.Field(p => p.createdBy).Editable(false);
+                                            model.Field(p => p.updatedAt).Editable(false);
+                                            model.Field(p => p.updatedBy).Editable(false);
+                                            //model.Field(p => p.status).Editable(false);
+                                            //model.Field(p => p.id).Editable(false);
+                                        })
+                                            //.Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                            .Read("ReadNotInsurance", "InsuranceManagement")
+                            //.Update("Update", "VINManagement")
+                                        )
+)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._mapcontract_lower) @Html.Raw(Resources.Global._yet)</div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="NoItemsTemplateNot">
+    <div class="text-center" style="padding: 30px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._mapcontract_lower) @Html.Raw(Resources.Global._yet)</div>
+    </div>
+</script>
+
+@*Popup stock in template*@
+<script type="text/x-kendo-template" id="UpdateInsuranceTemplate">
+    <form class="form-horizontal" id="updateInsuranceForm" method="post">
+        <div class="row">
+            <div class="col-md-6">
+                <p id="listContract" style="font-weight:bold; font-size:15px;"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_company)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm insuranceCompany" name="insuranceCompany" id="insuranceCompany" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_company_p)">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_price)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm price" name="price" id="price" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_price_p)">
+                </div>
+            </div>
+        </div>
+        <div class="row top15">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_date)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="insuranceDate" id="insuranceDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_info)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm price" name="insuranceInfo" id="insuranceInfo" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_info_p)">
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/x-kendo-template" id="UpdateNotInsuranceTemplate">
+    <form class="form-horizontal" id="UpdateNotInsuranceForm" method="post">
+        <div class="row">           
+            <div class="col-md-12">
+                <label>@Html.Raw(Resources.Global._name_Caps)</label>
+                <input type="text" class="form-control input-sm max100" placeholder="@Html.Raw(Resources.Global._name_Caps)" name="nameSNot" id="nameSNot" value="">
+            </div>
+            @*<div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._select_car)</label>
+                @(Html.Kendo().DropDownList()
+                                      .Name("productidSNot")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._select_car) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getInContract", "Contract").Data("function () {return { id: #=contractid#}}");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                )
+            </div>*@
+        </div>
+        @*<div class="row top15">
+            
+        </div>*@
+        <div class="row top15">
+            <div class="col-md-12">
+                <label>@Html.Raw(Resources.Global._note)</label>
+                <textarea name="noteSNot" class="form-control input-sm max100" rows="2" id="noteSNot"></textarea>
+            </div>
+        </div>
+
+        <div class="row top15">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_company)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm insuranceCompany" name="insuranceCompanyNot" id="insuranceCompanyNot" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_company_p)">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_price)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm price" name="priceNot" id="priceNot" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_price_p)">
+                </div>
+            </div>
+        </div>
+        <div class="row top15">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_date)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="insuranceDateNot" id="insuranceDateNot" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._insu_info)</label>
+                <div class="input-icon right">
+                    <input type="text" class="form-control input-sm price" name="insuranceInfoNot" id="insuranceInfoNot" style="height:35px;" placeholder="@Html.Raw(Resources.Global._insu_info_p)">
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script>
+    function filter() {
+        //reinitPlugins();
+        grid = $("#grid").data("kendoGrid");
+        var contractnumber = $("#contractnumber").val();
+        var contractinfo = $("#contractinfo").val();
+        //var statusF = $("#statusF").data("kendoMultiSelect").value();
+        var saleF = $("#saleF").val();
+        var contractdateRangeF = $("#contractdateRangeF").val();
+        var depositFrom = $("#depositFrom").val();
+        var depositTo = $("#depositTo").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterContractnumber = { logic: "or", filters: [] };
+        var filterContractinfo = { logic: "or", filters: [] };
+        var filterSaleF = { logic: "or", filters: [] };
+        //var filterStatusF = { logic: "or", filters: [] };
+        var filterDeposit = { logic: "and", filters: [] };
+
+        if (contractnumber) {
+            filterContractnumber.filters.push({ field: "contractnumber", operator: "contains", value: contractnumber });
+            filter.filters.push(filterContractnumber);
+        }
+
+        //if (contractinfo) {
+        //    filterContractinfo.filters.push({ field: "contractnumber", operator: "contains", value: contractnumber });
+        //    filter.filters.push(filterContractinfo);
+        //}
+
+        //if (statusF && statusF.length > 0) {
+        //    for (var i = 0; i < statusF.length; i++) {
+        //        var option = statusF[i];
+        //        filterStatusF.filters.push({ field: "status", operator: "eq", value: option });
+        //    }
+        //    filter.filters.push(filterStatusF);
+        //}
+
+        if (saleF) {
+            filterSaleF.filters.push({ field: "sale", operator: "eq", value: saleF });
+            filter.filters.push(filterSaleF);
+        }
+
+        if (contractdateRangeF) {
+            var startdate = contractdateRangeF.split('-')[0].trim();
+            var enddate = contractdateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "contractday", operator: "gte", value: startdate });
+            filter.filters.push({ field: "contractday", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (depositFrom && depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "gte", value: depositFrom });
+            filterDeposit.filters.push({ field: "deposit", operator: "lt", value: depositTo });
+            filter.filters.push(filterDeposit);
+        }
+        else if (depositFrom && !depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "gte", value: depositFrom });
+            filter.filters.push(filterDeposit);
+        }
+        else if (!depositFrom && depositTo) {
+            filterDeposit.filters.push({ field: "deposit", operator: "lt", value: depositTo });
+            filter.filters.push(filterDeposit);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function filterNot() {
+        //reinitPlugins();
+        var gridNot = $("#gridNot").data("kendoGrid");
+        var contractnumberNot = $("#contractnumberNot").val();
+        var contractinfoNot = $("#contractinfoNot").val();
+        var saleFNot = $("#saleFNot").val();
+        var contractdateRangeFNot = $("#contractdateRangeFNot").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterContractnumber = { logic: "or", filters: [] };
+        var filterContractinfo = { logic: "or", filters: [] };
+        var filterSaleF = { logic: "or", filters: [] };
+        //var filterStatusF = { logic: "or", filters: [] };
+        var filterDeposit = { logic: "and", filters: [] };
+
+        if (contractnumberNot) {
+            filterContractnumber.filters.push({ field: "contractnumber", operator: "contains", value: contractnumberNot });
+            filter.filters.push(filterContractnumber);
+        }
+
+        //if (contractinfo) {
+        //    filterContractinfo.filters.push({ field: "contractnumber", operator: "contains", value: contractnumber });
+        //    filter.filters.push(filterContractinfo);
+        //}
+
+
+        if (saleFNot) {
+            filterSaleF.filters.push({ field: "sale", operator: "eq", value: saleFNot });
+            filter.filters.push(filterSaleF);
+        }
+
+        if (contractdateRangeFNot) {
+            var startdate = contractdateRangeFNot.split('-')[0].trim();
+            var enddate = contractdateRangeFNot.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "contractday", operator: "gte", value: startdate });
+            filter.filters.push({ field: "contractday", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        gridNot.dataSource.filter(filter);
+    }
+
+    $("#rangeContractDate").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeContractDate input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    $("#rangeVATDate").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeVATDate input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    $("#rangeContractDateNot").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeContractDateNot input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+    
+    //function onDatabound(e) {
+    //    resizeGrid();
+    //    //var $exportLink = $('.export');
+    //    //var href = $exportLink.attr('href');
+
+    //    //if (href) {
+    //    //    href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+    //    //    href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+    //    //    $exportLink.attr('href', href);
+    //    //}
+
+    //    if (this.dataSource.total() == 0) {
+    //        var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+    //        //$("#grid").find(".k-grid-pager").remove();            
+    //        $(this.element).find("tbody").html(NoItemsTemplate({}));
+    //        $(this.element).css("border", "none");
+    //    }        
+    //}
+
+    //function onDataboundNot(e) {
+    //    resizeGridNot();
+    //    //var $exportLink = $('.export');
+    //    //var href = $exportLink.attr('href');
+
+    //    //if (href) {
+    //    //    href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+    //    //    href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+    //    //    $exportLink.attr('href', href);
+    //    //}
+
+    //    //if (this.dataSource.total() == 0) {
+    //    //    var NoItemsTemplateNot = kendo.template($("#NoItemsTemplateNot").html());
+    //    //    $("#gridNot").find(".k-grid-pager").remove();
+    //    //    $(this.element).find("tbody").html(NoItemsTemplateNot({}));
+    //    //    $(this.element).css("border", "none");
+    //    //}
+    //}
+
+    function initPlugins() {
+        $("#depositFrom, #depositTo").autoNumeric("init", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+
+    function reinitPlugins() {
+        $("#depositFrom, #depositTo").autoNumeric("update", {
+            aSep: ',',
+            aPad: false,
+            lZero: 'deny'
+        });
+    }
+
+    $(document).keypress(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function checkAllNot(e) {
+        var x = $(e).prop('checked');
+        $("#gridNot").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function UpdateStatusInsurance() {
+        var UpdateInsuranceTemplate = kendo.template($("#UpdateInsuranceTemplate").html());
+        var listrowidd = "";
+        var contractlist = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id");
+            }
+        });
+
+        if (listrowidd != null && listrowidd != "") {
+            bootbox.dialog({
+                closeButton: true,
+                message: UpdateInsuranceTemplate(0),
+                title: "@Html.Raw(Resources.Global._insu_update) ",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._insu_update_btn)", className: "btn green btn-circle btn-sm", callback: function () { UpdateStatusInsuranceRow(); return false; } }
+                }
+            });
+            $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+
+            var listrowidd = "";
+            var contractlist = "";
+            $("#grid").find(".checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowidd += $(this).attr("id");
+                    contractlist += $(this).attr("data-contract") + " ; ";
+                }
+            });
+            $('p#listContract').text(contractlist);
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function UpdateStatusInsuranceRow() {
+        var listrowidd = "";
+        var contractlist = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id");
+                //contractlist += $(this).attr("data-contract") + " ; ";
+            }
+        });
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var insuranceInfo = $('#insuranceInfo').val();
+        var insuranceCompany = $('#insuranceCompany').val();
+        var insuranceDate = $('#insuranceDate').val();
+        var price = $('#price').val();
+        if (price == "") {
+            price = 0;
+        }
+
+        $.post(r + "/InsuranceManagement/UpdateStatusInsurance", { data: listrowid, insuranceInfo: insuranceInfo, insuranceCompany: insuranceCompany, insuranceDate: insuranceDate, price: price, }, function (data) {
+            if (data.success) {
+                toastr.success('Cập nhật thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+                bootbox.hideAll();
+            }
+            else {
+                toastr.error('', data.alert);
+                //$("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+    }
+
+    function UpdateStatus() {
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id");
+                //contractlist += $(this).attr("data-contract") + " ; ";
+            }
+        });
+
+        if (listrowidd != null && listrowidd != "") {
+            var listrowid = "";
+            $("#grid").find(".checkrowid").each(function () {
+                if ($(this).prop('checked') == true) {
+                    listrowid += $(this).attr("id") + '@@@@';
+                }
+            });
+
+            $.post(r + "/InsuranceManagement/UpdateStatus", { data: listrowid }, function (data) {
+                if (data.success) {
+                    toastr.success('Cập nhật thành công')
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    bootbox.hideAll();
+                }
+                else {
+                    toastr.error('', data.error)
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content, .k-grid-content-locked"),
+        otherElements = gridElement.children().not(".k-grid-content, .k-grid-content-locked"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    function resizeGridNot() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#gridNot').offset().top);
+        var gridElement = $("#gridNot"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 350);
+    }
+
+    function DeleteInsurance() {
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id");
+            }
+        });
+
+        if (listrowidd != null && listrowidd != "") {
+            bootbox.dialog({
+                message: "@Resources.Global._are_your_sure", title: "Hủy bảo hiểm",
+                buttons:
+                    {
+                        danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                        main: {
+                            label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                                DeleteInsuranceRow();
+                            }
+                        }
+                    }
+            })
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function DeleteInsuranceRow() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        $.post(r + "/InsuranceManagement/DeleteInsurance", { data: listrowid, }, function (data) {
+            if (data.success) {
+                toastr.success('Hủy thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+            }
+            else {
+                toastr.error('', data.error)
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+    }
+
+    function UpdateStatusNotInsurance(e) {
+        var contractid = $(e).attr("data-contractid");
+        var productid = $(e).attr("data-productid");
+
+        $.post(r + "/CustomData/GetContract", { contractid: contractid }, function (data) {
+            var UpdateNotInsuranceTemplate = kendo.template($("#UpdateNotInsuranceTemplate").html());
+            bootbox.dialog({
+                closeButton: true,
+                message: UpdateNotInsuranceTemplate(data[0]),
+                title: "@Html.Raw(Resources.Global._insu_create)",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._po_new_buttonnew)", className: "btn green btn-circle btn-sm", callback: function () { UpdateStatusNotInsuranceRow(contractid, productid); return false; } }
+                }
+            });
+            $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });            
+        });        
+    }
+
+    function UpdateStatusNotInsuranceRow(contractid, productid) {
+        var name = $('#nameSNot').val();
+        //var productid = $('#productidSNot').val();
+        var note = $('#noteSNot').val();
+        var insuranceInfo = $('#insuranceInfoNot').val();
+        var insuranceCompany = $('#insuranceCompanyNot').val();
+        var insuranceDate = $('#insuranceDateNot').val();
+        var price = $('#priceNot').val();
+        if (price == "") {
+            price = 0;
+        }
+
+        $.post(r + "/InsuranceManagement/CreateNotInsurance", { contractid: contractid, insuranceInfo: insuranceInfo, insuranceCompany: insuranceCompany, insuranceDate: insuranceDate, price: price, name: name, productid: productid, note: note }, function (data) {
+            if (data.success) {
+                toastr.success('Cập nhật thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $("#gridNot").data("kendoGrid").dataSource.read();                
+                bootbox.hideAll();
+            }
+            else {
+                toastr.error('', data.alert);                
+            }
+        });
+    }
+
+    function changeTab() {
+        $("#gridNot").data("kendoGrid").dataSource.read();
+    }
+</script>

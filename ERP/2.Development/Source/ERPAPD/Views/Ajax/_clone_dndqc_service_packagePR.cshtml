@@ -1,0 +1,210 @@
+﻿@{
+    Layout = null;
+    int countPackagePRData = ViewBag.countID;
+    int stt = ViewBag.STT;
+}
+
+<tr data-pkservice="0">
+    <td><input type="checkbox"></td>
+    <td>@stt</td>
+    <td><input class="input-mini bookcode" type="text" value="@ViewBag.Service.c_book_code" placeholder="Mã book"></td>
+    <td>
+        <input class="date-picker input-mini dateUp" type="text" value="@ViewBag.Service.c_ngay_lenString" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" style="width:65px" />
+    </td>
+    <td>
+        <input class="input-value-suggess item-time" type="hidden" value="@ViewBag.Service.c_gio" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-Package-" + countPackagePRData)
+                        .DataTextField("Name")
+                        .Placeholder("Giờ lên")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "item-time-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read => { read.Action("SuggestTime", "CRM_ProposedAdvertisement", new { PKList = 72 }).Data("onDataPackage"); })
+                              .ServerFiltering(true);
+                        })
+                        .Events(e => { e.Select("onSelectPackageItem"); })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("@Html.Raw(ViewBag.Service.c_gio_name)");
+        </script>
+        @{countPackagePRData++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-web1" type="hidden" value="khampa.vn" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Package-" + countPackagePRData)
+                                .DataTextField("Name")
+                                .Placeholder("Website")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web1-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 })
+                                            .Data("onDataPackage");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectPackageItem");
+                                })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("khampa.vn");
+        </script>
+
+        @{countPackagePRData++;}
+
+    </td>
+    <td>
+        <input class="input-value-suggess item-web2" type="hidden" value="@ViewBag.Service.c_website" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Package-" + countPackagePRData)
+                                .DataTextField("Name")
+                                .Placeholder("Website")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-web2-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 });
+                                        //.Data("onAdditionalDataChannel");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectPackageItem");
+                                })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("@Html.Raw(ViewBag.Service.c_website_name)");
+        </script>
+        @{countPackagePRData++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" value="@ViewBag.Service.c_category" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Package-" + countPackagePRData)
+                                .DataTextField("Name")
+                                .Filter("contains")
+                                .Placeholder("Chuyên mục")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-category-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestCategory", "CRM_ProposedAdvertisement", new { PKList = 22 })
+                                            .Data("onDataPackage");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectPackageItem");
+                                })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("@Html.Raw(ViewBag.Service.c_category_name)");
+        </script>
+        @{countPackagePRData++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" value="@ViewBag.Service.c_location" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Package-" + countPackagePRData)
+                                .DataTextField("Name")
+                                .Placeholder("Vị trí")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-location-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestLocation", "CRM_ProposedAdvertisement")
+                                            .Data("onDataPackage");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectPackageItem");
+                                })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("@Html.Raw(ViewBag.Service.c_location_name)");
+        </script>
+        @{countPackagePRData++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-region" type="hidden" value="@ViewBag.Service.c_vung_mien" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Package-" + countPackagePRData)
+                                .DataTextField("Name")
+                                .Filter("contains")
+                                .Placeholder("Vùng miền")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini item-region-name", @onfocus = "setGlobalPackage(" + countPackagePRData + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestRegion", "CRM_ProposedAdvertisement", new { PKList = 52 })
+                                            .Data("onDataPackage");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectPackageItem");
+                                })
+        )
+        <script>
+                $("#txt-Adv-Package-@countPackagePRData").val("@Html.Raw(ViewBag.Service.c_vung_mien_name)");
+        </script>
+        @{countPackagePRData++;}
+    </td>
+    <td>
+        <input class="input stt" value="@ViewBag.Service.c_so_luong" type="text" style="width:30px" placeholder="TT Bài">
+    </td>
+    <td>
+        <input onchange="changeDiscountPackagePR()" class="input-mini currency moneyBeforeDiscount" value="@ViewBag.Service.c_don_gia.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền chưa CK">
+    </td>
+    <td>
+        <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck1" value="@ViewBag.Service.c_chiet_khau1.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK1">
+    </td>
+    <td>
+        <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck2" value="@ViewBag.Service.c_chiet_khau2.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK2">
+    </td>
+    <td>
+        <input onchange="changeDiscountPackagePR()" style="width:30px" class="input-mini currency ck3" value="@ViewBag.Service.c_chiet_khau3.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK3">
+    </td>
+    <td>
+        <input onchange="SumMoneyServicePackagePR()" value="@ViewBag.Service.c_don_gia_sau_ck.ToString("#,##0")" class="input-small currency moneyAfterDiscount" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đã CK">
+    </td>
+    <td>
+        <input class="input-small currency moneyOrder" value="0" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Lũy kế">
+    </td>
+    <td>
+        <input class="input-small currency moneyLeft" value="@ViewBag.Service.c_tien_tra.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền còn">
+    </td>
+    <td>
+        <input class="input-small packageLable" value="@ViewBag.Service.c_label" type="text" placeholder="Nhãn hàng">
+    </td>
+    <td>
+        <input class="input-small note" value="@ViewBag.Service.c_note" type="text" placeholder="Ghi chú">
+    </td>
+    <td>
+        <button type="button" onclick="minusPackage(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+    </td>
+</tr>

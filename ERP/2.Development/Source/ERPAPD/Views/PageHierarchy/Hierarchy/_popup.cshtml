@@ -1,0 +1,72 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent"></span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (e == 1) { // Send
+                $('#popup-confirm').modal('show');
+                $('#txtcontent').text("Bạn có muốn xóa dữ liệu này ?");
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onChangeStatus() {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $.post(r + "/Hierarchy/Delete", { data: listrowid, BusinessID: curunitid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+            onCloseForm();
+        }
+    }
+    function onCloseForm() {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        $('#checkboxcheckAll').prop('checked', false);
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

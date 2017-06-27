@@ -1,0 +1,786 @@
+﻿@{
+    int STTPayPal = 1;
+    int STTBill = 1;
+    int STTPayPalHistory = 1;
+}
+<div id="listPaymentForm" style="display:none">
+    <select name="PaymentForm" class='select history-paypal-way' style="width:250px;" data-placeholder="Hình thức thanh toán">
+        <option value="">--Hình thức thanh toán--</option>
+        @foreach (var item in ViewBag.listPaymentForm)
+        {
+            <option value="@item.Code">@item.Name</option>
+        }
+    </select>
+</div>
+<div id="listBank" style="display:none">
+    <select name="BankCode" class='select schedule-paypal-bank' style="width:250px;" data-placeholder="Hình thức thanh toán">
+        <option value="">--Ngân hàng--</option>
+        @foreach (var item in ViewBag.listBank)
+        {
+            <option value="@item.Code">@item.Name</option>
+        }
+    </select>
+</div>
+
+<div class="row-fluid">
+    <fieldset>
+        <b class="title-ctr">Phương thức thanh toán</b>
+        <ul style="list-style:none">
+            <li class="title-li">
+                <div class="row-fluid">
+                    @if (ViewBag.itemdraff != null)
+                    {
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    @if (ViewBag.itemdraff.PhuongThucThanhToan == 0)
+                                        {
+                                        <input value="0" name="PhuongThucThanhToan" type="radio" class="ace" checked>
+                                        }
+                                        else
+                                        {
+                                        <input value="0" name="PhuongThucThanhToan" type="radio" class="ace">
+
+                                        }
+                                    <span class="lbl"> Tiền mặt</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    @if (ViewBag.itemdraff.PhuongThucThanhToan == 1)
+                                        {
+                                        <input value="1" name="PhuongThucThanhToan" type="radio" class="ace" checked>
+                                        }
+                                        else
+                                        {
+                                        <input value="1" name="PhuongThucThanhToan" type="radio" class="ace">
+
+                                        }
+                                    <span class="lbl"> Chuyển khoản</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                    else
+                    {
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="0" name="PhuongThucThanhToan" type="radio" class="ace">
+                                    <span class="lbl"> Tiền mặt</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="1" name="PhuongThucThanhToan" type="radio" class="ace" checked>
+                                    <span class="lbl"> Chuyển khoản</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </li>
+        </ul>
+
+    </fieldset>
+    <fieldset>
+        <b class="title-ctr">Lịch thanh toán</b>
+        <div class="row-fluid">
+            <table id="list-schedule-paypal" class="span10 table table-striped table-bordered table-hover">
+                <thead>
+                    <tr align="center">
+                        <th style="width:5%">STT</th>
+                        <th style="width:13%">Ngày TT theo HĐ</th>
+                        <th style="width:15%">Tiền TT theo HĐ</th>
+                        <th style="width:15%">Số tiền dự kiến thu</th>
+                        <th style="width:13%">Ngày dự kiến thu</th>
+                        <th style="width:10%">Trạng thái</th>
+                        <th style="width:30%">Ghi chú</th>
+                        <th style="width:5%"><button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupSchedulePaypal()"><i class="icon-plus"></i></button></th>
+                    </tr>
+                </thead>
+                <tbody class="list">
+                @if (ViewBag.listGetMoneyMonthNext != null && ViewBag.listGetMoneyMonthNext.Count > 0) {
+
+                    foreach (var item in ViewBag.listGetMoneyMonthNext)
+                    {
+                        <tr class="group-schedule-paypal">
+                            <td><input disabled type="number" value="@STTPayPal" /></td>
+                            <td>
+                                <input  class="schedule-pk_gmoney_next" type="hidden" value="@item.pk_gmoney_next" />
+                                <input disabled class="input-small date-picker schedule-paypal-contract-date" type="text" value="@item.c_ngay_tt_theo_hd.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <input disabled onchange="changeMoney()" class="input-small schedule-paypal-money currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.c_tien_tt_theo_hd.ToString("#,##0")" />
+                            </td>
+                            <td>
+                                <input onchange="changeMoney()" class="input-small schedule-paypal-money-soon currency" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.c_tien_du_kien_thu.ToString("#,##0")" />
+                            </td>
+                            <td>
+                                <input onchange="changeMoney()" class="input-small date-picker schedule-paypal-date" type="text" value="@{if (item.c_ngay_du_kien_thu.ToString("dd/MM/yyyy") == "01/01/1900") {@Html.Raw(""); }else {@Html.Raw(item.c_ngay_du_kien_thu.ToString("dd/MM/yyyy"));} }" data-date-format="dd/mm/yyyy" />
+                            </td>
+                            <td>
+                                <select class="schedule-paypal-status">
+                                    <option value=""></option>
+                                    @foreach (var its in ViewBag.listStatusPaypal)
+                                    {
+                                        if (its.Code == item.c_status)
+                                        {
+                                            <option selected="selected" value="@its.Code">@its.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@its.Code">@its.Name</option>
+                                        }
+
+                                    }
+                                </select>
+                            </td>
+                            
+                            <td>
+                                <input class="schedule-paypal-note" type="text" value="@HttpUtility.HtmlDecode(item.c_note)" />
+                            </td>
+                            <td>
+                                <button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupSchedulePaypal(this,'@item.pk_gmoney_next')"><i class="icon-minus"></i></button>
+                            </td>
+                        </tr>
+                        STTPayPal++;
+                    }
+                }
+                
+                </tbody>
+                <tbody>
+                    <tr>
+                        <td colspan="2"><b>Tổng cộng</b></td>
+                        <td>
+                            <span id="schedule-money" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                        <td>
+                            <span id="schedule-money-soon" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                        <td><b>Còn lại</b></td>
+                        <td >
+                            <span id="schedule-money-after-minus" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+    </fieldset>
+    <fieldset>
+        <b class="title-ctr">Lịch sử thanh toán</b>
+        <div class="row-fluid">
+            <table id="list-history-paypal" class="span10 table table-striped table-bordered table-hover">
+                <thead>
+                    <tr align="center">
+                        <th style="width:5%">Lần TT</th>
+                        <th style="width:10%">Số phiếu thu</th>
+                        <th style="width:15%">Ngày thanh toán</th>
+                        <th style="width:15%">Số tiền</th>
+                        <th style="width:30%">Hình thức thanh toán</th>
+                        <th style="width:30%">Ngân hàng</th>
+                        @*<th style="width:5%"><button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupHistoryPaypal()"><i class="icon-plus"></i></button></th>*@
+                    </tr>
+                </thead>
+                <tbody class="list">
+                    @if (ViewBag.listPaymentProgress != null && ViewBag.listPaymentProgress.Count > 0)
+                    {
+
+                        foreach (var item in ViewBag.listPaymentProgress)
+                        {
+                            <tr class="group-history-paypal">
+                               <td>
+                                   <input class="history-paypal-PKPayment" type="hidden" value="@item.PKPayment" />
+                                   <input disabled class="history-paypal-times" type="text" value="@item.Number" />
+                               </td>
+                                <td>
+                                    <input disabled class="history-paypal-receipts" type="text" value="@item.NumberReceipt" />
+                                </td>
+                                <td>
+                                    <input disabled class="history-paypal-date date-picker" type="text" value="@item.PaymentDate.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                                </td>
+                                <td>
+                                    <input disabled onchange="resetHistoryPayment()" class="history-paypal-money currency" type="text" value="@item.Money.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                                </td>
+                                <td>
+                                    <select disabled name="PaymentForm" class='chosen-select history-paypal-way' style="width:250px;" data-placeholder="Hình thức thanh toán">
+                                        <option value="">-- Hình thức thanh toán --</option>
+                                        @foreach (var item2 in ViewBag.listPaymentForm)
+                                        {
+                                            if (item2.Code == @item.PaymentForm)
+                                            {
+                                                <option value="@item2.Code" selected>@item2.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@item2.Code">@item2.Name</option>
+                                            }
+
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <select disabled name="BankCode" id="bankCode" class='chosen-select schedule-paypal-bank' style="width:250px;" data-placeholder="Hình thức thanh toán">
+                                        <option value="">-- Ngân hàng --</option>
+                                        @foreach (var item2 in ViewBag.listBank)
+                                        {
+                                            if (item2.Code == item.BankCode)
+                                            {
+                                                <option value="@item2.Code" selected="">@item2.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@item2.Code">@item2.Name</option>
+                                            }
+
+                                        }
+                                    </select>
+
+                                </td>
+                                @*<td>
+                                    <button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupHistoryPaypal(this, '@item.PKPayment')"><i class="icon-minus"></i></button>
+                                </td>*@
+                            </tr>
+                            STTPayPalHistory++;
+                        }
+                    }
+                </tbody>
+                <tbody>
+                    <tr>
+                        <td colspan="3"><b>Tổng cộng </b></td>
+                        <td>
+                            <span id="sum-payment-real" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                        <td><b> Nợ còn lại</b></td>
+                        <td colspan="2">
+                            <span id="minus-payment-real" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+    </fieldset>
+    <fieldset>
+        <b class="title-ctr">Thông tin xuất hóa đơn</b>
+        <ul style="list-style:none">
+            @if (ViewBag.listTypeContractBill == 0)
+            {
+            <li>
+                <div class="row-fluid">
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="0" name="TypeHoaDon" type="radio" class="ace" checked>
+                                    <span class="lbl"> Công ty</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="1" name="TypeHoaDon" type="radio" class="ace">
+                                    <span class="lbl"> Chi nhánh</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            }
+            else
+            {
+            <li>
+                <div class="row-fluid">
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="0" name="TypeHoaDon" type="radio" class="ace">
+                                    <span class="lbl"> Công ty</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span1">
+                        <div class="control-group">
+                            <div class="controls">
+                                <label>
+                                    <input value="1" name="TypeHoaDon" type="radio" class="ace" checked>
+                                    <span class="lbl"> Chi nhánh</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            }
+
+        </ul>
+
+        <div class="row-fluid">
+            <table id="list-bill" class="span8 table table-striped table-bordered table-hover">
+                <thead>
+                    <tr align="center">
+                        <th style="width:5%">STT</th>
+                        <th style="width:15%">Ngày hóa đơn</th>
+                        <th style="width:15%">Số hóa đơn</th>
+                        <th style="width:15%">Tiền có VAT</th>
+                        <th style="width:15%">Tiền đã thanh toán</th>
+                        <th style="width:15%">Còn nợ theo hóa đơn</th>
+                        <th style="width:20%">Ghi chú</th>
+                        <th style="width:5%">
+                            <button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupBill()"><i class="icon-plus"></i></button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="list">
+                    @if (ViewBag.listContractBill !=null && ViewBag.listContractBill.Count > 0)
+                    {
+
+                        foreach (var item in ViewBag.listContractBill)
+                        {
+                            <tr class="group-bill">
+                                <td>
+                                    <input class="bill-PkBill" type="hidden" value="@item.PkBill" />
+                                    <input class="bill-times" type="text" value="@STTBill" />
+                                </td>
+                                <td>
+                                    <input class="date-picker bill-date" type="text" value="@item.BillDate.ToString("dd/MM/yyyy")" data-date-format="dd/mm/yyyy" />
+                                </td>
+                                <td>
+                                    <input class="bill-code" type="text" value="@item.BillCode" />
+                                </td>
+                                <td>
+                                    <input onchange="resetBill()" class="bill-money currency" type="text" value="@item.Money.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                                </td>
+                                <td>
+                                    <input class="bill-payment" type="text" value="" />
+                                </td>
+                                <td>
+                                    <input class="bill-debt" type="text" value="" />
+                                </td>
+                                <td>
+                                    <input class="bill-note" type="text" value="@item.Note" />
+                                </td>
+                                <td>
+                                    <button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupBill(this, '@item.PkBill')"><i class="icon-minus"></i></button>
+                                </td>
+                            </tr>
+                            STTBill++;
+                        }
+                    }
+                </tbody>
+                <tbody>
+                    <tr>
+                        <td colspan="2"><b>Tổng cộng</b></td>
+                        <td>
+                            <span id="sum-bill-money" style="color:#dd5a43!important;font-weight:bold;">0</span>
+                        </td>
+                        <td colspan="5"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>
+<script>
+    var sumMoneyPaymentHis = 0;
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $('.currency').maskMoney();
+        resetBill();
+    })
+    var STTPayPal = parseInt('@STTPayPal');
+    function plusGroupSchedulePaypal() {
+        $.post(r + "/Ajax/getInputPaypalContract/", { incree: parseInt(STTPayPal) }, function (data) {  
+            STTPayPal++;
+            $('#list-schedule-paypal tbody.list').append(data);
+            addEventAfter();
+        })
+        return;
+    }
+    function minusGroupSchedulePaypal(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        if (pk) {
+            addTaskList("SCHEDULE", pk);
+        }
+        $(e).closest('tr').remove();
+        changeMoney();
+    }
+    var STTPayPalHistory = parseInt('@STTPayPalHistory');
+    function plusGroupHistoryPaypal() {
+        var html = ' <tr class="group-history-paypal">'
+        html += '        <td>'
+        html += '             <input class="history-paypal-PKPayment" type="hidden" value="" />'
+        html += '              <input name="Number" class="history-paypal-times" type="text" value="' + STTPayPalHistory + '" />'
+        html += '        </td>'
+        html += '         <td><input name="NumberReceipt" class="history-paypal-receipts" type="text" value="" /></td>'
+        html += '         <td><input name="PaymentDate" class="history-paypal-date date-picker" type="text" value="" data-date-format="dd/mm/yyyy" /></td>'
+        html += '         <td><input onchange="resetHistoryPayment()" name="Money" class="history-paypal-money currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        html += '         <td><div class="list-payment-form"></div></td>'
+        html += '         <td><div class="list-bank"></div></td>'
+        html += '         <td><button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupHistoryPaypal(this)"><i class="icon-minus"></i></button></td>'
+        STTPayPalHistory++;
+        $('#list-history-paypal tbody.list').append(html);
+        $('#list-history-paypal tbody.list').find('.list-payment-form').html($('#listPaymentForm').html());
+        $('#list-history-paypal tbody.list').find('.list-bank').html($('#listBank').html())
+        $("#list-history-paypal .select").chosen();
+        addEventAfter();
+    }
+    function minusGroupHistoryPaypal(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        if (pk) {
+            addTaskList("PAYMENT", pk);
+        }
+        $(e).closest('tr').remove();
+        resetHistoryPayment();
+    }
+    var STTBill = parseInt('@STTBill');
+    function plusGroupBill() {
+        var html = '  <tr class="group-bill">'
+        html += '    <td>'
+        html += '        <input class="bill-PkBill" type="hidden" value="" />'
+        html += '        <input class="bill-times" type="text" value="' + STTBill + '" />'
+        html += '     </td>'
+        html += '    <td><input class="date-picker bill-date" type="text" value="" data-date-format="dd/mm/yyyy" /></td>'
+        html += '     <td><input type="text" value="" class="bill-code"/></td>'
+        html += '     <td><input onchange="resetBill()" class="bill-money currency" type="text" value="" data-thousands="," data-decimal="." data-precision="0" /></td>'
+        html += '     <td><input type="text" value="" class="bill-payment"/></td>'
+        html += '     <td><input type="text" value="" class="bill-debt"/></td>'
+        html += '     <td><input type="text" value="" class="bill-note"/></td>'
+        html += '     <td><button data-rel="tooltip" data-placement="right" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupBill(this)"><i class="icon-minus"></i></button></td>'
+        html += '    </tr>'
+        STTBill++;
+        $('#list-bill tbody.list').append(html);
+        addEventAfter();
+    }
+    function minusGroupBill(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        if (pk) {
+            addTaskList("BILL", pk);
+        }
+        $(e).closest('tr').remove();
+    }
+    function savePayPall(check) {
+        var arr = [];
+        var loop = true;
+        var sumM = 0;
+        $("#list-schedule-paypal .group-schedule-paypal").each(function (i) {
+            var ob = {};
+            ob.fk_contract = $("#formContract").attr("data-contract");
+            ob.c_note = $(this).find(".schedule-paypal-note").val();
+            ob.pk_gmoney_next = $(this).find(".schedule-pk_gmoney_next").val();
+            ob.c_status = $(this).find(".schedule-paypal-status").val();
+            ob.c_ngay_tt_theo_hd_string = convertDate($(this).find(".schedule-paypal-contract-date").val());
+            ob.c_ngay_du_kien_thu_string = convertDate($(this).find(".schedule-paypal-date").val());
+            if (ob.c_payment_date_string == "") {
+                alertMessage("Chưa nhập ngày thanh toán - Lịch thanh toán !");
+                loop = false;
+                return false;
+            }
+            if (ob.c_ngay_du_kien_thu_string == "") {
+                alertMessage("Chưa nhập ngày dự kiến thu - Lịch thanh toán !");
+                loop = false;
+                return false;
+            }
+            ob.c_tien_tt_theo_hd = currencyToNumber($(this).find(".schedule-paypal-money").val());
+            ob.c_tien_du_kien_thu = currencyToNumber($(this).find(".schedule-paypal-money-soon").val());
+            if (ob.c_tien_du_kien_thu == 0) {
+                alertMessage("Chưa nhập tiền dự kiến thu - Lịch thanh toán !");
+                loop = false;
+                return false;
+            }
+            sumM += ob.c_tien_du_kien_thu;
+            arr[i] = ob;
+        })
+        //sumM = sumM + sumMoneyPaymentHis;
+        if (sumM < moneyAfterVat) {
+            alertMessage("Tiền thanh toán < giá trị hợp đồng !");
+            return false;
+        }
+        if (sumM > moneyAfterVat) {
+            alertMessage("Tiền thanh toán > giá trị hợp đồng !");
+            return false;
+        }
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (check) {
+            return loop;
+        }
+        
+        if (arr.length == 0) {
+            alertMessage("Chưa có lịch thanh toán !");
+            return false;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/PaymentSchedule_Save",
+            type: 'POST',
+            data: { listSchedule: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    loop = false;
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: 'Cập nhật lịch thanh toán lỗi: ' + data.message,
+                        class_name: 'gritter-error'
+                    });
+
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+    function saveHistoryPayPall(check) {
+        var arr = [];
+        var loop = true;
+      
+        $("#list-history-paypal .group-history-paypal").each(function (i) {
+            var ob = {};
+            ob.FKContract = $("#formContract").attr("data-contract");
+            ob.PKPayment = $(this).find(".history-paypal-PKPayment").val();
+            ob.Number = $(this).find(".history-paypal-times").val();
+            ob.NumberReceipt = $(this).find(".history-paypal-receipts").val();
+            ob.PaymentDateString = $(this).find(".history-paypal-date").val();
+            if (ob.PaymentDateString == "" || ob.PaymentDateString == undefined) {
+                alertMessage("Chưa nhập ngày thanh toán - Lịch sử thah toán !");
+                loop = false;
+                return false;
+            }
+            ob.Money = currencyToNumber($(this).find(".history-paypal-money").val());
+            if (ob.Money == 0) {
+                alertMessage("Chưa nhập số tiền - Lịch sử thanh toán !");
+                loop = false;
+                return false;
+            }
+            $(this).find('select').each(function (i) {
+                if ($(this).attr("name") == "PaymentForm") {
+                    ob.PaymentForm = $(this).val();
+                }
+                if ($(this).attr("name") == "BankCode") {
+                    ob.BankCode = $(this).val();
+                }
+            })
+            arr[i] = ob;
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (check) {
+            return loop;
+        }
+        if (arr.length == 0) {
+            return true;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/PaymentHistory_Save",
+            type: 'POST',
+            data: { listPayment: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    alertMessage(data.message);
+                    loop = false;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage("Lỗi Cập nhật !")
+            }
+        });
+        return loop;
+    }
+    function saveBill(check) {
+        var arr = [];
+        var loop = true;
+        var type = $('input[name=TypeHoaDon]:checked', '#formContract').val();
+        if (type == "") {
+            alertMessage("Bạn chưa chọn Loại hóa đơn.");
+            return false;
+        }
+        $("#list-bill .group-bill").each(function (i) {
+            var ob = {};
+            //ob.FKContract = $("#formContract").attr("data-contract");
+            ob.FKContract = $("#formContract").attr("data-contract");
+            ob.Type = type;
+            ob.PkBill = $(this).find(".bill-PkBill").val();
+            ob.BillDateString = $(this).find(".bill-date").val();
+            if (ob.BillDateString == "") {
+                alertMessage("Ngày thanh toán không được để trống !");
+                loop = false;
+                return false;
+            }
+            ob.Money = currencyToNumber($(this).find(".bill-money").val());
+            if (ob.Money == "") {
+                alertMessage("Số tiền thu không được để trống !");
+                loop = false;
+                return false;
+            }
+            ob.BillCode = $(this).find(".bill-code").val();
+            ob.Note = $(this).find(".bill-note").val();
+            arr[i] = ob;
+        })
+        if (!loop) {
+            return false;
+        }
+        //console.log(arr);
+        if (check) {
+            return loop;
+        }
+        if (arr.length == 0) {
+            return true;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/Bill_Save",
+            type: 'POST',
+            data: { listBill: arr },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    alertMessage(data.message);
+                    loop = false;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alertMessage("Lỗi Cập nhật !");
+            }
+        });
+        return loop;
+    }
+    function allSavePayPall(chk) {
+        var rs1 = savePayPall(chk);
+        //var rs2 = saveHistoryPayPall(chk);
+        var rs3 = saveBill(chk);
+        if (rs1 && rs3) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function changeMoney() {
+        //resetHistoryPayment();
+        var sumM = 0;
+        var sumMSoon = 0;
+        var minus = moneyAfterVat;
+        var loop = true;
+        $("#list-schedule-paypal .group-schedule-paypal").each(function (i) {
+            var money = currencyToNumber($(this).find(".schedule-paypal-money").val());
+            var moneySoon = currencyToNumber($(this).find(".schedule-paypal-money-soon").val());
+            var soonDate = $(this).find(".schedule-paypal-date").val();
+            if (moneySoon == 0 || soonDate == "") {
+                loop = false;
+            }
+            if (soonDate != "") {
+                // So sanh truoc 5 ngay;
+                var minusDate = moment(moment().format("DD/MM/YYYY"), "DD/MM/YYYY").add(-5, 'days');
+                var rs1 = compareDate(soonDate, moment(minusDate).format("DD/MM/YYYY")); // >: =1, <:0
+                var rs2 = compareDate(soonDate, moment().format("DD/MM/YYYY")); // >: =1, <:0
+                if (rs1 == 1 && rs2 == 0) {
+                    //den han 
+                    $(this).find(".schedule-paypal-status").val(2);
+                }else if(rs2 == 1){
+                    //chua den han
+                    $(this).find(".schedule-paypal-status").val(3);
+
+                } else {
+                    //qua han
+                    $(this).find(".schedule-paypal-status").val(1);
+
+                }
+            }
+            minus = minus - moneySoon;
+            sumM += money;
+            sumMSoon += moneySoon;
+        })
+        //sumMSoon = sumMSoon + sumMoneyPaymentHis;
+        //minus = minus - sumMoneyPaymentHis;
+        if (moneyAfterVat > 0 && loop) {
+            if (sumM != sumMSoon) {
+                alertMessage("Tiền dự kiến thu chưa bằng tiền TT theo HĐ");
+            }
+            if (sumMSoon < moneyAfterVat) {
+                alertMessage("Tiền dự kiến thu < Giá trị HĐ");
+            }
+            if (sumMSoon > moneyAfterVat) {
+                alertMessage("Tiền dự kiến thu > Giá trị HĐ");
+            }
+        }
+        
+        $("#schedule-money").text(numberToCurrency(sumM));
+        $("#schedule-money-soon").text(numberToCurrency(sumMSoon));
+        $("#schedule-money-after-minus").text(numberToCurrency(minus));
+        return sumM;
+    }
+    function resetHistoryPayment() {
+        var sum = 0;
+        $("#list-history-paypal .group-history-paypal").each(function (i) {
+            var money = currencyToNumber($(this).find(".history-paypal-money").val());
+            sum += money;
+        })
+        sumMoneyPaymentHis = sum;
+        var allMinus = moneyAfterVat - sum;
+        $("#sum-payment-real").text(numberToCurrency(sum));
+        $("#minus-payment-real").text(numberToCurrency(allMinus));
+
+    }
+    function resetBill() {
+        var sum = 0;
+        $("#list-bill .group-bill").each(function (i){
+            var money = currencyToNumber($(this).find(".bill-money").val());
+            sum += money;
+        })
+        $("#sum-bill-money").text(numberToCurrency(sum));
+    }
+    function compareDate(dateTimeA, dateTimeB) {
+        if (dateTimeA == "" || dateTimeB == "") {
+            return false;
+        }
+        var momentA = moment(dateTimeA, "DD/MM/YYYY");
+        var momentB = moment(dateTimeB, "DD/MM/YYYY");
+        if (momentA > momentB) return 1;
+        else if (momentA < momentB) return 0;
+        else return 0;
+    }
+</script>

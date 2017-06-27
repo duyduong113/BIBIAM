@@ -1,0 +1,337 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Company_Contact_List>
+@{
+    //ViewBag.Title = Resources.Multi.ListOfDistrict;
+    ViewBag.Title = "Danh sách thông tin người giới thiệu";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+           
+            <div class="row-fluid">
+                <div id="newlistICareID" style="display: inline-block;">
+                    <input type="text" id="search-infor" name="AliasName" placeholder="" style="width: 335px;" />
+                </div>
+                <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+        .Grid(Model)
+        .Name("Grid")
+
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.ContactID).Hidden();
+            columns.Bound(p => p.ContactID)
+                .HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id='checkboxcheckAll'  onClick='checkAll(this)' />")
+                .ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=ContactID#'  />")
+                .Width(25)
+                .Filterable(false)
+                .Sortable(false);
+            columns.Bound(p => p.FullName)
+                .Width(140)
+                .Title("FullName")
+                .HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+            columns.Bound(p => p.CompanyID).Width(100)
+                .HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" })
+                .Title("Company");
+            columns.Bound(p => p.Birthday)
+                .Width(100)
+                .Title("Birthday")
+                .Format("{0:" + Resources.Multi.DateFormat + "}");
+            columns.Bound(p => p.Mobile)
+                .Width(100)
+                .Title("Mobile");
+            columns.Bound(p => p.Officephone)
+                .Width(100)
+                .Title("Officephone");
+            columns.Bound(p => p.Fax)
+                .Width(100)
+                .Title("Fax");
+            columns.Bound(p => p.Email)
+                .Width(100)
+                .Title("Email");
+            columns.Bound(p => p.Position)
+                .Width(100)
+                .Title("Position");
+            columns.Bound(p => p.Leadby)
+                .Width(100)
+                .Title("Leadby");
+            columns.Bound(p => p.Address)
+                .Width(100)
+                .Title("Address");
+
+        })
+        .ToolBar(toolbar =>
+        {
+            if (AllowUpdate)
+            {
+                toolbar.Template(@<text>
+            <div class="pull-left">
+                @if (AllowCreate)
+                {
+                    <a class="btn btn-small btn-grey" href="javascript:void(0)" id="btnGridAdd">
+                        <i class="icon-plus"></i> @Resources.Multi.Add
+                    </a>
+                }
+                @if (AllowUpdate)
+                {
+                    <a class="btn btn-small btn-success" href="javascript:void(0)" id="btnGridSave">
+                        <i class="icon-ok"></i> @Resources.Multi.GridSave
+                    </a>
+                            <a class="btn btn-small btn-warning" href="javascript:void(0)" id="btnGridCancel">
+                                <i class="icon-remove"></i> @Resources.Multi.GridCancel
+                            </a>
+                }
+                @if (AllowDelete)
+                {
+                    <a class="btn btn-small btn-danger" href="javascript:void(0)" id="btnGridDelete" onclick="DeleteAlias()">
+                        <i class="icon-trash"></i> @Resources.Multi.GridDelete
+                    </a>
+                }
+
+            </div>
+                </text>);
+            }
+        })
+        .Pageable(pager => pager.PageSizes(new[] { 50, 100, 200, 300 }))
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Scrollable(scrollable => scrollable.Virtual(false))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(50)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+    .Model(model =>
+    {
+        model.Id(p => p.ContactID);
+        //model.Field(p => p.CompanyID).Editable(false);
+        //model.Field(p => p.CityID).Editable(false);
+        //model.Field(p => p.RegionID).Editable(false);
+        //model.Field(p => p.CountryID).Editable(false);
+        //model.Field(p => p.RowCreatedTime).Editable(false);
+        //model.Field(p => p.RowCreatedUser).Editable(false);
+        //model.Field(p => p.RowLastUpdatedTime).Editable(false);
+        //model.Field(p => p.RowLastUpdatedUser).Editable(false);
+        //model.Field(p => p.Active).DefaultValue(true);
+    })
+
+    .Read("CompanyContactList_Read", "CompanyContactList")
+    .Create("CompanyContactList_Create", "CompanyContactList")
+    .Update("CompanyContactList_Update", "CompanyContactList")
+    )
+        )
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        resizeGrid();
+    });
+
+    function dataBound(e) {
+
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+        var $exportLink = grid.element.find('.exportClass');
+        var href = $exportLink.attr('href');
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+        $exportLink.attr('href', href);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function DeleteAlias() {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("Bạn có chắc chắn xóa dữ liệu");
+            if (c == true) {
+                $.post(r + "/CompanyContactList/Delete", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $("#Grid").data("kendoGrid").dataSource.read();
+                        $('#checkboxcheckAll').prop('checked', false);
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                        $("#Grid").data("kendoGrid").dataSource.read();
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: '@Resources.Multi.Please @Resources.Multi.Select.ToLower() dữ liệu.',
+                class_name: 'gritter-error'
+            });
+            return false;
+        }
+    }
+
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterWardsInfo = { logic: "or", filters: [] };
+        var filterDistrict = { logic: "or", filters: [] };
+        var filterCity = { logic: "or", filters: [] };
+        var filterRegion = { logic: "or", filters: [] };
+        var filterCountry = { logic: "or", filters: [] };
+
+        
+        var searchInfor = $("#search-infor").val();
+        if (searchInfor) {
+            for (var i = 0; i < searchInfor.split(';').length; i++) {
+                filterWardsInfo.filters.push({ field: "FullName", operator: "contains", value: searchInfor.split(';')[i] });
+            }
+            filter.filters.push(filterWardsInfo);
+        }
+
+        //if (listDistrict.length > 0) {
+        //    for (var i = 0; i < listDistrict.length; i++) {
+        //        var option = listDistrict[i].value;
+        //        filterDistrict.filters.push({ field: "DistrictID", operator: "contains", value: option });
+        //    }
+        //    filter.filters.push(filterDistrict);
+        //}
+        //if (listCity.length > 0) {
+        //    for (var i = 0; i < listCity.length; i++) {
+        //        var option = listCity[i].value;
+        //        filterCity.filters.push({ field: "CityID", operator: "contains", value: option });
+        //    }
+        //    filter.filters.push(filterCity);
+        //}
+        //if (listRegion.length > 0) {
+        //    for (var i = 0; i < listRegion.length; i++) {
+        //        var option = listRegion[i].value;
+        //        filterRegion.filters.push({ field: "RegionID", operator: "contains", value: option });
+        //    }
+        //    filter.filters.push(filterRegion);
+        //}
+        //if (listCountry.length > 0) {
+        //    for (var i = 0; i < listCountry.length; i++) {
+        //        var option = listCountry[i].value;
+        //        filterCountry.filters.push({ field: "CountryID", operator: "contains", value: option });
+        //    }
+        //    filter.filters.push(filterCountry);
+        //}
+
+        grid.dataSource.filter(filter);
+    }
+    $('#search-infor').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+    $('#btnGridAdd').click(function () {
+        $("#Grid").data("kendoGrid").dataSource.insert();
+    })
+
+    $('#btnGridSave').bind('click', function () {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    })
+
+    $('#btnGridCancel').bind('click', function () {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    })
+</script>
+

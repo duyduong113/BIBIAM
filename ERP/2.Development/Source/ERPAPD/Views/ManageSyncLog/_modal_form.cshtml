@@ -1,0 +1,78 @@
+﻿
+<div id="confirm-delete-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p> Bạn chắc chắn đồng bộ dự liệu từ CRM?</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onSync()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    var syncType = '';
+    function showConfirmPopup(type) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (type == 1) {
+                syncType = "Full";
+            }
+            else {
+                syncType = "Incremental";
+            }
+            $('#confirm-delete-pp').modal('show');
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onSync() {
+        var listrowid =""; listrowid2 = "";
+       
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+                listrowid2 += $(this).attr("sp-name") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+            $.post(r + "/ManageSyncLog/SyncData", { listsp_sync1: listrowid, listsp_sync2: listrowid2, syncType: syncType }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: "Đồng bộ dữ liệu thành công",
+                        class_name: 'gritter-success'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    $('#confirm-delete-pp').modal('hide');
+                    $.unblockUI();
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });
+                    $("#Grid").data("kendoGrid").dataSource.read();
+                    $('#checkboxcheckAll').prop('checked', false);
+                    $.unblockUI();
+                }
+            });
+        }
+    }
+</script>

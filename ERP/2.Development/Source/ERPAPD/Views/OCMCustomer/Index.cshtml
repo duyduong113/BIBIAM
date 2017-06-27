@@ -1,0 +1,212 @@
+﻿@{
+    ViewBag.Title = "ERPAPD | Khách hàng OCM";
+}
+<style>
+    .modal {
+        width: 300px;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="SearchCustomer" placeholder="Tên, số đt, email..." style="width:130px" />
+                            <select name="select" id="SurveyStatus" class='chosen-select span2' data-placeholder="Trạng thái survey…" multiple>
+                                <option value="0">Chưa survey</option>
+                                <option value="1">Đã survey</option>
+                            </select>
+                            <input type="text" name="date-range-picker span2" id="LastSurveyDate" placeholder="Lần cuối survey" style="width: 130px;height:20px;" />
+                            <select name="select" id="OrderStatus" class='chosen-select span2' data-placeholder="Tình trạng mua hàng…" multiple>
+                                <option value="0">Chưa có đơn hàng</option>
+                                <option value="1">Đã có đơn hàng</option>
+                            </select>
+                            <input type="text" name="date-range-picker span2" id="LastOrderDate" placeholder="Lần cuối mua hàng" style="width: 130px;height:20px;" />
+                            <input class="span1" type="text" id="SearchProvince" placeholder="Tỉnh thành..." style="width:100px" />
+                            <input class="span1" type="text" id="SearchDistrict" placeholder="Quận huyện..." style="width: 100px; " />
+
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_OCMCustomer>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.CustomerID).Width(60).Title(Resources.Multi.Code);
+        columns.Bound(p => p.FullName).Width(150).Title("Tên KH");
+        columns.Bound(p => p.Gender).Title("Giới tính").Width(80);
+        columns.Bound(p => p.Birthday).Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").Title("Ngày sinh");
+        columns.Bound(p => p.MobilePhone).Width(100).Title(Resources.Multi.Phone);
+        columns.Bound(p => p.Email).Width(150).Title("Email");
+        columns.Bound(p => p.ContactAddress).Width(250).Title("Địa chỉ");
+        columns.Bound(p => p.District).Width(120).Title("Quận/Huyện");
+        columns.Bound(p => p.Province).Width(120).Title("Tỉnh/Thành phố");
+        columns.Bound(p => p.RegisteredDate).Format("{0:" + Resources.Multi.DateFormat + "}").Width(120).Title("Ngày đăng ký");
+        columns.Bound(p => p.FisrtOrderDate).Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title("Đơn hàng đầu tiên");
+        columns.Bound(p => p.LastOrderDate).Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title("Đơn hàng gần nhất");
+        columns.Bound(p => p.OrderNumber).Width(100).Title("Số đơn hàng");
+        columns.Bound(p => p.LastOfSuvey).Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title("Ngày survey");
+        columns.Bound(p => p.SurveyTime).Width(100).Title("Số lần survey");
+    })
+    .ToolBar(tools =>
+    {
+        tools.Excel().Text(Resources.Multi.Export);
+    })
+    .Events(events => { events.DataBound("dataBound"); })
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    .Pageable(p => p.PageSizes(new int[] { 20, 50, 100, 200, 500 }))
+    .Navigatable()
+    .AutoBind(false)
+    .Filterable()
+    .Excel(excel => excel
+    .FileName("OCMCustomer.xlsx")
+    .Filterable(true)
+            .AllPages(true)
+            .ProxyURL(Url.Action("Excel_Export", "OCMCustomer")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+            .Read(read => read.Action("Read", "OCMCustomer"))
+    )
+        )
+    </div>
+</div>
+<script>
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+    $("#OrderStatus").chosen();
+    $("#SurveyStatus").chosen();
+    $('#LastOrderDate').daterangepicker({
+        format: 'YYYY/MM/DD'
+    });
+    $('#LastSurveyDate').daterangepicker({
+        format: 'YYYY/MM/DD'
+    });
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 15);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        resizeGrid();
+        drawcolor();
+    }
+
+    function drawcolor() {
+        var data = $("#grid").data("kendoGrid").dataSource.data();
+        $("td").filter(function () {
+            return $(this).text() === "00:00 01/01/1900";
+        }).html('');
+        $("td").filter(function () {
+            return $(this).text() === "01/01/1900";
+        }).html('');
+    }
+
+    function filter() {
+        grid = $("#grid").data("kendoGrid");
+        var customer = $('#SearchCustomer').val();
+        var province = $("#SearchProvince").val();
+        var district = $("#SearchDistrict").val();
+        var filter = { logic: "and", filters: [] };
+        var filterCustomer = { logic: "or", filters: [] };
+        var filterOrderStatus = { logic: "or", filters: [] };
+        var filterSurveyStatus = { logic: "or", filters: [] };
+        var listOrderStatus = $("#OrderStatus option:selected");
+        var listSurveyStatus = $("#SurveyStatus option:selected");
+        var LastOrderDate = $('#LastOrderDate').val();
+        var LastSurveyDate = $('#LastSurveyDate').val();
+        if (LastOrderDate) {
+            var startdate = LastOrderDate.split('-')[0].trim();
+            var enddate = LastOrderDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "LastOrderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "LastOrderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        if (LastSurveyDate) {
+            var startdate = LastSurveyDate.split('-')[0].trim();
+            var enddate = LastSurveyDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "LastOfSurvey", operator: "gte", value: startdate });
+            filter.filters.push({ field: "LastOfSurvey", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        if (listOrderStatus.length > 0) {
+            for (var i = 0; i < listOrderStatus.length; i++) {
+                var option = listOrderStatus[i].value;
+                if (option == '0') {
+                    filterOrderStatus.filters.push({ field: "OrderNumber", operator: "lt", value: 1 });
+                }
+                else {
+                    filterOrderStatus.filters.push({ field: "OrderNumber", operator: "gt", value: '0' });
+                }
+            }
+            filter.filters.push(filterOrderStatus);
+        }
+        if (listSurveyStatus.length > 0) {
+            for (var i = 0; i < listSurveyStatus.length; i++) {
+                var option = listSurveyStatus[i].value;
+                if (option == '0') {
+                    filterSurveyStatus.filters.push({ field: "SurveyTime", operator: "lt", value: 1 });
+                }
+                else {
+                    filterSurveyStatus.filters.push({ field: "SurveyTime", operator: "gt", value: '0' });
+                }
+            }
+            filter.filters.push(filterSurveyStatus);
+        }
+        if (province) {
+            filter.filters.push({ field: "Province", operator: "contains", value: province });
+        }
+        if (district) {
+            filter.filters.push({ field: "District", operator: "contains", value: district });
+        }
+        if (customer) {
+            filterCustomer.filters.push({ field: "FullName", operator: "contains", value: customer });
+            filterCustomer.filters.push({ field: "Email", operator: "contains", value: customer });
+            filterCustomer.filters.push({ field: "MobilePhone", operator: "contains", value: customer });
+            filter.filters.push(filterCustomer);
+        }
+        grid.dataSource.filter(filter);
+    }
+
+</script>

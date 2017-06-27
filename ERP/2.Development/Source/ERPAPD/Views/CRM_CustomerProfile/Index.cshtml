@@ -1,0 +1,241 @@
+﻿@model IEnumerable<ERPAPD.Models.CRM_Customer_Profile>
+@{
+    ViewBag.Title = "Hồ sơ khách hàng";
+
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listTYPE_QC_PERFORM = ViewBag.listTYPE_QC_PERFORM;
+}
+@Html.Partial("_popup")
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="row-fluid">
+                <input type="text" id="txtSearch" placeholder="Họ tên" style="width: 250px;" />
+                <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none;" onclick="filter()">Tìm kiếm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid(Model)
+                .Name("Grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.CustomerID)
+                    .Width(25).Filterable(false).Sortable(false).Groupable(false)
+                    .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+                    .ClientTemplate("<input style='text-align:center' class='checkvalue' type='checkbox' data-id= '#=ID#' id='#=ID#' />");
+
+                    columns.Bound(p => p.CustomerID)
+                            .Title("Thao tác")
+                            .Width(50)
+                            .ClientTemplate("<a class='btn btn-minier btn-info' style='width: 70px;margin-top: 5px;' href=" + Url.Action("Edit", "CRM_CustomerProfile", new { @CustomerID = "#=CustomerID#" }) + " href='javascript:void(0);' data-id='#=CustomerID#' > Chỉnh sửa</a>");
+
+                    columns.Bound(p => p.CustomerName).Title("Họ tên").Width(150);
+                    columns.Bound(p => p.Address).Title("Địa chỉ").Width(100);
+                    columns.Bound(p => p.Phone).Title("Số điện thoại").Width(50);
+                    columns.Bound(p => p.Website).Title("Website").Width(100);
+                    columns.Bound(p => p.BusinessCategoryID).Title("Loại hình kinh doanh").Width(100);
+                    columns.Bound(p => p.FoundedDate).Title("Thời gian thành lập").Format("{0:dd/MM/yyyy}").Width(100);
+                    //columns.Bound(p => p.AdOnlineChannel).Title("Kênh Online").ClientTemplate("#=FormatText(AdOnlineChannel)#").Width(100);
+                    columns.Bound(p => p.CreatedAt).Title("Ngày tạo").Format("{0:dd/MM/yyyy}").Width(100);
+                    columns.Bound(p => p.CreatedBy).Title("Người tạo").Width(100);
+                    columns.Bound(p => p.UpdatedAt).Title("Ngày cập nhật").Format("{0:dd/MM/yyyy}").Width(100);
+                    columns.Bound(p => p.UpdatedBy).Title("Người cập nhật").Width(100);
+                })
+                .ToolBar(toolbar =>
+                {
+                    toolbar.Template(@<text>
+                        <div class="pull-left">
+                            @if (AllowCreate)
+                            {
+                                <a class="btn btn-small btn-success" href="~/CRM_CustomerProfile/Create" id="btnGridAdd">
+                                    @*<i class="icon-plus"></i>*@ @Resources.Multi.Add
+                                </a>
+                                <a class="btn btn-small btn-danger" id="btnGridDelete" onclick="showConfirmPopup()">
+                                    @*<i class="icon-plus"></i>*@ @Resources.Multi.Delete
+                                </a>
+                            }
+                        </div>
+                    </text>);
+                })
+            .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+            .Sortable()
+            //.Scrollable()
+            .Navigatable()
+            .Reorderable(r => r.Columns(true))
+            .Resizable(r => r.Columns(true))
+            .Events(events => { events.DataBound("dataBound"); })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(50)
+                .Model(model =>
+                {
+                    model.Id(p => p.CustomerID);
+                })
+            .Read(read => read.Action("Read", "CRM_CustomerProfile"))
+                                ))
+</div>
+<div id="popup-delete" class="row" style="margin:0 auto;display:none">
+    <div class="widget-box">
+        <p>Bạn chắc chắn xóa các khách hàng đã được chọn?</p>
+    </div>
+    <div class="form-footer-custom">
+        <div class="pull-right" style="padding-right:15px">
+            <button type="button" class="btn btn-info btn-small " onclick="onDelete()">
+                <i class="icon-ok"></i> Đồng ý
+            </button>
+            <button type="button" class="btn btn-default btn-small" onclick="onCloseForm()">
+                <i class="icon-undo"></i> Đóng lại
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+    })
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterText = { logic: "or", filters: [] };
+        var text = $("#txtSearch").val();
+        if (text) {
+            for (var i = 0; i < text.split(';').length; i++) {
+                filterText.filters.push({ field: "CustomerName", operator: "contains", value: text.split(';')[i] });
+            }
+            filter.filters.push(filterText);
+        }
+        grid.dataSource.filter(filter);
+    }
+    $('#txtSearch').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#Grid').find(".checkvalue").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function dataBound(e) {
+        formatHTML();
+    }
+
+    var dataTypeQC = JSON.parse('@Html.Raw(ViewBag.listTypeQC)');
+    var dataChannelQC = JSON.parse('@Html.Raw(ViewBag.listChannelQC)');
+    var dataTypeQCOL = JSON.parse('@Html.Raw(ViewBag.listTypeQCOL)');
+
+    function replaceValue(value, key) {
+        if (key == 1) {
+            for (var i = 0; i < dataTypeQC.length; i++) {
+                if (dataTypeQC[i].ParamID == value) {
+                    return dataTypeQC[i].Value;
+                }
+            }
+        }
+        if (key == 2) {
+            for (var i = 0; i < dataChannelQC.length; i++) {
+                if (dataChannelQC[i].ParamID == value) {
+                    return dataChannelQC[i].Value;
+                }
+            }
+        }
+        if (key == 3) {
+            for (var i = 0; i < dataTypeQCOL.length; i++) {
+                if (dataTypeQCOL[i].ParamID == value) {
+                    return dataTypeQCOL[i].Value;
+                }
+            }
+        }
+
+        return '';
+    }
+    function formatHTML() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listAdType = jQuery.parseJSON(row.AdType); // Loại hình quảng cáo đã và đang thực hiện
+                if (typeof listAdType == 'object') {
+                    // It is JSON
+                    var AdType = '';
+                    $.each(listAdType, function (index, value) {
+
+                        AdType += '<li>' + replaceValue(value, 1) + '</li>';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(9)').find('ul').append(AdType);
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+        $.each(data, function (i, row) {
+            try {
+
+                var listAdOnlineChannel = jQuery.parseJSON(row.AdOnlineChannel);
+                if (typeof listAdOnlineChannel == 'object') {
+                    // It is JSON
+                    var AdOnlineChannel = '';
+                    $.each(listAdOnlineChannel, function (index, value) {
+                        AdOnlineChannel += '<li>' + replaceValue(value, 2) + '</li>';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(10)').find('ul').append(AdOnlineChannel);
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+        $.each(data, function (i, row) {
+            try {
+                var listAdOnlineType = jQuery.parseJSON(row.AdOnlineType);
+                if (typeof listAdOnlineType == 'object') {
+                    // It is JSON
+                    var AdOnlineType = '';
+                    $.each(listAdOnlineType, function (index, value) {
+
+                        AdOnlineType += '<li>' + replaceValue(value, 3) + '</li>';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(11)').find('ul').append(AdOnlineType);
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+
+    function FormatText(e) {
+        var rs = '';
+        try {
+            var json_list = jQuery.parseJSON(e);
+            if (typeof json_list == 'object') {
+                // It is JSON
+                var beginTag = '<ul>';
+                var li = '';
+                var item = '';
+                $.each(json_list.item, function (index, value) {
+                    $.each(value, function (i, v) {
+                        item += v.name + ' : ' + v.value;
+
+                    })
+                    li += item + '<br />';
+                })
+                var endTag = '</ul>';
+                rs = '<ul>' + li + '</ul>';
+            }
+        } catch (e) {
+            return ""
+            // It not JSON
+        }
+        console.log(rs);
+        return rs;
+    }
+</script>
+

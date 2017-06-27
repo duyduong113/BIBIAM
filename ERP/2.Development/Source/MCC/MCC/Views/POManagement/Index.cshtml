@@ -1,0 +1,1273 @@
+﻿@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._po);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new tw_PO();
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .active-color {
+        color: blue;
+    }
+
+    .inactive-color {
+        color: red;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+
+    .top15 {
+        margin-top: 15px;
+    }
+
+    .change-background {
+        background-color: yellow !important;
+    }
+</style>
+
+<div>
+    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._po_list)</span>
+    <form method="post" id="FilterForm" novalidate="novalidate">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_invoice)</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm max100" id="poNo" name="poNo" placeholder="@Html.Raw(Resources.Global._po_invoice_place)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label>@Html.Raw(Resources.Global._vin_status)</label>
+                @(Html.Kendo().MultiSelect()
+                .Name("statusF")
+                .DataTextField("Name")
+                .DataValueField("Value")
+                .HtmlAttributes(new { @style = "width:100%;" })
+                .Placeholder(Html.Raw(Resources.Global._vin_status).ToString())
+                .AutoBind(false)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeMasterName", "CustomData", new { type = "FordCRMPOStatus" });
+                    })
+                    .ServerFiltering(true);
+                })
+                )
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_production)</label>
+                    <div class="clearfix">
+                        <div class="btn-group btn-group-circle" data-toggle="buttons">
+                            <label class="btn green btn-sm btn-outline active">
+                                <input type="radio" name="carProduction" value="-1" class="toggle" checked> @Html.Raw(Resources.Global._po_cartype_all)
+                            </label>
+                            <label class="btn green btn-sm btn-outline">
+                                <input type="radio" name="carProduction" value="1" class="toggle"> @Html.Raw(Resources.Global._po_cartype_domestic)
+                            </label>
+                            <label class="btn green btn-sm btn-outline">
+                                <input type="radio" name="carProduction" value="0" class="toggle"> @Html.Raw(Resources.Global._po_cartype_internal)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_cartype)</label>
+                    <div class="clearfix">
+                        <div class="btn-group btn-group-circle" data-toggle="buttons">
+                            <label class="btn green btn-sm btn-outline active">
+                                <input type="radio" name="carOld" value="-1" class="toggle" checked> @Html.Raw(Resources.Global._po_cartype_all)
+                            </label>
+                            <label class="btn green btn-sm btn-outline">
+                                <input type="radio" name="carOld" value="1" class="toggle"> @Html.Raw(Resources.Global.po_cartype_secondhand)
+                            </label>
+                            <label class="btn green btn-sm btn-outline">
+                                <input type="radio" name="carOld" value="0" class="toggle"> @Html.Raw(Resources.Global._po_cartype_new)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_orderdate)</label>
+                    <div class="input-group" id="rangeOrder">
+                        <input type="text" class="form-control input-sm" id="orderdateRangeF">
+                        <span class="input-group-btn input-group-sm">
+                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_estdate)</label>
+                    <div class="input-group" id="rangeEst">
+                        <input type="text" class="form-control input-sm" id="estdateRangeF" @*value="@DateTime.Now.AddDays(-60).ToString("yyyy/MM/dd") - @DateTime.Now.ToString("yyyy/MM/dd")"*@>
+                        <span class="input-group-btn input-group-sm">
+                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>@Html.Raw(Resources.Global._po_deliverydate)</label>
+                    <div class="input-group" id="rangeDelivery">
+                        <input type="text" class="form-control input-sm" id="deliverydateRangeF" @*value="@DateTime.Now.AddDays(-60).ToString("yyyy/MM/dd") - @DateTime.Now.ToString("yyyy/MM/dd")"*@>
+                        <span class="input-group-btn input-group-sm">
+                            <button class="btn default btn-sm date-range-toggle" type="button" style="border: 1px solid #c6c7ca; border-left-color: #e1e5ec;">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            @*<div class="col-md-2">
+                    <div class="form-group">
+                        <label>@Html.Raw(Resources.Global._po_invoice)</label>
+                        <div class="input-icon right">
+                            <i class="fa"></i>
+                            <input type="text" class="form-control input-sm max100" id="filterText" name="filterText" placeholder="@Html.Raw(Resources.Global._po_invoice_place)">
+                        </div>
+                    </div>
+                </div>*@
+            <div class="col-md-1" style="margin-top:22px;">
+                <div class="form-actions">
+                    <a onclick="filter()" id="filterbtn" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._vin_search)</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-actions">
+            <a onclick="openCreatePO()" class="btn default btn-sm btn-circle blue">@Html.Raw(Resources.Global._po_add)</a>
+            <a onclick="DeletePO()" class="btn default btn-sm btn-circle red" id="btnDeletePO">@Html.Raw(Resources.Global._po_delete)</a>
+            <a onclick="CancelChanges()" class="btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_skip)</a>
+            <a onclick="UpdatePO()" class="btn blue btn-outline btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_savechange)</a>
+            <a href="@Url.Content("~/POManagement/ExportData?filter=~&sort=~")" class="export btn blue btn-outline btn default btn-sm btn-circle">
+                @Html.Raw(Resources.Global._po_export)
+            </a>
+            <a onclick="openImport()" class="btn blue btn-outline btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_import)</a>
+            <a onclick="UpdateStatusPO()" class="btn blue btn-outline btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_updatestatus)</a>
+            @*<a onclick="" class="btn blue btn-outline btn default btn-sm btn-circle">@Html.Raw(Resources.Global._po_instock)</a>*@
+
+            <div class="btn-group">
+                <a class="btn blue btn-outline btn-circle btn-sm dropdown-toggle" href="javascript:;" data-toggle="dropdown" aria-expanded="false" style="height: 30px;">
+                    @Html.Raw(Resources.Global._actions)
+                    <i class="fa fa-angle-down"></i>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li>
+                        <a href="@Url.Content("~/POManagement/ExportContractReport?filter=~&sort=~")" class="">
+                            <i class="fa fa-file-excel-o"></i> @Html.Raw(Resources.Global._po_reportcontract_t)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Content("~/POManagement/ExportDetailContractReport?filter=~&sort=~")" class="">
+                            <i class="fa fa-file-excel-o"></i> @Html.Raw(Resources.Global._po_reportcontract_detail)
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-4" style="height: 32px; margin-top: -10px;">
+        <p id="summarys" style="font-weight:bold; font-size:15px;"><span id="whosale" style="color: red; margin-right: 40px;"></span><span id="shipped" style="color: green; margin-right: 40px;"></span><span id="stocked" style="color: brown;" onclick="ShowSummaryDetail()"></span></p>
+    </div>
+</div>
+<div class="row" style="margin-top: 10px;">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<MCC.Models.tw_PO>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.id).Locked(true).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='checkboxcheckAll' onClick='checkAll(this)' />").ClientTemplate("#if(statusName != 'Stocked'){#" + "<input style='text-align:center' class='checkrowid' type='checkbox' id='#=id#'/>" + "#}#").Width(30).Filterable(false).Sortable(false);
+                columns.Bound(p => p.carId).Locked(true).Hidden();
+                columns.Template(@<text></text>).Locked(true).ClientTemplate("#if(statusName == 'Shipped'){#" + "<a class='btn blue btn-xs' data-id='#=id#' data-vin='#=VIN#' onclick='showStockInForm(this)'>" + @Html.Raw(Resources.Global._po_stockin) + "</a>" + "#}#").Width(82).Title(@Html.Raw(Resources.Global._cardefinition_title_action).ToString());
+                columns.Bound(p => p.poNumber).Locked(true).Width(120).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._ponumber).ToString());
+                columns.Bound(p => p.carCode).Locked(true).Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title(@Html.Raw(Resources.Global._po_carcode).ToString());
+                columns.Bound(p => p.carName).Locked(true).Width(300).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._po_carname).ToString());
+                columns.Bound(p => p.descriptionCode).Width(140).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title(@Html.Raw(Resources.Global._po_carmodel).ToString());
+                columns.Bound(p => p.carColor).Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Ext Color Code");
+                columns.Bound(p => p.descriptionColor).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Ext Color Description");
+                columns.Bound(p => p.statusName).Width(100).HtmlAttributes(new { style = "" }).Title("Status");
+                columns.Bound(p => p.orderDate).Width(100).Format("{0:dd/MM/yyyy}").Title("Order date").HtmlAttributes(new { style = "background-color: \\#dff0d8;" }).EditorTemplateName("Date");
+                columns.Bound(p => p.shippingDate).Width(120).Format("{0:dd/MM/yyyy}").Title("Shipping date").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).EditorTemplateName("Date");
+                columns.Bound(p => p.invoice).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Invoice");
+                columns.Bound(p => p.paymentDate).Width(120).Format("{0:dd/MM/yyyy}").Title("Payment date").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).EditorTemplateName("Date");
+                columns.Bound(p => p.VIN).Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("VIN");
+                columns.Bound(p => p.engineNo).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Engine No");
+                columns.Bound(p => p.contractNo).Width(150).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title(@Html.Raw(Resources.Global._po_contractnum).ToString());
+                columns.Bound(p => p.prodOfMonth).Width(120).Title("Prod of Month").HtmlAttributes(new { style = "background-color:\\#dff0d8;" });
+                columns.Bound(p => p.dealer).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Dealer");
+                columns.Bound(p => p.goalsOrderNo).Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Goals Order No");
+                columns.Bound(p => p.vehLocation).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Veh Location");
+                columns.Bound(p => p.carDomestic).Width(100).HtmlAttributes(new { style = "" }).Title(@Html.Raw(Resources.Global._po_carinternal).ToString());
+                columns.Bound(p => p.carOld).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title(@Html.Raw(Resources.Global._po_carold).ToString());
+                columns.Bound(p => p.paymentDeadline).Width(140).Format("{0:dd/MM/yyyy}").Title("Payment deadline").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).EditorTemplateName("Date");
+                columns.Bound(p => p.estDeliveryDate).Width(150).Format("{0:dd/MM/yyyy}").Title("Est. Delivery date").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).EditorTemplateName("Date");
+                columns.Bound(p => p.commitment).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Commitment");
+                columns.Bound(p => p.timing).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Timing");
+                columns.Bound(p => p.lot).Width(100).HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("Lot");
+                columns.Bound(p => p.QAOfflineSchedule).Width(200).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("QA.Offline Schedule").EditorTemplateName("Date");
+                columns.Bound(p => p.OK2SOriginal).Width(120).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("OK2S original").EditorTemplateName("Date");
+                columns.Bound(p => p.OK2SUpdate).Width(120).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("OK2S update").EditorTemplateName("Date");
+                columns.Bound(p => p.OK2SActual).Width(120).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "background-color:\\#dff0d8;" }).Title("OK2S actual").EditorTemplateName("Date");
+                columns.Bound(p => p.createdAt).Width(200).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString());
+                columns.Bound(p => p.createdBy).Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString());
+                columns.Bound(p => p.updatedAt).Width(200).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString());
+                columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString());
+            })
+                //.Events(events => { events.DataBound("dataBound"); })
+                                                    .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                                                    .Pageable()
+                                                    .Navigatable()
+                                                    .Scrollable()
+                                                    .HtmlAttributes(new { @style = "min-height:300px;" })
+                                                    .Resizable(resizable => resizable.Columns(true))
+                                                    .Events(events => { events.DataBound("onDatabound"); events.Edit("onEdit"); })
+                                                    .DataSource(dataSource => dataSource
+                                                    .Ajax()
+                                                    .Batch(true)
+                                                    .PageSize(20)
+                                                    .Model(model =>
+                                                    {
+                                                        model.Id(p => p.id);
+                                                        model.Field(p => p.createdAt).Editable(false);
+                                                        model.Field(p => p.createdBy).Editable(false);
+                                                        model.Field(p => p.updatedAt).Editable(false);
+                                                        model.Field(p => p.updatedBy).Editable(false);
+                                                        model.Field(p => p.status).Editable(false);
+                                                        model.Field(p => p.poNumber).Editable(false);
+                                                        model.Field(p => p.carDomestic).Editable(false);
+                                                        model.Field(p => p.id).Editable(false);
+                                                    })
+                                                        //.Edit(function(e) {
+                                                        //    if (e.model.IsLondon) {
+                                                        //        this.closeCell();
+                                                        //    }
+                                                        //}
+                                                    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                    .Read("Read", "POManagement")
+                                                    .Update("Update", "POManagement")
+                                                    )
+        )
+    </div>
+</div>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0; width: 100%; position: absolute;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._po_lower) @Html.Raw(Resources.Global._yet)</div>
+    </div>
+</script>
+
+@*Popup create PO template*@
+<script type="text/x-kendo-template" id="CreatePOTemplate">
+    <form class="form-horizontal" action="@Url.Content("~/POManagement/CreatePO")" id="createPOForm" method="post">
+        @*<input type="hidden" name="customerId" value="#=customerId#" />*@
+        <div class="row">
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._po_pono)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm" name="po" value="@Request["po"]" style= style="height:35px;" placeholder="@Html.Raw(Resources.Global._po_pono_t)">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="checkbox" style="margin-top: 28px; margin-left:20px;">
+                    <input type="checkbox" id="carOld" value="true" name="carOld" onchange="checkTextbox()">@Html.Raw(Resources.Global._po_new_old)
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._po_new_podate)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="orderDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._vin_production)</label>
+                <select style="height:32px; width: 100%" name="production" class="max100">
+                    <option value="-1" selected>Tất cả</option>
+                    <option value="1">Trong nước</option>
+                    <option value="0">Xe nhập</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._car_branchtype)<span class="required"> * </span></label>
+                @(Html.Kendo().DropDownList()
+                                                  .Name("typeId")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel(Html.Raw(Resources.Global._car_branchtype) + "...")
+                                                  .DataTextField("name")
+                                                  .DataValueField("id")
+                        //.Filter("contains")
+                                .Events(e => e.Change("changeType"))
+                                                  .Value(@Request["typeId"])
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("getCarTypeBranch", "CustomData");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                )
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._car_serial)<span class="required"> * </span></label>
+                @(Html.Kendo().DropDownList()
+                                                  .Name("serialId")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                  .OptionLabel(Html.Raw(Resources.Global._car_serial) + "...")
+                                                  .DataTextField("name")
+                                                  .DataValueField("id")
+                        //.Filter("contains")
+                                .Events(e => e.Change("changeSerial"))
+                                                  .Value(@Request["serialId"])
+                                                  .Enable(false)
+                                                  .AutoBind(false)
+                                                  .CascadeFrom("typeId")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("getCarSerial", "CustomData").Data("filtertypeCodeS");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 top15">
+                <label>@Html.Raw(Resources.Global._po_new_carname)<span class="required"> * </span></label>
+                @(Html.Kendo().DropDownList()
+                                                  .Name("carId")
+                                                  .HtmlAttributes(new { style = "width:100%" })
+                                                          .OptionLabel(Html.Raw(Resources.Global._po_new_carname) + "...")
+                                                  .DataTextField("name")
+                                                  .DataValueField("id")
+                        //.Events(e => e.Change("changeCarName"))
+                        //.Filter("contains")
+                                .Events(e => e.Change("changeCar"))
+                                                  .Enable(false)
+                                                  .AutoBind(false)
+                                                  .CascadeFrom("serialId")
+                                                  .DataSource(source =>
+                                                  {
+                                                      source.Read(read =>
+                                                      {
+                                                          read.Action("getCarByTypeAndSerial", "CustomData").Data("filtertypeCode");
+                                                      }).ServerFiltering(true);
+                                                  }).ToClientTemplate()
+
+                )
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._po_number)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm" name="poNumber" value="1" style="height:35px;">
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._po_new_dealer)</label>
+                <select style="height:32px; width: 100%" name="branch" class="max100">
+                    <option value="VD3002|SGP" selected>VD3002 | SGP</option>
+                </select>
+                <input type="hidden" name="dealer" value="VD3002" />
+                <input type="hidden" name="vehLocation" value="SGP" />
+            </div>
+        </div>
+    </form>
+</script>
+
+@*Popup update status template*@
+<script type="text/x-kendo-template" id="UpdateStatusTemplate">
+    <form class="form-horizontal" @*action="@Url.Content("~/POManagement/UpdateStatusPO")"*@ id="updatestatusPOForm" method="post">
+        @*<input type="hidden" name="customerId" value="#=customerId#" />*@
+        <div class="row">
+            <div class="col-md-12">
+                <label>@Html.Raw(Resources.Global._po_update_status)</label>
+                <select style="height:32px; width: 100%" name="status" id="status" class="max100">
+                    <option value="FordCRMPOStatus0002" selected>Shipped</option>
+                    <option value="FordCRMPOStatus0003">OK2S</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/x-kendo-template" id="ImportTemplate">
+    <form id="ImportForm" action="@Url.Content("~/POManagement/ImportFromExcel")" enctype="multipart/form-data" method="post" novalidate="novalidate">
+        <div class="row">
+            <div class="form-group">
+                <label class="control-label col-md-3">@Html.Raw(Resources.Global._select_file)</label>
+                <div class="col-md-3">
+                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                        <div class="input-group input-large">
+                            <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                <span class="fileinput-filename"> </span>
+                            </div>
+                            <span class="input-group-addon btn default btn-file">
+                                <span class="fileinput-new"> @Html.Raw(Resources.Global._select_file) </span>
+                                <span class="fileinput-exists"> @Html.Raw(Resources.Global._change) </span>
+                                <input type="file" id="FileUpload" name="FileUpload">
+                            </span>
+                            <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> @Html.Raw(Resources.Global._remove) </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+@*Popup stock in template*@
+<script type="text/x-kendo-template" id="StockInTemplate">
+    <form class="form-horizontal" action="@Url.Content("~/POManagement/UpdateInventory")" id="stockInForm" method="post">
+        <input type="hidden" name="VIN" value="#=VIN#" />
+        <input type="hidden" name="poNumber" value="#=poNumber#" />
+        <div class="row">
+            @*<div class="col-md-6">
+                    <label>@Html.Raw(Resources.Global._po_pocode)</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm" name="goalsOrderNo" value="#=goalsOrderNo#" style="height:35px;" placeholder="@Html.Raw(Resources.Global._po_typepocode)" disabled>
+                    </div>
+                </div>*@
+            <div class="col-md-6">
+                <label>@Html.Raw(Resources.Global._vin_warehouse)</label>
+                @(Html.Kendo().DropDownList()
+                    .Name("warehouseId")
+                    .HtmlAttributes(new { style = "width:100%" })
+                    .OptionLabel(Html.Raw(Resources.Global._vin_warehouse) + "...")
+                    .DataTextField("Name")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeMaster", "CustomData", new { type = "FordCRMWareHouse" });
+                        });
+                    }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._po_vinno)</label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm" name="VINtemp" style="height:35px;" placeholder="@Html.Raw(Resources.Global._po_vintype)">
+                </div>
+            </div>
+            <div class="col-md-6 top15">
+                <label>@Html.Raw(Resources.Global._mapcontract_inventorydate)</label>
+                <div class="input-group input-medium date date-picker" data-date-format="yyyy/mm/dd" data-date-start-date="+0d" style="width: 100% !important;">
+                    <input type="text" class="form-control" name="inventoryDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span class="input-group-btn">
+                        <button class="btn default" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/x-kendo-template" id="ShowSummaryTemplate">
+    @*<form class="form-horizontal" @*action="@Url.Content("~/POManagement/UpdateStatusPO")"*@ @*id="showSummaryForm" method="post">*@
+    @*<div class="row">
+                <div class="col-md-6">
+                    <label>@Html.Raw(Resources.Global._po_po)</label>
+                    <div class="input-icon right">
+                        <i class="fa"></i>
+                        <input type="text" class="form-control input-sm" name="poNumber" style="height:35px;" placeholder="@Html.Raw(Resources.Global._po_typepocode)" disabled>
+                    </div>
+                </div>
+            </div>
+        </form>*@
+    <div class="row" style="margin-top: 10px;">
+        <div class="col-md-12">
+            @(Html.Kendo().Grid<MCC.Models.tw_PO_Summary>()
+            .Name("summary")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.id).Hidden();
+                columns.Bound(p => p.name).Width(140).Title(@Html.Raw(Resources.Global._po_carname).ToString());
+                columns.Bound(p => p.VIN).Width(100).Title(@Html.Raw(Resources.Global._code_vin).ToString());
+                columns.Bound(p => p.warehouseName).Width(70).Title(@Html.Raw(Resources.Global._po_warehouse).ToString());
+                //columns.Bound(p => p.carColor).Width(120).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title("Ext Color Code");
+                //columns.Bound(p => p.createdAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_createat).ToString());
+                //columns.Bound(p => p.createdBy).Width(100).Title(@Html.Raw(Resources.Global._cardefinition_title_createby).ToString());
+                //columns.Bound(p => p.updatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}").Title(@Html.Raw(Resources.Global._cardefinition_title_updatedat).ToString());
+                //columns.Bound(p => p.updatedBy).Width(120).Title(@Html.Raw(Resources.Global._cardefinition_title_updatedby).ToString());
+            })
+
+                                    .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                                    .Pageable()
+                                    .Navigatable()
+                                    .Scrollable()
+                                    .HtmlAttributes(new { @style = "min-height:100px;" })
+                                    .Resizable(resizable => resizable.Columns(true))
+                    //.Events(events => { events.DataBound("onDatabound"); })
+                                    .DataSource(dataSource => dataSource
+                                    .Ajax()
+                                    .Batch(true)
+                                        //.AutoBind(false)
+                                    .PageSize(10)
+                                    .Model(model =>
+                                    {
+                                        model.Id(p => p.id);
+                                        //model.Field(p => p.createdAt).Editable(false);
+                                        //model.Field(p => p.createdBy).Editable(false);
+                                        //model.Field(p => p.updatedAt).Editable(false);
+                                        //model.Field(p => p.updatedBy).Editable(false);
+                                        //model.Field(p => p.status).Editable(false);
+                                        //model.Field(p => p.id).Editable(false);
+                                    })
+                                            .Read("ReadSummary", "POManagement")
+                    //.Update("Update", "POManagement")
+                                    ).ToClientTemplate()
+            )
+        </div>
+    </div>
+</script>
+
+<script>
+    function UpdatePO() {
+        if ($('#grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#grid').data('kendoGrid').saveChanges();
+        }
+    }
+    var reset = false;
+    var pponum = "";
+    function onDatabound(e) {
+        var holdtype = 0;
+        var holdserial = 0;
+        var holdcar = 0;
+        var ponum = "";
+        resizeGrid();
+        var grid = $("#grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.status == "FordCRMPOStatus0004") {
+                var element = $('tr[data-uid="' + row.uid + '"] td');
+                $(element).css("background", "white");
+            }
+        });
+
+        var listView = this;
+        loadSummary(pponum);
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        if (href) {
+            // Update the 'page' parameter with the listView's current page
+            //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+            // Update the 'sort' parameter with the listView's current sort descriptor
+            href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+            // Update the 'pageSize' parameter with the listView's current pageSize
+            //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+            //update filter descriptor with the filters applied
+
+            href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+            // Update the 'href' attribute
+            $exportLink.attr('href', href);
+        }
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(".k-grid-pager").css("display", "none");
+            $(this.element).find("tbody").html(NoItemsTemplate({}));
+            $(this.element).css("border", "none");
+        } else {
+            $(".k-grid-pager").css("display", "block");
+            $(this.element).css("border", "1px solid #ccc");
+        }
+    }
+
+    function onEdit(e) {
+        if (e.model.status == "FordCRMPOStatus0004") {
+            this.closeCell();
+        }
+    }
+
+    function filtertypeId() {
+        return {
+            typeId: $("#typeId").val()
+        };
+    }
+
+    function openCreatePO() {
+        var CreatePOTemplate = kendo.template($("#CreatePOTemplate").html());
+        bootbox.dialog({
+            closeButton: true,
+            message: CreatePOTemplate(0),
+            title: "@Html.Raw(Resources.Global._po_new_title) ",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                main: { label: "@Html.Raw(Resources.Global._po_new_buttonnew)", className: "btn green btn-circle btn-sm", callback: function () { $("#createPOForm").submit(); return false; } },
+                savenew: { label: "@Html.Raw(Resources.Global._po_new_buttonsave)", className: "btn blue btn-circle btn-sm", callback: function () { saveAndClear(); return false; } }
+            }
+        });
+        $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+        loadValidateCreatePOForm();
+    }
+
+    function saveAndClear() {
+        reset = true;
+        $('#createPOForm').submit();
+    }    
+
+    function UpdateStatusPO() {
+        var UpdateStatusPOTemplate = kendo.template($("#UpdateStatusTemplate").html());
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id")
+            }
+        });
+        if (listrowidd != null && listrowidd != "") {
+            bootbox.dialog({
+                closeButton: true,
+                message: UpdateStatusPOTemplate(0),
+                title: "@Html.Raw(Resources.Global._po_update_title) ",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._po_new_update)", className: "btn green btn-circle btn-sm", callback: function () { UpdateStatusPORow(); return false; } }
+                }
+            });
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function filtertypeCodeS() {
+        return {
+            typeCode: $("#typeId").val()
+        };
+    }
+
+    function filtertypeCode() {
+        return {
+            typeId: $("#typeId").val(),
+            serialId: $("#serialId").val()
+        };
+    }
+
+    $("input[type='checkbox']").on('change', function () {
+        $(this).val(this.checked ? "true" : "false");
+    })
+
+    function checkTextbox() {
+        if ($("#carOld").prop("checked") == true) {
+            $("#carOld").attr("checked", true);
+            $("#carOld").val("true");
+        }
+        else {
+            $("#carOld").attr("checked", false);
+            $("#carOld").val("false");
+        }
+    }
+
+
+    function loadValidateCreatePOForm() {
+        //$.post(r + "/POManagement/GetLastPO", {}, function (data) {
+        //    alert("ok");
+        //    if (data.success) {
+        //        var inputpo = $("input[name='po']").val();
+        //        if (inputpo == "") {
+        //            $("input[name='po']").val(data.data.poNumber);
+        //        }
+        //    }
+        //});
+
+        var e = $("#createPOForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    toastr.success('', '@Resources.Global._po_create_successfully');
+                                    var dropdownlist = $("#typeId").data("kendoDropDownList");
+                                    dropdownlist.select(function (data) {
+                                        return data.id == "";
+                                    });
+                                    $("input[name='poNumber']").val(1);
+                                    $("select[name='production']").val("-1");
+                                    var dropdowntype = $("#typeId").data("kendoDropDownList");
+                                    dropdowntype.value(holdtype);
+                                    var dropdownserial = $("#serialId").data("kendoDropDownList");
+                                    dropdownserial.value(holdserial);
+                                    var dropdowncar = $("#carId").data("kendoDropDownList");
+                                    dropdowncar.value(holdcar);
+
+                                    var inputpo = $("input[name='po']").val();
+                                    if (inputpo == "") {
+                                        $("input[name='po']").val(data.data.poNumber);
+                                    }
+                                }
+                                else {
+                                    bootbox.hideAll();
+                                    toastr.success('', '@Resources.Global._po_create_successfully');
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $("#grid").find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function DeletePORow() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        $.post(r + "/POManagement/DeletePO", { data: listrowid, }, function (data) {
+            if (data.success) {
+                toastr.success('Xóa thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+            }
+            else {
+                toastr.error('', data.error)
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+    }
+
+    function DeletePO() {
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id")
+            }
+        });
+        if (listrowid != null && listrowid != "") {
+            bootbox.dialog({
+                message: "@Resources.Global._are_your_sure", title: "Xóa xe",
+                buttons:
+                    {
+                        //success:
+                        //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                        danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { CancelDelete(); } },
+                        main: {
+                            label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                                DeletePORow();
+                            }
+                        }
+                    }
+            })
+        }
+        else {
+            toastr.error('Vui lòng chọn dữ liệu')
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            toastr.success('Cập nhật thành công')
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            toastr.error(message)
+        }
+    }
+
+    function CancelChanges() {
+        $('#grid').data('kendoGrid').cancelChanges();
+    }
+
+    function UpdateStatusPORow() {
+        var listrowidd = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowidd += $(this).attr("id")
+            }
+        });
+
+        var listrowid = "";
+        $("#grid").find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var status = $('#status>option:selected').val();
+
+        $.post(r + "/POManagement/UpdateStatusPO", { data: listrowid, status: status }, function (data) {
+            if (data.success) {
+                toastr.success('Cập nhật thành công')
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#checkboxcheckAll').prop('checked', false);
+                bootbox.hideAll();
+            }
+            else {
+                toastr.error('', data.error)
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+
+    }
+
+    function openImport() {
+        var data = {};
+        var ImportTemplate = kendo.template($("#ImportTemplate").html());
+        bootbox.dialog({
+            closeButton: false,
+            message: ImportTemplate(data), title: "Import PO",
+            buttons:
+                {
+                    danger: {
+                        label: "@Resources.Global._close", className: "btn default btn-circle btn-sm",
+                        callback: function () {
+                        }
+                    },
+                    main: { label: "@Html.Raw(Resources.Global._import)", className: "btn green btn-circle btn-sm", callback: function () { $("#ImportForm").submit(); return false; } }
+                }
+        });
+
+        loadAjaxFormImport();
+    }
+
+    function loadAjaxFormImport() {
+        $("#ImportForm").ajaxForm({
+            beforeSend: function () {
+                toastr.warning("", "Importing data");
+            },
+            uploadProgress: function (event, position, total, percentComplete) {
+            },
+            success: function (data) {
+                $("#grid").data("kendoGrid").dataSource.read();
+                bootbox.hideAll();
+                toastr.success('', 'Import successfully ' + data.total + ' records')
+            },
+            complete: function (xhr) {
+                //toastr.success('', 'Import complete ' + data.total + ' records')
+            }
+        });
+    }
+
+    $("#rangeOrder").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeOrder input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    $("#rangeEst").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeEst input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    $("#rangeDelivery").daterangepicker(
+    {
+        opens: App.isRTL() ? "left" : "right",
+        format: "MM/DD/YYYY",
+        separator: " to ",
+        startDate: moment().subtract("days", 29),
+        endDate: moment(),
+        //minDate: "01/01/2012",
+        //maxDate: "12/31/2018"
+    }, function (t, e) {
+        $("#rangeDelivery input").val(t.format("YYYY/MM/DD") + " - " + e.format("YYYY/MM/DD"))
+    })
+
+    function filter() {
+        grid = $("#grid").data("kendoGrid");     
+
+        var poNo = $("#poNo").val();
+        var statusF = $("#statusF").data("kendoMultiSelect").value();
+        var carOld = $('input[name="carOld"]:checked', '#FilterForm').val();
+        var carProduction = $('input[name="carProduction"]:checked', '#FilterForm').val();
+        var orderdateRangeF = $("#orderdateRangeF").val();
+        var estdateRangeF = $("#estdateRangeF").val();
+        var deliverydateRangeF = $("#deliverydateRangeF").val();
+
+        var filterText = $("#filterText").val();        
+
+        var filter = { logic: "and", filters: [] };
+        var filterpoNo = { logic: "or", filters: [] };
+        var filterStatusF = { logic: "or", filters: [] };
+        var filtercarOld = { logic: "or", filters: [] };
+        var filtercarProduction = { logic: "or", filters: [] };
+        var filterfilterText = { logic: "or", filters: [] };
+
+        if (poNo) {
+            filterpoNo.filters.push({ field: "poNumber", operator: "contains", value: poNo });
+            filterpoNo.filters.push({ field: "invoice", operator: "contains", value: poNo });
+            filter.filters.push(filterpoNo);
+        }        
+
+        if (statusF && statusF.length > 0) {
+            for (var i = 0; i < statusF.length; i++) {
+                var option = statusF[i];
+                filterStatusF.filters.push({ field: "status", operator: "eq", value: option });
+            }
+            filter.filters.push(filterStatusF);
+        }
+
+        if (orderdateRangeF) {
+            var startdate = orderdateRangeF.split('-')[0].trim();
+            var enddate = orderdateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "orderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "orderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (estdateRangeF) {
+            var startdate = estdateRangeF.split('-')[0].trim();
+            var enddate = estdateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "estDeliveryDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "estDeliveryDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (deliverydateRangeF) {
+            var startdate = deliverydateRangeF.split('-')[0].trim();
+            var enddate = deliverydateRangeF.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "shippingDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "shippingDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (carOld == 1) {
+            filtercarOld.filters.push({ field: "carOld", operator: "eq", value: "True" });
+            filter.filters.push(filtercarOld);
+        }
+        else if (carOld == 0) {
+            filtercarOld.filters.push({ field: "carOld", operator: "eq", value: "False" });
+            filter.filters.push(filtercarOld);
+        }
+
+        if (carProduction == 1) {
+            filtercarProduction.filters.push({ field: "carDomestic", operator: "eq", value: "True" });
+            filter.filters.push(filtercarProduction);
+        }
+        else if (carProduction == 0) {
+            filtercarProduction.filters.push({ field: "carDomestic", operator: "eq", value: "False" });
+            filter.filters.push(filtercarProduction);
+        }
+
+        //if (filterText) {
+        //    filterpoNo.filters.push({ field: "goalsOrderNo", operator: "contains", value: filterText });
+        //    filter.filters.push(filterpoNo);
+        //}
+
+        //if (warehouseIdF) {
+        //    filterWarehouseIdF.filters.push({ field: "warehouseId", operator: "contains", value: warehouseIdF });
+        //    filter.filters.push(filterWarehouseIdF);
+        //}
+
+        //if (typeIdF) {
+        //    filterTypeIdF.filters.push({ field: "typeId", operator: "eq", value: typeIdF });
+        //    filter.filters.push(filterTypeIdF);
+        //}
+
+        //if (serialIdF) {
+        //    filterSerialIdF.filters.push({ field: "serialId", operator: "eq", value: serialIdF });
+        //    filter.filters.push(filterSerialIdF);
+        //}
+
+        //var a = $('input[name="carOld"]:checked', '#FilterForm').val();
+        //alert(a);
+
+        grid.dataSource.filter(filter);
+        pponum = poNo;
+        loadSummary(pponum);
+    }
+
+    function showStockInForm(e) {
+        var VIN = $(e).attr("data-vin");
+        $.post(r + "/CustomData/GetVIN", { VIN: VIN }, function (data) {
+            var StockInTemplate = kendo.template($("#StockInTemplate").html());
+            bootbox.dialog({
+                closeButton: true,
+                message: StockInTemplate(data[0]),
+                title: "@Html.Raw(Resources.Global._po_stockin_confirm)" + " VIN : " + "<b>" + data[0].VIN + "</b>",
+                buttons:
+                {
+                    danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: { label: "@Html.Raw(Resources.Global._po_stockin)", className: "btn green btn-circle btn-sm", callback: function () { $("#stockInForm").submit(); return false; } }
+                }
+            });
+            $(".date-picker").datepicker({ rtl: App.isRTL(), orientation: "left", autoclose: !0 });
+            loadValidateStockInForm();
+        });
+    }
+
+    function loadValidateStockInForm() {
+        var e = $("#stockInForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                                bootbox.hideAll();
+                                toastr.success('', '@Resources.Global._po_stockin_successfully');
+                            }
+                            else {
+                                toastr.error('', data.alert)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    $(document).keypress(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filter();
+        }
+    });
+
+    function loadSummary(pponum) {
+
+        $.post(r + "/POManagement/CountSummary", { poNumber: pponum, }, function (data) {
+            if (data.success) {
+                //var whosalenum = "WhoSales : " + data.whosale + " - Shipped : " + data.shipped + " - Stocked : " + data.stocked;
+                var whosalenum = "WhoSales : " + data.whosale;
+                $('span#whosale').text(whosalenum);
+                var shippedtext = "Shipped : " + data.shipped;
+                $('span#shipped').text(shippedtext);
+                var stockedtext = "Stocked : " + data.stocked;
+                $('span#stocked').text(stockedtext);
+            }
+            //else {
+            //    //toastr.error('', data.error)
+            //    //$("#grid").data("kendoGrid").dataSource.read();
+            //}
+        });
+    }
+
+    function ShowSummaryDetail() {
+        var ShowSummaryTemplate = kendo.template($("#ShowSummaryTemplate").html());
+
+        bootbox.dialog({
+            closeButton: true,
+            message: ShowSummaryTemplate(0),
+            title: "@Html.Raw(Resources.Global._po_stockininfo)",
+            buttons:
+            {
+                danger: { label: "@Html.Raw(Resources.Global._close)", className: "btn default btn-circle btn-sm", callback: function () { } }
+            }
+        });
+        $("#summary").data("kendoGrid").dataSource.read();
+    }
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content, .k-grid-content-locked"),
+        otherElements = gridElement.children().not(".k-grid-content, .k-grid-content-locked"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 20);
+    }
+
+    function changeType(e) {
+        holdtype = $("#typeId").val();
+    };
+
+    function changeSerial(e) {
+        holdserial = $("#serialId").val();
+    };
+
+    function changeCar(e) {
+        holdcar = $("#carId").val();
+    };
+</script>

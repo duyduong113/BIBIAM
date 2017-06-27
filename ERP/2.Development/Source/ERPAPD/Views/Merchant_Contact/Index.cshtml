@@ -1,0 +1,249 @@
+﻿@{
+    ViewBag.Title = "Thông tin liên hệ gian hàng";
+
+}
+<script src="~/Scripts/utilitycommon.js"></script>
+<link href="~/Scripts/css/custom.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row-fluid listview-left">
+        <div>
+            <div onclick='edit(this)' class="span4">
+                #if(logo_gian_hang==''){#
+                <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-border-box">
+                #} else {#
+                <img src="@Url.Content("~/Images/logo/")#:ma_gian_hang#.jpg" class=" img-border-box">
+                #}#
+            </div>
+        </div>
+        <div>
+            <div onclick='edit(this)' class="span5">
+                #:ma_gian_hang# - #:ten_gian_hang#<br>
+                #:danh_xung# #:ten_nguoi_lien_he#<br>
+                Email:  #:email#<br>
+                SĐT:  #:so_dien_thoai#<br>
+            </div>
+        </div>
+    </div>
+</script>
+<div class="row-fluid">
+    <div class="span4">
+        <div class="row-fluid">
+            <div class="box-search">
+                <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;">Sản phẩm</h4>
+                <div class="input-search">
+                    <span class="icon-in-search"><i class="fa fa-search"></i></span>
+                    <input class="pull-right" style="border-radius: 25px!important;margin-bottom: 15px!important;" id="txtProdInfoName"
+                           type="text" onkeyup="Search(this)" placeholder="Search...">
+
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_Contact>()
+            .Name("Grid")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Merchant_Contact"));
+                dataSource.PageSize(4);
+
+            })
+             .Events(events => { events.DataBound("dataBound"); })
+            .Pageable()
+            )
+        </div>
+    </div>
+    <div class="span7">
+        @Html.Partial("info")
+    </div>
+</div>
+@Html.Partial("_popup")
+<script>
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $("#danh_xung").chosen();
+        $("#ma_gian_hang").chosen();
+        $("#frm").validate({
+            // Rules for form validation
+            rules: {
+                ten_san_pham: {
+                    required: true
+                },
+                email: {
+                    email: true
+                },
+                so_dien_thoai: {
+                    required: true
+                },
+                chuc_vu: {
+                    required: true
+                },
+                ten_nguoi_lien_he: {
+                    required: true
+                }
+            },
+
+            // Messages for form validation
+            messages: {
+                ten_gian_hang: {
+                    required: "Thông tin bắt buộc"
+                },
+                email: {
+                    email: "Email không hợp lệ"
+                },
+                so_dien_thoai: {
+                    required: "Thông tin bắt buộc"
+                },
+                chuc_vu: {
+                    required: "Thông tin bắt buộc"
+                },
+                ten_nguoi_lien_he: {
+                    required: "Thông tin bắt buộc"
+                }
+            },
+            // Do not change code below
+            errorPlacement: function (error, element) {
+                if (element.is(":hidden")) {
+                    element.next().parent().append(error);
+                }
+                else {
+                    error.insertAfter(element);
+                }
+
+            },
+
+            submitHandler: function (form) {
+                $("#ngay_cap_nhat").val(convertDate($("#ngay_cap_nhat").val()));
+                $("#ngay_tao").val(convertDate($("#ngay_tao").val()));                
+                var formData = new FormData($("#frm")[0]);
+                var url = $("#frm")[0].action;
+                var s = $("#ma_gian_hang option:selected").text()
+                debugger
+                formData.append('ten_gian_hang', $("#ma_gian_hang option:selected").text());
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    mimeType: "multipart/form-data",
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function (data, textStatus, jqXHR) {
+                        var rs = JSON.parse(data);
+
+                        if (rs.success == true) {
+                            var thongbao = '';
+                            if (rs.type == 0) {
+                                thongbao = 'Tạo thành công !'
+                            }
+                            else {
+                                thongbao = 'Cập nhật thành công !'
+                            }
+                            $.gritter.add({
+                                text: thongbao,
+                                class_name: 'gritter-success'
+                            });
+                            Search();
+                            //resetForm();
+                        }
+                        else {
+                            $.gritter.add({
+                                text: 'Lỗi !' + rs.message,
+                                title: data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $.gritter.add({
+                            text: 'Lỗi Cập nhật !',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+        });
+        Search();
+    });
+    function Search(e) {
+        listView = $("#Grid").data("kendoListView");
+        var seachText = $(e).val();
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        if (seachText) {
+            filterDesc.filters.push({ field: "ten_gian_hang", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function Create() {
+        $("#frm")[0].reset();
+        $("#id").val(0);
+        //$("#ma_gian_hang").prop('disabled', false);        
+        //$("#ma_gian_hang").attr('disabled', false);
+    }
+    function Update() {
+        $("#ngay_tao,#ngay_cap_nhat").attr('disabled', false);
+        $("#frm").submit();
+        $("#ngay_tao,#ngay_cap_nhat").attr('disabled', true);
+    }
+    function dataBound(e) {
+        var grid = $("#Grid").data("kendoListView");
+        var gridData = grid.dataSource.view();
+        if (gridData.length > 0) {
+            if (idSelected == 0) {
+                onBindDataToForm(gridData[0]);
+            }
+            else {
+                for (var i = 0; i < gridData.length; i++) {
+                    var currentUid = gridData[i].uid;
+                    if (gridData[i].id == idSelected) {
+                        onBindDataToForm(gridData[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    function onBindDataToForm(dataItem) {
+        $("#frm")[0].reset();
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+        $("#ma_gian_hang").val(dataItem.ma_gian_hang).trigger('chosen:updated');
+        $("#danh_xung").val(dataItem.danh_xung).trigger('chosen:updated');
+        $("#quan_tri_gian_hang").attr('checked', dataItem.quan_tri_gian_hang);
+
+    }
+    var idSelected = 0;
+    function itemSelected(e) {
+        $(".listview-left").removeClass("selected");
+        $(e).closest(".listview-left").addClass("selected");
+    }
+    function edit(obj) {
+        idSelected = 0;
+        var dataItem = $("#Grid").data("kendoListView").dataItem($(obj).closest(".listview-left"));
+        onBindDataToForm(dataItem);
+        itemSelected(obj);
+        idSelected = dataItem.id;       
+    }
+    function cb_change()
+    {        
+        var kt = $("#quan_tri_gian_hang").get(0).checked ? true : false;
+        $("#quan_tri_gian_hang").prop('value', kt);
+        debugger
+    }
+
+</script>

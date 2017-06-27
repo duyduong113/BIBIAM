@@ -1,0 +1,136 @@
+﻿
+    <div class="row-fluid">
+        <div class="span4">
+            <div class="widget-box">
+                <div class="widget-header widget-header-flat widget-header-small">
+                    <h5>
+                        Thông tin gửi duyệt 
+                        @*@if (ViewBag.Action == "Edit")
+                        {
+                            <span style="color:blue;font-weight:bold"> ĐỢT @ViewBag.c_dot_order</span>
+                        }*@
+                    </h5>
+                </div>
+                <div class="widget-body">
+                    <div class="widget-main" style="background-color:#f3e2bc;">
+                        <div class="info-text">
+                            @if (ViewBag.listInfoOrders != null)
+                            {
+                                if (!ViewBag.listInfoOrders.c_ngay_yc.ToString("dd-MM-yyyy").Contains("01-01-1900"))
+                                {
+                                    <p><b>Ngày yêu cầu: </b> <span> @ViewBag.listInfoOrders.c_ngay_yc.ToString("dd-MM-yyyy HH:ss")</span></p>
+                                }
+                                else
+                                {
+                                    <p><b>Ngày yêu cầu: </b> <span></span></p>
+                                }
+                                <p><b>Nội dung:</b> <span>@Html.Raw(ViewBag.listInfoOrders.c_noi_dung_yc.ToString())</span></p>
+                            }
+                        </div>
+                        </div><!--/widget-main-->
+                </div><!--/widget-body-->
+            </div>
+        </div>
+        <div class="span4">
+            <div class="widget-box">
+                <div class="widget-header widget-header-flat widget-header-small">
+                    <h5>
+                        Thông tin kế toán duyệt
+                        @*@if (ViewBag.Action == "Edit")
+                        {
+                            <span style="color:blue;font-weight:bold"> ĐỢT @ViewBag.c_dot_order</span>
+                        }*@
+                    </h5>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main" style="background-color:#fdeded;">
+                        <div class="info-text">
+                            @if (ViewBag.listInfoOrders != null)
+                            {
+                                <p>
+                                    <b>Trạng thái:</b>
+                                    @if(ViewBag.listInfoOrders.c_trang_thai == -100)
+                                    {
+                                        <span>Đang soạn</span>
+                                    }
+                                    else if(ViewBag.listInfoOrders.c_trang_thai == 0)
+                                    {
+                                        <span>Chưa duyệt</span>
+                                    }
+                                    else if(ViewBag.listInfoOrders.c_trang_thai == 1)
+                                    {
+                                        <span> Đã duyệt</span>
+                                    }
+                                    else if(ViewBag.listInfoOrders.c_trang_thai == -1)
+                                    {
+                                        <span>Từ chối</span>
+                                    }
+                                </p>
+
+                                <p><b>Hạn mức đăng banner:</b> <span> @ViewBag.listInfoOrders.c_han_muc_bn.ToString("#,##0")</span></p>
+                                <p><b>Hạn mức đăng gói PR:</b> <span> @ViewBag.listInfoOrders.c_han_muc_goi_pr.ToString("#,##0")</span></p>
+                                <p><b>Hạn mức đăng PR thường:</b> <span> @ViewBag.listInfoOrders.c_han_muc_pr_thuong.ToString("#,##0")</span></p>
+                                <p><b>Hạn mức đăng CMP:</b> <span> @ViewBag.listInfoOrders.c_han_muc_cpm.ToString("#,##0")</span></p>
+                                <p><b>Đăng từ ngày:</b> <span> @if (@ViewBag.listInfoOrders.c_from_date.ToString("dd-MM-yyyy") != "01-01-1900") {@ViewBag.listInfoOrders.c_from_date.ToString("dd-MM-yyyy") }
+                                 </span><b>Đến ngày:</b><span> @if (@ViewBag.listInfoOrders.c_to_date.ToString("dd-MM-yyyy") != "01-01-1900") { @ViewBag.listInfoOrders.c_to_date.ToString("dd-MM-yyyy")} </span></p>
+                                <p><b>Ghi chú:</b> <span> @Html.Raw(ViewBag.listInfoOrders.c_noi_dung_duyet) </span></p>
+                                <p><b>File đính kèm:</b></p>
+                                <div class="row-fluid" style="overflow: hidden;">
+                                    <ul style="list-style:circle">
+                                        @if (ViewBag.listFileDuyet != null && ViewBag.listFileDuyet.Count > 0)
+                                         {
+                                              foreach (var item in ViewBag.listFileDuyet)
+                                                {
+                                                        <li class="files-detail" id="@item.pk_file">
+                                                            <a href="@Url.Action("DownloadFileDuyet","CRM_ProposedAdvertisement",new { fileName = @item.c_file_name})">@item.c_file_name</a>
+                                                            <span onclick="xoafile(@item.pk_file)" style="float:right; color:red; margin-right:20px; cursor:pointer">X</span>
+                                                        </li>
+                                                }
+                                         }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div><!--/widget-main-->
+                </div><!--/widget-body-->
+            </div>
+
+
+        </div>
+        <div class="span4">
+            <div class="widget-box">
+                <div class="widget-header widget-header-flat widget-header-small">
+                    <h5>
+                        Thông tin xác nhận dịch vụ
+                        @*@if (ViewBag.Action == "Edit")
+                        {
+                            <span style="color:blue;font-weight:bold"> ĐỢT @ViewBag.c_dot_order</span>
+                        }*@
+                    </h5>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main" style="background-color:#d2f3b2">
+                        <div class="info-text">
+                            @if (ViewBag.listInfoOrders != null)
+                            {
+                                <p><b>Người xác nhận: </b><span> @Html.Raw(ViewBag.listInfoOrders.c_ten_nguoi_xac_nhan)</span></p>
+                                if (!ViewBag.listInfoOrders.c_ngay_xac_nhan.ToString("dd-MM-yyyy").Contains("01-01-1900"))
+                                {
+                                    <p><b>Ngày xác nhận:</b> <span>@ViewBag.listInfoOrders.c_ngay_xac_nhan.ToString("dd-MM-yyyy HH:ss") </span></p>
+                                }
+                                else
+                                {
+                                    <p><b>Ngày xác nhận:</b> <span></span></p>
+                                }
+                                <p><b>Nội dung xác nhận:</b> <span> @Html.Raw(ViewBag.listInfoOrders.c_noi_dung_xac_nhan.ToString())</span></p>
+                            }
+                        </div>
+                    </div><!--/widget-main-->
+                </div><!--/widget-body-->
+            </div>
+        </div>
+    </div>
+<br />
+

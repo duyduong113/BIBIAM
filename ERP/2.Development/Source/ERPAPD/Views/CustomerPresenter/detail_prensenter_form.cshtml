@@ -1,0 +1,174 @@
+﻿<div id="detail-prensenter-pp" class="modal hide" tabindex="-1">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thêm mới</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <form data-action="" action="@Url.Content("~/CustomerPresenter/CustomerPresenter_Create")" method="post" id="formPopup">
+            <div class="row-fluid">
+                <fieldset class="span6">
+                    <div class="control-group">
+                        <label class="control-label" for="form-field-1">
+                            Họ tên
+                        </label>
+                        <div class="controls">
+                            <input type="hidden" name="Id" id="Id" />
+                            <input id="FirstName" class="span4" name="FirstName" type="text" placeholder="Họ" />
+                            <input id="MiddleName" name="MiddleName" class="span4" type="text" placeholder="Tên đệm" />
+                            <input id="LastName" name="LastName" class="span4" type="text" placeholder="Tên" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="form-field-1">Nhân xưng</label>
+                        <div class="controls">
+                            @Html.DropDownList("Personal", new SelectList(ViewBag.listGender, "ParamID", "Value", 1), "-Chọn-", new { @class = "span12" })
+                            @*<input id="personal" name="personal"  class="span6" type="text" placeholder="Nhân xưng" />*@
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Ngày sinh</label>
+                        <div class="controls">
+                            <select id="DayOfBirth" class="span4" name="DayOfBirth" data-placeholder="Chọn ngày">
+                                <option disabled selected> Ngày</option>
+                                @*@foreach (var item in listDay)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }*@
+                            </select>
+                            <select id="MonthOfBirth" class="span4" name="MonthOfBirth">
+                                <option disabled selected> Tháng</option>
+                                @*@foreach (var item in listMonth)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }*@
+                            </select>
+
+                            <select id="YearOfBirth" name="YearOfBirth" class="span4" data-placeholder="Chọn năm">
+                                <option disabled selected> Năm</option>
+                                @*@foreach (var item in listYear)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }*@
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Điện thoại</label>
+                        <div class="controls">
+                            <input name="Phone" id="Phone" class="span12" type="text" placeholder="Nhập số điện thoại" />
+                        </div>
+                    </div>
+
+                </fieldset>
+                <fieldset class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Email</label>
+                        <div class="controls">
+                            <input class="span12" id="Email" name="Email" type="email" placeholder="Nhập Email" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Chức vụ</label>
+                        <div class="controls">
+                            <input class="span12" type="text" id="Position" name="Position" placeholder="Nhập chức vụ" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Công ty</label>
+                        <div class="controls">
+                            <input class="span12" type="text" id="Company" name="Company" placeholder="Nhập công ty" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="form-field-6">Ghi chú</label>
+                        <div class="controls">
+                            <textarea id="Note" name="Note" class="autosize-transition span12" style="overflow: hidden; word-wrap: break-word; height: 20px;"></textarea>
+                            @*<input class="span8" type="text" id="Note" name="Note" placeholder="Ghi chú" />*@
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="clearfix"></div>
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label" for="form-field-1">
+                            Chọn khách hàng
+                        </label>
+                        <div class="controls">
+                            @(Html.Kendo().AutoComplete()
+                                      .Name("listCustomer")
+                                      .DataTextField("CustomerName")
+                                      .Placeholder("Khách hàng")
+                                      .Filter("startswith")
+                                      .MinLength(1)
+                                      .HtmlAttributes(new { @style = "width: 100%" })
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("getListCustomer", "CustomerPresenter")
+                                                  .Data("onAdditionalData");
+                                          })
+                                          .ServerFiltering(true);
+                                      })
+                                        //.Template("<span id='#: data.CustomerID #'>#: data.CustomerName #</span>")
+                                        .Events(e =>
+                                        {
+                                            e.Select("onSelectCustomer");
+                                        })
+
+                            )
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="form-field-tags">Khách hàng được chọn</label>
+                        <div class="controls">
+                            <div id="list-customer" class="tags span12">
+                                <span class="tag">abc<button type="button" class="close" id="ok">×</button></span>
+                                <span class="tag">sdsadsad<button type="button" class="close">×</button></span>
+                                <span class="tag">ádsadsad<button type="button" class="close">×</button></span>
+                                <span class="tag">đá<button type="button" class="close">×</button></span>
+                                <span class="tag">sdsad<button type="button" class="close">×</button></span>
+                                <span class="tag">abc<button type="button" class="close">×</button></span>
+                                <span class="tag">sdsadsad<button type="button" class="close">×</button></span>
+                                <span class="tag">ádsadsad<button type="button" class="close">×</button></span>
+                                <span class="tag">đá<button type="button" class="close">×</button></span>
+                                <span class="tag">sdsad<button type="button" class="close">×</button></span>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </form>
+        <div class="form-footer-custom">
+            <div class="pull-right" style="padding-right:15px">
+                <button type="button" class="btn btn-info btn-small " onclick="btnSubmit()">
+                    <i class="icon-ok"></i>Lưu
+                </button>
+
+                <button type="button" id="pp-close" class="btn btn-default btn-small" data-dismiss="modal">
+                    @*<i class="icon-undo"></i>*@  Hủy
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<script>
+    function showDetailPresenter(e) {
+        $('#detail-prensenter-pp').modal('show');
+    }
+
+    $('.close').bind('click', function (e) {
+        $(e.currentTarget).parent().remove();
+    })
+
+    function onSelectCustomer(e) {
+        var option = '<span class="tag">A<button type="button" class="close">×</button></span>'
+        $('#list-customer').append(option);
+    }
+    
+</script>

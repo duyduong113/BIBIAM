@@ -1,0 +1,368 @@
+﻿@{
+    ViewBag.Title = "ERPAPD | Asset Management";
+}
+
+@(Html.Kendo()
+                              .Grid<ERPAPD.Models.Assets>()
+                              .Name("grid")
+                              .HtmlAttributes(new { @style = "height:500px" })
+                              .Columns(columns =>
+                              {
+                                  columns.Bound(p => p.Id).Width(80).Filterable(false).Visible(false);
+                                  columns.Bound(p => p.Name).ClientTemplate("#=Name# Controller").Width(120).Title(Resources.Multi.Name);
+                                   columns.Bound(p => p.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat + " HH:mm:ss}").Title(Resources.Multi.CreatedAt).ClientTemplate("#=ConvertTimeZone(CreatedAt," + Constants.TIME_ZONE + ")#");
+                                  columns.Bound(p => p.CreatedBy).Width(100).Title(Resources.Multi.CreatedBy);
+                                  columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}").Title(Resources.Multi.UpdatedAt).ClientTemplate("#if(kendo.toString(UpdatedAt,'dd/MM/yyyy') != '01/01/1900'){#" + "#=ConvertTimeZone(UpdatedAt," + Constants.TIME_ZONE + ")#" + "#}#").HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" });
+                                  columns.Bound(p => p.UpdatedBy).Width(100).Title(Resources.Multi.UpdatedBy);
+                              })
+                                                .ToolBar(tools =>
+                                                {
+                                                    tools.Create().Text(Resources.Multi.Add);
+                                                    tools.Save().CancelText(Resources.Multi.Cancel).SaveText(Resources.Multi.Save);
+                                                    tools.Excel().Text(Resources.Multi.Export);
+                                                })
+                                              .Editable(editable => editable.Mode(GridEditMode.InCell))
+                                              .Pageable()
+                                              .Sortable()
+                                              .Scrollable()
+        //.Groupable()
+                                              .Navigatable()
+                                              .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                                              .Excel(excel => excel
+                                                                   .FileName("AssetsList.xlsx")
+                                                                   .Filterable(true)
+                                                                   .ProxyURL(Url.Action("Excel_Export", "Assets")))
+                                              .Reorderable(r => r.Columns(true))
+                                              .Resizable(r => r.Columns(true))
+                                              .ColumnMenu()
+                                              .ClientDetailTemplateId("template")
+                                              .Events(events => events.DataBound("dataBound"))
+                                              .DataSource(dataSource => dataSource
+                                                                                  .Ajax()
+                                                                                  .Batch(true)
+                                                                                  .PageSize(20)
+                                                                                          .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                                                                                    .Model(model =>
+                                                                                    {
+                                                                                        model.Id(p => p.Id);
+                                                                                        model.Field(p => p.Name).Editable(false);
+                                                                                        model.Field(p => p.Id).Editable(false);
+                                                                                        model.Field(p => p.CreatedAt).Editable(false);
+                                                                                        model.Field(p => p.CreatedBy).Editable(false);
+                                                                                        model.Field(p => p.UpdatedAt).Editable(false);
+                                                                                        model.Field(p => p.UpdatedBy).Editable(false);
+                                                                                    })
+                                                                                  .Create(create => create.Action("Create", "Assets"))
+                                                                                  .Read(read => read.Action("Read", "Assets"))
+                                                                                  .Update(update => update.Action("Update", "Assets"))
+                                                                                  .Destroy("Destroy", "Assets"))
+
+
+)
+
+<script id="template" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+            .Items(items =>
+            {
+                items.Add().Text(Resources.Multi.RoleForGroupUser).Content(@<text>
+                    <form class="form-horizontal in-grid-form">
+                        <div class="control-group">
+                            <label class="control-label">Views</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                      .Name("Views_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeView");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var view = [];
+                                    #if (View != null) {#
+                                    # for (var i = 0; i < View.length; i++) { #
+                                        view.push(#= View[i] #);
+                                    # } #
+                                    #}#
+                                    var multiselect = $("\\#Views_#=Id#").data("kendoMultiSelect");
+                                    multiselect.value(view);
+                                </script>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Create</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                        .Name("Create_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeCreate");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var create = [];
+                        #if (Create != null) {#
+                        # for (var i = 0; i < Create.length; i++) { #
+                            create.push(#= Create[i] #);
+                        # } #
+                        #}#
+                                    var multiselectCreate = $("\\#Create_#=Id#").data("kendoMultiSelect");
+                                    multiselectCreate.value(create);
+                                </script>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Update</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                      .Name("Update_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeUpdate");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var update = [];
+                        #if (Update != null) {#
+                        # for (var i = 0; i < Update.length; i++) { #
+                            update.push(#= Update[i] #);
+                        # } #
+                        #}#
+                                    var multiselectUpdate = $("\\#Update_#=Id#").data("kendoMultiSelect");
+                                    multiselectUpdate.value(update);
+                                </script>
+                               
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Delete</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                      .Name("Delete_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeDelete");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var deletes = [];
+                        #if (Delete != null) {#
+                        # for (var i = 0; i < Delete.length; i++) { #
+                            deletes.push(#= Delete[i] #);
+                        # } #
+                        #}#
+                                    var multiselectDelete = $("\\#Delete_#=Id#").data("kendoMultiSelect");
+                                    multiselectDelete.value(deletes);
+                                </script>
+
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Import</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                      .Name("Import_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeImport");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var imports = [];
+                        #if (Import != null) {#
+                        # for (var i = 0; i < Import.length; i++) { #
+                            imports.push(#= Import[i] #);
+                        # } #
+                        #}#
+                                    var multiselectImport = $("\\#Import_#=Id#").data("kendoMultiSelect");
+                                    multiselectImport.value(imports);
+                                </script>
+
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Export</label>
+                            <div class="controls">
+                                @(Html.Kendo().MultiSelect()
+                      .Name("Export_#=Id#")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .HtmlAttributes(new { @data_id = "#=Id#" })
+                      .Placeholder("Select Groups...")
+                      .Events(e =>
+                    {
+                        e.Change("onChangeExport");
+                    })
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("getListGroup", "Assets");
+                          })
+                          .ServerFiltering(true);
+                      }).ToClientTemplate()
+                                )
+                                <script>
+                                    var exports = [];
+                        #if (Export != null) {#
+                        # for (var i = 0; i < Export.length; i++) { #
+                            exports.push(#= Export[i] #);
+                        # } #
+                        #}#
+                                    var multiselectExport = $("\\#Export_#=Id#").data("kendoMultiSelect");
+                                    multiselectExport.value(exports);
+                                </script>
+
+                            </div>
+                        </div>
+                    </form>
+                   
+                    
+                </text>
+                );
+            })
+                                                                                                       .ToClientTemplate())
+</script>
+<script>
+    function AutoUpdate(data, Id, Action) {
+        $.post(r + "/Assets/" + Action, { AssetID: Id, data: data }, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+            } else {
+                $.gritter.add({
+                    title: '',
+                    text: data.error,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function onChangeView() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateViews");
+    }
+    function onChangeCreate() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateCreates");
+    }
+    function onChangeUpdate() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateUpdates");
+    }
+    function onChangeDelete() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateDeletes");
+    }
+    function onChangeExport() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateExports");
+    }
+    function onChangeImport() {
+        var data = this._values;
+        var Id = this.element.attr('data-id');
+        AutoUpdate(data, Id, "UpdateImports");
+    }
+    function dataBound() {
+        //  this.expandRow(this.tbody.find("tr.k-master-row").first());
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    function onRequestEnd(e) {
+        if (e.type == "update" || e.type == "create" || e.type == "delete") {
+            if (e.response.Errors == null) {
+                $.gritter.add({
+                    title: '',
+                    text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                    class_name: 'gritter-success'
+                });
+            }
+        }
+    }
+</script>

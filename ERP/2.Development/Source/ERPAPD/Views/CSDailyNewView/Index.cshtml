@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "Daily New";
+}
+<style>
+    a:hover {
+        color: red;
+    }
+
+    .title {
+        color: #f37c2b;
+        font: 700 20px arial;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .date {
+        color: #CCCCCC;
+        padding-bottom: 10px;
+    }
+
+    .category_content {
+        border-bottom: 1px solid #DCDCDC;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+
+    .title_news {
+        font: 700 14px arial;
+        color: #f37c2b;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+        .title a:hover, .title_news a:hover {
+            color: blue;
+        }
+
+    .block_image_news width_common {
+        width: 100%;
+        float: left;
+    }
+
+    .thumb {
+        width: 180px;
+        height: 108px;
+        float: left;
+        cursor: pointer;
+        overflow: hidden;
+        padding-right: 10px;
+        text-align: center;
+    }
+
+    .block_image_news .news_lead {
+        float: none;
+        margin: 0;
+        width: auto;
+        font-size: 13px;
+        min-height: 108px;
+        text-align: justify;
+        padding-right: 10px;
+    }
+
+    .thumb img {
+        width: 180px;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    /*div#Grid {
+        border:none;
+    }*/
+</style>
+<div class="row-fluid">
+    <div class="span5">
+        @*<div class="row-fluid">
+                <div class="span12">
+                    @if (@ViewBag.Content.Count > 0)
+                    {
+                        <div class="category_content">
+                            <div class="title">@ViewBag.Content[0].Title</div>
+                            <div class="date">@ViewBag.Content[0].RowCreatedTime.ToString("dd/mm/yyyy")</div>
+                            <div class="description">@ViewBag.Content[0].Description</div>
+                        </div>
+                    }
+                </div>
+            </div>*@
+        @(Html.Kendo().ListView<DecaPay.Models.DC_CS_Daily_New>()
+        .Name("Grid1")
+        .HtmlAttributes(new { @style = "border:none;height:550px;overflow:auto;" })
+        .TagName("div")
+        .ClientTemplateId("template1")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("CSDailyNewView_ReadHot", "CSDailyNewView"));
+            dataSource.PageSize(10);
+        })
+        .Pageable()
+        .Events(events => events.DataBound("dataBound"))
+        )
+    </div>
+    <div class="span7">
+        @(Html.Kendo().ListView<DecaPay.Models.DC_CS_Daily_New>()
+        .Name("Grid")
+        .HtmlAttributes(new { @style = "border:none;height:550px;overflow:auto;" })
+        .TagName("div")
+        .ClientTemplateId("template")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("CSDailyNewView_Read", "CSDailyNewView"));
+            dataSource.PageSize(10);
+        })
+        .Pageable()
+        .Events(events => events.DataBound("dataBound"))
+        )
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="template1">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="category_content">
+                <div class="title" onclick="javascript:MyFunction(#:Id#);">#:Title#</div>
+                <div class="date">Create by: #:RowCreatedUser#  | Create at: #=kendo.toString(RowCreatedTime,'dd/MM/yyyy HH:mm:ss') #</div>
+                <div class="block_image_news width_common">
+                    <div class="thumb">
+                        #if(Thumnail!=""){#
+                        <img src="#=Thumnail#" alt="" onclick="javascript:MyFunction(#=Id#);">
+                        #}
+                        else{#
+                        <img src=@Url.Content("~/Images/deca.png") alt="" onclick="javascript:MyFunction(#=Id#);">
+                        #}#
+                        @*<img src="#:Thumnail#" alt="" onclick="javascript:MyFunction(#:Id#);">*@
+                    </div>
+                    <div class="news_lead">#:Description#</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="category_content">
+                <div class="title_news" onclick="javascript:MyFunction(#:Id#);">#:Title#</div>
+                <div class="date">Create by: #:RowCreatedUser#  | Create at: #=kendo.toString(RowCreatedTime,'dd/MM/yyyy HH:mm:ss') #</div>
+                <div class="block_image_news width_common">
+                    <div class="thumb">
+                        #if(Thumnail!=""){#
+                        <img src="#=Thumnail#" alt="" onclick="javascript:MyFunction(#=Id#);">
+                        #}
+                        else{#
+                        <img src=@Url.Content("~/Images/deca.png") alt="" onclick="javascript:MyFunction(#=Id#);">
+                        #}#
+                        @*<img src="#:Thumnail#" alt="" onclick="javascript:MyFunction(#:Id#);">*@
+                    </div>
+                    <div class="news_lead">#:Description#</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script>
+    function MyFunction(Id) {
+        window.location = '@Url.Action("View", "CSDailyNewView")/' + Id;
+    }
+    function dataBound(e) {
+        resizeGrid();
+    };
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#Grid').offset().top);
+        var gridElement = $("#Grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+
+    $(window).resize(function () {
+        resizeGrid();
+    });
+
+</script>
+
+

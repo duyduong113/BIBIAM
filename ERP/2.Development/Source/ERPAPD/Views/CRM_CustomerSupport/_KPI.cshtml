@@ -1,0 +1,278 @@
+﻿<style>
+/*.sv-info li{
+    list-style-type:none;
+    line-height:30px;
+}*/
+/*img.nav-user-photo{
+    height:100px;
+}*/
+.period, .period-val{
+    position:relative;
+    font-size:0.8em;
+    text-align:right;
+    line-height:10px;
+}
+.period-val{
+    top:30px;
+}
+.progress{
+    margin-bottom:0;
+    height:30px;
+}
+.chart-progress{
+    display:inline-block;
+}
+#GridKPIabc .k-grid-content{
+    height:130px;
+}
+.chart-hide{
+    position:relative;
+    z-index:2;
+}
+.chart-hide .progress{
+    background:none;
+    border-left: dotted 1px green;
+}
+</style>
+@{
+    float actual = 0, act_m1 = 0, act_m2 = 0, act_m3 = 0, act_m4 = 0, act_m5 = 0, act_m6 = 0, act_m7 = 0, act_m8 = 0, act_m9 = 0, act_m10 = 0, act_m11 = 0, act_m12 = 0;
+    float m1 = 0, m2 = 0, m3 = 0, m4 = 0, m5 = 0, m6 = 0, m7 = 0, m8 = 0, m9 = 0, m10 = 0, m11 = 0, m12 = 0;
+    act_m1 = 130000000;
+    act_m2 = 140000000;
+    int period = 0;
+    int current_month = 3;
+
+    act_m3 = 180000000;
+
+    foreach (var item in ViewBag.KPI)
+    {
+        int month = item.Month;
+        switch (month)
+        {
+            case 1:
+                m1 = item.Amount;
+                break;
+            case 2:
+                m2 = item.Amount;
+                break;
+            case 3:
+                m3 = item.Amount;
+                break;
+            case 4:
+                m4 = item.Amount;
+                break;
+            case 5:
+                m5 = item.Amount;
+                break;
+            case 6:
+                m6 = item.Amount;
+                break;
+            case 7:
+                m7 = item.Amount;
+                break;
+            case 8:
+                m8 = item.Amount;
+                break;
+            case 9:
+                m9 = item.Amount;
+                break;
+            case 10:
+                m10 = item.Amount;
+                break;
+            case 11:
+                m11 = item.Amount;
+                break;
+            case 12:
+                m12 = item.Amount;
+                break;
+        }
+
+    }
+    //plan KPI
+    var sum_q1 = m1 + m2 + m3;
+    var sum_q2 = sum_q1 + m4 + m5 + m6;
+    var sum_q3 = sum_q2 + m7 + m8 + m9;
+    var sum_q4 = sum_q3 + m10 + m11 + m12;
+    var per_q1 = ((m1 + m2 + m3)/ sum_q4)*100;
+    var per_q2 = ((m4 + m5 + m6) / sum_q4) * 100;
+    var per_q3 = ((m7 + m8 + m9) / sum_q4) * 100;
+    var per_q4 = ((m10 + m11 + m12) / sum_q4) * 100;
+
+    //actual
+    float surp1 = 0, surp2 = 0, surp3 = 0;
+    actual = act_m1 + act_m2 + act_m3 + act_m4 + act_m5 + act_m6 + act_m7 + act_m8 + act_m9 + act_m10 + act_m11 + act_m12;
+    var per_act_q1 = ((act_m1 + act_m2 + act_m3) / sum_q1) * 100;
+    if(per_act_q1 > 100)
+    {
+        surp1 = (act_m1 + act_m2 + act_m3) - sum_q1;
+    }
+    var per_act_q2 = ((act_m4 + act_m5 + act_m6 + surp1) / sum_q2) * 100;
+    if (per_act_q2 > 100)
+    {
+        surp2 = (act_m4 + act_m5 + act_m6 + surp1) - sum_q2;
+    }
+    var per_act_q3 = ((act_m7 + act_m8 + act_m9 + surp2) / sum_q3) * 100;
+    if (per_act_q3 > 100)
+    {
+        surp3 = (act_m4 + act_m5 + act_m6 + surp2) - sum_q3;
+    }
+    var per_act_q4 = ((act_m10 + act_m11 + act_m12 + surp3) / sum_q4) * 100;
+    var per_actual = actual / sum_q4 * 100;
+    float incpl = 0;
+    if (current_month <= 3)
+    {
+        period = 1;
+        incpl = m1 + m2 + m3 - actual;
+    }
+    else if (current_month <= 6)
+    {
+        period = 2;
+        incpl = sum_q2 - actual;
+    }
+    else if (current_month <= 9)
+    {
+        period = 3;
+        incpl = sum_q3 - actual;
+    }
+    else
+    {
+        period = 4;
+        incpl = sum_q4 - actual;
+    }
+    var per_incpl_period = incpl / sum_q4 * 100;
+    var per_incpl = (current_month * 100 / 12) - per_actual;
+}
+<div style="position:relative" class="row-fluid">
+
+    <div class="span10">
+        <div class="span3">
+            <img class="nav-user-photo" src="/Content/image/upload/23liemnm.jpg" alt="Jason's Photo">
+        </div>
+        <ul class="span8 sv-info">
+            <li><b>Vũ Phương Dung </b><i> Lyn</i></li>
+            <li>Chức vụ: <span>Nhân viên Kinh doanh</span></li>
+            <li>Phòng ban: <span>Kinh doanh</span></li>
+        </ul>
+    </div>
+    <div style="margin:0;margin-bottom:20px" class="span12">
+        <h4>Biểu đồ khảo sát</h4>
+        <div style="width:100%;position:relative;display:inline-flex">
+            <div style="position:relative;z-index:2;top:16px;left:@(current_month*100/12 - 1)%;color:#336B1C">
+                <p>
+                    <u><b>Quí @period</b></u><br />
+                    <span>Đạt: @actual.ToString("#,##0") (@per_actual.ToString("#,##0")%)</span><br />
+                    <span>Thiếu: @incpl.ToString("#,##0") @per_incpl_period.ToString("#,##0")%</span><br />
+                </p>
+                <i style="color:#336B1C" class="icon-arrow-down"></i>
+            </div>
+        </div>
+        <div style="margin:0;width:@per_q1%" class="span3 chart-hide">
+            <div class="period">Q1</div>
+            <div class="progress"></div>
+            <div class="period">@per_q1.ToString("#,##0.00")%</div>
+            <div class="period blue">@sum_q1.ToString("#,##0")</div>
+        </div>
+        <div style="margin:0;width:@per_q2%" class="span3 chart-hide">
+            <div class="period">Q2</div>
+            <div class="progress"></div>
+            <div class="period">@((per_q1 + per_q2).ToString("#,##0.00"))%</div>
+            <div class="period blue">@sum_q2.ToString("#,##0")</div>
+
+        </div>
+        <div style="margin:0;width:@per_q3%" class="span3 chart-hide">
+            <div class="period">Q3</div>
+            <div class="progress"></div>
+            <div class="period">@((per_q1 + per_q2 + per_q3).ToString("#,##0.00"))%</div>
+            <div class="period blue">@sum_q3.ToString("#,##0")</div>
+
+        </div>
+        <div style="margin:0;width:@per_q4%" class="span3 chart-hide">
+            <div class="period">Q4</div>
+            <div class="progress"></div>
+            <div class="period">@((per_q1 + per_q2 + per_q3 + per_q4).ToString("#,##0.00"))%</div>
+            <div class="period blue">@sum_q4.ToString("#,##0")</div>
+        </div>
+        <div style="margin:0;position:relative;bottom:50px;z-index:1;" class="span12">
+            <div class="progress">
+                <div class="bar bar-success progress-success progress-striped" style="width: @per_actual%;"></div>
+                <div class="bar bar-warning" style="width: @per_incpl%;"></div>
+
+            </div>
+        </div>
+    </div>
+    
+    <div class="span10" style="display:inline-flex;margin:0;">
+       
+        <label style="margin-left: 10px">
+            <input name="DateTime" type="radio" value="Month" class="ace" onclick="Filter()" checked>
+            <span class="lbl">Tháng</span>
+        </label>
+
+        <label style="margin-left: 10px">
+            <input name="DateTime" type="radio" value="Period" class="ace" onclick="Filter()">
+            <span class="lbl"> Quý</span>
+        </label>
+        <label style="margin-left: 10px">
+            <input name="DateTime" type="radio" value="Year" class="ace" onclick="Filter()">
+            <span class="lbl"> Năm</span>
+        </label>
+
+    </div>
+</div>
+
+<div class="row-fluid" style="margin-bottom:20px">
+    <div style="margin:0" class="span12">
+     @(Html.Kendo().Grid<ERPAPD.Models.CRM_PlanKPI >()
+    .Name("GridKPIabc")
+    .Columns(columns =>
+    {
+    columns.ForeignKey(p => p.Kpi, (System.Collections.IEnumerable)ViewBag.listKpi, "ParamID", "Value")
+      .Title("Tiêu chí")
+      .Width(50)
+      .HtmlAttributes(new { style = "background-color:rgb(223, 240, 216);color:rgb(70, 136, 71);" });
+    columns.Bound(p => p.Kpi)
+      .Title("Chỉ tiêu")
+        .ClientTemplate("<span>#=kendo.toString(Value, 'n0')#</span>")
+    .Width(80);
+    columns.Bound(p => p.Value)
+    .Title("Thưc đạt")
+        .ClientTemplate("<span>#=kendo.toString(140000000, 'n0')#</span>")
+    .Width(80);
+    columns.Bound(p => p.per_item)
+   .Title("%Đạt")
+   .ClientTemplate(
+        "<div class='progress progress-yellow progress-striped active' data-percent='#=per_item#%' >"
+        + "<div class='bar' style='width:#=per_item#%'></div>"
+        + "</div>"
+            )
+       .Width(100);
+    })
+     .Resizable(r => r.Columns(true))
+     .Scrollable(scrollable => scrollable.Virtual(false))
+     .DataSource(dataSource => dataSource
+     .Ajax()
+     .Batch(true)
+     .PageSize(5)
+     .Model(model =>
+     {
+        model.Id(p => p.Id);
+    })
+     .Read(read => read.Action("KPI_Read", "CRM_CustomerSupport"))
+     ))
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        Filter();
+    })
+    function Filter() {
+        var grid = $('#GridKPIabc').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        var strType = $('input[name=DateTime]:checked').val();
+        if (strType !=null) {
+            filter.filters.push({ field: "Type", operator: "eq", value: strType });
+        }
+        grid.dataSource.filter(filter);
+    }
+</script>

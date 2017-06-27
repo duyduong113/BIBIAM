@@ -1,0 +1,50 @@
+﻿@using BIBIAM.Core
+@using BIBIAM.Core.Entities
+
+<script type="text/x-kendo-template" id="StockOutDetail">
+    
+        @(Html.Kendo().Grid<Merchant_StockOutDetail>()
+                .Name("GridProduct")
+            .Columns(columns =>
+            {
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'><i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                columns.Bound(p => p.ma_san_pham).Width(150).Title("Mã Sản Phẩm");
+                columns.Bound(p => p.ten_san_pham).Width(200).Title("Tên Sản Phẩm");
+                columns.ForeignKey(p => p.don_vi_tinh, (System.Collections.IEnumerable)ViewBag.units, "Value", "Name")
+                        .Title("Đơn vị tính").Width(80).HtmlAttributes(new { @class = "text-center editable" });
+                columns.Bound(p => p.so_luong_yeu_cau).Width(100).Title("Số lượng yêu cầu").Format("{0:n0}");
+                columns.Bound(p => p.stock_available).Width(100).Title("Tồn kho").Format("{0:n0}");
+                columns.Bound(p => p.ghi_chu).Width(150).Title("Ghi chú");
+                columns.Bound(p => p.nguoi_tao).Width(100).Title("Người tạo");
+                columns.Bound(p => p.ngay_tao).Width(100).Title("Ngày tạo").Format("{0:dd/MM/yyyy HH:mm}");
+                columns.Bound(p => p.nguoi_cap_nhat).Width(100).Title("Người cập nhật");
+                columns.Bound(p => p.ngay_cap_nhat).Width(100).Title("Ngày cập nhật").Format("{0:dd/MM/yyyy HH:mm}");
+            })
+                            .Editable(editable => editable.Mode(Kendo.Mvc.UI.GridEditMode.InCell))
+                            .Pageable()
+                            .Navigatable()
+                            .Scrollable()
+                            .Reorderable(reorderable => reorderable.Columns(true))
+                            .Resizable(resize => resize.Columns(true))
+                            .HtmlAttributes(new { @style = "height:500px" })
+                            .Resizable(resizable => resizable.Columns(true))
+                            .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .Batch(true)
+                                .PageSize(20)
+                                .Aggregates(aggregates =>
+                                {
+                                    aggregates.Add(p => p.ma_san_pham).Count();
+                                    aggregates.Add(p => p.stock_available).Sum();
+                                    aggregates.Add(p => p.so_luong_yeu_cau).Sum();
+                                })
+                                .Model(model =>
+                                {
+                                    model.Id(p => p.id);
+                                    model.Field(p => p.don_vi_tinh).DefaultValue("cai");
+                                    model.Field(p => p.stock_available).DefaultValue(1);
+                                })
+                                        .Read(c => c.Action("ReadDetail", "Merchant_StockOut", new { ma_phieu_xuat_kho = "#=ma_phieu_xuat_kho#"}))
+                            ).ToClientTemplate()
+        )
+</script>

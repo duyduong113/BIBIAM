@@ -1,0 +1,41 @@
+﻿@{
+    Layout = null;
+    int counter = ViewBag.countID;
+}
+
+<tr class="link-counter" style="background-color:antiquewhite">
+    <td colspan="5"></td>
+    <td colspan="3">
+        Mã counter:
+        <input class="input-value-suggess item-nature" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Counter-" + counter)
+                                .DataTextField("Name")
+                                .Placeholder("Mã counter")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:70%", @class = "input-mini", @onfocus = "setGlobalCounter(" + counter + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 });
+                                        //.Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    //e.Select("onSelectBannerItem");
+                                })
+        )
+        @{counter++;}
+
+    </td>
+    <td colspan="2"> DỰ KIẾN CPM: <input class="input-small cpm-dk" type="text"></td>
+    <td colspan="3"> CPC: <input class="input-small cpc" type="text"></td>
+    <td colspan="4"></td>
+    <td>
+        <button type="button" onclick="minusLink(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+    </td>
+</tr>

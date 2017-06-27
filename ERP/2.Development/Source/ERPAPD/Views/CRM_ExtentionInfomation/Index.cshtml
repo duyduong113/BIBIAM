@@ -1,0 +1,168 @@
+﻿@{
+    ViewBag.Title = "Index";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+    var listCustomerType = ViewBag.listCustomerType;
+}
+<div style="margin:0" class="span12">
+    @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_ExtsInfo>()
+        .Name("GridExts")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.RowID).Width(100).HeaderTemplate("<input style='text-align:center;opaDistrict:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=RowID#'  />").Width(25);
+        columns.Bound(p => p.Name).Width(100).Title("Tên mở rộng");
+        columns.Bound(p => p.Value).Width(100).Title("Giá trị");
+        columns.Bound(p => p.Object).Width(100).Title("Object");
+        columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.listType, "ParamID", "Value").EditorTemplateName("GridNullableForeignKey").Title("Loại").Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.listStatus, "ParamID", "Value").EditorTemplateName("GridNullableForeignKey").Title("Trạng thái").Width(40).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.RowCreatedUser).Width(90).Title("By");
+    })
+    .ToolBar(toolbar =>
+    {
+    toolbar.Template(@<text>
+        <div class="pull-left">
+            @if (AllowCreate)
+            {
+                <a class="btn btn-mini btn-success" href="javascript:void(0)" id="" onclick="Create()">@Resources.Multi.Add</a>
+                <a class="btn btn-mini btn-primary" href="javascript:void(0)" onclick="Update()">Lưu</a>
+                <a class="btn btn-mini btn-warning" href="javascript:void(0)" onclick="Cancel()">Bỏ qua</a>
+                <a class="btn btn-mini btn-danger" href="javascript:void(0)" onclick="showConfirmPopup(1)">Xóa</a>
+            }
+        </div>
+
+    </text>);
+    })
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+    .Navigatable()
+    .Resizable(r => r.Columns(true))
+    .Events(events => { events.DataBound("dataBound"); })
+    .Editable(e => e.Mode(GridEditMode.InCell))
+    .Events(e => {e.Edit("OnEdit"); })
+    .Scrollable(scrollable => scrollable.Virtual(false))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+    .PageSize(50)
+     .Events(events => {
+         events.Error("error_handler");
+         events.RequestEnd("onRequestEnd");
+     })
+
+    .Model(model =>
+    {
+        model.Id(p => p.RowID);
+        model.Field(p => p.RowID).Editable(false);
+       model.Field(p => p.Name).Editable(true);
+        model.Field(p => p.RowCreatedAt).Editable(false);
+        model.Field(p => p.RowCreatedUser).Editable(false);
+
+    })
+    .Read(read => read.Action("ExtsRead", "CRM_ExtentionInfomation"))
+    .Create(read => read.Action("CreateExts", "CRM_ExtentionInfomation"))
+    .Update(read => read.Action("CreateExts", "CRM_ExtentionInfomation"))
+   ))
+</div>
+@Html.Partial("_popup")
+<script type="text/javascript">
+    function OnEdit(e) {
+        if (e.model.isNew() == false) {
+            $("#Name").attr("readonly", true);
+        }
+    }
+    function Update() {
+        if ($('#GridExts').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#GridExts').data('kendoGrid').saveChanges();
+        }
+    }
+    function Create() {
+        $("#GridExts").data("kendoGrid").dataSource.insert();
+    }
+    function Cancel() {
+        $('#GridExts').data('kendoGrid').cancelChanges();
+    }
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#GridExts').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+    $(document).ready(function () {
+        resizeGrid();
+    });
+
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+       .options.parameterMap({
+           page: grid.dataSource.page(),
+           sort: grid.dataSource.sort(),
+           filter: grid.dataSource.filter()
+       });
+       
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Lỗi :\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    //$("#Grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                title: '',
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: 'Cập nhật dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#GridExts").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                title: '',
+                text: 'Thêm mới dữ liệu thành công',
+                class_name: 'gritter-success'
+            });
+            $("#GridExts").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridExts').offset().top);
+        var gridElement = $("#GridExts");
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    $('.icon-chevron-up').bind('click', function () {
+        setInterval(function () {
+            resizeGrid();
+        }, 500)
+    });
+
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#GridExts').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+</script>

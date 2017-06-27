@@ -1,0 +1,618 @@
+﻿@{
+    ViewBag.Title = "Danh sách công ty";
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+
+}
+<script src="@Url.Content("~/Scripts/underscore.js")"></script>
+<style>
+    .lbTitle {
+        font-size: 11px;
+        color: grey;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm theo mã, tên ngắn gọn, tên công ty…" style="width:250px" />
+                            <select name="select" id="listAssignee" class='chosen-select span2' data-placeholder="Chọn nhân viên kinh doanh phụ trách…" multiple>
+                                @foreach (var a in ViewBag.AssigneeList)
+                                {
+                                    <option value="@a.UserName">@a.UserName</option>
+                                }
+                            </select>
+                            <select name="select" id="listRegion" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn vùng miền…" multiple>
+                                @foreach (var a in ViewBag.Region)
+                                {
+                                    <option value="@a.RegionID">@a.RegionName</option>
+                                }
+                            </select>
+                            <select name="select" id="listCity" class='chosen-select span2' data-placeholder="Chọn tỉnh, thành phố…" multiple>
+                                @foreach (var a in ViewBag.City)
+                                {
+                                    <option value="@a.TerritoryID">@a.TerritoryName</option>
+                                }
+                            </select>
+                            <select name="select" id="listCompanyStatus" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn loại hình công ty…" multiple>
+                                @foreach (var a in ViewBag.CompanyType)
+                                {
+                                    <option value="@a.TypeID">@a.TypeName</option>
+                                }
+                            </select>
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_Company>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).Width(80).Filterable(false).Visible(false);
+        columns.Command(command => command.Custom(Resources.Multi.Detail).HtmlAttributes(new { @class = "btn btn-mini" }).Click("showDetails")).Width(75).Title("");
+        columns.Bound(p => p.CompanyID).Width(100).Title("Mã công ty");
+        columns.Bound(p => p.ShortName).Width(110).Title("Tên ngắn gọn").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.LongName).Width(200).Title("Tên công ty").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.CompanyType, "TypeID", "TypeName").EditorTemplateName("GridNullableForeignKey").Width(110).Title("Loại hình").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Employee).Width(70).Format("{0:N0}").Title("SL NV").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.CompanyStatus, "StageID", "Description").Width(100).Title(Resources.Multi.Status).EditorTemplateName("GridNullableForeignKey").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Owner, (System.Collections.IEnumerable)ViewBag.AssigneeList, "UserName", "UserName").Width(140).EditorTemplateName("GridNullableForeignKey").Title("Phụ trách").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Address).Width(180).Title("Địa chỉ").EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.Region, (System.Collections.IEnumerable)ViewBag.Region, "RegionID", "RegionName").Width(90).Title("Miền").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.City, (System.Collections.IEnumerable)ViewBag.City, "TerritoryID", "TerritoryName").EditorTemplateName("City").Width(120).Title("Tỉnh/Thành phố").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.ForeignKey(p => p.District, (System.Collections.IEnumerable)ViewBag.District, "TerritoryID", "TerritoryName").EditorTemplateName("District").Width(120).Title("Quận/Huyện").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Mobile).Width(100).Title("Điện thoại").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Fax).Width(100).Title("Fax").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Email).Width(100).Title("Email").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Website).Width(100).Title("Website").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Contacter).Width(140).Title("Người liên hệ").EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.DeliveryNote).Width(250).Title("Ghi chú giao hàng").EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Note).Width(250).Title("Ghi chú").EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.Active).Width(100).Title("Kích hoạt").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+        columns.Bound(p => p.CreatedAt).Title(Resources.Multi.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+        columns.Bound(p => p.UpdatedAt).Title(Resources.Multi.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+
+    })
+    .ToolBar(tools =>
+    {
+        tools.Create().Text(Resources.Multi.Add);
+        tools.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel);
+        tools.Excel().Text(Resources.Multi.Export).HtmlAttributes(new { @style = "margin-left:10px" });
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    .Events(events => { events.DataBound("dataBound"); events.Edit("onEditGrid"); })
+    .Navigatable()
+    .Filterable()
+    .Excel(excel => excel
+    .FileName("CompanyList.xlsx")
+    .AllPages(true)
+    .Filterable(true)
+    .ProxyURL(Url.Action("Excel_Export", "Company")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+    .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Active).DefaultValue(true);
+        model.Field(p => p.CompanyID).Editable(false);
+        model.Field(p => p.CreatedAt).Editable(false);
+        model.Field(p => p.CreatedBy).Editable(false);
+        model.Field(p => p.UpdatedAt).Editable(false);
+        model.Field(p => p.UpdatedBy).Editable(false);
+    })
+    .Create(create => create.Action("Create", "Company"))
+    .Read(read => read.Action("Read", "Company"))
+    .Update(update => update.Action("Update", "Company"))
+    .Destroy("Destroy", "Company"))
+        )
+    </div>
+</div>
+<div class="row-fluid">
+    @(Html.Kendo().Window().Name("Details")
+    .Title("Chi tiết công ty")
+    .Visible(false)
+    .Modal(true)
+    .Width(1000)
+    .Draggable(true)
+    )
+</div>
+
+<script type="text/x-kendo-template" id="detailTemplate">
+    <div>
+        <div style="padding: 10px 10px 10px 10px;">
+            <div class="text-info" style="font-size:14px;margin-bottom:5px;">#=ShortName# - #=LongName#  </div>
+            <span class="lbTitle"> Emai: </span><a href="mailto:#=Email#">#=Email #</a>
+            - <span class=" lbTitle"> Điện thoại: </span><span>#=Mobile #</span>
+            - <span class=" lbTitle"> Số nhân viên: </span><span>#=Employee #</span>
+            - <span class=" lbTitle"> Người phụ trách: </span><span>#=Owner #</span>
+        </div>
+        <div style="margin-top:5px">
+            <div class="tabbable">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active">
+                        <a data-toggle="tab" href="\\#branch" id="branchtab">
+                            Chi nhánh
+                        </a>
+                    </li>
+
+                    <li>
+                        <a data-toggle="tab" href="\\#contractor" id="contractortab">
+                            Người liên hệ
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="\\#action" id="actiontab">
+                            Hoạt động
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content" style="height:302px;overflow:hidden;padding:0">
+                    <div id="branch" class="tab-pane in active">
+                        <input type="hidden" name="txtCompanyID" class="txtCompanyID" value="#=CompanyID#" />
+                        @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_Company_Branch>()
+            .Name("gridBranch_#=CompanyID#")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.ID).Width(100).Visible(false);
+                columns.Bound(o => o.BranchID).Title("Mã chi nhánh").Width(110);
+                columns.Bound(o => o.BranchName).Title("Tên chi nhánh").Width(120).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.ForeignKey(p => p.Owner, (System.Collections.IEnumerable)ViewBag.AssigneeList, "UserName", "UserName").Width(140).EditorTemplateName("GridNullableForeignKey").Title("Phụ trách").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(p => p.Address).Width(180).Title("Địa chỉ").EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.ForeignKey(p => p.CityID, (System.Collections.IEnumerable)ViewBag.City, "TerritoryID", "TerritoryName").EditorTemplateName("City").Width(120).Title("Tỉnh/Thành phố").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.ForeignKey(p => p.DistrictID, (System.Collections.IEnumerable)ViewBag.District, "TerritoryID", "TerritoryName").EditorTemplateName("District").Width(120).Title("Quận/Huyện").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Telesale).Width(90).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Note).Title("Ghi chú").Width(130).EditorTemplateName("Textarea").HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(p => p.CreatedAt).Title(Resources.Multi.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}"); ;
+                columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+                columns.Bound(p => p.UpdatedAt).Title(Resources.Multi.UpdatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+                columns.Bound(p => p.UpdatedBy).Title(Resources.Multi.UpdatedBy).Width(100);
+            })
+            .HtmlAttributes(new { @style = "height:300px" })
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            .Navigatable()
+            .ColumnMenu()
+            .Reorderable(r => r.Columns(true))
+            .Resizable(r => r.Columns(true))
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .ToolBar(toolbar =>
+                    {
+
+                        toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                        toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+                    })
+                    .DataSource(dataSource => dataSource
+                                                        .Ajax()
+                        //.Sort(s => s.Add(a => a.FullName))
+                                                        .Batch(true)
+                                                        .PageSize(10)
+                                                        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEndBranch"); })
+                                                        .Model(model =>
+                                                        {
+                                                            model.Id(p => p.ID);
+                                                            model.Field(p => p.ID).Editable(false);
+                                                            model.Field(p => p.BranchID).Editable(false);
+                                                            model.Field(p => p.CreatedAt).Editable(false);
+                                                            model.Field(p => p.CreatedBy).Editable(false);
+                                                            model.Field(p => p.UpdatedAt).Editable(false);
+                                                            model.Field(p => p.UpdatedBy).Editable(false);
+                                                        })
+                                                                .Create(update => update.Action("SaveBranch", "Company", new { CompanyID = "#=Id#" }))
+                                                                .Read(read => read.Action("Branch_Read", "Company", new { CompanyID = "#=Id#" }))
+                                                                .Update(update => update.Action("UpdateBranch", "Company", new { CompanyID = "#=Id#" })))
+            .Pageable(pager => pager
+            .PageSizes(new[] { 6, 10, 20, 100, 200, 300 }))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .ToClientTemplate())
+                    </div>
+                    <div id="contractor" class="tab-pane">
+                        <input type="hidden" name="txtCompanyID" class="txtCompanyID" value="#=CompanyID#" />
+                        @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_Company_Contractor>()
+            .Name("gridContactor_#=CompanyID#")
+            .Columns(columns =>
+            {
+                //columns.Bound(p => p.ID).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAllContactor'  onClick='checkAllContactor(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowidContactor' type='checkbox' id='\\#=ID\\#'  />").Width(25).Filterable(false).Sortable(false);
+                columns.Bound(o => o.ID).Width(100).Visible(false);
+                columns.Bound(o => o.FullName).Title("Tên người liên hệ").Width(140).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Title).Title("Xưng danh").Width(90).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Position).Title("Chức vụ").Width(140).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Phone).Title("Điện thoại").Width(90).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Email).Title("Email").Width(140).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(o => o.Note).Title("Ghi chú").EditorTemplateName("Textarea").Width(140).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+                columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm}").Title(Resources.Multi.UpdatedAt);
+                columns.Bound(p => p.UpdatedBy).Width(100).Title(Resources.Multi.UpdatedBy);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .ToolBar(toolbar =>
+            {
+
+                toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+                toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+
+            })
+            .HtmlAttributes(new { @style = "height:300px" })
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            .Navigatable()
+            .ColumnMenu()
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Sort(s => s.Add(a => a.FullName))
+            .Batch(true)
+            .PageSize(10)
+            .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEndContactor"); })
+            .Model(model =>
+            {
+                model.Id(p => p.ID);
+                model.Field(p => p.ID).Editable(false);
+                model.Field(p => p.CreatedAt).Editable(false);
+                model.Field(p => p.CreatedBy).Editable(false);
+                model.Field(p => p.UpdatedAt).Editable(false);
+                model.Field(p => p.UpdatedBy).Editable(false);
+            })
+            .Create(update => update.Action("SaveContactor", "Company", new { CompanyID = "#=CompanyID#" }))
+            .Read(read => read.Action("ReadContactor", "Company", new { CompanyID = "#=CompanyID#" }))
+            .Update(update => update.Action("UpdateContactor", "Company", new { CompanyID = "#=CompanyID#" }))
+                                                    )
+    .Pageable(pager => pager
+    .PageSizes(new[] { 6, 10, 20, 100, 200, 300 }))
+    .Resizable(resize => resize.Columns(true))
+    .Sortable()
+    .ToClientTemplate())
+                    </div>
+
+                    <div id="action" class="tab-pane">
+                        <input type="hidden" name="txtCompanyID" class="txtCompanyID" value="#=CompanyID#" />
+                        @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_Company_Action>()
+    .Name("gridAction_#=CompanyID#")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.ID).Width(100).Visible(false);
+        columns.Bound(o => o.Action).Title(Resources.Multi.Active).Width(300).HtmlAttributes(new { style = "background-color:rgb(223,240,216); color:rgb(70,136,71)" });
+        columns.Bound(p => p.CreatedAt).Title(Resources.Multi.CreatedAt).Width(120).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+        columns.Bound(p => p.CreatedBy).Title(Resources.Multi.CreatedBy).Width(100);
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .ToolBar(toolbar =>
+    {
+
+        toolbar.Create().Text(Resources.Multi.Add).HtmlAttributes(new { @style = "display:" + (AllowCreate ? "inline-block" : "none") });
+        toolbar.Save().SaveText(Resources.Multi.Save).CancelText(Resources.Multi.Cancel).HtmlAttributes(new { @style = "display:" + (AllowUpdate ? "inline-block" : "none") });
+    })
+    .HtmlAttributes(new { @style = "height:300px" })
+    .Pageable()
+    .Navigatable()
+    .ColumnMenu()
+    .Scrollable()
+    .Pageable(pager => pager
+    .PageSizes(new[] { 6, 10, 20, 100, 200, 300 }))
+    .Resizable(resize => resize.Columns(true))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(10)
+        .Sort(s => s.Add(a => a.CreatedAt).Descending())
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEndAction"); })
+        .Model(model =>
+        {
+
+            model.Id(p => p.ID);
+            model.Field(p => p.ID).Editable(false);
+            model.Field(p => p.CreatedAt).Editable(false);
+            model.Field(p => p.CreatedBy).Editable(false);
+        })
+        .Create(update => update.Action("SaveAction", "Company", new { CompanyID = "#=CompanyID#" }))
+        .Read(read => read.Action("ReadAction", "Company", new { CompanyID = "#=CompanyID#" }))
+        .Update(update => update.Action("UpdateAction", "Company", new { CompanyID = "#=CompanyID#" }))
+        )
+    .ToClientTemplate())
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    var selectedRegion, selectedCity;
+    function onEditGrid(e) {
+        selectedCity = e.model.City;
+        if (e.model.isNew() == false) {
+            $('input[name=ShortName]').parent().html(e.model.ShortName);
+        }
+    }
+    function onChangeCity(e) {
+        var dataItem = this.dataItem(e.item);
+        selectedCity = dataItem.TerritoryID;
+    }
+
+    function filterDistrict() {
+        return {
+            CityID: selectedCity
+        };
+    }
+    $(document).ready(function () {
+        $("#listCompanyStatus").css('witdh', "30%");
+        $("#listCompanyStatus").chosen();
+        $("#listCompanyStatus").val(['']);
+
+        $("#listRegion").css('witdh', "30%");
+        $("#listRegion").chosen();
+        $("#listRegion").val(['']);
+
+        $("#listCity").css('witdh', "30%");
+        $("#listCity").chosen();
+        $("#listCity").val(['']);
+
+        $("#listAssignee").css('witdh', "30%");
+        $("#listAssignee").chosen();
+        $("#listAssignee").val(['']);
+
+    })
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var listCompanyStatus = $("#listCompanyStatus option:selected");
+        var listRegion = $("#listRegion option:selected");
+        var listCity = $('#listCity option:selected');
+        var listAssignee = $('#listAssignee option:selected');
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var fillterCompanyStatus = { logic: "or", filters: [] };
+        var fillterRegion = { logic: "or", filters: [] };
+        var fillterCity = { logic: "or", filters: [] }
+        var fillterAssignee = { logic: "or", filters: [] }
+
+        var filtertext = { logic: "or", filters: [] };
+        if (listCompanyStatus.length > 0) {
+            for (var i = 0; i < listCompanyStatus.length; i++) {
+                var option = listCompanyStatus[i].value;
+                if (option == '') {
+                    fillterCompanyStatus.filters.push({ field: "Type", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCompanyStatus.filters.push({ field: "Type", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCompanyStatus);
+        }
+        if (listRegion.length > 0) {
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == '') {
+                    fillterRegion.filters.push({ field: "Region", operator: "contains", value: '' });
+                }
+                else {
+                    fillterRegion.filters.push({ field: "Region", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterRegion);
+        }
+        if (listCity.length > 0) {
+            for (var i = 0; i < listCity.length; i++) {
+                var option = listCity[i].value;
+                if (option == '') {
+                    fillterCity.filters.push({ field: "City", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCity.filters.push({ field: "City", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCity);
+        }
+        if (listAssignee.length > 0) {
+            for (var i = 0; i < listAssignee.length; i++) {
+                var option = listAssignee[i].value;
+                if (option == '') {
+                    fillterAssignee.filters.push({ field: "Owner", operator: "contains", value: '' });
+                }
+                else {
+                    fillterAssignee.filters.push({ field: "Owner", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterAssignee);
+        }
+        if (text) {
+            filtertext.filters.push({ field: "CompanyID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "ShortName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "LongName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Mobile", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Update @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Create @Resources.Multi.Successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+    function resizeGrid() {
+        //Company Type
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 30);
+    }
+    function dataBound(e) {
+        resizeGrid();
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    // show detail popup
+    var detailsTemplate = kendo.template($("#detailTemplate").html());
+    function showDetails(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var wnd = $("#Details").data("kendoWindow");
+        wnd.content(detailsTemplate(dataItem));
+        wnd.center().open();
+    }
+</script>
+
+<script type="text/javascript">
+    function onRequestEndContactor(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridContactor_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridContactor_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEndBranch(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridBranch_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridBranch_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+    }
+    function onRequestEndAction(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridAction_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '@Resources.Multi.Success',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save@Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+            $("#gridAction_" + $(".txtCompanyID").val()).data("kendoGrid").dataSource.read();
+        }
+    }
+</script>

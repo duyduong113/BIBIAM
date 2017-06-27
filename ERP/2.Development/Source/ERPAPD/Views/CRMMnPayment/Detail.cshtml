@@ -1,0 +1,575 @@
+﻿@{
+    var listAdjustType = new List<Object>();
+    listAdjustType.Add(new { Value = 1, Name = "Điều chỉnh tăng" });
+    listAdjustType.Add(new { Value = 2, Name = "Điều chỉnh giảm" });
+    ViewBag.listAdjustType = listAdjustType;
+}
+<style>
+ 
+    .btn-grid {
+        text-align: center;
+        width: 15px;
+        margin-top: 5px;
+        margin-left: 2px;
+    }
+
+   .hr-number {
+        border-top: solid 1px #e7e7e7;
+        color:#006100;
+        height: 20px;
+        background-color: #C6EFCE;
+        line-height: 20px;
+        text-align: right;
+        padding-right:2px;
+        color:#006100;
+    }
+    .k-grid-header th {
+        background-color: #edf3f4  !important;
+        /*color: #fff !important;*/
+        text-align: center !important;
+        font-weight: bold !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        vertical-align: middle !important;
+    }
+    .k-grid-header th.k-header{
+        padding:0;
+        padding-top:5px;
+    }
+    .profile-info-name {
+        width: 30%;
+        padding-left: 20px;
+        text-align: left;
+    }
+
+    .profile-info-value {
+        margin-left: 34%;
+    }
+    select {
+        padding: 0px;
+    }
+     .k-grid-header-locked, .k-grid-content-locked, .k-grid-footer-locked{
+        border-color: #bcd6c1;
+    }
+</style>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<div class="row-fluid">
+    <header><b>Thông tin khách hàng</b></header>
+    <table border="0" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="width: 40%">Khách hàng</th>
+                <th style ="width: 10%">Loại khách hàng</th>
+                <th style="width: 35%">Nhân viên kinh doanh</th>
+                <th style="width: 15%">Tổng số HĐ còn nợ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="" >@ViewBag.itemDebt.CustomerName</span></td>
+                <td><span class="">@ViewBag.itemDebt.CustomerType</span></td>
+                <td><span class="" >@ViewBag.itemDebt.Salesman</span></td>
+                <td><span class="tContractInDebt pull-right">0</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <header><b>Thông tin nợ của khách hàng</b></header>
+    <table border="0" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="width: 13%; text-align: center">Tiền nợ <br> theo hợp đồng</th>
+                <th style="width: 12%; text-align: center">Tiền đã XBQC (VAT)</th>
+                <th style="width: 13%; text-align: center">Tiền đã XBQC <br> đến hôm nay (VAT)</th>
+                <th style="width: 12%; text-align: center">Tiền đã thu</th>
+                <th style="width: 13%; text-align: center">Tiền còn nợ đã <br> XBQC đến hôm nay</th>
+                <th style="width: 13%; text-align: center">Tiền còn nợ <br> theo hợp đồng</th>
+                <th style="width: 12%; text-align: center">Tiền đã xuất <br> hóa đơn</th>
+                <th style="width: 12%; text-align: center">Tiền chưa xuất <br> hóa đơn</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="tTotalAmount pull-right">0</span></td>
+                <td><span class="tPublished pull-right">0</span></td>
+                <td><span class="tPublishedToDay pull-right">0</span></td>
+                <td><span class="tCollected pull-right">0</span></td>
+                <td><span class="tRemain pull-right">0</span></td>
+                <td><span class="tTotalRemain pull-right">0</span></td>
+                <td><span class="tInvoiced pull-right">0</span></td>
+                <td><span class="tNotInvoiced pull-right">0</span></td>              
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        @*<div style="padding:20px 0;" class="span5">
+                <div class="profile-user-info profile-user-info-striped">
+                    <div style="padding:17px 0" class="profile-info-row">
+                        <div style="padding-top:17px" class="profile-info-name"> Khách hàng </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.CustomerName</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Loại khách hàng </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.CustomerType</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> NVKD </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.Salesman</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Tổng số HĐ còn nợ </div>
+
+                        <div class="profile-info-value">
+                            <span class="tContractInDebt"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>*@
+    </div>
+    <div>
+        @*<div style="padding:20px 0;" class="span5">
+                <div class="profile-user-info profile-user-info-striped">
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Tổng nợ theo hợp đồng </div>
+
+                        <div class="profile-info-value">
+                            <span class="tTotalAmount"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã xuất bản QC </div>
+
+                        <div class="profile-info-value">
+                            <span class="tPublished"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã XBQC đến hôm nay </div>
+
+                        <div class="profile-info-value">
+                            <span class="tPublishedToDay"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã thu </div>
+
+                        <div class="profile-info-value">
+                            <span class="tCollected"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Nợ còn lại </div>
+
+                        <div class="profile-info-value">
+                            <span class="tRemain"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Nợ còn lại theo hợp đồng </div>
+
+                        <div class="profile-info-value">
+                            <span class="tTotalRemain"></span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã xuất hóa đơn </div>
+
+                        <div class="profile-info-value">
+                            <span class="tInvoiced"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Chưa xuất hóa đơn </div>
+
+                        <div class="profile-info-value">
+                            <span class="tNotInvoiced"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+    </div>
+</div>
+<div class="tabbable">
+    <ul class="nav nav-tabs tab-color-blue" id="myTabToDoList">
+        <li id="tabContract" class="active">
+            <a data-notif="" data-toggle="tab" href="#byContract">
+                <i class="icon-calendar"></i>
+                Thanh toán
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+        <li id="tabRemindCus" class="">
+            <a data-notif="" data-toggle="tab" href="#byRemindCus">
+                <i class="icon-legal"></i>
+                Điều chỉnh
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+        <li id="tabRemindStaff" class="">
+            <a data-notif="" data-toggle="tab" href="#byRemindStaff">
+                <i class="icon-legal"></i>
+                Lịch sử thanh toán
+                <div class="number" style="display:none"></div>
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content" style="padding: 0px">
+        <div id="byContract" class="tab-pane active">
+            <div class="row-fluid">
+
+                <div class="row-fluid mn-list">
+                    @(Html.Kendo().Grid<CRM24H.Models.CRM_Contract_Debt>()
+                        .Name("Grid")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.CustomerCode)
+                                       .ClientTemplate(
+                                          "<button data-rel='tooltip' data-placement='right' data-original-title='Chuyển khoản' class='btn btn-small btn-info tooltip-info' onclick='openPopupPayment(\"CHUYEN_KHOAN\",\"#=pk_contract#\")' style='margin-right: 5px;'><i class='fa fa-credit-card'></i></button>"
+                                       + "<button data-rel='tooltip' data-placement='bottom' data-original-title='Tiền mặt' class='btn btn-small btn-success tooltip-success' onclick='openPopupPayment(\"TIEN_MAT\",\"#=pk_contract#\")' style='margin-right: 5px;'><i class='fa fa-dollar'></i></button>"
+                                       + "<button data-rel='tooltip' data-placement='right' data-original-title='Lịch sử' class='btn btn-small btn-warning tooltip-warning' onclick='openWindowHistory2(\"#=c_code#\")' style='margin-right: 5px;'><i class='fa fa-history'></i></button>"
+                                        ).Locked(true).Width(120).Title("");
+                            columns.Bound(p => p.c_code).Title("Mã HĐ").Width(80).Locked(true);
+                            columns.ForeignKey(p => p.c_contract_type, (System.Collections.IEnumerable)ViewBag.listContractType, "ParamID", "Value").Title("Loại HĐ").Width(80).Locked(true);
+                            columns.Bound(p => p.Salesman).Title("NVKD").Width(150).ClientTemplate("#=Salesman#").Locked(true);
+                            columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.listDebtType, "ParamID", "Value").Title("Trạng thái nợ").Width(100);
+                            columns.Bound(p => p.PayDay).Title("Ngày dự kiến thu").Width(100).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.OutDate).Title("Số ngày quá hạn").Width(80).HtmlAttributes(new { style = "#=ConvertOutDate(Status)#" }).HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.TotalAmount)
+                                    .Width(120)
+                                    .HeaderTemplate("<div style = 'height: 30px'>Tiền nợ theo hợp đồng </div><div class='hr-number'><span class='tTotalAmount'>0</span></div>")
+                                    .Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" });
+
+                            columns.Bound(p => p.Published)
+                                    .Width(120)
+                                    .HeaderTemplate("<div style = 'height: 30px'><span>Tiền đã XBQC (VAT)</span></div><div class='hr-number'><span class='tPublished'>0</span></div>")
+                                    .Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.PublishedToDay)
+                                    .Width(120)
+                                    .HeaderTemplate("<div style='height: 30px'><span>Tiền đã XBQC <br> đến hôm nay (VAT)</span></div><div class='hr-number'><span class='tPublishedToDay'>0</span></div>")
+                                    .Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.Collected)
+                                    .Width(120)
+                                    .HeaderTemplate("<div style='height: 30px'><span >Tiền đã thu</span></div><div class='hr-number'><span class='tCollected'>0</span></div>")
+                                    .Format("{0:N0}")
+                                    .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.Remain)
+                                   .Width(120)
+                                   .HeaderTemplate("<div style='height: 30px'><span>Tiền còn nợ đã <br> XBQC đến hôm nay </span></div><div class='hr-number'><span class='tRemain'>0</span></div>")
+                                   .Format("{0:N0}")
+                                   .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.TotalRemain)
+                                   .Width(120)
+                                   .HeaderTemplate("<div style='height: 30px'><span>Tiền còn nợ <br>theo hợp đồng</span></div><div class='hr-number'><span class='tTotalRemain'>0</span></div>")
+                                    .Format("{0:N0}")
+                                   .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.Invoiced)
+                                   .Width(120)
+                                   .HeaderTemplate("<div style='height: 30px'><span>Tiền đã xuất <br> hóa đơn</span></div><div class='hr-number'><span class='tInvoiced'>0</span></div>")
+                                    .Format("{0:N0}")
+                                   .HtmlAttributes(new { style = "text-align: right;" });
+                            columns.Bound(p => p.NotInvoiced)
+                                  .Width(120)
+                                  .HeaderTemplate("<div style='height: 30px'><span>Tiền chưa xuất <br> hóa đơn</span></div><div class='hr-number'><span class='tNotInvoiced'>0</span></div>")
+                                   .Format("{0:N0}")
+                                  .HtmlAttributes(new { style = "text-align: right;" });
+                        })
+
+
+                        .Pageable(pager => pager.PageSizes(new[] {100, 200, 300, 500 }))
+                                                .Scrollable()
+                                                //.HtmlAttributes(new { style = "height: 500px;" })
+                        .Resizable(resizable => resizable.Columns(false))
+                        .Events(events => { events.DataBound("dataBounddetail"); })
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(100)
+
+                        .Model(model =>
+                        {
+                            model.Id(p => p.pk_contract);
+                        })
+                        .Read(read => read.Action("ReadRemindDetail", "CRMMnDebt").Data("GetCustomerCode()")))
+                    )
+                </div>
+            </div>
+        </div>
+        <div id="byRemindCus" class="tab-pane">
+            <div class="row-fluid">
+                @(Html.Kendo().Grid<CRM24H.Models.CRM_Customer_Debt_Adjust>()
+                            .Name("GridAdjust")
+                    .Columns(columns =>
+                    {
+                        columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.listAdjustType, "Value", "Name").Title("Loại điều chỉnh").Width(100);
+                        columns.Bound(p => p.Amount).Title("Tiền điều chỉnh").Format("{0:N0}").Width(100).HtmlAttributes(new { style = "text-align: right;" }); 
+                        columns.Bound(p => p.AdjustDate).Title("Ngày điều chỉnh").Width(100).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "text-align: right;" }); 
+                        columns.Bound(p => p.Note).Width(150).Title("Ghi chú");
+                        columns.Bound(p => p.CreatedBy).Width(100).Title("Người tạo");
+                        columns.Bound(p => p.CreatedAt).Width(100).Format("{0:dd/MM/yyyy}").Title("Ngày tạo").HtmlAttributes(new { style = "text-align: right;" }); 
+                            
+                    })
+
+
+                     .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+                     .Scrollable()
+                        //.HtmlAttributes(new { style = "height: 500px;" })
+                    .Resizable(resizable => resizable.Columns(true))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .PageSize(100)
+                    .Read(read => read.Action("ReadAdjust", "CRMMnPayment").Data("GetCustomerCode()")))
+                )
+            </div>
+        </div>
+        <div id="byRemindStaff" class="tab-pane">
+
+            <div class="row-fluid">
+                @(Html.Kendo().Grid<CRM24H.Models.CRM_PaymentProgress>()
+                            .Name("GridPaymentProgress")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.PaymentDate).Title("Ngày thanh toán").Width(100).Format("{0:dd/MM/yyyy}").HtmlAttributes(new { style = "text-align: right;" }); 
+                        columns.Bound(p => p.ContractCode).Width(100).Title("Mã HĐ");
+                        columns.Bound(p => p.Number).Width(100).Title("Số phiếu thu");
+                        columns.Bound(p => p.Money).Title("Số tiền").Format("{0:N0}").Width(100).HtmlAttributes(new { style = "text-align: right;" }); 
+                        columns.Bound(p => p.PaymentForm).Width(150).Title("Hình thức thanh toán");
+                        columns.Bound(p => p.BankCode).Width(100).Title("Ngân hàng");
+                        columns.Bound(p => p.Note).Width(200).Title("Ghi chú");
+                        columns.Bound(p => p.RowCreatedUser).Width(80).Title("Tài khoản tạo");
+                        columns.Bound(p => p.RowCreatedAt).Width(80).Format("{0:dd/MM/yyyy}").Title("Ngày tạo").HtmlAttributes(new { style = "text-align: right;" }); 
+
+                    })
+
+
+                     .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+                        .Scrollable()
+                        //.HtmlAttributes(new { style = "height: 500px;" })
+                    .Resizable(resizable => resizable.Columns(false))
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                         .PageSize(100)
+                            .Read(read => read.Action("ReadPaymentProgress", "CRMMnPayment").Data("GetCustomerCode()")))
+)
+            </div>
+        </div>
+    </div>
+</div>
+@(Html.Kendo()
+      .Window()
+      .Name("windowPayment")
+      .Title("Điều chỉnh")
+      .Content(@<text>
+        <input type="hidden" name="FKContract" />
+        <table>
+            <tr>
+                <td>Số phiếu thu(*)</td>
+                <td>
+                    <input placeholder="Nhập số phiếu thu ..." name="NumberReceipt" style="width:210px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Số tiền(*)</td>
+                <td>
+                    <input placeholder="Nhập số tiền ..." name="Money" style="width:210px;" class="currency" data-thousands="," data-decimal="." data-precision="0" />
+                </td>
+            </tr>
+            <tr>
+                <td>Ngày thanh toán(*)</td>
+                <td>
+                    <input id="PaymentDate" name="PaymentDate" style="width:210px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Hình thức thanh toán(*)</td>
+                <td>
+                    <select name="PaymentForm" style="width:212px;">
+                        <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                        <option value="TIEN_MAT">Tiền mặt</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Ngân hàng</td>
+                <td>
+                    <select name="BankCode" style="width:210px;">
+                        <option value="">--Chọn Ngân Hàng--</option>
+                        @foreach (var ite in ViewBag.listBank)
+                        {
+                            <option value="@ite.Code">@ite.Name</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Ghi chú</td>
+                <td>
+                    <textarea name="Note" style="width:200px;height:40px;"></textarea>
+                </td>
+            </tr>
+        </table>
+        <br />
+        <button class='btn btn-mini btn-warning' onclick='ClosePayment()' style="float:right">Hủy</button>
+        <button class='btn btn-mini btn-success' onclick='SavePayment()' style="float: right; margin-right: 15px;">Lưu</button>
+
+    </text>)
+          .Draggable()
+          .Visible(false)
+          .Width(360)
+          .Modal(true)
+          .Actions(actions => actions.Close())
+
+)
+<script>
+    var CustomerCode = '@ViewBag.CustomerCode';
+    $.fn.GeneData = function () {
+        var result = {};
+        for (var i = 0; i < this.length; i++) {
+            result[$(this[i]).attr('name')] = $(this[i]).val();
+        }
+        return result;
+    };
+    function GetCustomerCode() {
+        return { CustomerCode: CustomerCode };
+    }
+    function ClosePayment() {
+        $("#windowPayment").data("kendoWindow").center().close();
+    }
+    function openPopupPayment(type, FKContract) {
+        $('#windowPayment [name=PaymentForm').val(type);
+        $('#windowPayment [name=FKContract').val(FKContract);
+        $("#windowPayment").data("kendoWindow").center().open();
+    }
+    function openWindowHistory2(c_code) {
+        window.open(r + '/CRMMnDebt/History?c_code=' + c_code);
+    }
+    function SavePayment() {
+        var object = $('#windowPayment [name]').GeneData();
+        object.PaymentDate = kendo.toString($('#PaymentDate').data('kendoDatePicker').value(), 'yyyy-MM-dd');
+        object.Money = kendo.parseFloat(object.Money);
+        if (object.PaymentForm == "CHUYEN_KHOAN" && object.BankCode == "") {
+            alert("Chưa chọn ngân hàng !");
+            return;
+        }
+        PostAndBlock(r + "/CRMMnPayment/SavePayment", object, function (data) {
+            if (data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: 'Lưu thành công',
+                    class_name: 'gritter-success'
+                });
+                ClosePayment();
+                $('#GridPaymentProgress').data('kendoGrid').dataSource.read();
+                $('#Grid').data('kendoGrid').dataSource.read();
+            }
+            else {
+                $.gritter.add({
+                    title: 'Lỗi',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    $(document).ready(function () {
+        $('#PaymentDate').kendoDatePicker({
+            format: "dd/MM/yyyy",
+            value: new Date()
+        });
+    });
+    function resizeGrid(gridname) {
+
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 103);
+
+    }
+    function resizeGrid2(gridname) {
+
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content").height(offsetbottom - 438);
+
+    }
+    function resizeGrid3(gridname) {
+
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content").height(offsetbottom - 438);
+
+    }
+    function dataBounddetail(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+        var TotalAmount = 0;
+        var Published = 0;
+        var PublishedToDay = 0;
+        var Collected = 0;
+        var Remain = 0;
+        var TotalRemain = 0;
+        var Invoiced = 0;
+        var NotInvoiced = 0;
+        var ContractInDebt = 0;
+        var data = e.sender.dataSource._data;
+        for (var i = 0; i < data.length; i++) {
+            TotalAmount += data[i].TotalAmount;
+            Published += data[i].Published;
+            PublishedToDay += data[i].PublishedToDay;
+            Collected += data[i].Collected;
+            Remain += data[i].Remain;
+            TotalRemain += data[i].TotalRemain;
+            Invoiced += data[i].Invoiced;
+            NotInvoiced += data[i].NotInvoiced;
+            ContractInDebt++;
+        }
+        $('.tTotalAmount').html(kendo.toString(TotalAmount, 'N0'));
+        $('.tPublished').html(kendo.toString(Published, 'N0'));
+        $('.tPublishedToDay').html(kendo.toString(PublishedToDay, 'N0'));
+        $('.tCollected').html(kendo.toString(Collected, 'N0'));
+        $('.tRemain').html(kendo.toString(Remain, 'N0'));
+        $('.tTotalRemain').html(kendo.toString(TotalRemain, 'N0'));
+        $('.tInvoiced').html(kendo.toString(Invoiced, 'N0'));
+        $('.tNotInvoiced').html(kendo.toString(NotInvoiced, 'N0'));
+        $('.tContractInDebt').html(kendo.toString(ContractInDebt, 'N0'));
+        debugger;
+        resizeGrid("Grid");
+       
+        
+    }
+    $("#myTabToDoList li").click(function () {
+        debugger;
+        var id = $(this).attr("id");
+        if (id == "tabContract") {
+            $("#Grid").data('kendoGrid').dataSource.read();
+        }
+        if (id == "tabRemindCus") {
+            $("#GridAdjust").data('kendoGrid').dataSource.read();
+            resizeGrid2("GridAdjust");
+        }
+        if (id == "tabRemindStaff") {          
+            $("#GridPaymentProgress").data('kendoGrid').dataSource.read();
+            resizeGrid3("GridPaymentProgress");
+        }
+    })
+</script>
+

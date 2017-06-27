@@ -1,0 +1,39 @@
+﻿
+<div style="margin:0" class="span12" >
+    @(Html.Kendo()
+        .Grid<ERPAPD.Models.CRM_Telesale_History_Call>()
+        .Name("GridCallHistory")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.RowCreatedAt).Width(100).Title("Thời gian gọi").Format("{0:dd/MM/yyyy HH:mm}");
+        columns.Bound(p => p.Title).Width(100).Title("Tiêu đề");
+        columns.Bound(p => p.Description).Width(100).Title("Content");
+        columns.ForeignKey(p => p.TrendID, (System.Collections.IEnumerable)ViewBag.listStatusTrend, "ParamID", "Value").Title("Xu hướng").Width(100);
+        columns.ForeignKey(p => p.BehavID, (System.Collections.IEnumerable)ViewBag.listStatusCall, "ParamID", "Value").Title("Thái độ").Width(100);
+        columns.ForeignKey(p => p.GroupTypeID, (System.Collections.IEnumerable)ViewBag.listGroupCall, "ParamID", "Value").Title("Nhóm yêu cầu").Width(100);
+        columns.ForeignKey(p => p.Type, (System.Collections.IEnumerable)ViewBag.listTypeCall, "ParamID", "Value")
+            //.ClientTemplate("#if(Type == ''){#<span>Khac<span>#}else{#<span>#=((System.Collections.IEnumerable)ViewBag.listTypeCall).Value#<span>#}#")
+            .Title("Loại").Width(100);
+        columns.Bound(p => p.RecallTime).Format("{0:dd/MM/yyyy HH:mm}").Width(90).Title("Gọi lại")
+        .ClientTemplate("#if(kendo.toString(RecallTime,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(RecallTime,'dd/MM/yyyy hh:mm:ss tt') #" + "#}# ");
+        columns.Bound(p => p.RowCreatedUser).Width(90).Title("By");
+    })
+
+    .Pageable(pager => pager.PageSizes(new[] { 20, 50 }))
+    .Navigatable()
+    .Resizable(r => r.Columns(true))
+    //.Events(events => { events.DataBound("dataBound"); })
+    .Scrollable(scrollable => scrollable.Virtual(false))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .Sort(a => a.Add(m => m.RowCreatedAt).Descending())
+    .PageSize(50)
+    .Model(model =>
+    {
+        model.Id(p => p.CustomerID);
+    })
+    .Read(read => read.Action("CallHistoryRead", "Telesale", new { CustomerID = ViewBag.detailCustomer.CustomerID }))
+   ))
+</div>
+

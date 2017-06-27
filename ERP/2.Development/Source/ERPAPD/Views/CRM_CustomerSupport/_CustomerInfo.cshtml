@@ -1,0 +1,390 @@
+﻿@model IEnumerable<ERPAPD.Models.ERPAPD_Customer>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<style>
+    /*#quicklyFilter li {
+        float: left;
+        border: 1px solid #989494;
+        color: #000;
+        font-size: 1.1em;
+    }*/
+    .row-fluid .show-color {
+        min-height: 10px !important;
+        width: 18px;
+        margin: 0px 2px 2px 0;
+        border-radius: 2px;
+    }
+
+    .tag-input-style + .chosen-container-multi .chosen-choices li.search-choice {
+        margin-left: 2px;
+        height: 20px;
+        border-radius: 2px;
+    }      
+
+        .tag-input-style + .chosen-container-multi .chosen-choices li.search-choice .search-choice-close {
+            line-height: 20px;
+        }
+
+    .mn-list {
+        margin-bottom: 20px;
+    }
+
+    #Grid .k-grid-content {
+        min-height: 805px;
+    }
+</style>
+<div id="btn-filter" class="row-fluid">
+    <div id="btn-count" class="pull-left">
+        <button class="btn btn-small btn-info" id="btnAll">Tất cả (<span id="txtAll"></span>)</button>
+        <button class="btn btn-small btn-info" id="btnDAILY">Đại lý (<span id="txtDaiLy"></span>) </button>
+        <button class="btn btn-small btn-info" id="btnDSCAO">DS cao (<span id="txtDSCao"></span>)</button>
+        <button class="btn btn-small btn-info" id="btnSAPHETHD">Sắp hết HĐ (<span id="txtSapHetHD"></span>)</button>
+        <button class="btn btn-small btn-info" id="btnCOHDTRUOC">Có HĐ năm trước (<span id="txtCoHDNamTruoc"></span>)</button>
+        <button class="btn btn-small btn-info" id="btnCHUAKT">Chưa khai thác (<span id="txtChuaKhaiThac"></span>)</button>
+        <div class="btn-group">
+            <button data-toggle="dropdown" class="btn btn-small btn-info dropdown-toggle">
+                >>
+                <span class="caret" style="display:none"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-default"></ul>
+        </div>
+    </div>
+</div>
+<div class="row-fluid" style="margin-top:5px">
+    <div class="span10">
+        <div class="controls">
+            <input id="txtInfoFilter" style="width:98%" type="text" placeholder="Mã khách hàng, tên ngắn gọn, tên đầy đủ, điện thoại" />
+        </div>
+    </div>
+    <div class="span2">
+        <button type="button" style="width:100%" class="btn btn-small btn-primary" onclick="filter('','')"> @Resources.Multi.Search</button>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span3" style="margin-top:2px">
+        <select multiple class="tag-input-style" id="select-filter-lable" data-placeholder="Chọn nhãn">
+            @foreach (var lb in ViewBag.listLabel)
+            {
+                <option value="@lb.Value" style="background-color:@lb.Value ;color:@lb.Value">@lb.Value </option>
+            }
+        </select>
+    </div>
+    <div class="span4" style="margin-top:2px">
+        <select id="listCategory" class="select" data-placeholder="Ngành hàng">
+            <option value="">Chọn Ngành hàng</option>
+            @foreach (var cat in ViewBag.listCategory)
+            {
+                <option value="@cat.ID">@cat.Value</option>
+            }
+        </select>
+    </div>
+
+    <div class="span5" style="margin-top:2px">
+        <div class="controls filter">
+            <select id="listStatus" class="select" multiple data-placeholder="Chọn trạng thái">
+                <option></option>
+                @foreach (var stt in ViewBag.listStatus)
+                {
+                    <option value="@stt.ParamID">@stt.Value</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+<div class="mn-list" style="margin-top:5px">
+
+    @(Html.Kendo().Grid(Model)
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.CustomerID)
+        .Title("")
+        .Width(30)
+        .ClientTemplate("<span class ='tooltip-info' data-rel='tooltip' data-placement='right' title ='Thông tin chung'><a class='btn btn-minier btn-reverse' style=' text-align: center; width: 15px;margin-top: 5px;' href=" + Url.Action("Index", "MnDetailEmployer", new { @CustomerID = "#=CustomerID#" }) + "  data-id='#=CustomerID#' ><i class='fa fa-pencil'></i> </a></span>" +
+             "<span class ='tooltip-warning' data-rel='tooltip' data-placement='right' title ='Thông tin chi tiết'><a class='btn btn-minier btn-warning' style=' text-align: center;  width: 15px;margin-top: 5px;' href=" + Url.Action("Index", "CRMCustomerSupportDetail", new { @CustomerID = "#=CustomerID#" }) + "  data-id='#=CustomerID#' > <i class='fa fa-smile-o'></i></a></span>")
+             .HtmlAttributes(new { style = "text-align:center" });
+
+        columns.Bound(p => p.CustomerID)
+        .Title("Thông tin khách hàng")
+        .Width(300)
+        .ClientTemplate("<div>" +
+            //"<span> #=CustomerID# </span></br>" +
+            "<span> #=CustomerName#</span></br>" +
+            "<span> Mã: #=CustomerID# </span>" +
+            "<span> Loại: #=TypeName# </span> </br>" +
+            //"<span> Nguồn khách hàng: </span>  #=SourceName#  </br>" +
+            "<span class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='cuộc gọi'> <i class='fa fa-phone'></i>  11  </span>" +
+            "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='thuyết trình'> <i class='fa fa-bullhorn'></i> 7 </span> " +
+            "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='hợp đồng'> <i class='fa fa-file-pdf-o'></i>  21 </span>" +
+             "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='loại khác'>  <i class='fa fa-bookmark'></i>  112 </span>" +
+             "<span style = 'margin-left:10px' class ='tooltip-success' data-rel='tooltip' data-placement='bottom' title ='doanh thu'>  <i class='fa fa-usd'></i> 120,000,000 </span>" +
+           "<div class='row-label'>#=getHTML(Label)#</div>" +
+            "</div>");
+
+
+        columns.Bound(p => p.CustomerID)
+       .Title("Thông tin liên hệ")
+       .Width(250)
+       .ClientTemplate("<div>" +
+           "#if(Address == ''){#<i class='fa fa-building'></i> N/A </br>#} else{#<i class='fa fa-building'></i> #=Address# </br>#}#" +
+           "#if(Phone == ''){#<i class='fa fa-phone'></i> N/A </br>#} else{# <div class='phone'><i class='fa fa-phone'></i> <span>#=Phone#</span> </div>#}#" +
+           "#if(Website == ''){#<i class='fa fa-globe'></i> N/A </br>#} else{# <div class='web'><i class='fa fa-globe'></i> <a href='#=Website#' target='_blank'>#=Website#</a> </div>#}#" +
+           "</div>");
+        columns.Bound(p => p.Status).Hidden();
+        columns.Bound(p => p.Category).Hidden();
+        columns.Bound(p => p.Label).Hidden();
+        columns.Bound(p => p.ApprovedDate).Format("{0:dd/MM/yyyy}").Width(120).Hidden();
+    })
+
+     .Events(events => { events.DataBound("dataBound"); })
+     .Resizable(r => r.Columns(true))
+     .Scrollable(scrollable => scrollable.Virtual(false))
+     .DataSource(dataSource => dataSource
+         .Ajax()
+         .Batch(true)
+         .PageSize(50)
+         .Model(model =>
+             {
+                 model.Id(p => p.CustomerID);
+             })
+             .Read(read => read.Action("Read", "CRMCustomerInfo"))
+     ))
+</div>
+
+<script>
+    $("#listStatus,#listCategory,#listLabel").chosen();
+    $("#select-filter-lable").chosen();
+    $("#select_filter_lable_chosen").css("width", "93%");
+    $("#listCategory_chosen").css("width", "100%");
+    $("#listStatus_chosen").css("width", "95%");
+
+    $("#select-filter-lable").change(function () {
+        var val = $(this).val();
+        $("#select_filter_lable_chosen .chosen-choices li.search-choice").each(function (e) {
+            var span = $(this).find("span");
+            if ($(this).attr("data-color") == '' || !$(this).attr("data-color")) {
+                $(this).css("background-color", $(this).find("span").text());
+                $(this).attr("data-color", $(this).find("span").text());
+            } else {
+                $(this).css("background-color", $(this).attr("data-color"));
+            }
+            span.text('');
+            filter(fieldfilter, valuefilter);
+        })
+    });
+    function getHTML(lb) {
+        var html = '';
+        if (lb != '') {
+            try {
+                obj = JSON.parse(lb);
+                for (var i = 0; i < obj.length; i++) {
+                    html += '<span onclick="deleteLabel(this)" data-color="' + obj[i] + '" style="background-color:' + obj[i] + ';" class="span1 show-color"></span>';
+                }
+            } catch (e) {
+                console.log("can not parse json");
+            }
+        }
+        return html;
+    }
+    function dataBound(e) {
+        //formatHTML();
+        formatHTMLWebsite();
+        formatHTMLPhone();
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+    }
+    function formatHTML() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listWebsite = jQuery.parseJSON(row.Website);
+                if (typeof listWebsite == 'object') {
+                    // It is JSON
+                    var linkWebsite = '';
+                    $.each(listWebsite, function (index, value) {
+                        linkWebsite += '<i class="fa fa-globe"></i> <a href=' + value + ' target="_blank">' + value + '</a><br>';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(4)').find('.web').html(linkWebsite);
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+    function formatHTMLWebsite() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listWebsite = jQuery.parseJSON(row.Website);
+                if (typeof listWebsite == 'object') {
+                    // It is JSON
+                    var linkWebsite = '<i class="fa fa-globe"></i> ';
+                    $.each(listWebsite, function (index, value) {
+                        linkWebsite += '<a href=' + value + ' target="_blank">' + value + '</a> - ';
+                    })
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(3)').find('.web').html(linkWebsite.substring(0, linkWebsite.length - 2));
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+    function formatHTMLPhone() {
+        var data = $("#Grid").data("kendoGrid").dataSource.data();
+        $.each(data, function (i, row) {
+            try {
+                var listdataPhone = jQuery.parseJSON(row.Phone);
+                if (typeof listdataPhone == 'object') {
+                    // It is JSON
+                    var listPhone = '<i class="fa fa-phone"></i> ';
+                    $.each(listdataPhone, function (index, value) {
+                        listPhone += '<span>' + value + '</span> - ';
+                    })
+                    console.log(listPhone.substring(0, listPhone.length - 2));
+                    $('tr[data-uid="' + row.uid + '"] td:nth-child(3)').find('.phone').html(listPhone.substring(0, listPhone.length - 2));
+                }
+            } catch (e) {
+                // It not JSON
+            }
+        })
+    }
+    //BaoHV
+    var valuefilter = "";
+    var fieldfilter = "";
+    $(document).ready(function () {
+        CountContract();
+        //filter();
+        filter(fieldfilter, valuefilter);
+    })
+    function CountContract() {
+        $.post(r + "/CRM_CustomerSupport/CountContract", function (data) {
+            $('#txtAll').text(data.TAT_CA);
+            $('#txtDaiLy').text(data.DAI_LY);
+            $('#txtDSCao').text(data.DS_CAO);
+            $('#txtSapHetHD').text(data.SAP_HET_HD);
+            $('#txtCoHDNamTruoc').text(data.CO_HD_NAM_TRUOC);
+            $('#txtChuaKhaiThac').text(data.CHUA_KHAI_THAC);
+        });
+    }
+    $('#btnAll').bind('click', function () {
+        valuefilter = "";
+        fieldfilter = "";
+        filter(fieldfilter, valuefilter);
+    });
+    $('#btnDAILY').bind('click', function () {
+        valuefilter = "DAI_LY";
+        fieldfilter = "CustomerType";
+        filter(fieldfilter, valuefilter);
+    });
+    $('#btnDSCAO').bind('click', function () {
+        kvaluefiltereyfilter = "";
+        fieldfilter = "";
+        filter(fieldfilter, valuefilter);
+    });
+    $('#btnSAPHETHD').bind('click', function () {
+        valuefilter = "";
+        fieldfilter = "";
+        filter(fieldfilter, valuefilter);
+    });
+    $('#btnCOHDTRUOC').bind('click', function () {
+        valuefilter = "";
+        filter(fieldfilter, valuefilter);
+    });
+    $('#btnCHUAKT').bind('click', function () {
+        valuefilter = "";
+        fieldfilter = "";
+        filter(fieldfilter, valuefilter);
+    });
+
+    $("#btnAll").addClass("btn-grey").removeClass("btn-info");
+    $("#btn-count button").click(function () {
+        $("#btn-count button").addClass("btn-info").removeClass("btn-grey");
+        $(this).addClass("btn-grey").removeClass("btn-info");
+    });
+    $('#listStatus').on('change', function () {
+        filter(fieldfilter, valuefilter);
+    });
+    $('#listCategory').on('change', function () {
+        filter(fieldfilter, valuefilter);
+    });
+    $("#txtInfoFilter").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter(fieldfilter, valuefilter);
+        }
+    });
+
+    function filter(fieldfilter, valuefilter) {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        var fillterOrBykey = { logic: "or", filters: [] };
+        var fillterOrByStaff = { logic: "or", filters: [] };
+        if (fieldfilter != "") {
+            fillterOrBykey.filters.push({ field: fieldfilter, operator: "eq", value: valuefilter });
+            filter.filters.push(fillterOrBykey);
+        }
+        if ('@ViewBag.StaffID' != -1) {
+            fillterOrByStaff.filters.push({ field: "StaffId", operator: "eq", value: '@ViewBag.StaffID' });
+            filter.filters.push(fillterOrByStaff);
+        }   
+        var listStatus = $('#listStatus option:selected');
+        var fillterStatus = { logic: "or", filters: [] }
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "Status", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "Status", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+
+        var listCategory = $('#listCategory option:selected');
+        var fillterCategory = { logic: "or", filters: [] }
+        if (listCategory.length > 0) {
+            for (var i = 0; i < listCategory.length; i++) {
+                var option = listCategory[i].value;
+                if (option == '') {
+                    fillterCategory.filters.push({ field: "Category", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCategory.filters.push({ field: "Category", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCategory);
+        }
+
+        var text = $('#txtInfoFilter').val().trim();
+        var filtertext = { logic: "or", filters: [] };
+
+        if (text) {
+            filtertext.filters.push({ field: "CustomerID", operator: "contains", value: text });
+            //filtertext.filters.push({ field: "Email", operator: "contains", value: text });
+            filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            //filtertext.filters.push({ field: "Position", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerName", operator: "contains", value: text });
+
+            filter.filters.push(filtertext);
+        }
+
+        var labelOption = $("#select-filter-lable option:selected");
+        var fillterLabel = { logic: "or", filters: [] }
+        if (labelOption.length > 0) {
+            for (var i = 0; i < labelOption.length; i++) {
+                var option = labelOption[i].value;
+                fillterLabel.filters.push({ field: "Label", operator: "contains", value: option });
+            }
+            filter.filters.push(fillterLabel);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+</script>

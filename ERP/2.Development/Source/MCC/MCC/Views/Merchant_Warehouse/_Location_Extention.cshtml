@@ -1,0 +1,287 @@
+﻿@using BIBIAM.Core.Entities
+@using BIBIAM.Core;
+@{
+    var location = new Merchant_LocationWarehouse();
+}
+@{
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetaila != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+<script type="text/x-kendo-tmpl" id="templateLocation">
+    #if(trang_thai=='E'){#
+    <div class="todo-tasklist-item todo-tasklist-item-border-green " style="cursor:default;">
+        <div class="col-md-12" style="padding-left:0;padding-bottom: 30px;">
+            <span class="item-status pull-right">
+                <a onclick="editLocation(this, '#=ma_kho#')" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+            </span>
+            <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                #=ten_vi_tri#
+            </div>
+            <h3>
+                <span class="label label-success">@Html.Raw(Resources.Global._location_empty)  </span>
+            </h3>
+            <div class="todo-tasklist-item-text" >
+                #=mo_ta ? (mo_ta.length > 500 ? mo_ta.substring(0,499) + '...' : mo_ta) : ''#
+            </div>
+        </div>
+    </div>
+    #}#
+    #if(trang_thai=='F'){#
+    <div class="todo-tasklist-item todo-tasklist-item-border-red " style="cursor:default;">
+
+        <div class="col-md-12" style="padding-left:0;padding-bottom: 30px;">
+            <span class="item-status pull-right">
+                <a onclick="editLocation(this, '#=ma_kho#')" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+            </span>
+            <label>Vị trí<span class="required"> * </span></label>
+            <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                #=ten_vi_tri#
+            </div>
+            <label>Trang thái<span class="required"> * </span></label>
+            <h3>
+                <span class="label label-danger">@Html.Raw(Resources.Global._location_full)  </span>
+            </h3>
+            <label>Mô tả: </label>
+            <div class="todo-tasklist-item-text">
+                #=mo_ta ? (mo_ta.length > 500 ? mo_ta.substring(0,499) + '...' : mo_ta) : ''#
+            </div>
+        </div>
+    </div>
+    #}#
+    #if(trang_thai=='H'){#
+    <div class="todo-tasklist-item todo-tasklist-item-border-yellow " style="cursor:default;">
+
+        <div class="col-md-12" style="padding-left:0;padding-bottom: 30px;">
+            <span class="item-status pull-right">
+                <a onclick="editLocation(this, '#=ma_kho#')" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+            </span>
+            <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                #=ten_vi_tri#
+            </div>
+            <h3>
+                <span class="label label-warning"> @Html.Raw(Resources.Global._location_half) </span>
+            </h3>
+            <div class="todo-tasklist-item-text">
+                #=mo_ta ? (mo_ta.length > 500 ? mo_ta.substring(0,499) + '...' : mo_ta) : ''#
+            </div>
+        </div>
+    </div>
+    #}#
+
+</script>
+
+<script type="text/x-kendo-template" id="CreateUpdateLocationTemplate">
+    <div class="row">
+        <div class="col-md-6">
+            <input type="hidden" name="id" value="#=id#" />
+            <div class="form-group">
+                <label>@Html.Raw(Resources.Global._warehouse_location)<span class="required"> * </span></label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <input type="text" class="form-control input-sm" name="ten_vi_tri" placeholder="D1,A2,..." value="#=ten_vi_tri!=null ? ten_vi_tri : ''#">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>@Html.Raw(Resources.Global._warehouse_status)<span class="required"> * </span></label>
+                <div class="input-icon right">
+                    <i class="fa"></i>
+                    <select name="trang_thai" class="form-control input-sm max100">
+                        #if(trang_thai=='F'){#
+                        <option value="E">@Html.Raw(Resources.Global._location_empty)</option>
+                        <option value="F" selected>@Html.Raw(Resources.Global._location_full)</option>
+                        <option value="H">@Html.Raw(Resources.Global._location_half)</option>
+                        #} else if(trang_thai=='H'){#
+                        <option value="E">@Html.Raw(Resources.Global._location_empty)</option>
+                        <option value="F">@Html.Raw(Resources.Global._location_full)</option>
+                        <option value="H" selected>@Html.Raw(Resources.Global._location_half)</option>
+                        #} else {#
+                        <option value="E" selected>@Html.Raw(Resources.Global._location_empty)</option>
+                        <option value="F">@Html.Raw(Resources.Global._location_full)</option>
+                        <option value="H">@Html.Raw(Resources.Global._location_half)</option>
+                        #}#
+                    </select>
+
+                </div>
+            </div>
+            <div class="form-group">
+                <label>@Html.Raw(Resources.Global._carserial_notetitle)</label>
+                <div class="">
+                    <textarea name="mo_ta" rows="5" style="width:100%" placeholder="example...">#=mo_ta ? mo_ta : ''#</textarea>
+                </div>
+            </div>    
+        </div>
+    </div>
+    <div class="form-actions right">
+        #if(id>0){#
+        @if (all || delete)
+        {
+            <a onclick="deleteLocation('#=id#')" class="btn red btn-sm btn-circle">@Html.Raw(Resources.Global._delete)</a>
+        }
+        #}#
+        @if (all || create || update)
+        {
+            <a onclick="clearFormLocation('#=id#')" class="btn blue btn-sm btn-circle">@Html.Raw(Resources.Global._new)</a>
+            <button type="submit" class="btn green btn-sm btn-circle">@Html.Raw(Resources.Global._save)</button>
+        }
+        #if(ten_vi_tri){#
+        <h1 style="color: blue; text-align: center; text-transform:uppercase;">
+            @Html.Raw(Resources.Global._location_detail)
+        </h1>
+        <div id="detaillocation"></div>
+        #}#
+    </div>
+</script>
+
+<script>
+    function deleteLocation(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "@Html.Raw(Resources.Global._delete) @Html.Raw(Resources.Global._block)",
+            buttons:
+                {                    
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r+ "/Merchant_Warehouse/deleteLocation", { id: id}, function (data) {
+                                if (data.success) {
+                                    console.log(id);
+                                    $("#listViewLocation").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', 'Xóa thành công');
+                                    $('.nav-tabs a[href="#tabLocationList"]').tab('show');
+                                    clearFormLocation(id);
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    function editLocation(e, id) {
+        console.log(id);
+        var data = $("#listViewLocation").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"));
+        loadFormLocation(data, id);
+        $('.nav-tabs a[href="#tabLocationForm"]').tab('show');
+    }
+    function createLocation(id) {
+        var data = JSON.parse('@Html.Raw(Json.Encode(location))');
+        loadFormLocation(data, id);
+        $('.nav-tabs a[href="#tabLocationForm"]').tab('show');
+    }
+    
+    function clearFormLocation(id) {    
+        var data = JSON.parse('@Html.Raw(Json.Encode(location))');
+        loadFormLocation(data, id);
+    }
+    function loadFormLocation(data, id) {
+        var CreateUpdateLocationTemplate = kendo.template($("#CreateUpdateLocationTemplate").html());
+        $(".EditLocation").html(CreateUpdateLocationTemplate(data));
+        loadValidateLocation(id);
+        var tabLocationForm = kendo.template($("#tabLocationForm").html());
+        $("#tabLocationForm").html(tabLocationForm(data));
+    }   
+
+    function getFormData(dom_query) {
+        $(dom_query + ' :input').each(function (i) {
+            var self = $(this);
+            try {
+                var v = self.autoNumeric('get');
+                //self.autoNumeric('destroy');
+                self.val(v);
+            } catch (err) {
+                console.log("Not an autonumeric field: " + self.attr("name"));
+            }
+        });
+    }
+
+    function loadValidateLocation(id) {
+        debugger
+        var e = $("#LocationForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        ten_vi_tri: { required: !0 },
+                        mo_ta: { required: !0 },
+                        trang_thai: { required: !0,maxlength:2 }
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    debugger
+                    i.show(); r.hide();                   
+                    console.log("1");
+                    $(e).ajaxSubmit({
+                        type: 'POST',
+                        data: {},
+                        dataType: "json",
+                        mimeType: "multipart/form-data",
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listViewLocation").data("kendoListView").dataSource.read();
+                                toastr.clear();
+                            }
+                            else {
+                                toastr.clear();
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }
+
+    function SearchLocation(e, id) {
+        listView = $("#listViewLocation").data("kendoListView");
+        var seachText = $(e).val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        if (seachText) {
+            filterDesc.filters.push({ field: "ten_vi_tri", operator: "contains", value: seachText });
+            filterDesc.filters.push({ field: "trang_thai", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+
+        listView.dataSource.filter(filter);
+    }
+</script>

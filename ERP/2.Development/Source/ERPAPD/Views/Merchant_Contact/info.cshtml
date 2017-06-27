@@ -1,0 +1,107 @@
+﻿<div class="span12">
+    <div class="span12">
+        <div class="box-search">
+            <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;margin-bottom: 15px!important;">Thông tin sản phẩm</h4>
+        </div>
+    </div>
+    <div class="span12">
+        <form id="frm" action="@Url.Action("Upsert","Merchant_Contact")" enctype="multipart/form-data" method="POST">
+            <div class="span12">
+                <input id="id" name="id" type="hidden" />
+                <div class="span12">
+                    <label>Tên gian hàng</label>
+                    <select id="ma_gian_hang" name="ma_gian_hang" class="span10 select-chosen">
+                        @foreach (var item in ViewBag.listMerchant)
+                        {
+                            <option id="@item.id" value="@item.ma_gian_hang">@item.ten_gian_hang</option>
+                        }
+                    </select>
+                </div>
+                @*<div class="span12">
+                        <label>Tên gian hàng</label>
+                        <input id="ten_gian_hang" name="ten_gian_hang" class="span10" />
+                    </div>*@
+                <div class="span12">
+                    <div class="span3">
+                        <label>Danh xưng</label>
+                        <select id="danh_xung" name="danh_xung" class="select-chosen span10">
+                            @foreach (var item in ViewBag.listDanhXung)
+                            {
+                                <option value="@item.ParamID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="span5">
+                        <label>Tên người liên hệ</label>
+                        <input id="ten_nguoi_lien_he" type="text" name="ten_nguoi_lien_he" class="span10" />
+                    </div>
+                    <div class="span4">
+                        <label class="span12" onchange="cb_change(this)">
+                            <span class="span10">Quản trị gian hàng:</span>
+                            <input id="quan_tri_gian_hang" name="quan_tri_gian_hang" checked="" type="checkbox" class="ace ace-switch ace-switch-5" />
+                            <span class="lbl"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="span12">
+                    <label>Số điện thoại</label>
+                    <input class="span10" id="so_dien_thoai"  type="text" name="so_dien_thoai" />
+                </div>
+                <div class="span12">
+                    <label>Email</label>
+                    <input class="span10" id="email"  type="text" name="email" />
+                </div>
+                <div class="span12">
+                    <label>Chức vụ</label>
+                    <input class="span10" id="chuc_vu"  type="text" name="chuc_vu" />
+                </div>
+                <div class="span12">
+                    <label>Ghi chú</label>
+                    <input class="span10" id="ghi_chu"  type="text" name="ghi_chu" />
+                </div>
+                <div class="span12">
+                    <div class="span5">
+                        <div class="span12">
+                            <label>Ngày tạo:</label>
+                            <input id="ngay_tao" name="ngay_tao"  class="format-right span10 date-picker" type="text" style="font-weight:bold;color:black" disabled />
+                        </div>
+                    </div><div class="span6">
+                        <label>Người tạo</label>
+                        <input id="nguoi_tao" name="nguoi_tao" class="span10" placeholder="Default Text" type="text" style="font-weight: bold; color: black" readonly />
+                    </div>
+                </div>
+                <div class="span12">
+                    <div class="span5">
+                        <div class="span12">
+                            <label>Ngày cập nhật:</label>
+                            <input id="ngay_cap_nhat" name="ngay_cap_nhat" class="format-right span10 date-picker" type="text" style="font-weight:bold;color:black" disabled />
+                        </div>
+                    </div><div class="span6">
+                        <label>Người cập nhật</label>
+                        <input id="nguoi_cap_nhat" name="nguoi_cap_nhat" class="span10" placeholder="Default Text" type="text" style="font-weight: bold; color: black" readonly />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="span11">
+        <div class="span4 pull-right" style="z-index:9999;margin-bottom: 15px!important;margin-top: 25px!important;">
+            <a class="btn btn-primary btn-small btn-circle" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                @Resources.Multi.btnSave
+            </a>
+            <a class="btn btn-success btn-small btn-circle" onclick="Create()" href="javascript:void(0)" id="">
+                @Resources.Multi.Add
+            </a>
+            @*<a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                    Hủy thay đổi
+                </a>
+            *@
+            @if (ViewBag.Delete)
+            {
+                <a class="btn btn-danger btn-small btn-circle" href="javascript:void(0)" onclick="showConfirmPopup(1)" id="btnGridDelete">
+                    @Resources.Multi.Delete
+                </a>
+            }
+        </div>
+    </div>
+</div>

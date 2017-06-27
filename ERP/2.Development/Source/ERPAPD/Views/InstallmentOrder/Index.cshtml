@@ -1,0 +1,285 @@
+﻿@{
+    ViewBag.Title = "ERPAPD | Đơn hàng trả góp";
+    var listPaymentStatus = new List<Object>();
+    listPaymentStatus.Add(new { Value = "-1", Name = "Thanh toán thất bại" });
+    listPaymentStatus.Add(new { Value = "0", Name = "Chưa thanh toán" });
+    listPaymentStatus.Add(new { Value = "1", Name = "Đã thanh toán" });
+    ViewBag.listPaymentStatus = listPaymentStatus;
+}
+<style>
+    .modal {
+        width: 300px;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-header widget-header-blue widget-header-flat">
+                <p style="font-size:14px">@Resources.Multi.Filter</p>
+
+                <span class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </span>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <input class="span1" type="text" id="filterText" placeholder="Tìm theo mã đơn hàng, tên khách hàng, CMND,điện thoại…" style="width:250px" />
+                            <input type="text" name="date-range-picker span2" id="CreatedAtDate" placeholder="Ngày đơn hàng(từ-đến)" style="width: 130px;height:20px;" />
+                            <select name="select" id="listStatus" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn trạng thái…" multiple>
+                                @foreach (var a in ViewBag.Status)
+                                {
+                                    <option value="@a.Name">@a.Name</option>
+                                }
+                            </select>
+                            <select name="select" id="listAssignee" class='chosen-select span2' data-placeholder="Chọn trạng thái thanh toán…" multiple>
+                                @foreach (var a in ViewBag.listPaymentStatus)
+                                {
+                                    <option value="@a.Name">@a.Name</option>
+                                }
+                            </select>
+                            <select name="select" id="listBank" class='chosen-select span2' style="width: 200px" data-placeholder="Chọn ngân hàng giải ngân…" multiple>
+                                @foreach (var a in ViewBag.Bank)
+                                {
+                                    <option value="@a.BankName">@a.BankName</option>
+                                }
+                            </select>
+                            <select name="select" id="listSource" class='chosen-select span2' style="width: 150px" data-placeholder="Chọn nguồn…" multiple>
+                                <option value="Online">Online</option>
+                                <option value="ERPAPD">ERPAPD</option>
+                            </select>
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">@Resources.Multi.Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo()
+    .Grid<ERPAPD.Models.Deca_InstallmentOrder>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.OCMOrderID).Width(80).Title("Mã OCM");
+        columns.Bound(p => p.ERPAPDOrderID).Width(100).Title("Mã ERPAPD");
+        columns.Bound(p => p.OrderDate).Format("{0:" + Resources.Multi.DateFormat + "}").Width(90).Title("Ngày ĐH");
+        columns.Bound(p => p.DeliveriedDate).Format("{0:HH:mm dd/MM/yyyy}").Width(120).Title("Giao hàng lúc");
+        columns.Bound(p => p.OrderStatus).Title(Resources.Multi.Status).Width(100);
+        columns.Bound(p => p.CustomerID).Title("Mã KH").Width(90);
+        columns.Bound(p => p.CustomerName).Title("Tên KH").Width(150);
+        columns.Bound(p => p.CustomerPhone).Title(Resources.Multi.Phone).Width(90);
+        columns.Bound(p => p.PhysicalID).Title(Resources.Multi.ID).Width(90);
+        columns.Bound(p => p.Company).Title("Công ty").Width(120);
+        columns.Bound(p => p.ProductItem).Title("Sản phẩm").Width(200);
+        columns.Bound(p => p.Quantity).Title("SL").Width(50);
+        columns.Bound(p => p.UnitPrice).Format("{0:N0}").Title("Đơn giá").Width(80);
+        columns.Bound(p => p.LineAmount).Format("{0:N0}").Title("Thành tiền").Width(90);
+        columns.Bound(p => p.PaymentGateway).Title("Cổng thanh toán").Width(150);
+        columns.Bound(p => p.PaymentStatus).Title("Trạng thái TT").Width(110);
+        columns.Bound(p => p.PaymentType).Title("Loại TT").Width(90);
+        columns.Bound(p => p.BankTransaction).Title("Ngân hàng").Width(100);
+        columns.Bound(p => p.TransactionTime).Format("{0:HH:mm dd/MM/yyyy}").Title("Thời gian GD").Width(100);
+        columns.Bound(p => p.BankActionStatus).Title("Trạng thái NH").Width(100);
+        columns.Bound(p => p.BankName).Title("Tên NH").Width(100);
+        columns.Bound(p => p.isUsingTokenID).Title("Có token").Width(100);
+        columns.Bound(p => p.Installement).Title("TG trả góp").Width(100);
+        columns.Bound(p => p.ConvertionFee).Format("{0:N0}").Title("Phí chuyển đổi").Width(100);
+        columns.Bound(p => p.PayPerMonth).Format("{0:N0}").Title("Trả hàng tháng").Width(100);
+        columns.Bound(p => p.CancelledReason).Width(120).Title("Lý do hủy");
+        columns.Bound(p => p.CancalledReasonDetail).Width(150).Title(Resources.Multi.Detail);
+        columns.Bound(p => p.DeliveryNotes).Width(200).Title("Ghi chú GH");
+        columns.Bound(p => p.MerchantName).Width(120).Title("NCC");
+        columns.Bound(p => p.Carrier).Width(100).Title("Vận chuyển");
+        columns.Bound(p => p.SalesSource).Width(120).Title("Nguồn bán hàng");
+        columns.Bound(p => p.Salesman).Width(120).Title("NVBH");
+    })
+    .ToolBar(tools =>
+    {
+        tools.Excel().Text(Resources.Multi.Export);
+    })
+    .Events(events => { events.DataBound("dataBound"); })
+    .Pageable()
+    .Sortable()
+    .Pageable(p => p.PageSizes(new int[] { 20, 50, 100, 200, 500}))
+    .AutoBind(false)
+    .Scrollable()
+    .Navigatable()
+    .Filterable()
+    .Excel(excel => excel
+    .FileName("InstallmentOrder.xlsx")
+    .Filterable(true)
+    .AllPages(true)
+                    .ProxyURL(Url.Action("Excel_Export", "InstallmentOrder")))
+    .Reorderable(r => r.Columns(true))
+    .Resizable(r => r.Columns(true))
+    .ColumnMenu()
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .Sort(a => a.Add(m => m.OCMOrderID).Ascending())
+    .PageSize(20)
+                    .Read(read => read.Action("Read", "InstallmentOrder"))
+    )
+        )
+    </div>
+</div>
+<script>
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+    $("#listBank").chosen();
+    $("#listBank").val(['']);
+    $('#CreatedAtDate').daterangepicker({
+        format: 'YYYY/MM/DD'
+    });
+
+    $("#listAssignee").chosen();
+    $("#listAssignee").val(['']);
+
+    $("#listStatus").chosen();
+    $("#listStatus").val(['']);
+
+    $("#listSource").chosen();
+    $("#listSource").val(['']);
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 15);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+    });
+    function dataBound() {
+        resizeGrid();
+        drawcolor();
+    }
+
+    function drawcolor() {
+        var data = $("#grid").data("kendoGrid").dataSource.data();
+        $("td").filter(function () {
+            return $(this).text() === "00:00 01/01/1900";
+        }).html('');
+        $("td").filter(function () {
+            return $(this).text() === "01/01/1900";
+        }).html('');
+        $("td").filter(function () {
+            return $(this).text() === "07:00 01/01/0001";
+        }).html('');
+    }
+
+
+    $("#filterText").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var listBank = $("#listBank option:selected");
+        var listStatus = $("#listStatus option:selected");
+        var listSource = $("#listSource option:selected");
+        var listCity = $('#listCity option:selected');
+        var listAssignee = $('#listAssignee option:selected');
+        var text = $('#filterText').val();
+        var filter = { logic: "and", filters: [] };
+        var fillterCompanyStatus = { logic: "or", filters: [] };
+        var fillterStatus = { logic: "or", filters: [] };
+        var fillterSource = { logic: "or", filters: [] };
+        var fillterCity = { logic: "or", filters: [] }
+        var fillterAssignee = { logic: "or", filters: [] }
+        var CreatedAtDate = $('#CreatedAtDate').val();
+
+        var filtertext = { logic: "or", filters: [] };
+
+        if (CreatedAtDate) {
+            var startdate = CreatedAtDate.split('-')[0].trim();
+            var enddate = CreatedAtDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "OrderDate", operator: "gte", value: startdate });
+            filter.filters.push({ field: "OrderDate", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        if (listStatus.length > 0) {
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "OrderStatus", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "OrderStatus", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        if (listSource.length > 0) {
+            for (var i = 0; i < listSource.length; i++) {
+                var option = listSource[i].value;
+                if (option == '') {
+                    fillterSource.filters.push({ field: "SalesSource", operator: "contains", value: '' });
+                }
+                else {
+                    fillterSource.filters.push({ field: "SalesSource", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterSource);
+        }
+        if (listBank.length > 0) {
+            for (var i = 0; i < listBank.length; i++) {
+                var option = listBank[i].value;
+                if (option == '') {
+                    fillterCompanyStatus.filters.push({ field: "BankName", operator: "contains", value: '' });
+                }
+                else {
+                    fillterCompanyStatus.filters.push({ field: "BankName", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterCompanyStatus);
+        }
+
+        if (listAssignee.length > 0) {
+            for (var i = 0; i < listAssignee.length; i++) {
+                var option = listAssignee[i].value;
+                if (option == '') {
+                    fillterAssignee.filters.push({ field: "PaymentStatus", operator: "contains", value: '' });
+                }
+                else {
+                    fillterAssignee.filters.push({ field: "PaymentStatus", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterAssignee);
+        }
+        if (text) {
+            filtertext.filters.push({ field: "OCMOrderID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "ERPAPDOrderID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerID", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerName", operator: "contains", value: text });
+            filtertext.filters.push({ field: "CustomerPhone", operator: "contains", value: text });
+            filtertext.filters.push({ field: "PhysicalID", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+</script>

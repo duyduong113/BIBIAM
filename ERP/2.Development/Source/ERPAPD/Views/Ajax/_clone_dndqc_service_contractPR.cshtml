@@ -1,0 +1,220 @@
+﻿@{
+    Layout = null;
+    int countContractPR = ViewBag.countID;
+    int conSTT = ViewBag.STT;
+}
+
+<tr data-pkservice="0">
+    <td><input type="checkbox"></td>
+    <td>@conSTT</td>
+    <td>
+        <input class="input-mini bookcode" type="text" placeholder="Mã book" value="@ViewBag.Service.c_book_code">
+        @*<input type="hidden" class="input-mini  fk_adv" value="@ViewBag.Service.fk_adv" />
+        <input type="hidden" class="input-mini  c_dot_order" value="@ViewBag.Service.c_dot_order" />
+        <input type="hidden" class="input-mini  pk_services" value="0" />*@
+    </td>
+    <td>
+        <input class="date-picker input-mini dateUp" type="text" value="@ViewBag.Service.c_ngay_lenString" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" style="width:65px" />
+    </td>
+    <td>
+        <input class="input-value-suggess item-time" type="hidden" value="@ViewBag.Service.c_gio" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Placeholder("Giờ lên")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%",@class = "item-time-name", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestTime", "CRM_ProposedAdvertisement", new { PKList = 72 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("@Html.Raw(ViewBag.Service.c_gio_name)");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-web1" type="hidden" value="khampa.vn" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Placeholder("Website")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("khampha.vn");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-web2" type="hidden" value="@ViewBag.Service.c_website" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Placeholder("Website")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestWebsite", "CRM_ProposedAdvertisement", new { PKList = 20 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("@Html.Raw(ViewBag.Service.c_website_name)");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" value="@ViewBag.Service.c_category" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Filter("contains")
+                        .Placeholder("Chuyên mục")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestCategory", "CRM_ProposedAdvertisement", new { PKList = 22 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("@Html.Raw(ViewBag.Service.c_category_name)");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" value="@ViewBag.Service.c_location" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Placeholder("Vị trí")
+                        .Filter("contains")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestLocation", "CRM_ProposedAdvertisement", new { PKList = 23 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("@Html.Raw(ViewBag.Service.c_location_name)");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-region" type="hidden" value="@ViewBag.Service.c_vung_mien" />
+        @(Html.Kendo().AutoComplete()
+                        .Name("txt-Adv-contractPR-" + countContractPR)
+                        .DataTextField("Name")
+                        .Filter("contains")
+                        .Placeholder("Vùng miền")
+                        .MinLength(1)
+                        .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalContractPR(" + countContractPR + ")" })
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("SuggestRegion", "CRM_ProposedAdvertisement", new { PKList = 52 })
+                                    .Data("onDataContractPR");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Events(e =>
+                        {
+                            e.Select("onSelectContractPRItem");
+                        })
+        )
+        <script>
+            $("#txt-Adv-contractPR-@countContractPR").val("@Html.Raw(ViewBag.Service.c_vung_mien_name)");
+        </script>
+        @{countContractPR++;}
+    </td>
+    <td>
+        <input class="input stt" type="text" style="width:30px" value="@ViewBag.Service.c_so_luong" placeholder="TT Bài">
+    </td>
+    <td>
+        <input onchange="SumMoneyServiceContractPR()" class="input-mini currency moneyBeforeDiscount" value="@ViewBag.Service.c_don_gia.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Tiền chưa CK">
+    </td>
+    <td>
+        <input onchange="changeDiscount()" class="input-mini currency ck1" value="@ViewBag.Service.c_chiet_khau1.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK1">
+    </td>
+    <td>
+        <input onchange="changeDiscount()" class="input-mini currency ck2" value="@ViewBag.Service.c_chiet_khau2.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK2">
+    </td>
+    <td>
+        <input onchange="changeDiscount()" class="input-mini currency ck3" value="@ViewBag.Service.c_chiet_khau3.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="CK3">
+    </td>
+    <td>
+        <input onchange="SumMoneyServiceContractPR()" class="input-mini currency moneyAfterDiscount" type="text" value="@ViewBag.Service.c_don_gia_sau_ck.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" placeholder="Đã CK">
+    </td>
+    <td>
+        <input class="date-picker input-mini datePayment" type="text" value="@ViewBag.Service.c_ngay_tra_tienString" data-date-format="dd/mm/yyyy" placeholder="dd/mm/yyyy" style="width:65px" />
+    </td>
+    <td>
+        <input class="input-mini currency money" value="@ViewBag.Service.c_tien_tra.ToString("#,##0")" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Số tiền">
+    </td>
+    <td>
+        <input class="input-mini packageLable" value="@ViewBag.Service.c_label" type="text" placeholder="Nhãn hàng">
+    </td>
+    <td>
+        <input class="input-mini note" value="@ViewBag.Service.c_note" type="text" placeholder="Ghi chú">
+    </td>
+    <td>
+        <button type="button" onclick="minusContractPR(this)" class="btn btn-minier btn-danger"><i class="icon-trash"></i></button>
+    </td>
+</tr>

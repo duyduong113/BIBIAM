@@ -1,0 +1,66 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_Debt_History>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+}
+
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid(Model)
+    .Name("GridHistoryCus")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.RemindDate)
+                .HtmlAttributes(new { style = "text-align: center;" })
+               .Title("Ngày nhắc").Format("{0:dd/MM/yyyy}").Width(90).HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.Content)
+                .Title("Nội dung")
+                .Width(350);
+        columns.Bound(p => p.PaymentDate)
+                .Title("Ngày KH hẹn thanh toán").Format("{0:dd/MM/yyyy}")
+                .ClientTemplate("#if(kendo.toString(PaymentDate,'dd/MM/yyyy') == '01/01/1900'){#<span><span>#}else{#<span>#=kendo.toString(PaymentDate,'dd/MM/yyyy')#<span>#}#")
+                .Width(90).HtmlAttributes(new { style = "text-align: right;" }); 
+        columns.Bound(p => p.StaffName)
+                .Title("Nhân viên nhắc nợ")
+                .Width(90);
+        columns.Bound(p => p.RowCreatedAt)
+                .Title("Ngày tạo").Format("{0:dd/MM/yyyy}")
+                .Width(90).HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.RowCreatedUser)
+                .Title("Người tạo")
+                .Width(90);
+
+        //columns.Bound(p => p.ApprovedDate).Format("{0:dd/MM/yyyy}").Width(120).Hidden();
+    })
+
+
+    .Pageable(pager => pager.PageSizes(new[] { 100, 200, 300, 500 }))
+    .Scrollable(scrollable => scrollable.Height(320))
+   // .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .Events(events => { events.DataBound("dataBound"); })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(100)
+
+    .Model(model =>
+    {
+        model.Id(p => p.IDRow);
+    })
+    .Sort(a => a.Add(m => m.IDRow).Descending()
+    )
+    .Read(read => read.Action("HistoryRemindRead", "CRMMnDebt", new { Type = "CUSTOMER", CustomerCode = ViewBag.CustomerCode }))
+                 )
+    )
+</div>
+
+<script>
+   
+    function dataBound(e) {      
+        var test = 0;
+        
+    }    
+</script>

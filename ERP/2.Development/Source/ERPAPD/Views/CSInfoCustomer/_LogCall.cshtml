@@ -1,0 +1,177 @@
+﻿
+<div style="display:none" id="windowCallLog">
+    <div class="row-fluid">
+        <div class="span12">
+            <form id="FormCallLog" style="margin-top:20px;">
+                <table>
+                    <tr style="height: 40px;">
+                        <td>Call Result: </td>
+                        <td>
+                            <div style="margin-top: 4px; margin-right:5px;"><span id="hienthiResult"></span></div>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Call Result: </td>
+                        <td>
+                            <div style="margin-top: 4px;  margin-right: 5px;"><span id="hienthiResultLv2"></span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>OrderID</td>
+                        <td>
+                            <input id="OrderID" name="OrderID" type="text" placeholder="OrderID" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Call Type</td>
+                        <td>
+                            <select data-msg-required="Vui lòng chọn" data-rule-required="true" name="CallType" id="CallType">
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Note</td>
+                        <td>
+                            <textarea id="NoteCallLog" name="NoteCallLog" placeholder="" ></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <button type="submit" class="btn btn-success btn-small">Save</button>
+                            <p class="btn btn-danger btn-small" onclick="CloseCallLog()">Close</p>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $("#FormCallLog").validate({
+        showErrors: function (errorMap, errorList) {
+            // Clean up any tooltips for valid elements
+            $.each(this.validElements(), function (index, element) {
+                var $element = $(element);
+                $element.data("title", "") // Clear the title - there is no error associated anymore
+                    .removeClass("error")
+                    .tooltip("destroy");
+            });
+            // Create new tooltips for invalid elements
+            $.each(errorList, function (index, error) {
+                var $element = $(error.element);
+                $element.tooltip("destroy") // Destroy any pre-existing tooltip so we can repopulate with new tooltip content
+                    .data("title", error.message)
+                    .addClass("error")
+                    .tooltip(); // Create a new tooltip based on the error messsage we just set in the title
+            });
+        },
+        submitHandler: function (form) {
+            AddCallLog();
+        }
+    });
+
+    function AddCallLog() {
+        var o = $('#FormCallLog [name]').GeneData();
+        o.OrganizationID = $("#Org_OrgID").text();
+        o.CustomerID = $("#Cus_EmployeeID").text();
+        o.MobilePhone = $("#Cus_Phone").text();
+        $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+        $.post(r + "/CSInfoCustomer/SaveCallLog", o, function (data) {
+            if (!data.success) {
+                $.gritter.add({
+                    title: '',
+                    text: data.message,
+                    class_name: 'gritter-error'
+                });
+            }
+            else {
+                $.gritter.add({
+                    title: '',
+                    text: 'Save change @Resources.Multi.Successfully',
+                    class_name: 'gritter-success'
+                });
+                $("#windowCallLog").data("kendoWindow").close();
+            }
+        });
+    }
+
+    // minhtc: not coverage all case
+    $.fn.GeneData = function () {
+        var result = {};
+        for (var i = 0; i < this.length; i++) {
+            result[$(this[i]).attr('name')] = $(this[i]).val();
+        }
+        return result;
+    };
+
+
+    function CloseCallLog() {
+        $("#windowCallLog").data("kendoWindow").close();
+    }
+
+    function LogCall() {
+        $("#windowCallLog").kendoWindow({
+            title: "Log Call",
+            actions: ["Close"], /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            height: '280px',
+            width: '25%',
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        $('#windowCallLog').parent().css('top', '10px');
+        $("#windowCallLog_wnd_title").addClass("text-info");
+        $("#windowCallLog_wnd_title").css("font-weight", "bold");
+        LoadDataResutl();
+        $("#FormCallLog .error").removeClass("error");
+        $("#OrderID").val("");
+        $("#NoteCallLog").val("");
+        $("#CallType").val("Inbound");
+    }
+
+    $('#ResultID').on('change', function (e) {
+        LoadDataResutlSub();
+    });
+
+    function LoadDataResutl() {
+        $.post(r + "/CSInfoCustomer/GetResutlList", function (data) {
+            var html = "";
+            html += " <select id='ResultID' name='ResultID' onchange='LoadDataResutlSub()' data-msg-required='Vui lòng chọn' data-rule-required='true'>";
+            html += "    <option value=''>- Please select -</option>";
+            for (var i = 0; i < data.length; i++) {
+                html += "    <option value='" + data[i].Id + "'>" + data[i].Description + "</option>";
+            }
+            html += "</select>";
+            $("#hienthiResult").html(html);
+            LoadDataResutlSub();
+        });
+    };
+
+    function LoadDataResutlSub() {
+        if ($("#ResultID").val() != "") {
+            $.post(r + "/CSInfoCustomer/GetResutlListSub", { SubID: $("#ResultID").val() }, function (data) {
+                var html = "";
+                html += " <select  id='SubResultID' name='SubResultID'  data-msg-required='Vui lòng chọn' data-rule-required='true'>";
+                for (var i = 0; i < data.length; i++) {
+                    html += "    <option value='" + data[i].Id + "'>" + data[i].Description + "</option>";
+                }
+                html += "</select>";
+                $("#hienthiResultLv2").html(html);
+            });
+        }
+        else {
+            var html = "";
+            html += " <select id='SubResultID' name='SubResultID'  data-msg-required='Vui lòng chọn' data-rule-required='true'>";
+            html += "    <option value=''>- Please select -</option>";
+            html += "</select>";
+            $("#hienthiResultLv2").html(html);
+        }
+    };
+</script>

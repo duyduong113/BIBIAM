@@ -1,0 +1,127 @@
+﻿@{
+    Layout = null;
+    int countBanner = ViewBag.countID;
+}
+
+<tr class="banner">
+    <td>#</td>
+   
+    <td><input type="hidden" class="input-mini total-days" value="0" /><input class="date-picker input-mini dateUp" type="text" placeholder="Bắt đầu" data-date-format="dd/mm/yyyy" style="width:65px"></td>
+    <td><input class="input-mini numWeek" type="text" placeholder="Số tuần"></td>
+    <td><input class="date-picker input-mini dateDown" type="text" placeholder="Kết thúc" data-date-format="dd/mm/yyyy" style="width:65px"></td>
+    <td><input class="input-small duration" type="text" placeholder="Thời gian"></td>
+    <td>
+        <input class="input-value-suggess item-web" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Website")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 20 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+        )
+        @{countBanner++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-category" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Chuyên mục")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 22 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+        )
+        @{countBanner++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-location" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Hiển thị")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+        )
+        @{countBanner++;}
+    </td>
+    <td>
+        <input class="input-value-suggess item-nature" type="hidden" />
+        @(Html.Kendo().AutoComplete()
+                                .Name("txt-Adv-Banner-" + countBanner)
+                                .DataTextField("Name")
+                                .Placeholder("Cơ chế")
+                                .Filter("contains")
+                                .MinLength(1)
+                                .HtmlAttributes(new { style = "width:100%", @class = "input-mini", @onfocus = "setGlobalBanner(" + countBanner + ")" })
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("SuggestFromList", "CRMContractList", new { PKList = 23 })
+                                            .Data("onDataBanner");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Events(e =>
+                                {
+                                    e.Select("onSelectBannerItem");
+                                })
+        )
+        @{countBanner++;}
+    </td>
+    <td><input class="input-mini qty" type="text" placeholder="Số lượng"></td>
+    <td><input class="input-mini size" type="text" placeholder="Size"></td>
+    <td><input class="input-mini format" type="text" placeholder="Format"></td>
+    <td><input class="input-small currency unitPriceBeforeTax" type="text" data-thousands="," data-decimal="." data-precision="0" placeholder="Đơn giá sau CK"></td>
+    <td>
+        <input name="form-field-checkbox" type="checkbox" class="ace km">
+        <span class="lbl"></span>
+    </td>
+    <td><input class="input-small label-banner" type="text" placeholder="Nhãn hàng"></td>
+    <td><input class="input-small note" type="text" placeholder="Ghi chú"></td>
+    <td>
+        <button type="button" onclick="minusBanner(this)" class="btn btn-minier btn-danger"><i class="icon-minus"></i></button>
+        <button type="button" onclick="plusLink(this)" class="btn btn-minier btn-success pushLink"><i class="icon-plus"></i></button>
+    </td>
+</tr>

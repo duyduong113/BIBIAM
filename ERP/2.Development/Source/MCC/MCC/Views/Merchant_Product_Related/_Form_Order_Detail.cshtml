@@ -1,0 +1,32 @@
+﻿@using BIBIAM.Core.Entities;
+@using MCC.Models;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global.order_info);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+<script type="text/x-kendo-template" id="EditTemplate">
+    <input type="hidden" id="ma_san_pham" name="ma_san_pham" value="#=ma_san_pham#" />
+    <div class="portlet light bordered">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="icon-pencil"></i>
+                <span class="caption-subject bold uppercase">@Html.Raw(@Resources.Global._recommend_list)</span>
+            </div>
+        </div>
+        <div class="portlet-body form ">
+            <div class="row" id="gridTemplate"></div>
+         </div>
+    </div>
+    <div class="col-md-12">
+        <button type="button" id="btnAddProduct" class="savesend btn btn-primary" onclick="showModal()">
+            <i class="fa  fa-plus-circle"></i>
+            @Html.Raw(@Resources.Global._add_product)
+        </button>
+    </div>
+@Html.Partial("_popup_add_product")
+</script>

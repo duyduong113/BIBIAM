@@ -1,0 +1,152 @@
+﻿<fieldset>
+    <a href="#" class="btn btn-small btn-success">Xuất CMPS HĐ CPM</a>
+    <table style="margin-top:20px" id="" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:10%">Xem ID</th>
+                <th style="width:15%">Vị trí</th>
+                <th style="width:10%">Ngày lên</th>
+                <th style="width:10%">Ngày xuống</th>
+                <th style="width:10%">IMPRESIONS</th>
+                <th style="width:10%">VIEWABLE</th>
+                <th style="width:10%">CLICK</th>
+                <th style="width:15%">Chi tiết danh sách theo campaign</th>
+                <th style="width:10%">Thời điểm lấy</th>
+            </tr>
+        </thead>
+        <tbody class="list">
+                    <tr class="group-real-cpm">
+                       <td>
+                           <input class="cpm-" type="text" value="" />
+                       </td>
+                        <td>
+                            <input class="cpm-" type="text" value="" />
+                        </td>
+                        <td>
+                            <input class="date-picker cpm-" type="text" value="" data-date-format="mm-dd-yyyy" />
+                        </td>
+                        <td>
+                            <input class="date-picker cpm-" type="text" value="" data-date-format="mm-dd-yyyy" />
+                        </td>
+                        <td>
+                            <input class="" type="text"  />
+                        </td>
+                        <td>
+                            <input class="" type="text"/>
+                        </td>
+                        <td>
+                            <input class="" type="text"/>
+                        </td>
+                        <td>
+                            <input class="" type="text"/>
+                        </td>
+                        <td>
+                            <input class="date-picker " type="text"/>
+                        </td>
+                    </tr>
+        </tbody>
+    </table>
+</fieldset>
+<fieldset>
+    <b>Điều chỉnh doanh số CPM</b>
+    <table id="list-real-cpm" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr align="center">
+                <th style="width:10%">Ngày nhập</th>
+                <th style="width:10%">Vị trí</th>
+                <th style="width:10%">Ngày lên</th>
+                <th style="width:10%">Ngày xuống</th>
+                <th style="width:10%">IMP</th>
+                <th style="width:10%">CLICK</th>
+                <th style="width:10%">CTR</th>
+                <th style="width:10%">CPC</th>
+                <th style="width:10%">Số tiền</th>
+                <th style="width:10%">Ghi chú</th>
+                <th style="width:5%">
+                    <button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupRealCPM()"><i class="icon-plus"></i></button>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            <tr class="group-real-cpm">
+                <td>
+                    <input class="cpm-" type="text" value="" />
+                </td>
+                <td>
+                    <input class="cpm-" type="text" value="" />
+                </td>
+                <td>
+                    <input class="date-picker cpm-" type="text" value="" data-date-format="mm-dd-yyyy" />
+                </td>
+                <td>
+                    <input class="date-picker cpm-" type="text" value="" data-date-format="mm-dd-yyyy" />
+                </td>
+                <td>
+                    <input class="" type="text" />
+                </td>
+                <td>
+                    <input class="" type="text" />
+                </td>
+                <td>
+                    <input class="" type="text" />
+                </td>
+                <td>
+                    <input type="text"/>
+                </td>
+                <td>
+                    <input class="currency" type="text" data-thousands="," data-decimal="." data-precision="0"/>
+                </td>
+                <td>
+                    <input type="text" />
+                </td>
+                <td>
+                    <button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealCPM(this)"><i class="icon-minus"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</fieldset>
+<ul style="margin-left:50%" class="row-fluid">
+    <li>
+        <b>Tổng DS đã QC đến ngày hôm nay</b>
+        <span class="red">0</span> 
+    </li>
+    <li>
+        <b>Tổng DS đã QC đến ngày hôm nay</b>
+        <span class="red">0</span>
+    </li>
+</ul>
+@*<button onclick="saveCpmService()" type="button" class="btn btn-small">luu</button>
+<button onclick="saveCpmDate()" type="button" class="btn btn-small">luu2</button>*@
+<script type="text/javascript">
+    function allSaveInReal() {
+        return true;
+    }
+    function plusGroupRealCPM() {
+        var html = '  <tr class="group-real-cpm">'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><input type="text" value="" class=""/></td>'
+        html += '     <td><button data-rel="tooltip" data-placement="top" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupRealCPM(this)"><i class="icon-minus"></i></button></td>'
+        html += '    </tr>'
+        $('#list-real-cpm tbody.list').append(html);
+        addEventAfter();
+    }
+    function minusGroupRealCPM(e,pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        if (pk) {
+            addTaskList("REAL_CPM", pk);
+        }
+        $(e).closest('tr').remove();
+    }
+</script>
+

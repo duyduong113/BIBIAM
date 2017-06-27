@@ -1,0 +1,811 @@
+﻿<div class="row-fluid">
+    <a class="btn btn-mini btn-success" onclick="showFormProduct(0,this)">Thêm sản phẩm</a>
+</div>
+
+<fieldset>
+    <div class="row-fluid">
+        <div class="row-fluid mn-list">
+            @(Html.Kendo().Grid<ERPAPD.Models.CRM_Contract_Product_Draff>()
+.Name("Grid")
+.Columns(columns =>
+{
+    //columns.Bound(p => p.PKProduct)
+    //        .Width(25).Filterable(false).Sortable(false).Groupable(false)
+    //        .HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkAll'  onclick='checkAll(this);' />")
+    //        .ClientTemplate("<input style='text-align:center' class='checkvalue' type='checkbox' data-id= '#=PKProduct#' id='#=PKProduct#' />");
+    columns.Bound(p => p.PKProduct)
+           .Title("Thông tin dịch vụ")
+           .Width(300)
+           .ClientTemplate("<div>" +
+               "<span><a href='javascript:void(0)' onclick='showFormProduct(1,this)'> #if(ProductName!=''){# <span>#=ProductName#</span>#}else{#=Website#}# </a></span> #if(Price==0){#<span style='color:red'> <i class='fa fa-gift'></i> Khuyến mãi </span>#}else {##}#</br>" +
+               "<span> Loại: #=ProductType#</span></br>" +
+               "<span> Website: #=Website# Chuyên mục: #=Category#</span> </br>" +
+               "<span> Vị trí:#=Location# Tính chất:#=Nature#  </span> </br>" +
+               "<span> Size:#=Size#</span> </br>" +
+        //"<a class='btn btn-mini   btn-default' style=' text-align:center;  width: 15px;margin-top: 5px;margin-left: 2px;' href='javascript:void(0);'><i class='icon-pencil bigger-125'></i></a>" +
+        //"<a class='btn btn-mini   btn-info' style=' text-align:center;  width: 15px;margin-top: 5px;margin-left: 2px;' href='javascript:void(0);'><i class='icon-info-sign bigger-125'></i></a>" +
+        // "<a class='btn btn-mini  btn-danger' style=' text-align:center;  width: 15px;margin-top: 5px;margin-left: 2px;' href='javascript:void(0);' onclick='deleteItem(#=PKProduct#,1)' > xóa </a>" +
+            "</div>");
+    columns.Bound(p => p.PKProduct)
+            .Title("Thời gian áp dụng")
+            .Width(300)
+            .ClientTemplate("<div>" +
+        //"<span> #=CustomerID# </span></br>" +
+                "#=ListTime#" +
+        //"<span> Nguồn khách hàng: </span>  #=SourceName#  </br>" +
+                "</div>");
+    columns.Bound(p => p.PKProduct)
+            .Title("Đơn giá - CTKM")
+            .Width(300)
+            .ClientTemplate("<div>" +
+            "<span> Đơn giá: </span> #=kendo.toString(Price,\'n0\')# </br>" +
+            " #=ListPromotion# </br>" +
+            "<span> Đơn giá sau giảm: </span> #=kendo.toString(DonGiaSauGiam,\'n0\')# </br>" +
+            "</div>");
+
+    columns.Bound(p => p.PKProduct)
+            .Title("Dịch vụ cộng thêm")
+            .Width(200)
+            .ClientTemplate("<div class='span12'>" +
+                "<div class='span12'>" +
+                "</div>" +
+                "</div>");
+    columns.Bound(p => p.PKProduct)
+            .Title("Thành tiền")
+            .Width(300)
+             .ClientTemplate("<div>" +
+               "<span> TT trước giảm:</span>#=kendo.toString(TotalAmtBeforeDiscount,\'n0\')# </br>" +
+               "<span> TT sau giảm: </span>#=kendo.toString(TotalAmtAfterDiscount,\'n0\')#</br>" +
+               "<span> Dịch vụ cộng thêm:  </span>#=kendo.toString(TotalAmtSevicePlus,\'n0\')# </br>" +
+               "<span> Tổng tiền: <b style='color:red'></b></span>#=kendo.toString(TotalAmt,\'n0\')# </br>" +
+            "</div>");
+    columns.Bound(p => p.PKProduct).Hidden();
+    columns.Bound(p => p.Number).Hidden();
+    columns.Bound(p => p.Unit).Hidden();
+    columns.Bound(p => p.Price).Hidden();
+    columns.Bound(p => p.DateUp).Hidden();
+    columns.Bound(p => p.DateDown).Hidden();
+    columns.Bound(p => p.Promotion).Hidden();
+    columns.Bound(p => p.Money).Hidden();
+    columns.Bound(p => p.Number).Hidden();
+    columns.Bound(p => p.Discount1).Hidden();
+    columns.Bound(p => p.Discount2).Hidden();
+    columns.Bound(p => p.Discount3).Hidden();
+    columns.Bound(p => p.CKTienMat).Hidden();
+    columns.Bound(p => p.CTKMCKTien).Hidden();
+
+    // columns.Bound(p => p.PKContractProduct).Format("{0:dd/MM/yyyy}").Width(120).Hidden();
+})
+
+.Pageable(pager => pager.PageSizes(new[] { 10, 20, 30, 40, 50 }))
+.Resizable(r => r.Columns(true))
+                    //.ColumnMenu()
+        .Events(events => { events.DataBound("dataBound"); })
+.DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(10)
+    .Model(model =>
+    {
+        model.Id(p => p.PKProduct);
+    })
+      .Read(read => read.Action("GetListContractProduct", "CRMContractList", new { @Id = @ViewBag.PKContractDraff })))
+            )
+        </div>
+    </div>
+</fieldset>
+
+<div class="row-fluid">
+    <div class="pull-left">
+        <div class="controls-row" style="margin-top:15px;">
+            @if (ViewBag.itemdraff != null)
+            {
+                if (ViewBag.itemdraff.KhuyenMaiChung == 1)
+                {
+                    <label><input id="KhuyenMaiChung" name="KhuyenMaiChung" type="checkbox" checked="checked"> Chiết khấu/giảm giá chung cho hợp đồng</label>
+                }
+                else
+                {
+                    <label><input id="KhuyenMaiChung" name="KhuyenMaiChung" type="checkbox"> Chiết khấu/giảm giá chung cho hợp đồng</label>
+                }
+            }
+            else
+            {
+                <label><input id="KhuyenMaiChung" name="KhuyenMaiChung" type="checkbox"> Chiết khấu/giảm giá chung cho hợp đồng</label>
+            }
+        </div>
+    </div>
+    <p style="margin-right: 75px; font-size: 1.4em" class="pull-right">
+        <b>Tổng cộng : <span class="red" id="hdt-sum-money"></span></b>
+    </p>
+</div>
+<fieldset style="margin-top:5px">
+    <div class="row-fluid">
+
+    </div>
+    <div class="row-fluid">
+        <div class="span7" id="divChietKhauChung">
+            @*BaoHV*@
+            <ul id="list-hdt-sale-discount" style="list-style:none">
+                <li>
+                    <div class="row-fluid">
+                        <div class="span2">
+                            <div class="control-group">
+                                <label>Chiết khấu</label>
+                            </div>
+                        </div>
+                        <div class="span3">
+                            <div class="control-group">
+                                <label>Tiền mặt</label>
+                            </div>
+                        </div>
+                        <div class="span3">
+                            <div class="control-group">
+                                <label>TT sau CK</label>
+                            </div>
+                        </div>
+                        <div class="span3">
+                            <div class="control-group">
+                                <label>Ghi chú</label>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                @if (ViewBag.discount != null && ViewBag.discount.Count > 0)
+                {
+                    int i = 0;
+                    foreach (var item in ViewBag.discount)
+                    {
+                        <li class="group-hdt-sale-discount">
+                            <div class="row-fluid">
+                                <div class="span2">
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input class="hdt-sale-id" type="hidden" value="@item.ID" />
+                                            <input onchange="calcuSumCKC(true)" name="ChietKhauChung" class="input-medium span12 call-ckchung " type="text" value="@item.ChietKhauChung" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input onchange="calcuSumCKC(false)" name="TienMatChung" class="input-medium span12 call-tmchung currency"
+                                                   type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.TienMatChung" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input name="TTSauCKChung" class="input-medium span12 hdt-sale-total-mooney" type="text" readonly value="@item.TTSauCKChung.ToString("#,###")" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input name="GhiChu" class="input-medium span12 hdt-sale-total-note" type="text" value="@item.GhiChu" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span1">
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            @if (i == 0)
+                                            {
+                                                <button class="btn btn-minier btn-success" onclick="plusHdtGroupSaleDiscount()"><i class="icon-plus"></i></button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-minier btn-success" onclick="minusHdtGroupSaleDiscount(this, '@item.ID')"><i class="icon-plus"></i></button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                                            i++;
+                    }
+                }
+                else
+                {
+                    <li class="group-hdt-sale-discount">
+                        <div class="row-fluid">
+                            <div class="span2">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <input class="hdt-sale-id" type="hidden" value="0" />
+                                        <input onchange="calcuSumCKC(true)" name="ChietKhauChung" class="input-medium span12 call-ckchung " type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <input onchange="calcuSumCKC(false)" name="TienMatChung" class="input-medium span12 call-tmchung currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <input name="TTSauCKChung" class="input-medium span12 hdt-sale-total-mooney" type="text" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <input name="GhiChu" class="input-medium span12 hdt-sale-total-note" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span1">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <button class="btn btn-minier btn-success" onclick="plusHdtGroupSaleDiscount()"><i class="icon-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="span5" style="float:right">
+            <div class="row-fluid">
+                <div class="profile-user-info">
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"><b>Tổng tiền sau CK </b> </div>
+                        <div class="profile-info-value">
+                            <span id="hdt-sale-total">0</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"><b>Giảm giá trực tiếp </b> </div>
+                        <div class="profile-info-value">
+                            @if (ViewBag.itemdraff != null)
+                            {
+                                if (ViewBag.itemdraff.GiamTrucTiep > 0)
+                                {
+                                    <input id="GiamTrucTiep" onchange="calcusaleDirect()" name="GiamTrucTiep"
+                                           class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0"
+                                           value="@ViewBag.itemdraff.GiamTrucTiep.ToString("#,###")" />
+                                }
+                                else
+                                {
+                                    <input id="GiamTrucTiep" onchange="calcusaleDirect()" name="GiamTrucTiep" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                                }
+                            }
+                            else
+                            {
+                                <input id="GiamTrucTiep" onchange="calcusaleDirect()" name="GiamTrucTiep" class="input-small currency" type="text" data-thousands="," data-decimal="." data-precision="0" />
+                            }
+
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"><b>T.T sau giảm giá</b> </div>
+                        <div class="profile-info-value">
+                            <span id="hdt-sale-total-after-discount">0</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"><b>Thuế VAT</b></div>
+                        <div class="profile-info-value">
+                            <div class="controls">
+                                <input onchange="checkVatHDT()" class="ace" type="checkbox" name="CheckVat" id="CheckVat">
+                                <label class="lbl" for="CheckVat"> VAT 10%</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"><b>Tổng giá trị HĐ</b></div>
+                        <div class="profile-info-value">
+                            <div class="controls">
+                                <span id="TongTienHD">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</fieldset>
+@*<button onclick="SaveAllHDT()" type="button" class="btn btn-small">luu</button>*@
+<div id="listpromotion" style="display:none">
+    <select name="Promotion" class="select" data-placeholder="CK khuyến mãi">
+        @foreach (var item in ViewBag.listPromotion)
+        {
+            <option value="@item.Code">@item.Name</option>
+        }
+    </select>
+</div>
+<div class="row-fluid">
+    @if (ViewBag.itemdraff != null)
+    {
+        if (!string.IsNullOrEmpty(ViewBag.itemdraff.GhiChu))
+        {
+            <fieldset>
+                <b>Thông tin bổ sung</b>
+                <div class="row-fluid">
+                    @(Html.Kendo().Editor()
+                                    .Name("Dieu2")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(ViewBag.itemdraff.GhiChu)
+                    )
+                </div>
+            </fieldset>
+        }
+        
+    }
+    else
+    {
+        foreach (var item in ViewBag.Terms)
+        {
+            if (item.NameID == "THUONG_THONG_TIN_BO_SUNG")
+            {
+                <fieldset>
+                    <b>@item.Title</b>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+                        )
+                    </div>
+                </fieldset>
+            }
+            if (item.NameID == "PHIEU_THONG_TIN_BO_SUNG")
+            {
+                <fieldset>
+                    <b>@item.Title</b>
+                    <div class="row-fluid">
+                        @(Html.Kendo().Editor()
+                                    .Name("GhiChu")
+                                    .HtmlAttributes(new { style = "height:300px" })
+                                    .Encode(false)
+                                    .ImageBrowser(imageBrowser => imageBrowser
+                                        .Image("~/Content/UserFiles/Images/{0}")
+                                        .Read("Read", "ImageBrowser")
+                                        .Create("Create", "ImageBrowser")
+                                        .Destroy("Destroy", "ImageBrowser")
+                                        .Upload("Upload", "ImageBrowser")
+                                        .Thumbnail("Thumbnail", "ImageBrowser")
+                                    )
+                                    .Value(@item.Content)
+                        )
+                    </div>
+                </fieldset>
+            }
+
+        }
+    }
+</div>
+
+<script>
+    function dataBound(e) {
+        $('#hdt-sum-money').text(0);
+        var total_amt = 0;
+        var data = e.sender.dataSource._data;
+        for (var i = 0; i < data.length; i++) {
+            total_amt = total_amt + (data[i].TotalAmtAfterDiscount - data[i].TotalAmtSevicePlus);
+        }
+        $('#hdt-sum-money').text(formatoString(total_amt));
+        resetCalcuMoney();
+    }
+    $(document).ready(function () {
+        $('#divChietKhauChung').hide();
+        formatDateDisplay();
+
+    })
+    
+    function tinhNgay(e, key) {
+        debugger;
+        var parent = $(e).parents(".group-time-updown");
+        var up = parent.find("input[name='DateUp']").val();
+        var down = parent.find("input[name='DateDown']").val();
+        var dateup = new Date(convertDate(up));
+        var datedown = new Date(convertDate(down));
+        var offset = datedown.getTime() - dateup.getTime();
+        var songay = offset / (86400000);
+        var sotuan = 0;
+        var songayle = 0;
+        if (key == 2) {
+            var sotuanInput = parent.find("input[name='Week']").val();
+            if (parseInt(sotuanInput) != parseInt(sotuan)) {
+                sotuan = sotuanInput;
+                songay = sotuanInput * 7;
+                if (songay < 7) {
+                    sotuan = 0;
+                    songayle = songay;
+                }
+                else {
+                    sotuan = parseInt(songay / 7);
+                    songayle = songay % 7
+                }
+            }
+        }
+        if (key == 1) {
+            var soNgayInput = parent.find("input[name='NumberDay']").val();
+            if (parseInt(songay) != parseInt(soNgayInput)) {
+                songay = soNgayInput;
+                if (songay < 7) {
+                    sotuan = 0;
+                    songayle = songay;
+                }
+                else {
+                    sotuan = parseInt(songay / 7);
+                    songayle = songay % 7
+                }
+            }
+
+        }
+        else if(key==0) {
+            if (songay < 7) {
+                sotuan = 0;
+                songayle = songay;
+            }
+            else {
+                sotuan = parseInt(songay / 7);
+                songayle = songay % 7
+            }
+        }
+        if (down != "" && up != "") {
+            if (offset < 1) {
+                alert("Ngày bắt đầu không thể nhỏ hơn ngày kết thúc !");
+                parent.find("input[name='DateUp']").val('');
+                parent.find("input[name='DateDown']").val('');
+                parent.find("input[name='Week']").val('');
+                parent.find("input[name='NumberDay']").val('');
+            }
+            else {
+                var stringTuan = sotuan + ' tuần,lẻ ' + songayle + ' ngày';
+                if (songayle == 0) {
+                    stringTuan = sotuan + ' tuần chẵn';
+                }
+                parent.find("input[name='Week']").val(stringTuan);
+                parent.find("input[name='NumberDay']").val(songay);
+            }
+        }
+        else if (up != "" && down=="" && key!=0) {
+            var stringTuan = sotuan + ' tuần,lẻ ' + songayle + ' ngày';
+            if (songayle == 0) {
+                stringTuan = sotuan + ' tuần chẵn';
+            }
+            parent.find("input[name='Week']").val(stringTuan);
+            parent.find("input[name='NumberDay']").val(songay);
+            var result = new Date();
+            result.setDate(dateup.getDate() + songay);
+            parent.find("input[name='DateDown']").val(result.dateFormat('d/m/Y'));
+        }
+        
+        
+       // calcuNumDay(e);
+    }
+
+   
+
+    function calcuNumDay(e) {
+        var parent = $(e).parents(".group-time-updown");
+        var up = parent.find("input[name='DateUp']").val();
+        var week = parent.find("input[name='Week']").val();
+        totalday = parent.find("input[name='NumberDay']").val();
+        var songayle = totalday % 7;
+        if (totalday >= 7) {
+            week = parseInt(totalday / 7);
+        }
+        if (up != "") {
+            if (week == "") {
+                week = 0;
+            }
+            if (totalday == "") {
+                totalday = 0;
+            }
+            var numdays = parseInt(week * 7) + parseInt(totalday);
+            var dateup = new Date(convertDate(up));
+            var result = new Date();
+            result.setDate(dateup.getDate() + numdays);
+            if (week == 0 && totalday == 0) {
+                parent.find("input[name='NumberDay']").val(songayle);
+                parent.find("input[name='Week']").val(week);
+            }
+            else {
+                parent.find("input[name='Week']").val(week);
+                parent.find("input[name='NumberDay']").val(songayle);
+                parent.find("input[name='DateDown']").val(result.dateFormat('d/m/Y'));
+            }
+        }
+    }
+    var keyid = -1;
+    function showFormProduct(key, obj) {
+        if (key == 0) {
+            debugger
+            keyid = 0;
+            //$(".group-promotion-hdt .list-promotion").html('');
+            //$(".group-promotion-hdt .list-promotion").html($('#listpromotion').html());
+            //$("#list-promotion-hdt .select").chosen();
+            //resetData
+            $('#Promotion').prop('checked', false);
+            $('#ProductInfo,#NguonDan,#CKTienMat').val('');
+            $('.type-product').prop('checked', false);
+            $('#CKTienMat,#Price').val(0);
+            $('#Number').val(1);
+            $.post(r + '/Ajax/GetListTimeUpdownProductDraff/', { FKProduct: 0, FKContract: 0 }, function (data) {
+                $('#divlist-time').html(data);
+                formatDateDisplay();
+                $("#list-time-updown .chosen-select").chosen();
+            });
+            $.post(r + '/Ajax/GetListPromotionProductDraff/', { FKProduct: 0, FKContract: 0 }, function (data) {
+                $('#divlist-promotion').html(data);
+                formatDateDisplay();
+                $("#list-promotion-hdt .chosen-select").chosen();
+            });
+            //End reset
+            $('#popup-product').modal('show');
+        }
+        else {
+            keyid = 1;
+            setData(obj, keyid);
+            $('#popup-product').modal('show');
+        }
+    }
+    // change % chiet khau, $ chiet khau
+    var sumafter = 0; //sum after sale
+    var sumT = 0;
+    function calcuSumCKC(per) {
+        debugger
+        var sum = currencyToNumber($("#hdt-sum-money").text());
+        $("#list-hdt-sale-discount .group-hdt-sale-discount").each(function (index) {
+            if (!per) {
+                var money = currencyToNumber($(this).find(".call-tmchung").val());
+                discount = money / sum * 100;
+
+            } else {
+                var discount = currencyToNumber($(this).find(".call-ckchung").val());
+                money = sum * discount / 100;
+            }
+            sum = sum - money;
+            $(this).find(".call-ckchung").val(parseFloat(discount).toFixed(2));
+            $(this).find(".call-tmchung").val((money + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+            $(this).find(".hdt-sale-total-mooney").val((sum + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+        })
+        sumafter = sum;
+        $("#hdt-sale-total").text((sum + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+        calcusaleDirect();
+    }
+    // change giam gia truc tiep
+    function calcusaleDirect() {
+        var money = currencyToNumber($("#GiamTrucTiep").val());
+        var sum = sumafter - money;
+        moneyBeforeVat = sum;
+        $("#hdt-sale-total-after-discount").text((sum + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+        checkVatHDT();
+    }
+    //checked VAT
+    function checkVatHDT() {
+        var sum = moneyBeforeVat;
+        if ($("#CheckVat").is(":checked")) {
+            sum = moneyBeforeVat + (moneyBeforeVat * 10 / 100);
+        }
+        moneyAfterVat = sum;
+        changeMoney(true);
+        changePercent(true, true);
+        $("#TongTienHD").text((sum + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,"));
+        $("#txtTongTienHD").val(sum);
+    }
+    function resetCalcuMoney() {
+        //  $('#list-hdt-sale-discount .group-hdt-sale-discount').find(".call-ckchung").val(0);
+        //  $('#list-hdt-sale-discount .group-hdt-sale-discount').find(".call-tmchung").val(0);
+        calcuSumCKC(true);
+    }
+
+    function onchangeproduct(it) {
+        $.post(r + '/Ajax/GetListProductByType', { Type: it }, function (data) {
+            $('#divProductCode').html(data);
+        });
+        typeProduct = it;
+    }
+    var ProductType = "";
+    function plusHdtGroupSaleDiscount() {
+        var html = '';
+        html += '      <li class="group-hdt-sale-discount">'
+        html += '      <div class="row-fluid">'
+        html += '      <div class="span2">'
+        html += '           <div class="control-group">'
+        html += '               <div class="controls">'
+        html += '                    <input onchange="calcuSumCKC(true)" name="ChietKhauChung" class="input-medium span12 call-ckchung " type="text" />'
+        html += '               </div>'
+        html += '           </div>'
+        html += '       </div>'
+        html += '       <div class="span3">'
+        html += '           <div class="control-group">'
+        html += '               <div class="controls">'
+        html += '                   <input onchange="calcuSumCKC(false)" name="TienMatChung" class="input-medium span12 call-tmchung currency" type="text" data-thousands="," data-decimal="." data-precision="0" />'
+        html += '               </div>'
+        html += '           </div>'
+        html += '       </div>'
+        html += '       <div class="span3">'
+        html += '           <div class="control-group">'
+        html += '               <div class="controls">'
+        html += '                   <input name="TTSauCKChung" class="input-medium span12 hdt-sale-total-mooney" type="text" readonly />'
+        html += '               </div>'
+        html += '           </div>'
+        html += '       </div>'
+        html += '       <div class="span3">'
+        html += '           <div class="control-group">'
+        html += '               <div class="controls">'
+        html += '                   <input name="GhiChu" class="input-medium span12 hdt-sale-total-note" type="text" />'
+        html += '               </div>'
+        html += '           </div>'
+        html += '       </div>'
+        html += '       <div class="span1">'
+        html += '           <div class="control-group">'
+        html += '               <div class="controls">'
+        html += '                   <button class="btn btn-minier btn-danger" onclick="minusHdtGroupSaleDiscount(this)"><i class="icon-minus"></i></button>'
+        html += '               </div>'
+        html += '           </div>'
+        html += '       </div>'
+        html += '   </div>'
+        html += ' </li>'
+        $("#list-hdt-sale-discount").append(html);
+
+    }
+    function minusHdtGroupSaleDiscount(e, pk) {
+        $(e).closest('li').remove();
+        deleteItem(pk, "DiscountAll");
+        resetCalcuMoney();
+    }
+
+    $('#KhuyenMaiChung').click(function () {
+        if ($('#KhuyenMaiChung').prop('checked')) {
+            $('#divChietKhauChung').show();
+        }
+        else {
+            $('#divChietKhauChung').hide();
+        }
+    });
+    $('.type-product').click(function () {
+        ProductType = $(this).val();
+        if ($(this).val() == "BANNER") {
+            $('#groupKHCN').show();
+            $('#Number').val(1);
+            //$('#divNumber').hide();
+        }
+        else {
+            $('#groupKHCN').hide();
+            $('#divNumber').show();
+        }
+    });
+    var PKProductcurrent = 0;
+    $('#divNumber').hide();
+
+    function SaveAllHDT() {
+        var arr3 = [];
+        var loop3 = true;
+        // Dua vao danh sach KMchung
+        $("#list-hdt-sale-discount .group-hdt-sale-discount").each(function (i) {
+            var ob = {};
+            ob.FKContract = '@ViewBag.PKContractDraff';// $("#list-time-updown").attr("data-contract");
+            $(this).find("input").each(function () {
+                if ($(this).attr("name") == "ID") {
+                    ob.ID = $(this).val();
+                }
+                if ($(this).attr("name") == "ChietKhauChung") {
+                    ob.ChietKhauChung = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "TienMatChung") {
+                    ob.TienMatChung = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "TTSauCKChung") {
+                    ob.TTSauCKChung = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "GhiChu") {
+                    ob.GhiChu = $(this).val();
+                }
+            })
+            arr3[i] = ob;
+        })
+        if (!loop3) {
+            return;
+        }
+        $.ajax({
+            url: "/CRMContractList/ContractDraftPromotion_Save",
+            type: 'POST',
+            data: { listPromotion: arr3 },
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {  
+                    return true;
+                }
+                else {
+                    return false;
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật Mã TC: THUONG01 !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return true;
+    }
+    //
+    function GetAmtByContract() {
+        $('#hdt-sum-money').text('0.000');
+        $.post(r + '/CRMContractList/GetAmtByContract/', { ContractID: '@ViewBag.PKContractDraff' }, function (data) {
+            if (data.success) {
+                totalTienSP = data.data[0].TotalAmtNoVAT;
+                $('#hdt-sum-money').text(formatoString(data.data[0].TotalAmtNoVAT));
+                resetCalcuMoney();
+            }
+        });
+    }
+    // Load lại data khi tạo mới hoặc cập nhật
+    function onBindDataToForm(dataItem) {
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+    }
+    //Chuyen doi dinh dang dd/MM/yyyy -> yyyy-MM-dd
+    function convertDate(date) {
+        var splitDate = date.split("/");
+        var day = splitDate[0];
+        var month = splitDate[1];
+        var year = splitDate[2];
+        return year + "/" + month + "/" + day;
+    }
+
+    //format dinh dang ngay theo extend
+    function stringToDate(_date, _format, _delimiter) {
+        var formatLowerCase = _format.toLowerCase();
+        var formatItems = formatLowerCase.split(_delimiter);
+        var dateItems = _date.split(_delimiter);
+        var monthIndex = formatItems.indexOf("mm");
+        var dayIndex = formatItems.indexOf("dd");
+        var yearIndex = formatItems.indexOf("yyyy");
+        var month = parseInt(dateItems[monthIndex]);
+        month -= 1;
+        var formatedDate = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
+        return formatedDate;
+    }
+    function saveServiceSupport() {
+        var result = SaveAllHDT();
+        return result;
+    }
+    function formatDateDisplay() {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy' });
+    }
+</script>
+<style>
+    .chosen-container {
+        width: 200px !important;
+    }
+</style>

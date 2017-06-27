@@ -1,0 +1,628 @@
+﻿@{
+    ViewBag.Title = "Quản lý FAQ";
+
+    bool AllowCreate = (ViewBag.Assets.Create != null && ViewBag.Assets.Create);
+    bool AllowUpdate = (ViewBag.Assets.Update != null && (bool)ViewBag.Assets.Update);
+    bool AllowExport = (ViewBag.Assets.Export != null && (bool)ViewBag.Assets.Export);
+    bool AllowImport = (ViewBag.Assets.Import != null && (bool)ViewBag.Assets.Import);
+    bool AllowDelete = (ViewBag.Assets.Delete != null && (bool)ViewBag.Assets.Delete);
+}
+
+<div class="row-fluid">
+    <div class="span12">
+        <div class="tabbable">
+            <ul class="nav nav-tabs" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="#home1">
+                        Danh sách chờ duyệt
+                    </a>
+                </li>
+
+                <li class="">
+                    <a data-toggle="tab" href="#home2">
+                        Danh sách FAQ
+                    </a>
+                </li>
+
+                <li class="">
+                    <a data-toggle="tab" href="#home3">
+                        Phản hồi người dùng
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content" style="border:none;padding:0px;">
+                <div id="home1" class="tab-pane active">
+                    <div class="row-fluid">
+                        <div class="span12" style="margin:5px 0;">
+                            <input class="span1" type="text" id="questionf" value="" placeholder="Tìm theo nội dung câu hỏi..." style="width:200px" />
+                            <select class="chosen" id="topicf" data-placeholder="Chọn nhóm…" multiple>
+                                <option value="">Tất cả</option>
+                                @foreach (var item in ViewBag.listTopic)
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter()" style="float:none">Lọc dữ liệu</button>
+                        </div>
+                    </div>
+                                        @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_FAQ>()
+                        .Name("grid")
+                        .Columns(columns =>
+                        {
+                            columns.Command(command => { command.Custom("Chi tiết").Click("Update").HtmlAttributes(new { @class = "btn", href = "javascript:void(0)", @style = "min-width:40px;" }); }).Width(80).Title("");
+                            columns.ForeignKey(p => p.TopicId, (System.Collections.IEnumerable)ViewBag.listTopic, "Id", "Name").EditorTemplateName("GridNullableForeignKey").Title("Nhóm").Width(100);
+                            columns.Bound(p => p.Question).Width(300).Title("Câu hỏi");
+                            //columns.Bound(p => p.Answer).Width(200).Title("Câu trả lời").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.Published).Width(60).Title("Xuất bản");
+                            //columns.Bound(p => p.View).Width(80).Title("#View").Format("{0:N0}");
+                            //columns.Bound(p => p.Like).Width(100).Title("#Like").Format("{0:N0}");
+                            //columns.Bound(p => p.Unlike).Width(100).Title("#Unlike").Format("{0:N0}");
+                            columns.Bound(p => p.CreatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.CreatedBy).Width(100);
+                            columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.UpdatedBy).Width(100);
+                        })
+                        .Events(events => { events.DataBound("dataBound"); })
+                        .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+                        .Sortable()
+                        .Scrollable()
+                        .Navigatable()
+                        .Filterable()
+                        .Reorderable(r => r.Columns(true))
+                        .Resizable(r => r.Columns(true))
+                        .ColumnMenu()
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("ReadUnPublish", "FAQManagement"))
+                        )
+                    )
+                </div>
+                <div id="home2" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12" style="margin:5px 0;">
+                            <input class="span1" type="text" id="questionf1" value="" placeholder="Tìm theo nội dung câu hỏi..." style="width:200px" />
+                            <select class="chosen" id="topicf1" data-placeholder="Chọn nhóm…" multiple>
+                                <option value="">Tất cả</option>
+                                @foreach (var item in ViewBag.listTopic)
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                            <button type="button" class="btn btn-primary btn-small" onclick="filter1()" style="float:none">Lọc dữ liệu</button>
+                        </div>
+                    </div>
+                                        @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_FAQ>()
+                        .Name("grid1")
+                        .Columns(columns =>
+                        {
+                            columns.Command(command => { command.Custom("Chi tiết").Click("Update").HtmlAttributes(new { @class = "btn", href = "javascript:void(0)", @style = "min-width:40px;" }); }).Width(80).Title("");
+                            columns.ForeignKey(p => p.TopicId, (System.Collections.IEnumerable)ViewBag.listTopic, "Id", "Name").EditorTemplateName("GridNullableForeignKey").Title("Nhóm").Width(100);
+                            //columns.Bound(p => p.Name).Width(150).Title("Tiêu đề").EditorTemplateName("TextArea");
+                            columns.Bound(p => p.Question).Width(300).Title("Câu hỏi").EditorTemplateName("TextArea");
+                            //columns.Bound(p => p.Answer).Width(200).Title("Câu trả lời").HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                            columns.Bound(p => p.Published).Width(80).Title("Xuất bản");
+                            columns.Bound(p => p.View).Width(80).Title("#View").Format("{0:N0}");
+                            columns.Bound(p => p.Like).Width(100).Title("#Like").Format("{0:N0}");
+                            columns.Bound(p => p.Unlike).Width(100).Title("#Unlike").Format("{0:N0}");
+                            columns.Bound(p => p.CreatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.CreatedBy).Width(100);
+                            columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.UpdatedBy).Width(100);
+                        })
+                        .ToolBar(tools =>
+                        {
+                            tools.Custom()
+                            .Text("Tạo mới")
+                           .HtmlAttributes(new { @class = "btn btn-success", @Href = "javascript:CreateNew()" });
+                        })
+                        .Events(events => { events.DataBound("dataBound1"); })
+                        .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+                        .Sortable()
+                        .Scrollable()
+                        .Navigatable()
+                        .Filterable()
+                        .Reorderable(r => r.Columns(true))
+                        .Resizable(r => r.Columns(true))
+                        .ColumnMenu()
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("ReadPublish", "FAQManagement"))
+                        )
+                    )
+                </div>
+                <div id="home3" class="tab-pane">
+                    <div class="row-fluid">
+                        <div class="span12" style="margin:5px 0;">
+                            <input class="span4" type="text" id="questionf2" value="" placeholder="Tìm theo nội dung câu hỏi..." />
+                            <button type="button" id="btnSearch" class="btn btn-primary btn-small" onclick="filter2()" style="float:none">Lọc dữ liệu</button>
+                        </div>
+                    </div>
+                                        @(Html.Kendo()
+                        .Grid<ERPAPD.Models.Deca_FAQ_Comment>()
+                        .Name("grid2")
+                        .Columns(columns =>
+                        {
+                            columns.ForeignKey(p => p.QuestionId, (System.Collections.IEnumerable)ViewBag.listFAQ, "Id", "Question").Title("Câu hỏi").Width(150);
+                            columns.Bound(p => p.Content).Width(300).Title("Nội dung").ClientTemplate("#=htmlDecode(Content)#");
+                            //columns.Bound(p => p.Published).Width(80).Title("Xuất bản");
+                            columns.Bound(p => p.CreatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.CreatedBy).Width(100);
+                            columns.Bound(p => p.UpdatedAt).Width(120).Format("{0:dd/MM/yyyy HH:mm:ss}");
+                            columns.Bound(p => p.UpdatedBy).Width(100);
+                        })
+                        .Events(events => { events.DataBound("dataBound2"); })
+                        .Sortable()
+                        .Scrollable()
+                        .Navigatable()
+                        .Filterable()
+                        .Reorderable(r => r.Columns(true))
+                        .Resizable(r => r.Columns(true))
+                        .ColumnMenu()
+                        .Pageable(a => a.PageSizes(new int[] { 20, 50, 100 }))
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("ReadComment", "FAQManagement"))
+                        )
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@( Html.Kendo().Window().Name("Window")
+      .Title("Chi tiết")
+      .Visible(false)
+      .Modal(true)
+      .Draggable(true)
+      .Width(800)
+)
+
+<script type="text/x-kendo-template" id="createanswer">
+    <form action="@Url.Content("~/FAQManagement/CreateAnswer")" class="createform" method="post" enctype="multipart/form-data" style="margin-bottom:0px;">
+        <div class="control-group">
+            <label class="control-label">Chọn nhóm</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownList().Name("TopicId")
+                    .AutoBind(false)
+                    .OptionLabel("Chọn nhóm...")
+                    .HtmlAttributes(new { style = "width: 50%;" })
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetTopic", "FAQ"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Câu hỏi</label>
+            <div class="controls">
+                <textarea name="Question" style="width: 98%" placeholder="Câu hỏi"></textarea>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Nội dung trả lời</label>
+            <div class="controls">
+                @(Html.Kendo().Editor()
+                .Name("Content")
+                .Encode(false)
+                .HtmlAttributes(new { style = "height:300px;width:100%;", placeholder = "Content" })
+                .Tools(tools => tools
+                      .Clear()
+                      .Bold().Italic().Underline().Strikethrough()
+                      .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                      .InsertUnorderedList().InsertOrderedList()
+                      .Outdent().Indent()
+                      .CreateLink().Unlink()
+                      .InsertImage()
+                      .InsertFile()
+                      .SubScript()
+                      .SuperScript()
+                      .TableEditing()
+                      .ViewHtml()
+                      .Formatting()
+                      .CleanFormatting()
+                      .FontName()
+                      .FontSize()
+                      .FontColor().BackColor())
+                      .Encode(false)
+                    .ImageBrowser(imageBrowser => imageBrowser
+                    .Image("~/Content/UserFiles/Images/{0}")
+                    .Read("Read", "ImageBrowser")
+                    .Create("Create", "ImageBrowser")
+                    .Destroy("Destroy", "ImageBrowser")
+                    .Upload("Upload", "ImageBrowser")
+                    .Thumbnail("Thumbnail", "ImageBrowser")
+                    ).ToClientTemplate()
+                )
+            </div>
+        </div>
+
+        <div class="controls">
+            <label>
+                <input name="Published" type="checkbox" class="ace" value="true">
+                <span class="lbl"> Xuất bản</span>
+            </label>
+        </div>
+        <div class="form-actions" style="text-align:right;">
+            <a class="btn btn-grey btn-small" onclick="$('\\#Window').data('kendoWindow').close()">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary btn-small">Lưu lại</button>
+        </div>
+    </form>
+</script>
+
+<script type="text/x-kendo-template" id="answer">
+    <form action="@Url.Content("~/FAQManagement/UpdateAnswer")" class="editform" method="post" enctype="multipart/form-data" style="margin-bottom:0px;">
+        <div class="control-group">
+            <label class="control-label">Chọn nhóm</label>
+            <div class="controls">
+                @(Html.Kendo().DropDownList().Name("TopicId")
+                    .OptionLabel("Chọn nhóm...")
+                    .HtmlAttributes(new { style = "width: 50%;" })
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .Value("#=TopicId#")
+                    .DataSource(dataSource =>
+                    {
+                        dataSource.Read(read => read.Action("GetTopic", "FAQ"))
+                        .ServerFiltering(true);
+                    }).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Câu hỏi</label>
+            <div class="controls">
+                <textarea name="Question" style="width: 98%" placeholder="Câu hỏi">#: Question#</textarea>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Nội dung trả lời</label>
+            <div class="controls">
+                @(Html.Kendo().Editor()
+                .Name("Content")
+                .Encode(false)
+                .HtmlAttributes(new { style = "height:300px;width:100%;", placeholder = "Content" })
+                .Tools(tools => tools
+                         .Clear()
+                      .Bold().Italic().Underline().Strikethrough()
+                      .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                      .InsertUnorderedList().InsertOrderedList()
+                      .Outdent().Indent()
+                      .CreateLink().Unlink()
+                      .InsertImage()
+                      .InsertFile()
+                      .SubScript()
+                      .SuperScript()
+                      .TableEditing()
+                      .ViewHtml()
+                      .Formatting()
+                      .CleanFormatting()
+                      .FontName()
+                      .FontSize()
+                      .FontColor().BackColor())
+                      .Encode(false)
+                    .Value("#=Answer#")
+                    .ImageBrowser(imageBrowser => imageBrowser
+                    .Image("~/Content/UserFiles/Images/{0}")
+                    .Read("Read", "ImageBrowser")
+                    .Create("Create", "ImageBrowser")
+                    .Destroy("Destroy", "ImageBrowser")
+                    .Upload("Upload", "ImageBrowser")
+                    .Thumbnail("Thumbnail", "ImageBrowser")
+                    ).ToClientTemplate()
+                )
+            </div>
+        </div>
+        <input type="hidden" value="#=Id#" name="Id" />
+
+        <div class="controls">
+            <label>
+                #if(Published){#
+                <input name="Published" type="checkbox" class="ace" checked="checked" value="true">
+                <span class="lbl"> Xuất bản</span>
+                #}else{#
+                <input name="Published" type="checkbox" class="ace" value="true">
+                <span class="lbl"> Xuất bản</span>
+                #}#
+            </label>
+        </div>
+        <div class="form-actions" style="text-align:right;">
+            <a class="btn btn-grey btn-small" onclick="$('\\#Window').data('kendoWindow').close()">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary btn-small">Lưu lại</button>
+        </div>
+    </form>
+</script>
+
+<script>
+    $("#topicf").chosen();
+    $("#questionf").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter();
+        }
+    });
+    $("#questionf1").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter1();
+        }
+    });
+
+
+    $("#questionf2").keypress(function (e) {
+        if (e.keyCode == 13) {
+            filter2();
+        }
+    });
+
+
+    function filter() {
+
+        grid = $("#grid").data("kendoGrid");
+        var topicf = $("#topicf option:selected");
+        var questionf = $('#questionf').val();
+        var filter = { logic: "and", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+
+        if (topicf.length > 0) {
+            for (var i = 0; i < topicf.length; i++) {
+                var option = topicf[i].value;
+                if (option == '') {
+                    filterTopic.filters.push({ field: "TopicId", operator: "neq", value: 0 });
+                }
+                else {
+                    filterTopic.filters.push({ field: "TopicId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterTopic);
+        }
+        if (questionf) {
+            filter.filters.push({ field: "Question", operator: "contains", value: questionf });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function filter1() {
+
+        grid = $("#grid1").data("kendoGrid");
+        var topicf = $("#topicf1 option:selected");
+        var questionf = $('#questionf1').val();
+        var filter = { logic: "and", filters: [] };
+        var filterTopic = { logic: "or", filters: [] };
+
+        if (topicf.length > 0) {
+            for (var i = 0; i < topicf.length; i++) {
+                var option = topicf[i].value;
+                if (option == '') {
+                    filterTopic.filters.push({ field: "TopicId", operator: "neq", value: 0 });
+                }
+                else {
+                    filterTopic.filters.push({ field: "TopicId", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterTopic);
+        }
+        if (questionf) {
+            filter.filters.push({ field: "Question", operator: "contains", value: questionf });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function filter2() {
+
+        grid = $("#grid2").data("kendoGrid");
+        var questionf = $('#questionf2').val();
+        var filter = { logic: "and", filters: [] };
+
+        if (questionf) {
+            filter.filters.push({ field: "Content", operator: "contains", value: questionf });
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+    function htmlDecode(value) {
+        if (value) {
+            return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+        } else {
+            return "";
+        }
+
+    }
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href");
+        if (target == '#home1') {
+            $("#grid").data("kendoGrid").dataSource.read();
+        } else if (target == '#home2') {
+            $("#topicf1").chosen();
+            $("#grid1").data("kendoGrid").dataSource.read();
+        } else {
+            $("#grid2").data("kendoGrid").dataSource.read();
+        }
+    });
+
+    function resizeGrid() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid').offset().top);
+        var gridElement = $("#grid"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+
+    function resizeGrid1() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid1').offset().top);
+        var gridElement = $("#grid1"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+
+    function resizeGrid2() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#grid2').offset().top);
+        var gridElement = $("#grid2"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 50);
+    }
+    $(window).resize(function () {
+        resizeGrid();
+        resizeGrid1();
+        resizeGrid2();
+    });
+    function dataBound() {
+        resizeGrid();
+    }
+
+    function dataBound1() {
+        resizeGrid1();
+    }
+
+    function dataBound2() {
+        resizeGrid2();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                    $("#grid").data("kendoGrid").dataSource.read();
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onRequestEnd(e) {
+
+        if (e.type == "update" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Update successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: 'Create successfully',
+                class_name: 'gritter-success'
+            });
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function CreateNew() {
+        var detailsTemplate = kendo.template($("#createanswer").html());
+        var wnd = $("#Window").data("kendoWindow").title("Tạo mới");
+        wnd.content(detailsTemplate({}));
+        wnd.center().open();
+
+        $(".createform").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    bootbox.hideAll()
+                    $('#Window').data('kendoWindow').close()
+                    $("#grid1").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Save successfully',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    }
+
+    function Update(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var detailsTemplate = kendo.template($("#answer").html());
+        var wnd = $("#Window").data("kendoWindow").title("Chi tiết");;
+        wnd.content(detailsTemplate(dataItem));
+        wnd.center().open();
+
+        $(".editform").ajaxForm({
+            beforeSend: function () {
+                $(document).ajaxStart($.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false })).ajaxStop($.unblockUI);
+            },
+            success: function (data) {
+                if (data.success) {
+                    bootbox.hideAll()
+                    $('#Window').data('kendoWindow').close()
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    $("#grid1").data("kendoGrid").dataSource.read();
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Save successfully',
+                        class_name: 'gritter-success'
+                    });
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+        });
+    }
+
+</script>
+

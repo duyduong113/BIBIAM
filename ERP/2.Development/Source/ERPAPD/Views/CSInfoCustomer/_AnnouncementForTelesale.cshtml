@@ -1,0 +1,786 @@
+﻿@{
+    var listActive = new List<Object>();
+    listActive.Add(new { Value = "true", Name = "Active" });
+    listActive.Add(new { Value = "false", Name = "Inactive" });
+    ViewBag.listActive = listActive;
+
+    var listImpact = new List<Object>();
+    listImpact.Add(new { Value = "Low", Name = "Low" });
+    listImpact.Add(new { Value = "Medium", Name = "Medium" });
+    listImpact.Add(new { Value = "High", Name = "High" });
+    ViewBag.listImpact = listImpact;
+}
+
+<div class="row-fluid" style="margin-bottom:10px;">
+    <div class="span12">
+        <div class="container">
+            <h3 class="header smaller lighter blue" style=" margin-bottom: 10px !important; padding-bottom: 4px !important;">Announcement 
+                <span class=" blue header1" style="margin-bottom: 10px; margin-top: 5px;">
+                    @if (ViewBag.AnnPermision == true)
+                    {
+                        <button class="btn btn-mini btn-success" onclick="OpenAnnouncement()"><i class="icon-plus-sign"></i>Add New</button>
+                        <button class="btn btn-mini btn-primary" onclick="OpenDataAnnouncement()"><i class="icon-th-large"></i>Message Sent</button>
+                    }
+                </span>
+            </h3>
+            <div class="mainbody">
+                <span id="hienDataTeleSaleAnnoucement"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<h3 class="header smaller lighter blue" style="margin-bottom:5px;">Promotion</h3>
+<div class="row-fluid">
+    <div class="span12">
+        @(Html.Kendo().ListView<ERPAPD.Models.Users>()
+        .Name("listView")
+        .TagName("div")
+        .ClientTemplateId("templatesss")
+        .HtmlAttributes(new { @style = "border: none;  min-height: 197px;" })
+        .AutoBind(true)
+        .Events(events => { events.DataBound("dataBounds"); })
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("ReadByPromotion", "CSInfoCustomer", new { TypeTab = "TeleSaleType001", Organization = "AAA" }));
+            dataSource.PageSize(9);
+            dataSource.Events(events => { events.RequestEnd("onRequestEnds"); });
+        }).Pageable()
+        )
+    </div>
+</div>
+
+<script type="text/x-kendo-tmpl" id="templatesss">
+    <div class="AAAAA" style="margin-top:5px !important;"></div>
+    <a style='color:rgb(152,0,0);' data-html='true' data-rel='popover2' data-trigger='hover' data-placement='right' data-content='" + Html.Raw("#=Description#") + "' onclick='showDetailsPromotionForTelesale("#=ArticleID#")'/>
+        #=ArticleID# - #=Intro# :
+        #if(kendo.toString(kendo.parseDate(StartDate),'dd/MM/yyyy') != '01/01/1900'){##= kendo.toString(kendo.parseDate(StartDate),'dd/MM/yyyy') ##}# - #if(kendo.toString(kendo.parseDate(EndDate),'dd/MM/yyyy') != '01/01/1900'){##= kendo.toString(kendo.parseDate(EndDate),'dd/MM/yyyy') ##}#
+        <a class='btn btn-minier btn-info' style='border-radius: 15px;padding: 0px 10px 0px 10px; ' onclick='showDetailsPromotionForTelesale("#=ArticleID#")'><i class='icon-chevron-right'></i> Readmore</a>
+        <div class="clear-fix"></div>
+</script>
+
+<style type="text/css">
+    .tab-content {
+        padding: 3px 0px !important;
+    }
+   
+</style>
+
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowAnnouncement")
+    .Title("Announcement Info")
+    .Content(
+    @<text>
+        <div class="row-fluid">
+            <div class="span4">
+                <table>
+                    <tr>
+                        <td>
+                            Impact:
+                        </td>
+                        <td class="span12">
+                            <select id="ImpactAnnouncement">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Message:
+                        </td>
+                        <td>
+                            <textarea id="MessageAnnouncement" style="width:320px;height:110px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-small btn-success" onclick="SaveChangeAnnouncement()"><i class="icon-save"></i>Save </button>
+                            <button class="btn btn-small btn-danger" onclick="CancelAnnouncement()"><i class="icon-reply"></i>Cancel</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(400)
+    .Height(280)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+)
+@{
+    DateTime dt7 = DateTime.Now.AddDays(-6);
+}
+@(Html.Kendo()
+    .Window()
+    .Name("windowAnnouncementData")
+    .Title("Announcement List")
+    .Content(
+    @<text>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="widget-box">
+                            <div class="widget-body" style="border: none">
+                                <div class="widget-main">
+                                    <div class="row-fluid" style="margin-bottom:2px;">
+                                        <input type="text" name="date-range-picker span2" id="CreateDateAnnoucement" value="@dt7.ToString("yyy/MM/dd") - @DateTime.Now.ToString("yyy/MM/dd")" placeholder="Create date" style="width: 120px;" />
+                                        <select id="ImpactAnnouncementFTer">
+                                            <option value="">All</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
+                                        </select>
+                                        <input type="text" id="InfoNameAnnouncement" style="width: 343px;" placeholder="Message" />
+                                        <button type="button" id="btnSearch1" style="float: right; margin-right: 15px; " class="btn btn-purple btn-small" onclick="filterAnnouncement()">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                                                                                                                        @(Html.Kendo()
+            .Grid<ERPAPD.Models.DC_TeleSale_AnnouncementByCS>()
+            .Name("GridTeleSaleAnnouncement")
+            .HtmlAttributes(new { @style = "height:400px;" })
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Id).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id='chkID'  onClick='checkAll(this)' />").ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=Id#'  />").Width(35).Filterable(false).Sortable(false);
+                columns.ForeignKey(p => p.Impact, (System.Collections.IEnumerable)ViewBag.listImpact, "Value", "Name").Width(100).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title("Status");
+                columns.ForeignKey(p => p.Status, (System.Collections.IEnumerable)ViewBag.listActive, "Value", "Name").Width(100).HeaderHtmlAttributes(new { style = "overflow: visible; white-space: normal;vertical-align: top" }).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" }).Title("Status");
+                columns.Bound(p => p.Message).EditorTemplateName("TextArea").Width(400).HtmlAttributes(new { style = "background-color:\\#dff0d8;color:\\#468847" });
+                columns.Bound(p => p.RowCreatedUser).Title("CreatedAt").Width(140);
+                columns.Bound(p => p.RowCreatedTime).Title("ModifiedAt").Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+            })
+            .ToolBar(toolBar =>
+            {
+                toolBar.Save();
+                toolBar.Custom()
+                                    .Text("Export To Excel")
+                                    .HtmlAttributes(new { @class = "exportAnnouncement" })
+                                    .Url(Url.Action("ExportAnnouncement", "CSInfoCustomer", new { filter = "~", sort = "~" }));
+                 toolBar.Custom()
+                    .Text("Delete")
+                    .HtmlAttributes(new { @id = "btnRemove", @style = "background-color:#d3413b;color:white;", @Href = "javascript:Remove()" });
+            })
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .Events(events => { events.DataBound("dataBoundTeleSaleAnnouncement"); })
+            .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+            .Navigatable()
+            .ColumnMenu()
+            .Sortable()
+            .AutoBind(false)
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Filterable()
+            .Resizable(resize => resize.Columns(true))
+            .DataSource(dataSource => dataSource
+            .Ajax()
+                    .Batch(true)
+                .PageSize(100)
+                .Events(events => { events.Error("error_handlerzzz"); events.RequestEnd("onRequestEndzzz"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Impact).Editable(true);
+                    model.Field(p => p.Status).Editable(true);
+                    model.Field(p => p.Message).Editable(true);
+                    model.Field(p => p.RowCreatedTime).Editable(false);
+                    model.Field(p => p.RowCreatedUser).Editable(false);
+                })
+                .Read("TeleSale_Announcement_Read", "CSInfoCustomer", new { UserID = User.Identity.Name })
+                .Update("TeleSale_Announcement_Update", "CSInfoCustomer", new { UserID = User.Identity.Name })
+                )
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(1200)
+    .Height(500)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+)
+
+
+@(Html.Kendo()
+    .Window()
+    .Name("windowAnnouncementData")
+    .Title("Announcement List")
+    .Content(
+    @<text>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="widget-box">
+                            <div class="widget-body" style="border: none">
+                                <div class="widget-main">
+                                    <div class="row-fluid" style="margin-bottom:2px;">
+                                        <input type="text" name="date-range-picker span2" id="CreateDateAnnoucement" value="@dt7.ToString("yyy/MM/dd") - @DateTime.Now.ToString("yyy/MM/dd")" placeholder="Create date" style="width: 120px;" />
+                                        <select id="ImpactAnnouncementFTer">
+                                            <option value="All">All</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
+                                        </select>
+                                        <span id="hienthiTeamAnnouncementFTer"></span>
+                                        <input type="text" id="InfoNameAnnouncement" style="width: 343px;" placeholder="Message" />
+                                        <button type="button" id="btnSearch1" style="float: right; margin-right: 15px; " class="btn btn-purple btn-small" onclick="filterAnnouncement()">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                        @(Html.Kendo()
+                    .Grid<ERPAPD.Models.DC_TeleSale_AnnouncementByCS>()
+            .Name("GridTeleSaleAnnouncementAll")
+            .HtmlAttributes(new { @style = "height:400px;" })
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Impact).Width(70);
+                columns.Bound(p => p.Message).Width(400);
+                columns.Bound(p => p.RowCreatedUser).Title("CreatedAt").Width(140);
+                columns.Bound(p => p.RowCreatedTime).Title("ModifiedAt").Width(140).Format("{0:" + Resources.Multi.DateFormat+ " HH:mm:ss}");
+            })
+            .ToolBar(toolBar =>
+            {
+                toolBar.Custom()
+                                    .Text("Export To Excel")
+                                    .HtmlAttributes(new { @class = "exportAnnouncement" })
+                                    .Url(Url.Action("ExportAnnouncement", "CSInfoCustomer", new { filter = "~", sort = "~" }));
+            })
+            .Events(events => { events.DataBound("dataBoundTeleSaleAnnouncement"); })
+            .Pageable(pager => pager.PageSizes(new[] { 20, 50, 100, 200 }))
+            .Navigatable()
+            .ColumnMenu()
+            .Sortable()
+            .AutoBind(false)
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Filterable()
+                                //.HtmlAttributes(new { @style = "height:320px;" })
+            .Resizable(resize => resize.Columns(true))
+            .DataSource(dataSource => dataSource
+            .Ajax()
+                .PageSize(100)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Impact).Editable(false);
+                    model.Field(p => p.Message).Editable(false);
+                    model.Field(p => p.RowCreatedTime).Editable(false);
+                    model.Field(p => p.RowCreatedUser).Editable(false);
+                }).Read("TeleSale_Announcement_Read", "CSInfoCustomer"))
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(1200)
+    .Height(560)
+    .Visible(false)
+    .Actions(actions => actions.Close())
+)
+
+
+
+
+<script type="text/javascript">
+    function checkAll(e) {
+        var x = $(e).prop('checked');
+        $('#GridTeleSaleAnnouncement').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function Remove() {
+        var listrowid = "";
+        $('#GridTeleSaleAnnouncement').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            var c = confirm("@Resources.Multi.DeleteConfirm");
+            if (c == true) {
+                $.post(r + "/CSInfoCustomer/Remove", { data: listrowid, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: '@Resources.Multi.Delete @Resources.Multi.Successfully',
+                            class_name: 'gritter-success'
+                        });
+                        $('#GridTeleSaleAnnouncement').data("kendoGrid").dataSource.read();
+                        $('#checkAll').prop('checked', false);
+                    }
+                    else {
+                        $('#GridTeleSaleAnnouncement').data("kendoGrid").dataSource.read();
+                        $.gritter.add({
+                            title: '',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Please select Id to Delete',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+
+    function onRequestEndzzz(e) {
+        $.post(r + "/Account/checkUser", function (data) {
+            if (data.success) {
+            }
+            else {
+                window.location.reload();
+            }
+        });
+        if (e.type == "update" && !e.response.Errors) {
+            $("#GridTeleSaleAnnouncement").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+
+        }
+        if (e.type == "create" && !e.response.Errors) {
+            $("#GridTeleSaleAnnouncement").data("kendoGrid").dataSource.read();
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                class_name: 'gritter-success'
+            });
+        }
+
+    }
+
+    function error_handlerzzz(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+            $("#GridTeleSaleAnnouncement").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function dataBounds(e) {
+
+    };
+
+    function onRequestEnds(e) {
+        if (e.type == "read" && !e.response.Errors) {
+        }
+    }
+
+
+    $('#CreateDateAnnoucement').daterangepicker({
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            'Last 7 Days': [moment().subtract('days', 6), moment()],
+            'Last 30 Days': [moment().subtract('days', 29), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        }, format: 'YYYY/MM/DD'
+    }).prev().on(ace.click_event, function () {
+        $(this).next().focus();
+    });
+
+    function OpenAnnouncement() {
+        $("#windowAnnouncement").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        ClearDataAnnouncement();
+
+        $("#TeamIDAnnouncement").chosen();
+        $("#ImpactAnnouncement").chosen();
+    }
+
+    function OpenDataAnnouncement() {
+        $("#windowAnnouncementData").kendoWindow({
+            actions: {}, /*from Vlad's answer*/
+            draggable: true,
+            modal: true,
+            resizable: false,
+            visible: false /*don't show it yet*/
+        }).data("kendoWindow").center().open();
+        $("#ImpactAnnouncementFTer").chosen();
+        filterAnnouncement();
+    }
+
+    $(document).ready(function () {
+        GetDataTeleSaleAnnouncement();
+    });
+
+    window.setInterval(function () {
+        /// call your function here
+        $('#hienDataTeleSaleAnnoucement').html('<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;text-align: center !important;margin-left: 48%;"></i>');
+        GetDataTeleSaleAnnouncement();
+    }, 9000000);
+
+
+    function GetDataTeleSaleAnnouncement() {
+        $.post(r + "/CSInfoCustomer/AnnouncementTeleSale", function (data) {
+            var html = "";
+            html += "<ol class='rectangle-list'>";
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].Impact == "High") {
+                    html += "<li><p><span class='badge badge-important' style='float: left; color:white; margin-right: 10px; border:none'>H</span> <span><i style='color:#d15b47'>" + data[i].RowCreatedUser + " said at " + kendo.toString(kendo.parseDate(data[i].RowCreatedTime), 'yyyy-MM-dd HH:mm') + ": </i>" + data[i].Message + "</span></p></li>";
+                }
+                else if (data[i].Impact == "Medium") {
+                    html += "<li><p><span class='badge badge-info' style='float: left; color:white; margin-right: 10px; border:none'>M</span><span ><i style='color:#3a87ad'>" + data[i].RowCreatedUser + " said at " + kendo.toString(kendo.parseDate(data[i].RowCreatedTime), 'yyyy-MM-dd HH:mm') + ": </i>" + data[i].Message + "</span></p></li>";
+                }
+                else {
+                    html += "<li><p><span class='badge badge-grey' style='float: left; color:white; margin-right: 10px; border:none'>L</span><span><i style='color:#a0a0a0'>" + data[i].RowCreatedUser + " said at " + kendo.toString(kendo.parseDate(data[i].RowCreatedTime), 'yyyy-MM-dd HH:mm') + ": </i>" + data[i].Message + "</span></p></li>";
+                }
+            }
+            html += "</ol>";
+            $("#hienDataTeleSaleAnnoucement").html(html);
+        });
+    };
+
+    function ClearDataAnnouncement() {
+
+        $("#MessageAnnouncement").val("");
+        $("#ImpactAnnouncement").val("Low");
+        $('#ImpactAnnouncement').val("Low").trigger('chosen:updated');
+    }
+
+    function SaveChangeAnnouncement() {
+        if ($("#MessageAnnouncement").val() == "" || $("#ImpactAnnouncement").val() == "") {
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: "Please input data",
+                class_name: 'gritter-error'
+            });
+            $("#MessageAnnouncement").focus();
+        }
+        else {
+            $.post(r + "/CSInfoCustomer/SaveAnnouncementTeleSale", { Message: $("#MessageAnnouncement").val(), Impact: $("#ImpactAnnouncement").val() }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: '@Resources.Multi.Save @Resources.Multi.Success.ToLower()',
+                        class_name: 'gritter-success'
+                    });
+                    GetDataTeleSaleAnnouncement();
+                    $("#windowAnnouncement").data("kendoWindow").close();
+                    ClearDataAnnouncement();
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.error,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+    }
+
+    function CancelAnnouncement() {
+        $("#windowAnnouncement").data("kendoWindow").close();
+    }
+
+    function dataBoundTeleSaleAnnouncement(e) {
+        setTimeout(function () {
+            resizeGridTeleSaleAnnouncement();
+        }, 300);
+        var grid = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = grid.element.find('.exportAnnouncement');
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        // Update the 'page' parameter with the grid's current page
+        href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        // Update the 'sort' parameter with the grid's current sort descriptor
+        href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        // Update the 'pageSize' parameter with the grid's current pageSize
+        href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + grid.dataSource._pageSize);
+
+        href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //Update the 'href' attribute
+        $exportLink.attr('href', href);
+    }
+
+    function error_handlerTeleSaleAnnouncement(e) {
+        if (e.errors) {
+            var message = "@Resources.Multi.Error:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            $.gritter.add({
+                // (string | mandatory) the heading of the notification
+                title: '',
+                // (string | mandatory) the text inside the notification
+                text: message,
+                class_name: 'gritter-error'
+            });
+        }
+    }
+
+    $(window).resize(function () {
+        resizeGridTeleSaleAnnouncement();
+    });
+
+    function resizeGridTeleSaleAnnouncement() {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#GridTeleSaleAnnouncement').offset().top);
+        var gridElement = $("#GridTeleSaleAnnouncement"),
+        dataArea = gridElement.find(".k-grid-content"),
+        otherElements = gridElement.children().not(".k-grid-content"),
+        otherElementsHeight = 0;
+        otherElements.each(function () {
+            otherElementsHeight += $(this).outerHeight();
+        });
+        dataArea.height(offsetbottom - otherElementsHeight - 90);
+    }
+
+    function filterAnnouncement() {
+        $.post(r + "/Account/checkUser", function (data) {
+            if (data.success) {
+            }
+            else {
+                window.location.reload();
+            }
+        });
+        grid = $("#GridTeleSaleAnnouncement").data("kendoGrid");
+
+        var InfoName = $('#InfoNameAnnouncement').val();
+        var listImpactAnnouncementFTer = $("#ImpactAnnouncementFTer option:selected");
+        var listTeamAnnouncementFTer = $("#TeamIDAnnouncementFTer option:selected");
+        var CreateDateID = $('#CreateDateAnnoucement').val();
+
+        var filterImpact = { logic: "or", filters: [] };
+        var filterTeam = { logic: "or", filters: [] };
+        var filter = { logic: "and", filters: [] };
+        var filtercusinfo = { logic: "or", filters: [] };
+        var filterDays = { logic: "or", filters: [] };
+
+        if (CreateDateID) {
+            var startdate = CreateDateID.split('-')[0].trim();
+            var enddate = CreateDateID.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "RowCreatedTime", operator: "gte", value: startdate });
+            filter.filters.push({ field: "RowCreatedTime", operator: "lt", value: todate });
+        }
+
+        if (listImpactAnnouncementFTer.length > 0) {
+            for (var i = 0; i < listImpactAnnouncementFTer.length; i++) {
+                var option = listImpactAnnouncementFTer[i].value;
+                if (option == '') {
+                    filterImpact.filters.push({ field: "Impact", operator: "contains", value: '' });
+                }
+                else {
+                    filterImpact.filters.push({ field: "Impact", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterImpact);
+        }
+
+        if (listTeamAnnouncementFTer.length > 0) {
+            for (var i = 0; i < listTeamAnnouncementFTer.length; i++) {
+                var option = listTeamAnnouncementFTer[i].value;
+                if (option == '') {
+                    filterTeam.filters.push({ field: "Team", operator: "contains", value: '' });
+                }
+                else {
+                    filterTeam.filters.push({ field: "Team", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(filterTeam);
+        }
+
+        if (InfoName.length > 0) {
+            filtercusinfo.filters.push({ field: "Message", operator: "contains", value: InfoName });
+            filter.filters.push(filtercusinfo);
+        }
+        grid.dataSource.filter(filter);
+        resizeGridTeleSaleAnnouncement();
+    }
+
+    $('#InfoNameAnnouncement').bind('keypress', function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) {
+            filterAnnouncement();
+        }
+    });
+</script>
+<style>
+    .container {
+        border: 1px solid #fff;
+        background-color: #ffffff;
+        margin-top: -8px;
+        margin-left: -4px;
+        width: 100%;
+    }
+
+    .mainbody {
+        min-height: 280px;
+        max-height: 280px;
+        overflow: auto;
+    }
+
+    ol {
+        counter-reset: li; /* Initiate a counter */
+        list-style: none; /* Remove default numbering */
+        *list-style: decimal; /* Keep using default numbering for IE6/7 */
+        font: 12px 'trebuchet MS', 'lucida sans';
+        padding: 0;
+        margin-bottom: 4em;
+        text-shadow: 0 1px 0 rgba(255,255,255,.5);
+        margin: 0 5px 10px 7px;
+    }
+
+    .container ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .container ::-webkit-scrollbar-button {
+        width: 8px;
+        height: 5px;
+    }
+
+    .container ::-webkit-scrollbar-track {
+        background: #eee;
+        border: thin solid lightgray;
+        box-shadow: 0px 0px 3px #dfdfdf inset;
+        border-radius: 10px;
+    }
+
+    .container ::-webkit-scrollbar-thumb {
+        background: #999;
+        border: thin solid gray;
+        border-radius: 10px;
+    }
+
+        .container ::-webkit-scrollbar-thumb:hover {
+            background: #7d7d7d;
+        }
+
+
+    ol ol {
+        margin: 0 0 0 2em; /* Add some left margin for inner lists */
+        list-style: none;
+    }
+
+    .rectangle-list span {
+        display: block;
+        margin: 0px 0px 8px 0px;
+        border-bottom: #eee dotted 1px;
+        color: #444;
+        text-decoration: none;
+        transition: all .3s ease-out;
+        font-size: 11px;
+        font-family: sans-serif;
+    }
+
+    .rectangle-list li {
+        line-height: 16px !important;
+    }
+
+    .rectangle-list span:hover {
+        cursor: pointer;
+    }
+
+    .rectangle-list span:before {
+        content: counter(li);
+        counter-increment: li;
+        position: absolute;
+        left: -2.5em;
+        top: 50%;
+        margin-top: -1em;
+        background: #fa8072;
+        height: 2em;
+        width: 2em;
+        line-height: 2em;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .rectangle-list span:after {
+        position: absolute;
+        content: '';
+        border: .5em solid transparent;
+        left: -1em;
+        top: 50%;
+        margin-top: -.5em;
+        transition: all .3s ease-out;
+    }
+
+    .rectangle-list span:hover:after {
+        left: -.5em;
+        border-left-color: #fa8072;
+    }
+</style>
+

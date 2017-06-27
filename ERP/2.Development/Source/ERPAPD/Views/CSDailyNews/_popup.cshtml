@@ -1,0 +1,89 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent"></span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<script>
+    var type = -100;
+    function showConfirmPopup(e) {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        if (listrowid != "" && listrowid != null) {
+            if (e == -1) { // Send
+                $('#txtcontent').text("Bạn có muốn xóa bản tin này ?");
+                type = -1;
+            }
+            else if (e == 0) {
+                type = 0;
+                $('#txtcontent').text("Bạn có muốn ngừng bản tin này ?");
+            }
+            $('#popup-confirm').modal('show');
+        }
+        else {
+            $.gritter.add({
+                title: '',
+                text: 'Vui lòng chọn dữ liệu',
+                class_name: 'gritter-error'
+            });
+        }
+    }
+    function onChangeStatus() {
+        var listrowid = "";
+        $('#Grid').find(".checkrowid").each(function () {
+            if ($(this).prop('checked') == true) {
+                listrowid += $(this).attr("id") + '@@@@';
+            }
+        });
+        var txtnotifier = "";
+        var paramAction = "";
+        if (listrowid != "" && listrowid != null) {
+            if (type == -1) {
+                txtnotifier = '@Resources.Multi.Delete @Resources.Multi.Successfully';
+                paramAction = "Delete";
+            }
+            else if (type == 0) {
+                txtnotifier = '@Resources.Multi.InActive Active @Resources.Multi.Successfully';
+                paramAction = "Inactive";
+            }
+            $.post(r + "/CSDailyNews/" + paramAction, { data: listrowid }, function (data) {
+                if (data.success) {
+                    $.gritter.add({
+                        text: txtnotifier,
+                        class_name: 'gritter-success'
+                    });
+                }
+                else {
+                    $.gritter.add({
+                        title: '',
+                        text: data.alert,
+                        class_name: 'gritter-error'
+                    });                   
+                }
+            });
+            onCloseForm();
+        }
+    }
+    function onCloseForm() {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        $('#checkboxcheckAll').prop('checked', false);
+        type = -100;
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

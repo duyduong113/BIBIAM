@@ -1,0 +1,193 @@
+﻿<style>
+    #popup_Grid, li {
+        list-style: none;
+    }
+
+    .max30 {
+        display: inline-block;
+        width: 32%;
+        margin: 2px;
+    }
+
+    #popup_Grid, .list-img {
+        display: inline-block;
+    }
+</style>
+<script type="text/x-kendo-template" id="popup_templatecontent">
+    <div class="max30">
+        <input type="checkbox" class="checkrowid" value="#=duong_dan_day_du#" style="z-content: 999999;position: absolute;margin-top: 0px;opacity: 0.9;" />
+        <img src="#:duong_dan_day_du#" alt="#: ten_anh # image" />
+    </div>
+
+</script>
+
+<div id="popup-select-image-content" class="modal fade bs-example-modal-lg" tabcontent="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:700px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-label="Close">×</button>
+                <h4 class="modal-title">Chọn ảnh từ thư viện</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @(Html.Kendo().MultiSelect()
+                                .Name("popup_Merchantcontent")
+                                .MaxSelectedItems(1)
+                                .HtmlAttributes(new { style = "width:100%" })
+                                //.AutoBind(false)
+                                .Placeholder(Html.Raw(Resources.Global._merchant) + "...")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Events(e => e.Change("popup_changeMerchantcontent"))
+                                .Filter("contains")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetMerchantInfo", "CustomData");
+                                    }).ServerFiltering(true);
+                                })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @(Html.Kendo().MultiSelect()
+                                .Name("popup_ListFoldercontent")
+                                .MaxSelectedItems(1)
+                                .HtmlAttributes(new { style = "width:100%" })
+                                //.AutoBind(false)
+                                .Placeholder(Html.Raw(Resources.Global._merchant_folder) + "...")
+                                .DataTextField("name")
+                                .DataValueField("name")
+                                .Events(e => e.Change("popup_changeLeadercontent"))
+                                .Filter("contains")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetFolder", "CustomData").Data("popup_dataMerchantcontent");
+                                    }).ServerFiltering(true);
+                                })
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_Image_Info>()
+                            .Name("popup_Gridcontent")
+                            .TagName("div")
+                            .ClientTemplateId("popup_templatecontent")
+                            .Navigatable()
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "Merchant_Image_Info").Data("popup_onAdditionalDatacontent"));
+                                dataSource.PageSize(10);
+                            })
+                            .Pageable()
+                            )
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-default btn-small" onclick="SelectImagecontent()">Chọn</a>
+                        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    function show_popup_selectimage_content () {
+        $("#popup_Gridcontent").find("input:checkbox").each(function () {
+            $(this).prop('checked', false);
+        });
+        $('#popup-select-image-content').modal('show');
+        if('@ViewBag.isAdmin' !=  'True')
+        {
+            //$("#popup_Merchant").val('@ViewBag.ma_gian_hang');
+            $("#popup_Merchantcontent").data("kendoMultiSelect").value('@ViewBag.ma_gian_hang')
+            $("#popup_Merchantcontent").prop('disabled: true');
+            popup_changeMerchantcontent(null);
+        }
+        else
+        {
+            $("#popup_Merchantcontent").prop('disabled: false');
+        }
+
+    }
+
+    function onCloseForm_popup_selectimage() {
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+
+    function popup_onAdditionalDatacontent() {
+        var s = $("#popup_ListFoldercontent").data("kendoMultiSelect").value();
+
+        var text = $("#popup_ListFoldercontent").data("kendoMultiSelect").value()[0];
+        if (text == '@Html.Raw(Resources.Global._merchant_folder)...')
+            text = ""
+        return {
+            loai: 1,
+            ma_gian_hang: $("#popup_Merchantcontent").data("kendoMultiSelect").value()[0],
+            FolderName: text
+        }
+    }
+
+    function popup_dataMerchantcontent(e) {
+        return {
+            ma_gian_hang: $("#popup_Merchantcontent").data("kendoMultiSelect").value()[0]
+        }
+    }
+
+
+
+    function popup_dataBound(e) {
+
+    }
+
+    function popup_changeLeadercontent(e) {
+        $("#popup_Gridcontent").data("kendoListView").dataSource.read();
+    }
+
+    function popup_changeMerchantcontent(e) {
+        $("#popup_ListFoldercontent").data("kendoMultiSelect").dataSource.read();
+        $("#popup_Gridcontent").data("kendoListView").dataSource.read();
+    }
+
+
+    function SelectImagecontent() {
+        debugger
+        var listrowid = "";
+        $("#image-products").html('');
+        $("#popup_Gridcontent").find("input:checkbox:checked").each(function () {
+            listrowid += "<div><img src=" + $(this).val() + " alt='' /></div>"
+        });
+        if (listrowid != "") {
+            var editor = $("#noi_dung").data("kendoEditor");
+            editor.exec("inserthtml", { value: listrowid });
+        }
+        onCloseForm_popup_selectimage();
+        //$('#popup-select-image-content').modal('hide');
+        //$("#image-products .image-product").length ? $("#image-products").addClass("flex") : $("#image-products").removeClass("flex");
+    }
+   
+    
+    function resetDefaultFileInput() {
+        $('.fileinput').fileinput('clear');
+        var listImage = $("#listView").data("kendoListView");
+        var product;
+        if (listImage)
+            product = listImage.dataItem($("#listView").data("kendoListView").element.find('.selected'));
+        if (product)
+            $(".fileinput-new.thumbnail img").attr("src", product.url);
+        else
+            $(".fileinput-new.thumbnail img").attr("src", "http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image");
+    }
+</script>

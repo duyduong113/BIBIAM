@@ -1,0 +1,392 @@
+﻿@{
+    var i = 0;
+}
+
+<div class="row-fluid">
+    <fieldset class="span6">
+        @if (ViewBag.itemdraff != null)
+        {
+            <input id="txtTongTienHD" name="TongTienHD" type="text" value="@ViewBag.itemdraff.TongTienHD" style="display:none" />
+        }
+        else
+        {
+            <input id="txtTongTienHD" name="TongTienHD" type="text" value="0" style="display:none" />
+        }
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="control-group">
+                    <label><b>Bên A</b></label>
+                    <div class="controls">
+                        <input id="information-a" name="BenA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6">
+                <div class="control-group">
+                    <label>Đại diện</label>
+                    <div class="controls">
+                        <input id="information-a-represent" name="DaiDienA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span6">
+                <div class="control-group">
+                    <label>Chức vụ</label>
+                    <div class="controls">
+                        <input id="information-a-position" name="ChucVuA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="control-group">
+                    <label>Địa chỉ</label>
+                    <div class="controls">
+                        <textarea id="information-a-address" name="DiaChiA" class="span12" cols="3"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span4">
+                <div class="control-group">
+                    <label>Điện thoại</label>
+                    <div class="controls">
+                        <input id="information-a-phone" name="DienThoaiA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Fax</label>
+                    <div class="controls">
+                        <input id="information-a-fax" name="FaxA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>MST</label>
+                    <div class="controls">
+                        <input id="information-a-mst" name="MaSoThueA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span4">
+                <div class="control-group">
+                    <label>Tài khoản</label>
+                    <div class="controls">
+                        <input id="information-a-account-bank" name="TaiKhoanA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Ngân hàng</label>
+                    <div class="controls">
+                        <input id="information-a-bank" name="NganHangA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Chi nhánh</label>
+                    <div class="controls">
+                        <input id="information-a-bank-branch" name="ChiNhanhA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="control-group">
+                @*<label class="control-label" for="form-input-readonly">Khách hàng cá nhân</label>*@
+                <div class="controls">
+                    <input class="ace ace-checkbox-2" type="checkbox" name="KhachHangCaNhan" id="information-a-personal-customer">
+                    <label class="lbl"> Khách hàng cá nhân</label>
+                </div>
+            </div>
+        </div>
+        <div id="groupKHCN" class="row-fluid">
+            <div class="span4">
+                <div class="control-group">
+                    <label>CMND </label>
+                    <div class="controls">
+                        <input id="information-a-cmnd" name="SoCmtA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Ngày cấp</label>
+                    <div class="controls">
+                        @if (ViewBag.itemdraff != null && ViewBag.itemdraff.KhachHangCaNhan == 1)
+                        {
+                            <input id="information-a-cmnd-date-range" name="NgayCapCmtA" class="date-picker span12" type="text" value="@ViewBag.itemdraff.NgayCapCmtA.ToString("dd/MM/yyyy")" />
+                        }
+                        else
+                        {
+                            <input id="information-a-cmnd-date-range" name="NgayCapCmtA" class="date-picker span12" type="text" />
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Nơi cấp </label>
+                    <div class="controls">
+                        <input id="information-a-cmnd-address" name="NoiCapCmtA" class="span12" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    @if (ViewBag.ThongTinBenB.Count > 0 && ViewBag.ThongTinBenB != null)
+    {
+        <fieldset class="span6">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="control-group">
+                        <label><b>Bên B </b></label>
+                        <div class="controls">
+                            <input id="information-b" name="BenB" value="@ViewBag.ThongTinBenB[0].CityName" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label>Đại diện</label>
+                        <div class="controls">
+                            <select name="DaiDienB" id="information-b-represent" class='chosen-select span3' data-placeholder="Người đại diện">
+                                @foreach (var item in ViewBag.listManager)
+                                {
+                                    if (@item.FullName == @ViewBag.ThongTinBenB[0].FullName)
+                                    {
+                                        <option value="@item.FullName" selected>@item.FullName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.FullName">@item.FullName</option>
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="control-group">
+                        <label>Chức vụ</label>
+                        <div class="controls">
+                            <input id="information-b-position" name="ChucVuB" value="@ViewBag.ThongTinBenB[0].Position" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="control-group">
+                        <label>Địa chỉ</label>
+                        <div class="controls">
+                            <textarea id="information-b-address" name="DiaChiB" class="span12" cols="3">@ViewBag.ThongTinBenB[0].Address</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Điện thoại</label>
+                        <div class="controls">
+                            <input id="information-b-phone" name="DienThoaiB" value="@ViewBag.ThongTinBenB[0].Phone" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Fax</label>
+                        <div class="controls">
+                            <input id="information-b-fax" name="FaxB" value="@ViewBag.ThongTinBenB[0].Fax" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>MST</label>
+                        <div class="controls">
+                            <input id="information-b-mst" name="MaSoThueB" value="@ViewBag.ThongTinBenB[0].TaxNumber" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Tài khoản</label>
+                        <div class="controls">
+                            <input id="information-b-account-bank" name="TaiKhoanB" value="@ViewBag.ThongTinBenB[0].AcountName" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngân hàng</label>
+                        <div class="controls">
+                            <input id="information-b-bank" name="NganHangB" value="@ViewBag.ThongTinBenB[0].BankName" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Chi nhánh</label>
+                        <div class="controls">
+                            <input id="information-b-bank-branch" name="ChiNhanhB" value="@ViewBag.ThongTinBenB[0].BranchName" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    }
+    else
+    {
+        <fieldset class="span6">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="control-group">
+                        <label><b>Bên B </b></label>
+                        <div class="controls">
+                            <input id="information-b" name="BenB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label>Đại diện</label>
+                        <div class="controls">
+                            <select name="DaiDienB" id="information-b-represent" class='chosen-select span3' data-placeholder="Người đại diện">
+
+                                @foreach (var item in ViewBag.listManager)
+                                {
+                                    i = i++;
+                                    if (@i > 0)
+                                    {
+                                        <option value="@item.FullName" selected>@item.FullName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.FullName">@item.FullName</option>
+                                    }
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="control-group">
+                        <label>Chức vụ</label>
+                        <div class="controls">
+                            <input id="information-b-position" name="ChucVuB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="control-group">
+                        <label>Địa chỉ</label>
+                        <div class="controls">
+                            <textarea id="information-b-address" name="DiaChiB" class="span12" cols="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Điện thoại</label>
+                        <div class="controls">
+                            <input id="information-b-phone" name="DienThoaiB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Fax</label>
+                        <div class="controls">
+                            <input id="information-b-fax" name="FaxB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>MST</label>
+                        <div class="controls">
+                            <input id="information-b-mst" name="MaSoThueB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Tài khoản</label>
+                        <div class="controls">
+                            <input id="information-b-account-bank" name="TaiKhoanB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Ngân hàng</label>
+                        <div class="controls">
+                            <input id="information-b-bank" name="NganHangB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <label>Chi nhánh</label>
+                        <div class="controls">
+                            <input id="information-b-bank-branch" name="ChiNhanhB" class="span12" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    }
+
+</div>
+
+<script>
+    $(document).ready(function () {
+
+    });
+
+    //Change value
+    $('#information-b-represent').bind('change', function () {
+        $.post(r + '/ContractManager/GetItemByFullName', { fullName: $('#information-b-represent').val() }, function (data) {
+            debugger;
+            if (data.success) {
+                $('#information-b').val(data.data[0].CityName);
+                //$('#information-b-represent').val(data.data[0].DaiDienB).trigger('chosen:updated');
+                $('#information-b-position').val(data.data[0].Position);
+                $('#information-b-address').val(data.data[0].Address);
+                $('#information-b-phone').val(data.data[0].Phone);
+                $("#information-b-fax").val(data.data[0].Fax);
+                $('#information-b-mst').val(data.data[0].TaxNumber);
+                $('#information-b-bank').val(data.data[0].BankName);
+                $('#information-b-account-bank').val(data.data[0].AcountName);
+                $('#information-b-bank-branch').val(data.data[0].BranchName);
+            }
+        });
+    });
+</script>

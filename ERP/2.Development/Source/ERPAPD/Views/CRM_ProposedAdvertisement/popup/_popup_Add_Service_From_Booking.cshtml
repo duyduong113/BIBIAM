@@ -1,0 +1,188 @@
+﻿<div id="popup-adv-list-booking" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title" id="lbltitle">Danh sách book</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <input type="hidden" class="input-xs" id="typeBook" />
+        <div class="row-fluid" style="padding-top: 2px;">
+            <div class="span4">
+                <input type="text" class="input-xs" id="txt-bookcode-goi-pr" @*readonly="readonly"*@ placeholder="Mã book" />
+            </div>
+            <div class="span2">
+                <button type="button" id="btnSearch" class="btn btn-primary btn-small" style="float:none;" onclick="filterBook()">Tìm kiếm</button>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                @* </ Hiện thị thông tin> *@
+                @(Html.Kendo()
+              .Grid<ERPAPD.Models.CRM_BookPR_View>()
+              .Name("GridBook")
+              .Columns(columns =>
+              {
+                  columns.Bound(p => p.PKBookPRLocation).HeaderTemplate("<input style='text-align:center;opacity:1;' type='checkbox' id= 'checkboxcheckAll'  onClick='checkAllBook(this)' />").
+                  ClientTemplate("<input style='text-align:center' class='checkrowid' type='checkbox' id='#=PKBookPRLocation#' pKBookPRLocation='#=PKBookPRLocation#' />").Width(30).Filterable(false).Sortable(false);
+                  columns.Bound(p => p.Code).Title("Mã book")
+                         .Width(80)
+                         .ClientTemplate("<span style='text-align:left' data-bookcode= '#=Code#' />#=Code#<span>");
+
+                  columns.Bound(p => p.ContractCode).Title("Số HĐ").Width(100);
+                  columns.Bound(p => p.CustomerName).Title("Khách hàng").Width(250);
+
+                  columns.ForeignKey(p => p.Website, (System.Collections.IEnumerable)ViewBag.listWebsite, "Code", "Name")
+                       .Title("Website")
+                       .Width(100)
+                       .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Category, (System.Collections.IEnumerable)ViewBag.listCategory, "Code", "Name")
+                         .Title("Chuyên mục")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+
+                  columns.ForeignKey(p => p.Location, (System.Collections.IEnumerable)ViewBag.listLocation, "Code", "Name")
+                         .Title("Vị trí")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.GioLen, (System.Collections.IEnumerable)ViewBag.listTime, "Code", "Name")
+                        .Title("Giờ lên")
+                        .Width(120)
+                        .EditorTemplateName("GridNullableForeignKey");
+                  columns.Bound(p => p.NgayLen)
+                         .Title("Ngày lên")
+                         .Width(100).Format("{0:" + Resources.Multi.DateFormat + "}")
+                         .ClientTemplate("#if(kendo.toString(NgayLen,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayLen,'" + Resources.Multi.DateFormat + "') #" + "#}#")
+                         .EditorTemplateName("Date");
+                  columns.ForeignKey(p => p.VungMien, (System.Collections.IEnumerable)ViewBag.listRegion, "Code", "Name")
+                          .Title("Vùng miền")
+                          .Width(100)
+                          .EditorTemplateName("GridNullableForeignKey");
+                  columns.ForeignKey(p => p.NguoiYeuCauBook, (System.Collections.IEnumerable)ViewBag.listStaff, "Code", "Name")
+                         .Title("NVKD")
+                         .Width(120)
+                         .EditorTemplateName("GridNullableForeignKey");
+                  columns.Bound(p => p.NgayTao).Title("Ngày book").Width(100).Format("{0:" + Resources.Multi.DateFormat + "}").ClientTemplate("#if(kendo.toString(NgayTao,'dd/MM/yyyy') != '01/01/1900'){#" + "#= kendo.toString(NgayTao,'" + Resources.Multi.DateFormat + "') #" + "#}#");
+                  columns.Bound(p => p.FKCustomer).Hidden();
+                  columns.Bound(p => p.Location).Hidden();
+                  columns.Bound(p => p.IDBookPRLocation).Hidden();//.ClientTemplate("#=getTextByValue(data)#")
+              })
+              //.Scrollable(scrollable => scrollable.Virtual(true))
+              .Pageable(pager => pager
+              .PageSizes(new[] { 20, 100, 200, 300 }))
+              .Sortable()
+              .Navigatable()
+            .Events(events => { events.DataBound("dataBoundBook"); })
+            .Navigatable()
+            .Sortable()
+            .Scrollable(scrollable => scrollable.Virtual(false))
+            .Sortable()
+            .Resizable(resize => resize.Columns(true))
+            .AutoBind(false)
+            .DataSource(dataSource => dataSource.Ajax()
+                                        .Batch(true)
+                                        .Sort(x => x.Add("PKBookPRLocation").Descending())
+                                        .PageSize(50)
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.PKBookPRLocation);
+                                        })
+                                        .Read(read => read.Action("BookPRBao_ReadByBookCode", "CRM_BookPR").Data("getTypeBook"))
+                                        )
+
+
+                )
+            </div>
+
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="SelectBook()"> Chọn</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal" onclick="ClosePP()">Bỏ qua</a>
+    </div>
+</div>
+
+<script>
+    
+    function getTypeBook() {
+        return {
+            type: $('#typeBook').val(),
+            bookcode: $('#txt-bookcode-goi-pr').val(),
+        }
+    }
+    function dataBoundBook() {
+        var grid = $("#GridBook").data("kendoGrid").dataSource;
+        var masterRowsCount = grid.total();
+        //if (masterRowsCount == 0) {
+        //    alertMessage('Chưa booking cho vị trí', 'Vui lòng booking trước khi đăng quảng cáo.', false);
+        //}
+        //else {
+        //    //alert(masterRowsCount);
+        //}
+    }
+    function filterBook() {
+   
+        var grid = $('#GridBook').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterBookCode = { logic: "or", filters: [] };
+        var bookcode = $("#txt-bookcode-goi-pr").val();
+        if (bookcode) {
+            fillterBookCode.filters.push({ field: "Code", operator: "eq", value: bookcode });
+            filter.filters.push(fillterBookCode);
+        }
+        grid.dataSource.filter(filter);
+    }
+    function ClosePP() {
+        $("#GridBook").data("kendoGrid").dataSource.data([]);
+       // $("#GridBook").data("kendoGrid").dataSource.read();
+        $('#popup-adv-list-booking').modal('hide');
+    }
+
+    function checkAllBook(e) {
+        var x = $(e).prop('checked');
+        $('#GridBook').find(".checkrowid").each(function () {
+            $(this).prop('checked', x);
+        });
+    }
+
+    function SelectBook() {
+        debugger;
+        var listBook = [];
+        $('#GridBook').find(".checkrowid").each(function (index) {
+            debugger
+            if ($(this).prop('checked') == true) {
+                listBook.push($(this).attr("pKBookPRLocation"));
+            }
+        });
+
+        if ($('#typeBook').val() == 1) {
+            plusPackagePRBindData(listBook);
+        }
+        else if ($('#typeBook').val() == 2) {
+            plusContractPRBindData(listBook);
+        }
+
+    }
+
+    function plusPackagePRBindData(listBook) {
+        debugger;
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Package_BindData/", { incree: parseInt(c), coStt: cp, listBook: listBook }, function (data) {
+            $("#package-table").find("table").find("tbody").append(data);
+            c = c + 6;
+            cp = cp + 1;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+        })
+        ClosePP();
+    }
+
+    function plusContractPRBindData(listBook) {
+        $.post(r + "/Ajax/GetInputSuggest_DNQC_Contract_BindData/", { incree: parseInt(contractPR), coStt: coStt, listBook: listBook }, function (data) {
+            $("#contractPR-table").find("table").find("tbody").append(data);
+            contractPR = contractPR + 6;
+            coStt = coStt + 1;
+            $('.date-picker').datepicker();
+            $('.currency').maskMoney();
+        })
+        ClosePP();
+    }
+</script>

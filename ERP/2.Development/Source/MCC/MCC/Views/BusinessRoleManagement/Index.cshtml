@@ -1,0 +1,688 @@
+﻿@using MCC.Models;
+@using CloudinaryDotNet;
+@{
+    ViewBag.Title = Html.Raw(Resources.Global._busrole);
+    bool all = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["all"] : false;
+    bool view = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["view"] : false;
+    bool update = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["update"] : false;
+    bool create = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["create"] : false;
+    bool delete = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["delete"] : false;
+    bool export = ViewBag.accessDetail != null ? ViewBag.accessDetail.access["export"] : false;
+}
+@{
+    var newData = new tw_BusinessRole();    
+}
+
+<style>
+    .k-pager-wrap {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding-top: 10px;
+    }
+
+    .todo-tasklist-item.selected {
+        background-color: #D2EDF3;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .AccessRightsMobileBootbox .modal-dialog {
+        width: 90%;
+    }
+
+    .max100 {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-5">
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="todo-tasklist-item #=user.active == true ? 'todo-tasklist-item-border-green' : 'todo-tasklist-item-border-red'# todo-tasklist-item_#=id#" style="cursor:default;">
+                <div class="col-md-1" style="padding-left: 0; text-align: center;">
+                    #if(user.imagesSize){#
+                    <img class="todo-userpic img-responsive" src="#=user.imagesSize.face#" style="display:inline;">
+                    #}else if(user.gender == null || user.gender == 'unknown'){#
+                    <img class="todo-userpic img-responsive" src="@Url.Content("~/Content/images/unknown.png")" style="display:inline;">
+                    #}else{#
+                    <img class="todo-userpic img-responsive" src="#=user.gender== 'male' ? '@Url.Content("~/Content/images/male.png")' : '@Url.Content("~/Content/images/female.png")'#" style="display:inline;">
+                    #}#
+                </div>
+                <div class="col-md-10" style="padding-left:0;">
+                    <span class="item-status pull-right">
+                        <a onclick="edit(this)" class="todo-username-btn btn btn-circle btn-default btn-sm"><i class="fa fa-eye"></i> @Html.Raw(Resources.Global._detail)</a>
+                    </span>
+                    <div class="todo-tasklist-item-title" style="padding-bottom:2px;">
+                        #=user.fullName#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        <a href="mailto:#=user.email ? user.email : 'N/A'#">#=user.email ? user.email : 'N/A'#</a> - #=user.phone ? user.phone : 'N/A'#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #=showroomName#
+                    </div>
+                    <div class="todo-tasklist-item-text">
+                        #if(isManager){#
+                        <span class="badge badge-empty badge-danger"></span> @Html.Raw(Resources.Global._busrole_manager)
+                        #}#
+                        #if(isLeader){#
+                        <span class="badge badge-empty badge-primary" style="margin-left:5px;"></span> @Html.Raw(Resources.Global._busrole_leader)
+                        #}#
+                        #if(isConsultant){#
+                        <span class="badge badge-empty badge-success" style="margin-left:5px;"></span> @Html.Raw(Resources.Global._busrole_saleman)
+                        #}#
+                    </div>
+                </div>
+            </div>
+        </script>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject bold uppercase">@Html.Raw(Resources.Global._busrole_list)</span>
+                </div> 
+                <div class="inputs">
+                    <a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a>
+                </div>                             
+            </div>
+            <div class="portlet-body">
+                <div class="row" style="padding-bottom: 20px; border-bottom: 1px dashed #c7c7c7;margin-bottom:10px">
+                    <div class="col-md-12">
+                        <form role="form" class="filterForm">
+                            <div class="row" style="margin-top:5px;">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("groupIdF")
+                                    .OptionLabel(Html.Raw(Resources.Global._busrole_group) + "...")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Filter("contains")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetGroup", "CustomData");
+                                        }).ServerFiltering(true);
+                                    })
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @(Html.Kendo().DropDownList()
+                                    .Name("userIdF")
+                                    .OptionLabel(Html.Raw(Resources.Global._busrole_choosesale) + "...")
+                                    .HtmlAttributes(new { style = "width:100%" })
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetUserByGroup", "CustomData")
+                                                .Data("filterbyGroupF");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Enable(false)
+                                    .AutoBind(false)
+                                    .CascadeFrom("groupIdF")
+                                        )
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="text-right">
+                                        <div class="btn-group">
+                                            <a class="btn btn-circle btn-sm green" onclick="filter()"><i class="fa fa-search"></i> @Html.Raw(Resources.Global._search)</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                <div class="todo-tasklist">
+                    @(Html.Kendo().ListView<MCC.Models.tw_ShowroomBranch>()
+                            .Name("listView")
+                            .TagName("div")
+                            .HtmlAttributes(new { @class = "general-item-list", @style = "border-style:none;box-shadow:none;" })
+                            .ClientTemplateId("template")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Read", "BusinessRoleManagement"));
+                                dataSource.PageSize(10).Sort(s => s.Add(a => a.id).Descending());
+                            })
+                            .Events(events => { events.DataBound("onDatabound"); })
+                            .Pageable()
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 formEdit">
+    </div>
+</div>
+<script type="text/x-kendo-template" id="EditTemplate">
+    <form action="@Url.Content("~/BusinessRoleManagement/CreateUpdate")" method="post" id="EditForm" novalidate="novalidate">
+        <input type="hidden" name="id" value="#=id#" />
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="icon-pencil"></i>
+                    <span class="caption-subject bold uppercase"> @Html.Raw(Resources.Global._busrole_add_edit) @Html.Raw(Resources.Global._busrole_role)</span>
+                </div>
+                <div class="actions">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                    #if(id>0){#
+                    @if (all || delete)
+                    {
+                        <a onclick="removeBusinessRole('#=id#')" class="btn red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                    #}#
+                    @if (all || create || update)
+                    {
+                        <button type="submit" class="btn blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+            <div class="portlet-body form ">
+                <div class="">
+                    @*<ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="\\#tab_1_1"> @Html.Raw(Resources.Global._general) </a>
+                        </li>
+                       
+                    </ul>*@
+                    <div class="tab-content">
+                        <div class="tab-pane in active" id="tab_1_1">
+                            <div class="row">
+                                <div class="col-md-6">   
+                                    <input type="hidden" class="showroomId" name="showroomId" value="#=showroomId!=null ? showroomId : ''#" />                                                                   
+                                    <div class="form-group">
+                                        <label>@Html.Raw(Resources.Global._busrole_group)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("groupId")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._busrole_group) + "...")
+                                      .Events(e => e.Change("changeGroup"))
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Value("#=groupId#")                                      
+                                      .Filter("contains")                                      
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetGroup", "CustomData");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>     
+                                    
+                                    <div style=" margin-top:25px;">
+                                        <label>@Html.Raw(Resources.Global._busrole_choosesale)</label>
+                                        @(Html.Kendo().DropDownList()
+                                      .Name("userId")
+                                      .HtmlAttributes(new { style = "width:100%" })
+                                      .OptionLabel(Html.Raw(Resources.Global._busrole_choosesale) + "...")
+                                      .DataTextField("name")
+                                      .DataValueField("id")
+                                      .Value("#=userId#")
+                                      .Filter("contains")
+                                      .Enable(false)
+                                      .AutoBind(false)
+                                      .CascadeFrom("groupId")
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetUserByGroup", "CustomData").Data("filterbyGroup");
+                                          }).ServerFiltering(true);
+                                      }).ToClientTemplate()
+                                        )
+                                    </div>
+                                    @*<div class="form-group" style="margin-top:35px;">
+                                        <label>@Html.Raw(Resources.Global._busrole_showeffect)</label>
+                                        <div class="clearfix">                                           
+                                            <div class="btn-group btn-group-circle" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=!isManager ? 'active' : ''#">
+                                                    #if(isManager==false){#
+                                                    <input type="radio" name="isManager" value="false" class="toggle" checked> @Html.Raw(Resources.Global._busrole_off)
+                                                    #}else{#
+                                                    <input type="radio" name="isManager" value="false" class="toggle"> @Html.Raw(Resources.Global._busrole_off)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=isManager ? 'active' : ''#">
+                                                    #if(isManager==true){#
+                                                    <input type="radio" name="isManager" value="true" class="toggle" checked> @Html.Raw(Resources.Global._busrole_on)
+                                                    #}else{#
+                                                    <input type="radio" name="isManager" value="true" class="toggle"> @Html.Raw(Resources.Global._busrole_on)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                </div>
+
+                                <div class="col-md-5 col-md-push-1">
+                                    <div class="form-group" style="margin-top:15px;">
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle pull-right" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=!isManager ? 'active' : ''#">
+                                                    #if(isManager==false){#
+                                                    <input type="radio" name="isManager" value="false" class="toggle" checked> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}else{#
+                                                    <input type="radio" name="isManager" value="false" class="toggle"> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=isManager ? 'active' : ''#">
+                                                    #if(isManager==true){#
+                                                    <input type="radio" name="isManager" value="true" class="toggle" checked> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}else{#
+                                                    <input type="radio" name="isManager" value="true" class="toggle"> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                            <label class="pull-right" style="margin-right:10px;margin-top:5px;">
+                                                @Html.Raw(Resources.Global._busrole_manager)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle pull-right" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=!isLeader ? 'active' : ''#">
+                                                    #if(isLeader==false){#
+                                                    <input type="radio" name="isLeader" value="false" class="toggle" checked> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}else{#
+                                                    <input type="radio" name="isLeader" value="false" class="toggle"> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=isLeader ? 'active' : ''#">
+                                                    #if(isLeader==true){#
+                                                    <input type="radio" name="isLeader" value="true" class="toggle" checked> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}else{#
+                                                    <input type="radio" name="isLeader" value="true" class="toggle"> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                            <label class="pull-right" style="margin-right:10px;margin-top:5px;">
+                                                @Html.Raw(Resources.Global._busrole_leader)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="clearfix">
+                                            <div class="btn-group btn-group-circle pull-right" data-toggle="buttons">
+                                                <label class="btn red btn-sm btn-outline #=!isConsultant ? 'active' : ''#">
+                                                    #if(isConsultant==false){#
+                                                    <input type="radio" name="isConsultant" value="false" class="toggle" checked> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}else{#
+                                                    <input type="radio" name="isConsultant" value="false" class="toggle"> @Html.Raw(Resources.Global._busrole_no)
+                                                    #}#
+                                                </label>
+                                                <label class="btn green btn-sm btn-outline #=isConsultant ? 'active' : ''#">
+                                                    #if(isConsultant==true){#
+                                                    <input type="radio" name="isConsultant" value="true" class="toggle" checked> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}else{#
+                                                    <input type="radio" name="isConsultant" value="true" class="toggle"> @Html.Raw(Resources.Global._busrole_yes)
+                                                    #}#
+                                                </label>
+                                            </div>
+                                            <label class="pull-right" style="margin-right:10px;margin-top:5px;">
+                                                @Html.Raw(Resources.Global._busrole_saleman)
+                                            </label>
+                                        </div>
+                                    </div>                              
+                                </div>
+                            </div>
+
+                            <div class="isManaDiv" style="#=isManager ? 'display:block;' : 'display:none;'#">
+                                <label>
+                                    <b>@Html.Raw(Resources.Global._busrole_add_leader_for_manager)</b>
+                                </label>
+                                <div class="row" id="roleMANA" data-value="#=managerRoles ? managerRoles.join(',') : ''#">
+
+                                </div>
+                            </div>
+                            <div class="isLeaderDiv" style="#=isLeader ? 'display:block;' : 'display:none;'#">
+                                <label>
+                                    <b>@Html.Raw(Resources.Global._busrole_add_sale_for_leader)</b>
+                                </label>
+                                <div class="row" id="roleLEADER" data-value="#=leaderRoles ? leaderRoles.join(',') : ''#">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions right">
+                    @if (all || create || update)
+                    {
+                        <a onclick="clearForm()" class="btn btn-sm default btn-circle">@Html.Raw(Resources.Global._cancel)</a>
+                    }
+                                        #if(id>0){#
+                                        @if (all || delete)
+                    {
+                        <a onclick="removeBusinessRole('#=id#')" class="btn btn-sm red btn-circle">@Html.Raw(Resources.Global._delete)</a>
+                    }
+                                        #}#
+                                        @if (all || create || update)
+                    {
+                        <button type="submit" class="btn btn-sm blue btn-circle">@Html.Raw(Resources.Global._save)</button>
+                        <a onclick="saveAndClear()" class="btn btn-sm green btn-circle">@Html.Raw(Resources.Global._save_new)</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/x-kendo-template" id="RolesTemplate">
+    <div class="col-md-12">
+        <div class="form-group">
+            <div>
+                <select multiple="multiple" class="multi-select" id="#=id#" name="#=name#">
+                    #for(var i = 0; i< listUser.length;i++){#
+                    <option value="#=listUser[i].id#">#=listUser[i].name#</option>
+                    #}#
+                </select>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="NoItemsTemplate">
+    <div class="text-center" style="padding: 30px 0 20px 0;">
+        <img src="@Url.Content("~/Images/matbuon.png")" />
+        <div style="font-size: 18px; margin-top: 10px;">@Html.Raw(Resources.Global._have_not) @Html.Raw(Resources.Global._busrole_lower) @Html.Raw(Resources.Global._yet)</div>
+        <div style="margin-top:10px;"><a onclick="clearForm()" class="btn btn-default btn-circle btn-outline btn-sm">@Html.Raw(Resources.Global._create) <i class="fa fa-arrow-right"></i></a></div>
+    </div>
+</script>
+<script>      
+    function cardSelected(e) {
+        $(".todo-tasklist-item").removeClass("selected");
+        $(e).closest(".todo-tasklist-item").addClass("selected");
+    }
+    function removeBusinessRole(id) {
+        bootbox.dialog({
+            message: "@Resources.Global._are_your_sure", title: "Xóa quyền",
+            buttons:
+                {
+                    //success:
+                    //    { label: "Success!", className: "green", callback: function () { alert("great success") } },
+                    danger: { label: "@Resources.Global._close", className: "btn default btn-circle btn-sm", callback: function () { } },
+                    main: {
+                        label: "@Resources.Global._confirm", className: "btn green btn-circle btn-sm", callback: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                            $.post(r + "/BusinessRoleManagement/deleteBusinessRole", { id: id }, function (data) {
+                                if (data.success) {
+                                    $("#listView").data("kendoListView").dataSource.read();
+                                    toastr.clear();
+                                    toastr.success('', ' "@Resources.Global._delete_successfully');
+                                    clearForm();
+                                } else {
+                                    toastr.clear();
+                                    toastr.error('', data.error);
+                                }
+                                App.unblockUI();
+                            });
+                        }
+                    }
+                }
+        })
+    }
+    var reset = false;
+    function saveAndClear() {
+        reset = true;
+        $('#EditForm').submit();
+    }
+    function clearForm() {
+        loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+    }    
+    function edit(e) {
+        var data = $("#listView").data("kendoListView").dataItem($(e).closest(".todo-tasklist-item"))
+        loadForm(data);
+        cardSelected(e);
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top
+            }, 600);
+        } else {
+            $("html, body").animate({
+                scrollTop: $(".formEdit").offset().top - 70
+            }, 600);
+        }
+    }
+    function loadForm(data) {
+        var EditTemplate = kendo.template($("#EditTemplate").html());
+        $(".formEdit").html(EditTemplate(data));
+        loadValidate(data);        
+        $(".tagsinput").tagsinput();
+        initChangeRole();
+    }
+    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+
+    function loadValidate(currentData) {
+        var e = $("#EditForm"),
+        r = $(".alert-danger", e),
+        i = $(".alert-success", e);
+        e.validate(
+            {
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules:
+                    {
+                        groupCode: { minlength: 5, required: !0 },
+                        name: { minlength: 5, required: !0 }                                          
+                    },
+                invalidHandler: function (e, t) {
+                    i.hide(), r.show(), App.scrollTo(r, -200)
+                },
+                errorPlacement: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    i.removeClass("fa-check").addClass("fa-warning"),
+                    i.attr("data-original-title",
+                        e.text()).tooltip({ container: "body" })
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                },
+                success: function (e, r) {
+                    var i = $(r).parent(".input-icon").children("i");
+                    $(r).closest(".form-group").removeClass("has-error").addClass("has-success"),
+                    i.removeClass("fa-warning").addClass("fa-check")
+                },
+                submitHandler: function (e) {
+                    i.show(); r.hide();
+                    //e[0].submit()
+                    $(e).ajaxSubmit({
+                        beforeSend: function () {
+                            App.blockUI({ boxed: !0, message: '@Resources.Global._just_amoment...' });
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success('', '@Resources.Global._save_successfully')
+                                $("#listView").data("kendoListView").dataSource.read();
+                                if (reset) {
+                                    reset = false;
+                                    loadForm(JSON.parse('@Html.Raw(Json.Encode(newData))'));
+                                } else {
+                                    if (currentData.id == 0) {
+                                        loadForm(data.data);
+                                    }
+                                    setTimeout(function () { $(".todo-tasklist-item_" + data.data.id).addClass("selected") }, 1000);
+                                }
+                            }
+                            else {
+                                toastr.error('', data.error)
+                            }
+                        },
+                        complete: function (xhr) {
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+    }  
+    
+    function onDatabound(e) {
+        var listView = this;
+
+        // ask the parameterMap to create the request object for you
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: listView.dataSource.page(),
+            sort: listView.dataSource.sort(),
+            filter: listView.dataSource.filter()
+        });
+
+        // Get the export link as jQuery object
+        var $exportLink = $('.export');
+
+
+        // Get its 'href' attribute - the URL where it would navigate to
+        var href = $exportLink.attr('href');
+
+        //if (href) {
+        //    // Update the 'page' parameter with the listView's current page
+        //    //href = href.replace(/page=([^&]*)/, 'page=' + requestObject.page || '~');
+
+        //    // Update the 'sort' parameter with the listView's current sort descriptor
+        //    href = href.replace(/sort=([^&]*)/, 'sort=' + requestObject.sort || '~');
+
+        //    // Update the 'pageSize' parameter with the listView's current pageSize
+        //    //href = href.replace(/pageSize=([^&]*)/, 'pageSize=' + listView.dataSource._pageSize);
+
+        //    //update filter descriptor with the filters applied
+
+        //    href = href.replace(/filter=([^&]*)/, 'filter=' + (requestObject.filter || '~'));
+
+        //    // Update the 'href' attribute
+        //    $exportLink.attr('href', href);
+        //}
+
+        if (this.dataSource.total() == 0) {
+            var NoItemsTemplate = kendo.template($("#NoItemsTemplate").html());
+            $(this.element).next("#listView_pager").css('display', 'none');
+            $(this.element).html(NoItemsTemplate({}));
+        } else {
+            $(this.element).next("#listView_pager").css('display', 'block');
+        }
+    }
+
+    function initMulti() {
+        $("#roleMANA").html('');
+        $("#roleLEADER").html('');
+        var roleMANAValue = $("#roleMANA").attr("data-value");
+        var roleLEADERValue = $("#roleLEADER").attr("data-value");
+
+        $.post(r + "/CustomData/GetUserByGroup", { groupId: $("#groupId").val() }, function (data) {
+            var RolesTemplate = kendo.template($("#RolesTemplate").html());
+            $("#roleMANA").html(RolesTemplate({ id: "multi_selectMANA", name: "managerRoles", listUser: data }));
+            $("#roleLEADER").html(RolesTemplate({ id: "multi_selectLEADER", name: "leaderRoles", listUser: data }));
+
+            $("#multi_selectMANA").multiSelect();
+            if (roleMANAValue) {
+                $("#multi_selectMANA").val(roleMANAValue.split(','));
+                $("#multi_selectMANA").multiSelect('refresh');
+            }
+
+            $("#multi_selectLEADER").multiSelect();
+            if (roleLEADERValue) {
+                $("#multi_selectLEADER").val(roleLEADERValue.split(','));
+                $("#multi_selectLEADER").multiSelect('refresh');
+            }
+        });
+    }
+
+    function initChangeRole() {
+        $('input[type=radio][name=isManager]').change(function () {
+            if (this.value == 'true') {
+                $(".isManaDiv").css("display", "block");
+            }
+            else if (this.value == 'false') {
+                $(".isManaDiv").css("display", "none");
+            }
+        });
+        $('input[type=radio][name=isLeader]').change(function () {
+            if (this.value == 'true') {
+                $(".isLeaderDiv").css("display", "block");
+            }
+            else if (this.value == 'false') {
+                $(".isLeaderDiv").css("display", "none");
+            }
+        });
+    }
+
+    function filterbyGroup() {
+        initMulti();
+        return {
+            groupId: $("#groupId").val()
+        };
+    }
+
+    function filterbyGroupF() {
+        initMulti();
+        return {
+            groupId: $("#groupIdF").val()
+        };
+    }
+
+    function changeGroup(e) {
+        var groupId = $("#groupId").data("kendoDropDownList").value();
+
+        $.post(r + "/CustomData/GetShowroomDetail", { groupId: groupId }, function (data) {
+            if (data.success) {
+                $('.showroomId').val(data.data[0].showroomId);
+            }
+        });
+    };
+
+    function showMoreFilter(e) {
+        if ($(".filterMore").css("display") == "none") {
+            $(".filterMore").css("display", "block");
+            $(".clearFilter").css("display", "block");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._simple)");
+        } else {
+            $(".filterMore").css("display", "none");
+            $(".clearFilter").css("display", "none");
+            $(e).find(".moreFilterText").html("@Html.Raw(Resources.Global._more)");
+        }
+    }
+
+    function clearFilter() {
+        $(".filterForm")[0].reset();
+        filter();
+    }
+
+    function filter() {
+        listView = $("#listView").data("kendoListView");        
+        var groupIdF = $("#groupIdF").val();
+        var userIdF = $("#userIdF").val();
+
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };       
+
+        if (userIdF) {
+            filter.filters.push({ field: "userId", operator: "eq", value: userIdF });
+        }
+
+        if (groupIdF) {
+            filter.filters.push({ field: "groupId", operator: "eq", value: groupIdF });
+        }
+
+        listView.dataSource.filter(filter);
+    }
+</script>

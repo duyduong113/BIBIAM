@@ -1,0 +1,223 @@
+﻿@model ERPAPD.Models.DC_CS_ManageInfo
+@{
+    ViewBag.Title = "Cập nhật bài viết";
+}
+
+@*<script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>*@
+<div class="row-fluid">
+    <div class="span12">
+        <form id="editform" action="@Url.Content("~/CustomerSupportManageInfo/Edit")" method="post" class="form-horizontal" enctype="multipart/form-data" style="margin-bottom:0px;">
+            @Html.ValidationSummary(true)
+            @Html.HiddenFor(m => m.ID, new { @class = "span6", @id = "ItemID" })
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Tiêu đề (*)</label>
+                <div class="controls">
+                    @Html.TextBoxFor(m => m.Title, new { @class = "span4" })
+                    @*@Html.ValidationMessageFor(m => m.Article)*@
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Nội dung(*)</label>
+                <div class="controls">
+                    @Html.TextAreaFor(m => m.Content)
+                    @* @Html.ValidationMessageFor(m => m.Description)*@
+                </div>
+            </div>
+            @*<div class="control-group" >
+                    <label class="control-label" for="form-field-1">Start Date</label>
+                    <div class="controls">
+                        @(Html.Kendo().DatePicker()
+                            .Name("StartDate").Format("dd/MM/yyyy")
+                            .HtmlAttributes(new { style="width=250px;"})
+                        )
+                    </div>
+                </div>
+                <div class="control-group" >
+                    <label class="control-label" for="form-field-1">End Date</label>
+                    <div class="controls">
+                        @(Html.Kendo().DatePicker()
+                            .Name("ExpiredDate").Format("dd/MM/yyyy")
+                            .HtmlAttributes(new { style="width=250px;"})
+                        )
+                    </div>
+                </div>*@
+       
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Priority</label>
+                <div class="controls" style=" margin-top:3px;">
+                    <select name="Priority" id="Priority" class='span2' style="width:250px;">
+                        <option value="H">High</option>
+                        <option value="M">Medium</option>
+                        <option value="L">Low</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="form-field-1">Type</label>
+                <div class="controls" style=" margin-top:3px;">
+                    <select name="Type" id="Type" class='span2' style="width:250px;">
+                        <option value="Annoucement">Annoucement</option>
+                        <option value="Internal">Internal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <div style="float:left;">
+                    <label class="control-label" for="form-field-1">Ngày kết thúc</label>
+                    <div class="controls">
+                        @(Html.Kendo().DatePickerFor(m => m.ExpiredDate)
+                        .Format("MM/dd/yyyy")
+                                .HtmlAttributes(new { style = "width:250px" })
+                        )
+                    </div>
+                </div>
+
+                <div style="float: left; margin-left: 50px;">
+                    <label class="control-label" for="form-field-1">Kích hoạt</label>
+                    <div class="controls">
+                        @Html.CheckBoxFor(m => m.IsActive, new { @checked = "true" })
+                        @*@Html.ValidationMessageFor(m => m.Description)*@
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <button class="btn btn-primary btn-small" type="submit">Lưu lại</button>
+                <a class="btn btn-grey btn-small" href="@Url.Content("~/CustomerSupportManageInfo")">Quay lại</a>
+                <a class="btn btn-danger btn-small" onclick="Delete();">Xóa bỏ</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    $("#Priority").val('@Model.Priority');
+    $("#Type").val('@Model.Type');
+    function BrowseServer() {
+        var finder = new CKFinder();
+        finder.basePath = "/ckfinder/";
+        finder.resourceType = 'Images';
+        finder.selectActionFunction = SetFileField;
+        finder.popup();
+    }
+    function SetFileField(fileUrl) {
+        document.getElementById('xFilePath').value = fileUrl;
+    }
+    if (CKEDITOR.instances['Content']) {
+        delete CKEDITOR.instances['Content'];
+    }
+    CKEDITOR.replace('Content');
+
+    CKFinder.setupCKEditor(null, '@Url.Content("~/ckfinder/")');
+
+
+    (function () {
+        $("#editform").ajaxForm({
+            beforeSerialize: function (form, options) {
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+                var body = CKEDITOR.instances['Content'].getData();
+                $('#Content').val(body);
+            },
+            success: function (data) {
+                //setInterval(function () { $.unblockUI; }, 200);
+                if (!data.error) {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: 'Save successfully',
+                        class_name: 'gritter-success'
+                    });
+
+                    setTimeout(function () { window.location = r + "/CustomerSupportManageInfo"; }, 200);
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the heading of the notification
+                        title: '',
+                        // (string | mandatory) the text inside the notification
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            complete: function (xhr) {
+            }
+        });
+
+    })();
+    function Delete() {
+        var data = $("#ItemID").val();
+        if (data != null && data != "") {
+            var c = confirm("Are you sure you want to DELETE this record");
+            if (c == true) {
+                $.post(r + "/CustomerSupportManageInfo/DeleteId", { data: data, }, function (data) {
+                    if (data.success) {
+                        $.gritter.add({
+                            text: 'Delete successfully',
+                            class_name: 'gritter-success'
+                        });
+                        window.location.href = r + "/CustomerSupportManageInfo";
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: data.alert,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+            else {
+                return
+            }
+        }
+        else {
+            $.gritter.add({
+                text: "Please choose data!",
+                class_name: "gritter-error"
+            });
+            return;
+        }
+    }
+</script>
+<style>
+    .form-horizontal .control-label {
+        float: left;
+        width: auto;
+        padding-top: 5px;
+        text-align: left;
+    }
+
+    .form-horizontal .control-group {
+        margin-bottom: 10px;
+    }
+
+    .form-horizontal .controls {
+        margin-left: 80px;
+    }
+
+    .table.k-editor {
+    }
+
+    .controls textarea {
+        height: 50px;
+        width: 99%;
+    }
+
+    span.k-datepicker, span.k-timepicker, span.k-datetimepicker, span.k-colorpicker, span.k-numerictextbox, span.k-combobox, span.k-dropdown {
+        background-image: none;
+        width: 150px;
+    }
+
+    .k-autocomplete.k-state-default, .k-picker-wrap.k-state-default, .k-numeric-wrap.k-state-default, .k-dropdown-wrap.k-state-default {
+        height: 25px;
+    }
+
+    .control-group select, .control-group input[type="text"], .control-group input[type="password"], .control-group input[type="datetime"], .control-group input[type="datetime-local"], .control-group input[type="date"], .control-group input[type="month"], .control-group input[type="time"], .control-group input[type="week"], .control-group input[type="number"], .control-group input[type="email"], .control-group input[type="url"], .control-group input[type="search"], .control-group input[type="tel"], .control-group input[type="color"] {
+        height: 21px;
+    }
+</style>

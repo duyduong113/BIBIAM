@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "SEO_Article";
+}
+<style>
+    .k-alt .editable {
+        background-color: #C8E6C9;
+    }
+
+    .editable {
+        background-color: #E8F5E9;
+    }
+</style>
+
+<div>
+    <form method="post" id="FilterForm" novalidate="novalidate" style="padding-top:10px">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    @*<label>Tìm kiếm</label>*@
+                    <input type="text" class="form-control input-sm max100" id="txtSearch" onkeyup="filter()" name="filterText" placeholder="Tên sẳn phẩm...">
+
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary btn-sm btn-circle" onclick='filter()'>@Html.Raw(Resources.Global._vin_search)</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+<div class="row-fluid">
+    @(Html.Kendo().Grid<BIBIAM.Core.Entities.SEO_MerchantProduct>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.id).Hidden();
+            columns.Bound(p => p.ma_san_pham).Hidden();
+            columns.Bound(p => p.ma_gian_hang).Hidden();
+            columns.Bound(p => p.ten_san_pham).Title(@Resources.Global._product_name).Width(200);
+            columns.Bound(p => p.og_title).Title("og_title").Width(100).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.og_description).Title("og_description").Width(100).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.og_image).Title("og_image").Width(100).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.og_keyword).Title("og_keyword").Width(100).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.robot).Title("robot").Width(100).HtmlAttributes(new { @class = "editable" });
+            columns.Bound(p => p.ngay_tao).Width(110).Title(@Resources.Global._created_date).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_tao).Width(100).Title(@Resources.Global._created_by);
+            columns.Bound(p => p.ngay_cap_nhat).Title(@Resources.Global._updated_at).Width(110).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+            columns.Bound(p => p.nguoi_cap_nhat).Title(@Resources.Global._updated_by).Width(100);
+        })
+        .Scrollable()
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                <div class="pull-left">
+                    <a class="btn btn-primary btn-small" href="javascript:void(0)" id="btnGridSave" onclick="Update()">
+                        @Resources.Global._save
+                    </a>
+                    <a class="btn btn-default btn-small " href="javascript:void(0)" id="btnGridCancel" onclick="Cancel()">
+                        @*<i class="icon-plus"></i>*@ @Resources.Global._cancel
+                    </a>
+                </div>
+            </text>);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Pageable(x => x.PageSizes(new int[] { 20, 100, 200, 500 }))
+        .Events(events => { events.DataBound("dataBound"); })
+        .Reorderable(reorderable => reorderable.Columns(true))
+        .Resizable(resizable => resizable.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+        .Model(model =>
+        {
+            model.Id(p => p.id);
+            model.Field(p => p.ten_san_pham).Editable(false);
+            model.Field(p => p.og_title).Editable(true);
+            model.Field(p => p.og_description).Editable(true);
+            model.Field(p => p.og_image).Editable(true);
+            model.Field(p => p.og_keyword).Editable(true);
+            model.Field(p => p.robot).Editable(true);
+            model.Field(p => p.ngay_tao).Editable(false);
+            model.Field(p => p.nguoi_tao).Editable(false);
+            model.Field(p => p.ngay_cap_nhat).Editable(false);
+            model.Field(p => p.nguoi_cap_nhat).Editable(false);
+        })
+        .Read(c => c.Action("Read", "SEO_MerchantProduct"))
+        .Update(c => c.Action("Update", "SEO_MerchantProduct"))
+        .Create(c => c.Action("Update", "SEO_MerchantProduct"))
+        )
+    )
+</div>
+<script>
+
+
+    function Update() {
+        if ($('#Grid').data('kendoGrid').dataSource.hasChanges() == true) {
+            $('#Grid').data('kendoGrid').saveChanges();
+        }
+    }
+
+    function Cancel() {
+        $('#Grid').data('kendoGrid').cancelChanges();
+    }
+
+    $(document).ready(function () {
+
+    });
+
+    function resizeGrid(gridname) {
+        var offsetbottom = parseInt($(window).height()) - parseInt($('#' + gridname).offset().top);
+        $("#" + gridname).find(".k-grid-content, .k-grid-content-locked").height(offsetbottom - 105);
+    }
+    function dataBound(e) {
+        resizeGrid('Grid');
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br>";
+                    });
+                }
+            });
+
+            toastr.error('', data.message)
+        }
+    }
+
+    function onRequestEnd(e) {
+         if ((e.type == "create") && !e.response.Errors) {
+            toastr.success("", "@Resources.Global._save_successfully");
+            filter();
+        }
+        else
+            if ((e.type == "update") && !e.response.Errors) {
+                toastr.success("", "@Resources.Global._update_successfully");
+                filter();
+            }
+    }
+
+    function filter() {
+        grid = $("#Grid").data("kendoGrid");
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+
+        var txtSearch = $("#txtSearch").val();
+        if (txtSearch) {
+            filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: txtSearch });
+            filterDesc.filters.push({ field: "ma_san_pham", operator: "contains", value: txtSearch });
+            filter.filters.push(filterDesc);
+        }
+
+        grid.dataSource.filter(filter);
+    }
+
+</script>

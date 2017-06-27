@@ -1,0 +1,29 @@
+﻿@{
+    Layout = null;
+}
+@(Html.Kendo().ListView<ERPAPD.Models.CRM_Telesales_PromotionInfo>()
+                        .Name("GridViewPromotion")
+                        .HtmlAttributes(new { @style = "border:none;overflow:auto;" })
+                        .TagName("div")
+                        //.Events(e => e.DataBound("resizeGrid"))
+                        .ClientTemplateId("GridPromotionRowTemplate")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Sort(a => a.Add(m => m.CreatedAt).Descending());
+                            dataSource.Read(read => read.Action("DailyNew_Read", "CRMCustomerSupportDetail"));
+                            dataSource.PageSize(5);
+                        })
+)
+<script type="text/x-kendo-template" id="GridPromotionRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style="padding 10px 0px 0px 10px; display inline-flex; border-bottom: 1px dotted \\#ccc;padding: 10px;">
+            <p style="color:red">#=Title#</p>
+            <div> #= htmlDecodeForAnnoucement(Content)#</div>
+        </div>
+    </div>
+</script>
+<script>
+    function htmlDecodeForAnnoucement(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+</script>

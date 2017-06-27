@@ -1,0 +1,395 @@
+﻿<div class="">
+    <div class="row-fluid">
+        <div class="control-group">
+            <label>Ghi chú</label>
+            @if (ViewBag.itemContract != null)
+            {
+                <div class="controls">
+                    <textarea name="c_note_mkt" id="noteContract">@ViewBag.itemContract.c_note_mkt</textarea>
+                </div>
+            }
+            else
+            {
+                <div class="controls">
+                    <textarea id="noteContract" name="c_note_mkt"></textarea>
+                </div>
+            }
+           
+        </div>
+    </div>
+    @if (ViewBag.itemContract != null)
+    {
+    <div class="row-fluid">
+        <div class="span4">
+            <div class="control-group">
+                <label>Thông tin test</label>
+                <div class="controls">
+                    <input id="test" class="currency" value="@ViewBag.itemContract.c_commission.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test 1</label>
+                <div class="controls">
+                    <input id="test1" class="valid" type="text" readonly />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test 2</label>
+                <div class="controls">
+                    <input id="test2" class="valid" type="text" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="span4">
+            <div class="control-group">
+                <label>Test GG</label>
+                <div class="controls">
+                    <input id="test-gg" class="currency" value="@ViewBag.itemContract.c_chi_phi_gg.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test GG1</label>
+                <div class="controls">
+                    <input id="test-gg-1" class="valid" type="text" readonly />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test GG2</label>
+                <div class="controls">
+                    <input id="test-gg-2" class="valid" type="text" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="span4">
+            <div class="control-group">
+                <label>Test VP</label>
+                <div class="controls">
+                    <input id="test-vp" class="currency" value="@ViewBag.itemContract.c_chi_phi_vp.ToString("#,##0")" data-thousands="," data-decimal="." data-precision="0" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test VP1</label>
+                <div class="controls">
+                    <input id="test-vp-1" class="valid" type="text" readonly />
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Test VP2</label>
+                <div class="controls">
+                    <input id="test-vp-2" class="valid" type="text" readonly />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="wrapper-test" class="row-fluid">
+        <table id="list-test" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr align="center">
+                    <th style="width:15%">D</th>
+                    <th style="width:15%">T1</th>
+                    <th style="width:15%">N1</th>
+                    <th style="width:15%">T2</th>
+                    <th style="width:15%">N2</th>
+                    <th style="width:15%">T3</th>
+                    <th style="width:15%">N3</th>
+                    <th style="width:5%">
+                        <button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupTest()"><i class="icon-plus"></i></button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.listTest != null && ViewBag.listTest.Count > 0)
+                {
+                    foreach (var item in ViewBag.listTest)
+                    {
+                        <tr data-pktest="@item.pk_test">
+                            <td>
+                                <input name="pktest" type="hidden" value="@item.pk_test" />
+                                <input name="D" class="date-picker date-test" type="text" value="@item.D.ToString("dd/MM/yyyy")" />
+                            </td>
+                            <td><input name="T1" onchange="changeAmountTest()" class="input-small t1-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T1.ToString("#,##0")"></td>
+                            <td><input name="N1" class="t1-name-test" type="text" value="@item.N1" /></td>
+                            <td><input name="T2" onchange="changeAmountTest()" class="input-small t2-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T2.ToString("#,##0")"></td>
+                            <td><input name="N2" class="t2-name-test" type="text" value="@item.N2" /></td>
+                            <td><input name="T3" onchange="changeAmountTest()" class="input-small t3-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T3.ToString("#,##0")"></td>
+                            <td><input name="N3" class="t3-name-test" type="text" value="@item.N3" /></td>
+                            <td><button data-rel="tooltip" data-placement="top" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupTest(this,@item.pk_test)"><i class="icon-minus"></i></button></td>
+                        </tr>
+                    }
+
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+    else
+    {
+        <div class="row-fluid">
+            <div class="span4">
+                <div class="control-group">
+                    <label>Thông tin test</label>
+                    <div class="controls">
+                        <input id="test" class="currency" value="0" data-thousands="," data-decimal="." data-precision="0" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test 1</label>
+                    <div class="controls">
+                        <input id="test1" class="valid" type="text" readonly />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test 2</label>
+                    <div class="controls">
+                        <input id="test2" class="valid" type="text" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Test GG</label>
+                    <div class="controls">
+                        <input id="test-gg" class="currency" value="0" data-thousands="," data-decimal="." data-precision="0" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test GG1</label>
+                    <div class="controls">
+                        <input id="test-gg-1" class="valid" type="text" readonly />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test GG2</label>
+                    <div class="controls">
+                        <input id="test-gg-2" class="valid" type="text" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="span4">
+                <div class="control-group">
+                    <label>Test VP</label>
+                    <div class="controls">
+                        <input id="test-vp" class="currency" value="0" data-thousands="," data-decimal="." data-precision="0" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test VP1</label>
+                    <div class="controls">
+                        <input id="test-vp-1" class="valid" type="text" readonly />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Test VP2</label>
+                    <div class="controls">
+                        <input id="test-vp-2" class="valid" type="text" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="wrapper-test" class="row-fluid">
+            <table id="list-test" class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr align="center">
+                        <th style="width:15%">D</th>
+                        <th style="width:15%">T1</th>
+                        <th style="width:15%">N1</th>
+                        <th style="width:15%">T2</th>
+                        <th style="width:15%">N2</th>
+                        <th style="width:15%">T3</th>
+                        <th style="width:15%">N3</th>
+                        <th style="width:5%">
+                            <button data-rel="tooltip" data-placement="top" title="" data-original-title="Thêm" type="button" class="btn btn-minier btn-success tooltip-success" onclick="plusGroupTest()"><i class="icon-plus"></i></button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (ViewBag.listTest != null && ViewBag.listTest.Count > 0)
+                {
+                    foreach (var item in ViewBag.listTest)
+                    {
+                            <tr data-pktest="@item.pk_test">
+                                <td>
+                                    <input name="pktest" type="hidden" value="@item.pk_test" />
+                                    <input name="D" class="date-picker date-test" type="text" value="@item.D.ToString("dd/MM/yyyy")" />
+                                </td>
+                                <td><input name="T1" onchange="changeAmountTest()" class="input-small t1-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T1.ToString("#,##0")"></td>
+                                <td><input name="N1" class="t1-name-test" type="text" value="@item.N1" /></td>
+                                <td><input name="T2" onchange="changeAmountTest()" class="input-small t2-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T2.ToString("#,##0")"></td>
+                                <td><input name="N2" class="t2-name-test" type="text" value="@item.N2" /></td>
+                                <td><input name="T3" onchange="changeAmountTest()" class="input-small t3-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="@item.T3.ToString("#,##0")"></td>
+                                <td><input name="N3" class="t3-name-test" type="text" value="@item.N3" /></td>
+                                <td><button data-rel="tooltip" data-placement="top" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupTest(this,@item.pk_test)"><i class="icon-minus"></i></button></td>
+                            </tr>
+                        }
+
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        changeAmountTest();
+    })
+
+    function plusGroupTest() {
+        var tr =  ' <tr  data-pktest="0">'
+            tr += '       <td>  <input name="pktest" type="hidden" value="0" />'
+            tr += '             <input name="D" class="date-picker date-test" type="text" value="" /></td>'
+            tr += '       <td><input name="T1" onchange="changeAmountTest()" class="input-small t1-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="0"></td>'
+            tr += '       <td><input name="N1" class="t1-name-test" type="text" value="" /></td>'
+            tr += '       <td><input name="T2" onchange="changeAmountTest()" class="input-small t2-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="0"></td>'
+            tr += '       <td><input name="N2" class="t2-name-test" type="text" value="" /></td>'
+            tr += '       <td><input name="T3" onchange="changeAmountTest()" class="input-small t3-amount-test currency valid" type="text" data-thousands="," data-decimal="." data-precision="0" value="0"></td>'
+            tr += '       <td><input name="N3" class="t3-name-test" type="text" value="" /></td>'
+            tr += '       <td><button data-rel="tooltip" data-placement="left" title="" data-original-title="Xóa" type="button" class="btn btn-minier btn-danger tooltip-error" onclick="minusGroupTest(this)"><i class="icon-minus"></i></button></td>'
+            tr += '   </tr>'
+
+        $("#list-test tbody").append(tr);
+        addEventAfter();
+    }
+    function minusGroupTest(e) {
+        $(e).closest('tr').remove();
+    }
+    function changeAmountTest() {
+        var amount1 = amount2 = amount3 = 0;
+        $("#list-test tbody tr").each(function (i) {
+            amount1 += currencyToNumber($(this).find(".t1-amount-test").val());
+            amount2 += currencyToNumber($(this).find(".t2-amount-test").val());
+            amount3 += currencyToNumber($(this).find(".t3-amount-test").val());
+        })
+
+        // TEST 1
+        var test = currencyToNumber($('#test').val());
+        test2 = test - amount1;
+        $('#test1').val(amount1);
+        $('#test2').val(test2);
+
+        // TEST GG
+        var test_gg = currencyToNumber($('#test-gg').val());
+        var test_gg_2 = test_gg - amount2;
+        $('#test-gg-1').val(amount2);
+        $('#test-gg-2').val(test_gg_2);
+
+        // TEST VP
+        var test_vp = currencyToNumber($('#test-vp').val());
+        var test_vp_2 = test_vp - amount3;
+        $('#test-vp-1').val(amount3);
+        $('#test-vp-2').val(test_vp_2);
+
+    }
+    function SaveTest(check)
+    {
+        var arr = [];
+        var loop = true;
+        $("#list-test tbody tr").each(function (i) {
+            var ob = {};
+            $(this).find("input").each(function () {
+                ob.fk_contract = $("#formContract").attr("data-contract");
+                if ($(this).attr("name") == "pktest") {
+                    ob.pk_test = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "D") {
+                    if ($(this).val() == "") {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: 'Chưa nhập ngày của thông tin TEST',
+                            class_name: 'gritter-error'
+                        });
+                        loop = false;
+                        return false;
+                    }
+                    ob.D = convertDate($(this).val());
+                }
+            
+               
+                if ($(this).attr("name") == "T1") {
+                    ob.T1 = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "T2") {
+                    ob.T2 = currencyToNumber($(this).val());
+                }
+                if ($(this).attr("name") == "T3") {
+                    ob.T3 = currencyToNumber($(this).val());
+                }
+
+                if ($(this).attr("name") == "N1") {
+                    ob.N1 = $(this).val();
+                }
+                if ($(this).attr("name") == "N2") {
+                    ob.N2 = $(this).val();
+                }
+                if ($(this).attr("name") == "N3") {
+                    ob.N3 = $(this).val();
+                }
+               
+            })
+            arr[i] = ob;
+           
+        })
+        console.log(arr);
+
+        var note = $('#noteContract').val();
+        var test = currencyToNumber($('#test').val());
+        var gg = currencyToNumber($('#test-gg').val());
+        var vp = currencyToNumber($('#test-vp').val());
+        var contract = $("#formContract").attr("data-contract");
+
+        if (!loop) {
+            return false;
+        }
+        console.log(arr);
+        if (check) {
+            return loop;
+        }
+        $.ajax({
+            url: r + "/CRMMnContract/SaveListTest",
+            type: 'POST',
+            data: {
+                listTest: arr,
+                contract: contract,
+                note: note,
+                test: test,
+                gg: gg,
+                vp: vp
+            },
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    loop = true;
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Lỗi',
+                        text: data.message,
+                        class_name: 'gritter-error'
+                    });
+                    loop = false;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $.gritter.add({
+                    text: 'Lỗi Cập nhật !',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+        return loop;
+    }
+
+    function minusGroupTest(e, pk) {
+        if (!confirm("Bạn có chắc xóa dữ liệu này")) {
+            return;
+        }
+        $(e).closest('tr').remove();
+        if (pk) {
+            addTaskList("TEST", pk);
+        }
+
+
+    }
+</script>

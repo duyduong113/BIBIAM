@@ -1,0 +1,307 @@
+﻿<style>
+    .accordion-inner {
+        padding: 5px 10px;
+    }
+
+    .k-autocomplete {
+        height: 28px;
+    }
+
+    .control-group select {
+        padding: 4px 0px;
+    }
+
+    .k-autocomplete .k-input {
+        height: 22px;
+    }
+</style>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="row-fluid">
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Loại hợp đồng</label>
+                    <div class="controls">
+                        <select name="LoaiHopDong" id="general-contract-type" disabled data-placeholder="Loại hợp đồng"  style="width:110px; height:28px !important">
+                            @foreach (var item in ViewBag.listContractType)
+                            {
+                                <option value="@item.ParamID"> @item.Value </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Số hợp đồng</label>
+                    <div class="controls">
+                        <input id="general-contract-code" name="Code" class="input-small" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Mã book chỗ</label>
+                    <div class="controls">
+                        <input id="general-book-code" name="BookCode" class="input-small" type="text" />
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Trạng thái hợp đồng</label>
+                    <div class="controls">
+                        <select name="TrangThai" id="general-contract-status" disabled class='' data-placeholder="Trạng thái hợp đồng" style="width:110px; height:28px !important">
+                            @foreach (var item in ViewBag.listStatusContractDraff)
+                            {
+                                <option value="@item.ParamID"> @item.Value </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div style="width:180px" class="span2">
+                <div class="control-group">
+                    <label>Ngày về hai chiều</label>
+                    <div class="controls">
+                        @if (ViewBag.itemdraff != null)
+                        {
+                            if (@ViewBag.itemdraff.NgayVeHaiChieu.ToString("dd/MM/yyyy") != "01/01/1900")
+                            {
+                                <input id="general-date" name="NgayVeHaiChieu" class="date-picker" type="text"
+                                       style="width:167px" value="@ViewBag.itemdraff.NgayVeHaiChieu.ToString("dd/MM/yyyy")" />
+                            }
+                            else
+                            {
+                                <input id="general-date" name="NgayVeHaiChieu" class="date-picker" type="text"
+                                       style="width:167px" />
+                            }
+
+                        }
+                        else
+                        {
+                            <input id="general-date" name="NgayVeHaiChieu" class="date-picker" type="text"
+                                   style="width:167px" />
+                        }
+
+                    </div>
+                </div>
+            </div>
+            <div style="width:100px" class="span1">
+                <div class="control-group">
+                    <label>Vùng miền</label>
+                    <div class="controls">
+                        <select id="listRegiondetail" name="FKUnit" class="select" data-placeholder="Vùng miền" style="width:100%">
+                            @foreach (var item in ViewBag.listRegion)
+                            {
+                                <option value="@item.HierarchyID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Nhóm</label>
+                    <div class="controls" id="divGroupByRegion">
+                        <select id="listGroupdetail" name="FKGroup" class="select" data-placeholder="Nhóm" style="width: 100%; ">
+                            @foreach (var item in ViewBag.listTeam)
+                            {
+                                <option value="@item.TeamID">@item.TeamName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width:180px" class="span1">
+                <div class="control-group">
+                    <label>Nhân viên</label>
+                    <div class="controls" id="emloyeebygroup">
+                        <select id="listStaffdetail" name="FKStaft" class="select" data-placeholder="Nhân viên" style="width: 100%;">
+                            @foreach (var item in ViewBag.listStaff)
+                            {
+                                <option value="@item.RefStaffId">@item.UserName -@item.FullName </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input id="general-CustomerID" name="CustomerID" type="hidden" />
+        <input id="general-CustomerCode" name="CustomerCode" type="hidden" />
+        <div class="row-fluid">
+            <div style="width: 396px;" class="span4">
+                <div class="control-group">
+                    <label>Khách hàng</label>
+                    <div class=''>
+                        @(Html.Kendo().AutoComplete()
+                              .Name("txtCustomerID")
+                              .DataTextField("CustomerName")
+                              .Animation(true)
+                              .Placeholder("Nhập tên khách hàng")
+                              .Filter("contains")
+                              .MinLength(1)
+                              .HtmlAttributes(new { style = "width:390px; " })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("CustomerRead", "CRM_CustomerSupport")
+                                          .Data("onAdditionalData");
+                                  })
+                                  .ServerFiltering(true);
+                              })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectCustomer");
+                                    })
+                                            .Template("<span>#=CustomerID# - #=CustomerName#</span>")
+                        )
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Loại khách hàng</label>
+                    <div class="controls">
+                        <select name="CustomerType" id="general-customer-type" disabled class='' data-placeholder="Loại khách hàng" style="width:110px; height:28px !important">
+                            <option value="" disabled selected>--Chọn loại khách hàng--</option>
+                            @foreach (var item in ViewBag.listCustomerType)
+                            {
+                                <option value="@item.Code"> @item.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div style="width:110px" class="span1">
+                <div class="control-group">
+                    <label>Loại đại lý</label>
+                    <div class="controls">
+                        <select name="AgencyType" id="general-agency-type"  class='' data-placeholder="Loại đại lý" style="width:110px; height:28px !important">
+                            <option value="" disabled selected>--Chọn loại đại lý--</option>
+                            @foreach (var item in ViewBag.listLOAID_DL)
+                            {
+                                <option value="@item.Code"> @item.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div style="width:180px" class="span2">
+                <div class="control-group">
+                    <label>Ngành hàng</label>
+                    <div class="controls">
+                        <select name="CategoryCode" id="general-list-category" class='' data-placeholder="Ngành hàng" style="width:180px; height:28px !important">
+                            <option value="" disabled selected>--Chọn ngành hàng-</option>
+                            @foreach (var item in ViewBag.listCategory)
+                            {
+                                <option value="@item.HierarchyID">@item.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="span3">
+                <div class="control-group">
+                    <label>Nhãn hàng</label>
+                    <div class="controls">
+                        <input type="text" name="Labels" class="span12" id="general-list-brand" data-placeholder="Nhãn hàng" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div>
+    <input id="general-contract-PKContractDraft" type="hidden" name="PKContractDraft" value="" />
+</div>
+
+@if (ViewBag.itemdraff != null)
+{
+    <script>
+        //
+        //
+        $('#general-list-category').val('').trigger('chosen:updated');
+        $('#general-customer-type').val('').trigger('chosen:updated');
+        $('#general-contract-status').val('').trigger('chosen:updated');
+        $('#general-agency-type').val('').trigger('chosen:updated');
+        $("#general-CustomerID").val('@ViewBag.itemdraff.CustomerID');
+        $("#general-CustomerCode").val('@ViewBag.itemdraff.CustomerCode');
+
+        $("#txtCustomerID").val('@Html.Raw(ViewBag.itemdraff.BenA)');
+        $('#general-contract-code').val('@ViewBag.itemdraff.Code');
+        //
+        $('#general-contract-type').val('@ViewBag.itemdraff.LoaiHopDong').trigger('chosen:updated').prop('disabled', true);
+        $('#general-contract-status').val('@ViewBag.itemdraff.TrangThai').trigger('chosen:updated').prop('disabled', true);
+        //
+        $('#general-list-category').val('@ViewBag.itemdraff.CategoryCode').trigger('chosen:updated');
+        // $('#general-date').val('@ViewBag.itemdraff.NgayVeHaiChieu');
+        $('#general-agency-type').val('@ViewBag.itemdraff.AgencyType').trigger('chosen:updated');
+        $('#general-customer-type').val('@ViewBag.itemdraff.CustomerType').trigger('chosen:updated');
+        $('#general-list-brand').val('@Html.Raw(ViewBag.itemdraff.Labels)');
+        $('#general-contract-code').val('@ViewBag.itemdraff.Code');
+        $('#general-book-code').val('@ViewBag.itemdraff.BookCode');
+        $('#general-contract-PKContractDraft').val('@ViewBag.itemdraff.PKContractDraft');
+        $('#general-contract-CustomerID').val('@ViewBag.itemdraff.CustomerCode');
+        //
+        $('#listRegiondetail').val('@ViewBag.itemdraff.KFUnit').trigger('change').prop('disabled', true);
+        $('#listStaffdetail').val('@ViewBag.itemdraff.FKStaff').trigger('change').prop('disabled', true);
+        $('#listGroupdetail').val('@ViewBag.itemdraff.KFGroup').trigger('change').prop('disabled', true);
+    </script>
+}
+<script>
+
+    $('#general-contract-type').val('@ViewBag.typeContract').trigger('chosen:updated');
+
+    //Disable
+    //$('#general-contract-type,#general-contract-status').prop('disabled', true);
+    function stringToDate(_date, _format, _delimiter) {
+        var formatLowerCase = _format.toLowerCase();
+        var formatItems = formatLowerCase.split(_delimiter);
+        var dateItems = _date.split(_delimiter);
+        var monthIndex = formatItems.indexOf("mm");
+        var dayIndex = formatItems.indexOf("dd");
+        var yearIndex = formatItems.indexOf("yyyy");
+        var month = parseInt(dateItems[monthIndex]);
+        month -= 1;
+        var formatedDate = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
+        return formatedDate;
+    }
+
+    function onAdditionalData() {
+        return {
+            text: $("#txtCustomerID").val()
+        };
+    }
+    function onSelectCustomer(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#general-CustomerID,#general-CustomerCode,#information-a-phone,#information-a-fax").val('');
+        $('#information-a,#information-a-represent,#information-a-position,#information-a-address,#information-a-mst').val('');
+        $('#information-a-bank,#information-a-account-bank,#information-a-bank-branch').val('');
+        $('#general-list-category').val('').trigger('chosen:updated');
+        $('#general-customer-type').val('').trigger('chosen:updated');
+        $("#general-CustomerID").val(dataItem.CustomerID);
+        $("#general-CustomerCode").val(dataItem.CodeLink);
+        $('#information-a').val(dataItem.CustomerName);
+        $('#information-a-represent').val(dataItem.Name);
+        $('#information-a-position').val(dataItem.Title);
+        $('#information-a-address').val(dataItem.Address);
+        $('#information-a-phone').val(dataItem.Phone);
+        $("#information-a-fax").val(dataItem.Fax);
+        $('#information-a-mst').val(dataItem.TaxCode);
+        $('#information-a-bank').val(dataItem.BankName);
+        $('#information-a-account-bank').val(dataItem.BankCode);
+        $('#information-a-bank-branch').val(dataItem.BankBranch);
+        $('#general-list-category').val(dataItem.CategoryParent).trigger('chosen:updated');
+        $('#general-customer-type').val(dataItem.CustomerType).trigger('chosen:updated');
+        $('#general-agency-type').val(dataItem.AgencyType).trigger('chosen:updated');
+
+    }
+
+</script>
+<script>
+    //$('.select').chosen();
+</script>

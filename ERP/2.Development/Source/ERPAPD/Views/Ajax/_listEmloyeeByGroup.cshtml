@@ -1,0 +1,16 @@
+﻿@{
+    Layout = null;
+}
+
+<select id="listStaff" class="select span12" multiple data-placeholder="Nhân viên">
+    @foreach (var item in ViewBag.listEmployee)
+    {
+        <option value="@item.RefEmployeeID">@item.UserName - @item.Name</option>
+    }
+</select>
+<script type="text/javascript">
+    $(".select").chosen();
+    $('#listStaff').on('change', function () {
+      //setfilter(keyfilter);
+    });
+</script>

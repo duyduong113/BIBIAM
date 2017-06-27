@@ -1,0 +1,55 @@
+﻿<div id="popup-confirm" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Thông báo</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+        <div class="row-fluid form-horizontal">
+            <p>
+                <span id="txtcontent">Bạn có muốn đề nghị đăng quảng cáo các sản phẩm này ?</span>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-info btn-small" onclick="onChangeStatus()"> Đồng ý</a>
+        <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+    </div>
+</div>
+<div style="width:70%;left:33%" id="popup-count-real" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Tính thời gian ngày lên / ngày xuống thực tế Banner</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body overflow-visible">
+
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-default btn-small" data-dismiss="modal">Đóng</a>
+    </div>
+</div>
+<div style="width:90%;left:25%" id="popup-detail-real" class="modal hide">
+    <div class="k-window-titlebar k-header">
+        <span class="k-window-title">Chi tiết ngày lên / ngày xuống thực tế</span>
+        <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+    </div>
+    <div style="min-height: 200px;" class="modal-body overflow-visible">
+
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-default btn-small" data-dismiss="modal">Đóng</a>
+    </div>
+</div>
+<script>
+    
+    function onChangeStatus() {
+        if (listProducts != "" && PKContract != "") {
+            window.location = r + "/CRM_ProposedAdvertisement/CreateByContract?list=" + listProducts + "&pk=" + PKContract + "";
+        }
+    }
+    function onCloseForm() {
+        $("#Grid").data("kendoGrid").dataSource.read();
+        //$('#checkboxcheckAll').prop('checked', false);
+        $('#txtcontent').val('');
+        $('.modal').modal('hide');
+    }
+</script>

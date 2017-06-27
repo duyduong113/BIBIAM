@@ -1,0 +1,706 @@
+﻿<style>
+    .input-small, input, textarea {
+        width: 95%;
+        /*border: solid 1px #A59D9D !important;*/
+        color: #000;
+    }
+
+    .list-bill input[type="text"], #list-schedule-paypal input[type="text"], #list-real-service input[type="text"] {
+        width: 100%;
+    }
+
+    .k-autocomplete .k-input {
+        min-height: 22px;
+    }
+
+    .chosen-container-single {
+        width: 100% !important;
+    }
+
+    .accordion-heading .accordion-toggle:hover, .accordion-heading .accordion-toggle.collapsed:hover {
+        background-color: #0C4D6D;
+    }
+
+    .accordion-heading .accordion-toggle, .accordion-heading .accordion-toggle.collapsed {
+        color: #FFFFFF;
+        background-color: #2e6589;
+        text-decoration: none;
+    }
+
+    .profile-info-row {
+        height: 40px;
+    }
+
+    .profile-info-name {
+        width: 40%;
+    }
+
+    .profile-info-value {
+        margin-left: 42%;
+    }
+
+    ul li {
+        list-style-type: none;
+    }
+
+    .error {
+        border: none !important;
+        color: red !important;
+        background-color: #fff !important;
+    }
+
+    div.fixed {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+    }
+
+    .revernus .profile-info-value input {
+        width: 100px;
+    }
+
+    .title-ctr {
+        color: #dc2020;
+        font-size: 1.3em;
+    }
+
+    .title-general{
+        font-weight: bold;
+        color: #667e99;
+    }
+
+    #list-history-paypal [class*="span"] {
+        margin-left: 12px;
+    }
+
+    #list-hdt-service .k-widget [class*="span"] {
+        margin-left: 2px;
+    }
+    .border-fr{
+        border: solid 1px #d5d5d5;
+        padding: 5px;
+        background-color: #f6fcff;
+    }
+    table input[type="text"],table input[type="number"], .k-autocomplete .k-input {
+    padding: 2px 0;
+    height: 22px;
+    color: #000;
+    text-indent: .33em;
+}
+    #popup-count-real .list tr{
+        color: #2aa5d6;
+        cursor:pointer;
+    }
+    .title-pu{
+        color:#2aa5d6;
+        font-weight:bold;
+    }
+    .rev-middle .profile-info-name{
+        width: 55%;
+    }
+    .rev-middle .profile-info-value{
+            margin-left: 57%;
+    }
+</style>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script src="@Url.Content("~/Scripts/jquery.maskMoney.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/utilitycommon.js")" type="text/javascript"></script>
+@{
+    var realOpen = false;
+    if (ViewBag.realBanner != null && ViewBag.realBanner.Count > 0)
+    {
+        realOpen = true;
+    }
+    if (ViewBag.realPR != null && ViewBag.realPR.Count > 0)
+    {
+        realOpen = true;
+    }
+}
+@if (ViewBag.itemContract != null)
+{
+    <script type="text/javascript">
+        var moneyBeforeVat = parseFloat('@ViewBag.itemContract.c_total_money'); // Doanh so ky
+        var moneyAfterVat = parseFloat("@ViewBag.itemContract.c_total_value"); // Tong gia tri hop dong
+        var sumMoneyGroup = parseFloat('@ViewBag.itemContract.c_total_money'); // Doanh so ky
+        var sumMoneyNextYear = parseFloat('@ViewBag.itemContract.c_total_money_next_year');// gia tri hop dong
+        var revenues_cancel = parseFloat('@ViewBag.itemContract.c_ds_huy'); // Doanh so huy
+        var revenues_other = parseFloat('@ViewBag.itemContract.c_customer_total_money'); // Doanh khác
+    </script>
+}
+else
+{
+    <script type="text/javascript">
+        var dskyBandau = 0;
+        var sumMoneyGroup = 0;
+        var sumMoneyNextYear = 0;
+        var moneyBeforeVat = 0;
+        var moneyAfterVat = 0;
+        var revenues_cancel = 0;
+    </script>
+}
+
+<form data-contract="@ViewBag.PKContract" action=@Url.Action("Contract_Save", "CRMMnContract") id="formContract" class="form-inline">
+    <div class="row-fluid">
+        <div class="accordion" id="accordion2">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#faq-list-1" href="#faq-1-1">
+                        <span class="title-fluid"> Thông tin chung</span>
+                    </a>
+                </div>
+                <div id="faq-1-1" class="accordion-body collapse in">
+                    <div class="accordion-inner">
+                        @Html.Partial("partial/_general_infomation")
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-2" data-parent="#faq-list-2" data-toggle="collapse" class="accordion-toggle">
+                        <span class="title-fluid">  Thông tin các dịch vụ cung cấp ngày lên/ngày xuống theo hợp đồng</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse in" id="faq-1-2" style="height: auto;">
+                    <div class="accordion-inner">
+                        @Html.Partial("partial/_services_contract_infomation")
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-3" data-parent="#faq-list-3" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid"> Thông tin các dịch vụ ngày lên/ngày xuống thực tế</span>
+                    </a>
+                </div>
+                <div  class="accordion-body collapse" id="faq-1-3" @{if (realOpen) { @Html.Raw("style='height: auto;'"); } else { @Html.Raw("style='height: 0px;'");} } >
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @{
+                                string typeContract = ViewBag.typeContract;
+                                switch (typeContract)
+                                {
+                                    case "HD_THUONG":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                    case "PHIEU":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                    case "CPM":
+                                        @Html.Partial("real/_real_cpm")
+                                        break;
+                                    case "PHIEUCPM":
+                                        @Html.Partial("real/_real_cpm")
+                                        break;
+                                    case "GOI":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                    case "DOI_NGOAI":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                    case "GUI_GIA":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                    case "PHIEUPR":
+                                        @Html.Partial("real/_real_normal")
+                                        break;
+                                }
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-4" data-parent="#faq-list-4" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid">Lịch thanh toán lịch sử thanh toán, thông tin hóa đơn</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse" id="faq-1-4" style="height: auto;">
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @Html.Partial("partial/_paypal_infomation")
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-5" data-parent="#faq-list-5" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid"> Thông tin bảo lãnh</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse" id="faq-1-5" style="height: 0px;">
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @Html.Partial("partial/_guarantee_infomation")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-6" data-parent="#faq-list-6" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid"> Phân bổ doanh số cho nhân viên kinh doanh</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse" id="faq-1-6" style="height: 0px;">
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @Html.Partial("partial/_list_staff")
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-7" data-parent="#faq-list-7" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid"> Thông tin test</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse" id="faq-1-7" style="height: 0px;">
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @Html.Partial("partial/_test_infomation")
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a href="#faq-1-8" data-parent="#faq-list-8" data-toggle="collapse" class="accordion-toggle collapsed">
+                        <span class="title-fluid"> Thông tin khác</span>
+                    </a>
+                </div>
+                <div class="accordion-body collapse" id="faq-1-8" style="height: 0px;">
+                    <div class="accordion-inner">
+                        <div class="span12">
+                            @Html.Partial("partial/_other")
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</form>
+
+<div class="row-fluid fixed">
+    <div class="span12">
+        <p class="pull-right">
+            <a class="btn btn-small btn-success" onclick="saveContract()">Ghi</a>
+            @*<a class="btn btn-small btn-danger" href="#">Chờ hủy/Hủy HĐ</a>*@
+            <a class="btn btn-small btn-default" href=@Url.Action("Index","CRMMnContract")>Quay lại</a>
+        </p>
+    </div>
+  
+</div>
+@Html.Partial("product/_popup")
+
+@*<div data-type="" data-pk="" id="delete-confirm" class="modal hide fade">
+        <div style="background-color:#e0a9a9;color:#fff" class="k-window-titlebar k-header">
+            <span class="k-window-title">Thông báo <span"><i class="icon-trash"></i></span>
+            <button type="button" class="btclose" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body overflow-visible">
+            <div class="row-fluid form-horizontal">
+                <p style="font-size:2em;color:#d26565;text-align:center;">Bạn chắc chắn XÓA dữ liệu này ? </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn btn-danger btn-small" onclick=""> Đồng ý</a>
+            <a class="btn btn-default btn-small" data-dismiss="modal">Bỏ qua</a>
+        </div>
+    </div>*@
+
+@if (ViewBag.itemContract != null)
+{
+    <script>
+
+        $('#general-contract-type').val('@ViewBag.typeContract').trigger('chosen:updated').prop('disabled', true);;
+        $('#general-contract-status').val('@ViewBag.itemContract.c_status').trigger('chosen:updated');
+        $('#information-ads-customer').val('@ViewBag.itemContract.c_banner_up');
+        if ('@ViewBag.itemContract.c_banner_up' == 0) {
+            $('#information-ads-customer').prop('checked', true);
+        }
+        if ('@ViewBag.itemContract.c_revenue_date.ToString("dd/MM/yyyy")' != "01/01/1900") {
+            $('#general-contract-revenue-date').val('@ViewBag.itemContract.c_revenue_date.ToString("dd/MM/yyyy")');
+        }
+        if ('@ViewBag.itemContract.c_end_date.ToString("dd/MM/yyyy")' != "01/01/1900") {
+            $('#general-contract-end-date').val('@ViewBag.itemContract.c_end_date.ToString("dd/MM/yyyy")');
+        }
+        $('#general-contract-book-code').val('@ViewBag.itemContract.c_book_code');
+        $('#general-contract-code').val('@ViewBag.itemContract.c_code');
+        $('#txtCustomerID').val('@Html.Raw(ViewBag.itemContract.c_customer_name)');
+        $('#general-CustomerID').val('@ViewBag.itemContract.c_customer_code');
+        $('#general-customer-type').val('@ViewBag.itemContract.c_customer_type').trigger('chosen:updated');
+        $('#general-staff-TeamName').val('@Html.Raw(ViewBag.itemContract.c_teamname)');
+        $('#general-staff-RegionName').val('@Html.Raw(ViewBag.itemContract.c_region_name)');
+        $('#txt-FullName-NVKD').val('@Html.Raw(ViewBag.itemContract.c_staff_name)');
+        $('#general-staff-RefStaffId').val('@ViewBag.itemContract.c_staff_id');
+        $('#general-staff-UnitId').val('@ViewBag.itemContract.c_unit_id');
+
+        $('#general-labels').val('@Html.Raw(@ViewBag.itemContract.c_labels)');
+
+        //Doanh so
+        $("#revenues-money").val('@ViewBag.itemContract.c_total_money');
+        $("#revenues-real").val('@ViewBag.itemContract.c_total_money_in_year.ToString("#,##0")');
+        $("#revenues-vat").val('@ViewBag.itemContract.c_total_vat.ToString("#,##0")');
+        $("#revenues-sum").val('@ViewBag.itemContract.c_total_value.ToString("#,##0")');
+        $("#revenues-next-year").val('@ViewBag.itemContract.c_total_money_next_year.ToString("#,##0")');
+        $("#revenues-customer-total").val('@ViewBag.itemContract.c_customer_total_money.ToString("#,##0")');
+        $("#revenues-other-website").val('@ViewBag.itemContract.c_outside_money.ToString("#,##0")');
+        $("#revenues-out-cs").val('@ViewBag.itemContract.c_dt_ngoai_chinh_sach.ToString("#,##0")');
+        $("#c_phan_tram_ncs").val('@ViewBag.itemContract.c_phan_tram_ncs.ToString("#,##0")');
+        $("#revenues-out-cs").val('@ViewBag.itemContract.c_customer_total_money.ToString("#,##0")');
+        $("#revenues-end-wait").val('@ViewBag.itemContract.c_ds_huy.ToString("#,##0")');
+        if ('@ViewBag.itemContract.c_ngay_bao_huy.ToString("dd/MM/yyyy")' != "01/01/1900") {
+            $("#revenues-date-end").val('@ViewBag.itemContract.c_ngay_bao_huy.ToString("dd/MM/yyyy")');
+        }
+        if ('@ViewBag.itemContract.c_ngay_bao_huy.ToString("dd/MM/yyyy")' != "01/01/1900") {
+           $("#general-contract-revenue-date-cancel").val('@ViewBag.itemContract.c_ngay_huy_hd.ToString("dd/MM/yyyy")');
+        }
+        $("#revenues-end-reason").val('@ViewBag.itemContract.c_ly_do_huy');
+        $("#c_note").val('@ViewBag.itemContract.c_note');
+        $('#status-end-rev').val('@ViewBag.itemContract.c_huy_status');
+        $("#sum-money").text('@ViewBag.itemContract.c_total_value.ToString("#,##0")');
+        if ('@ViewBag.itemContract.c_check_vat' == 1) {
+            $('#check-vat').prop('checked', true);
+
+        }
+    </script>
+
+}
+<script type="text/javascript">
+    var isReal = '@realOpen';
+    if (isReal == "True") {
+        $("#information-ads-customer").prop("checked", false);
+    } else {
+        $("#information-ads-customer").prop("checked", true);
+
+    }
+    $('[data-rel=tooltip]').tooltip();
+    function addEventAfter() {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $('.currency').maskMoney();
+        $('[data-rel=tooltip]').tooltip();
+    }
+    var flag_bannerup = false;
+    var listTask = [];
+    var iList = 0;
+    function addTaskList(type, pk) {
+        var func = {};
+        func.Type = type;
+        func.PK = pk;
+        listTask[iList] = func;
+        iList++;
+    }
+    function runTask() {
+        for (var i = 0; i < listTask.length; i++) {
+            var type = listTask[i].Type;
+            var pk = listTask[i].PK;
+            del = deleteOne(type, pk);
+        }
+    }
+    function deleteOne(_type, _pk) {
+        var loop = false;
+        if (_type != '' && _pk != 0) {
+            switch (_type) {
+                case "STAFF":
+                    _url = "/CRMMnContract/Staff_Delete";
+                    break;
+                case "GUARANTEE":
+                    _url = "/CRMMnContract/Guarantee_Delete";
+                    break;
+                case "BILL":
+                    _url = "/CRMMnContract/Bill_Delete";
+                    break;
+                case "SCHEDULE":
+                    _url = "/CRMMnContract/PaymentSchedule_Delete";
+                    break;
+                case "PAYMENT":
+                    _url = "/CRMMnContract/PaymentHistory_Delete";
+                    break;
+                case "PDNORMAL":
+                    _url = "/CRMMnContract/ContractProduct_Delete";
+                    break;
+                case "DATENORMAL":
+                    _url = "/CRMMnContract/ContractProductTime_Delete";
+                    break;
+                case "CPM":
+                    _url = "/CRMMnContract/ContractProductCPM_Delete";
+                    break;
+                case "BNREALNORMAL":
+                    _url = "/CRMMnContract/ContractProductRealBanner_Delete";
+                    break;
+                case "PRREALNORMAL":
+                    _url = "/CRMMnContract/ContractProductRealPR_Delete";
+                    break;
+                case "REALCPM":
+                    _url = "/CRMMnContract/Staff_Delete";
+                    break;
+                case "TEST":
+                    _url = "/CRMMnContract/Test_Delete";
+                    break;
+            }
+            $.ajax({
+                url: r + _url,
+                type: 'POST',
+                data: { PK: _pk },
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        $.gritter.add({
+                            title: 'Delete',
+                            text: 'Xóa ' + _type + ': ' + _pk + ' thành công !',
+                            class_name: 'gritter-success'
+                        });
+                        loop = true;
+                    }
+                    else {
+                        $.gritter.add({
+                            title: 'Lỗi',
+                            text: data.message,
+                            class_name: 'gritter-error'
+                        });
+                        loop = false;
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.gritter.add({
+                        text: 'Lỗi Delete !',
+                        class_name: 'gritter-error'
+                    });
+                    loop = false;
+                }
+            });
+        }
+        return loop;
+    }
+    $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+    $(".chosen-select").chosen();
+    $('.currency').maskMoney();
+ 
+    function saveContract() {
+        if (checkStatus()) {
+            $("form#formContract").submit();
+            return;
+        } 
+    };
+    function tracking(check) {
+        var message = "";
+        if ($("#txtCustomerID").val() == "") {
+            alertMessage("Chưa nhập khách hàng");
+            return false;
+        }
+        if ($("#status-end-rev").val() != 0 || $("#revenues-end-wait").val() != 0 || $("#revenues-date-end").val() != "") {
+            if ($("#revenues-date-end").val() == '' && $("#status-end-rev").val() == 1) {
+                message = "Chưa nhập ngày chờ hủy !";
+                alertMessage(message);
+                return false;
+            }
+            if ($("#revenues-date-end").val() == '' && $("#status-end-rev").val() == 2) {
+                message = "Chưa nhập ngày hủy !";
+                alertMessage(message);
+                return false;
+            }
+            if ($("#revenues-end-wait").val() == "") {
+                message = "Chưa nhập doanh số hủy!";
+                alertMessage(message);
+                return false;
+            }
+            if (parseInt($("#status-end-rev").val()) == 0) {
+                message = "Chưa chọn trạng thái hủy/ chờ hủy!";
+                alertMessage(message);
+                return false;
+            }
+        }
+       
+        var s1 = s3 = s4 = s5 = s2 = s6 = false;
+     
+        // Save : all tab product contract:
+        s1 = allSaveInContract(check);
+        if (!s1) {
+            message = "Thông tin các dịch vụ ngày lên ngày xuống theo hợp đồng chưa đúng !";
+            alertMessage(message);
+            return false;
+        } else {
+            // Save : all tab Schedule payment:
+            s3 = allSavePayPall(check);
+        }
+        if (!s3) {
+            message = "Lịch thanh toán, lịch sử than toán, thông tin hóa đơn chưa đúng !";
+            alertMessage(message);
+            return false;
+        } else {
+            // Save : all tab Gruarantee:
+            s4 = saveGuarantee(check);
+        }
+        if (!s4) {
+            message = "Thông tin bảo lãnh chưa đúng !";
+            alertMessage(message);
+            return false;
+        } else {
+            // Save:  all tab Staff
+            s5 = saveListStaff(check);
+        }
+        if (!s5) {
+            message = "Thông tin bảo lãnh chưa đúng !";
+            alertMessage(message);
+            return false;
+        }
+        else {
+          
+            s6 = SaveTest(check);
+        }
+
+        if (!s6) {
+            message = "Chưa lưu được thông tin TEST !";
+            alertMessage(message);
+            return false;
+        }
+
+        if (check) {
+            return s6;
+        }
+                
+        if (s1 && s3 && s4 && s5 && s6) {
+            $.gritter.add({
+                title: '',
+                text: "Cập nhật hợp đồng thành công !",
+                class_name: 'gritter-success'
+            });
+            window.location = r + '/CRMMnContract/Detail/' + $("#formContract").attr("data-contract") + '?typeContract=' + '@ViewBag.typeContract' + '';  
+        }
+    }
+
+    $("form#formContract").validate({
+        errorPlacement: function (error, element) {
+            if (element.is(":hidden")) {
+                element.next().parent().append(error);
+            }
+            else {
+                error.insertAfter(element);
+            }
+        },
+        beforeSend: function () {
+
+        },
+        submitHandler: function (form) {
+            var _url = $('form#formContract')[0].action;
+            if (!tracking(true)) {
+                return;
+            }
+            //return;
+            $('input[name="StrRevenueDateCancel"]').val(convertDate($('input[name="StrRevenueDateCancel"]').val()));
+            $('input[name="StrEndDate"]').val(convertDate($('input[name="StrEndDate"]').val()));
+            $('input[name="StrRevenueDate"]').val(convertDate($('input[name="StrRevenueDate"]').val()));
+            $("#revenues-date-end").val(convertDate($("#revenues-date-end").val()));
+            if ($('#check-vat').prop('checked')) {
+                $('#check-vat').val(1);
+            }
+            else {
+                $('#check-vat').val(0);
+            }
+            $('#general-contract-type').prop('disabled', false);
+           
+            $.ajax({
+                url: _url,
+                type: 'POST',
+                data: $('form#formContract').serialize(),
+                async: false,
+                beforeSend: function (jqXHR, PlainObject) {
+                    // $.blockUI({ message: '<h1>Vui lòng đợi</h1>', css: { color: '#fff' } });
+                    $.blockUI({ message: '<i class="icon-spinner icon-spin blue bigger-125" style="font-size:30px;"></i>', theme: false });
+                },
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        if (data.PK) {
+                            $("#formContract").attr("data-contract", data.PK);
+                        }                     
+                        runTask();                   
+                        tracking();
+                    }
+                    else {
+                        alertMessage(data.message);
+                        $.unblockUI();
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alertMessage("Lỗi Cập nhật !");
+                    $.unblockUI();
+                }
+            });
+
+            return false;
+        }
+    });
+   
+
+    function resetWeekDay(e) {
+        var week = snl = 0;
+        var parent = $(e);
+        var startDate = parent.find(".item-update").val();
+        var endDate = parent.find(".item-downdate").val();
+        if (startDate != "" && endDate != "") {
+            var days = getDateRange(startDate, endDate);
+            if (days) {
+                var nweek = nsnl = "";
+                week = parseInt(days / 7);
+                if (week > 0) {
+                    nweek = week + " tuần ";
+                }
+                snl = days % 7;
+                if (snl > 0) {
+                    nsnl = snl + " ngày";
+                }
+                parent.find(".item-week-time").val(nweek + nsnl);
+                parent.find(".item-week-time-hidden").val(days);
+               
+            } else {
+                parent.find(".item-downdate").val('');
+                parent.find(".item-week-time").val('');
+                
+                return;
+            }
+        }
+
+    }
+    function onSelectChannelItem(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents("td").find(".input-value-suggess").val(dataItem.Code);
+    }
+    function onSelectEmployer(e) {
+        var element = $(this)[0].element;
+        var dataItem = this.dataItem(e.item.index());
+        element.parents("td").find(".input-value-suggess").val(dataItem.RefStaffId);
+    }
+    
+    function alertMessage(message) {
+        $.gritter.add({
+            title: 'Lỗi',
+            text: message,
+            class_name: 'gritter-error'
+        });
+    }
+    function onChangeValueSuggest(e) {
+        var element = $(this)[0].element;
+        if (element.val() == "") {
+            element.parents("td").find(".input-value-suggess").val("");
+        }
+    }
+</script>

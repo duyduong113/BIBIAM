@@ -1,0 +1,129 @@
+﻿@{
+    ViewBag.Title = "Cấu hình hình ảnh";
+}
+<div class="row-fluid">
+    <div class="span12">
+        <form id="form" action="@Url.Action("Update", "ConfigurationImage")" enctype="multipart/form-data" method="POST">
+            <div class="span3">
+                <div class="pull-right">
+                    <span>Loại ảnh</span>
+                    <select id="img_type" name="img_type" style="margin:5px">
+                        <option value=''>--Chọn loại ảnh--</option>
+                        @foreach (var item in ViewBag.listType)
+                        {
+                            <option id="@item.ID" value="@item.ParamID">@item.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="pull-right">
+                    <span>Dài </span>
+                    <input id="idWidth" name="idWidth" value="" type="hidden" />
+                    <input type="text" id="width" name="width" value=" " style="text-align: right; margin:5px"; />
+                </div>
+                <div class="pull-right">
+                    <span>Rộng </span>
+                    <input id="idHeight" name="idHeight" value="" type="hidden" />
+                    <input type="text" id="height" name="height" value=" " style="text-align: right; margin: 5px;" />
+                </div>
+            </div>
+            <div class="span1">
+                <button type="button" id="btnSubmit" onclick="Submit()" class="btn btn-success btn-small pull-right" style="margin:5px;">@Resources.Multi.btnSave</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {        
+        $("#form").validate({
+            rules: {
+                width: {
+                    number: true
+                },
+                height: {
+                    number: true
+                }
+            },
+            messages: {
+                width: {
+                    number: "Vui lòng nhập số"
+                },
+                height: {
+                    number: "Vui lòng nhập số"
+                }
+            },
+            errorPlacement: function (error, element) {
+                if (element.is(":hidden")) {
+                    element.next().parent().append(error);
+                }
+                else {
+                    error.insertAfter(element);
+                }
+
+            },
+            submitHandler: function (form) {
+                var formData = new FormData();
+                formData.append("idWidth", $("#idWidth").val());
+                formData.append("Width", $("#width").val());
+                formData.append("idHeight", $("#idHeight").val());
+                formData.append("Height", $("#height").val());
+                var url = $("#form")[0].action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    mimeType: "multipart/form-data",
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function (data, textStatus, jqXHR) {
+                        debugger
+                        var rs = JSON.parse(data);
+                        if (rs.success) {
+                            $.gritter.add({
+                                title: '',
+                                text: rs.message,
+                                class_name: 'gritter-success'
+                            });
+                        } else {
+                            $.gritter.add({
+                                title: '',
+                                text: rs.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        debugger
+                        $.gritter.add({
+                            text: 'Lỗi Cập nhật !',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+        });
+    });   
+    $("#img_type").change(function (e) {
+        if ($("#img_type").val() == '')
+        {
+            $("#idWidth").val('');
+            $("#width").val('');
+            $("#idHeight").val('');
+            $("#height").val('');
+        }
+        else
+            $.post(r + "/ConfigurationImage/GetResize", { type: $("#img_type").val() }, function (data) {
+            if (data.success) {
+                $("#idWidth").val(data.str[0].ID);
+                $("#width").val(data.str[0].Value);
+                $("#idHeight").val(data.str[0].ID);
+                $("#height").val(data.str[0].Value);
+            }
+        });
+    });
+    function Submit() {
+        if ($("#type").val() !='')
+            $("#form").submit();
+    }
+
+</script>

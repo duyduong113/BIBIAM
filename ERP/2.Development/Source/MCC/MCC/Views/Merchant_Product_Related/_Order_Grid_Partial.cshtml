@@ -1,0 +1,45 @@
+﻿@using BIBIAM.Core.Entities
+
+<script type="text/x-kendo-template" id="RelatedGridTemplated">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<Merchant_Product_Related>()
+            .Name("RelatedGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.id).Hidden();
+                columns.Bound(p => p.ma_san_pham).Hidden();
+                columns.Template(@<text></text>).ClientTemplate("<a class='btn btn-xs btn-danger' onclick='deleteRow(this)'><i class='fa fa-trash-o'><i></a>").Width(35).HtmlAttributes(new { @class = "text-center" });
+                //columns.Bound(p => p.ma_san_pham).Title("Mã sản phẩm").Width(120).HtmlAttributes(new { @class = "editable" });
+                //columns.Template(@<text></text>).Title(@Html.Raw(Resources.Global._picture).ToString().ToUpper()).Width(60).HtmlAttributes(new { @class = "editable" }).ClientTemplate("<img src= \\#=url ? url : 'http://www.placehold.it/140x140/EFEFEF/AAAAAA&amp;text=no+image' \\# class='img-responsive' style='display:inline; height:50px;'>\\#=id?'':'<span class=\"text-danger bold\">New</span>'\\#");
+                columns.Bound(p => p.ten_san_pham).Title(@Resources.Global._product_name).Width(120).HtmlAttributes(new { @class = "editable" });
+                columns.Bound(p => p.ma_san_pham_de_nghi).Title(@Resources.Global._product_id).Width(120).HtmlAttributes(new { @class = "editable" });
+                columns.Bound(p => p.ngay_tao).Width(110).Title(@Resources.Global._created_date).Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+                columns.Bound(p => p.nguoi_tao).Width(100).Title(@Resources.Global._created_by);
+                //columns.Bound(p => p.ngay_cap_nhat).Width(110).Title("Ngày cập nhật").Format("{0:dd/MM/yyyy HH:mm}").HtmlAttributes(new { style = "text-align:right" });
+                //columns.Bound(p => p.nguoi_cap_nhat).Title("Người cập nhật").Width(100);
+            })
+
+            .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100 }))
+            .Navigatable()
+            .Filterable()
+            .ColumnMenu()
+            .Events(events => { events.DataBound("dataBoundgrid"); })
+            .Pageable(x => x.PageSizes(new int[] { 10, 20, 50, 100 }))
+            .Reorderable(reorderable => reorderable.Columns(true))
+                    .Resizable(resizable => resizable.Columns(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(10)
+                .Events(events => { events.Error("error_handler"); events.RequestEnd("onRequestEnd"); })
+                .Model(model =>
+                {
+                    model.Id(p => p.id);
+                    model.Field(p => p.ma_san_pham_de_nghi).Editable(false);
+                    model.Field(p => p.ma_san_pham).Editable(false);
+                })
+                .Read(c => c.Action("Read", "Merchant_Product_Related").Data("popup_onAdditionalData"))
+             ).ToClientTemplate()
+)
+    </div>
+</script>

@@ -1,0 +1,310 @@
+﻿@{
+    ViewBag.Title = "Quản lý gian hàng";
+}
+<link href="~/Scripts/css/custom.css" rel="stylesheet" />
+<script src="~/Scripts/utilitycommon.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row-fluid listview-left">
+        <div>
+            <div onclick='edit(this)' class="span4">
+                #if(logo_gian_hang=='default.png'){#
+                <img src="http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image" class="img-border-box">
+                #} else {#
+                <img src="@Url.Content("~/Images/Merchant_Info/")#:logo_gian_hang#" class="img-border-box">
+                #}#
+            </div>
+        </div>
+        <div>
+            <div onclick='edit(this)' class="span6">
+                Gian hàng: #:ma_gian_hang# - #:ten_gian_hang#<br>
+                Website:  #:website#<br>
+                SĐT:  #:dien_thoai#<br>
+                Trạng thái duyệt:
+                #if(trang_thai_duyet == 'New'){#
+                <span>Chờ duyệt</span>
+                #}if(trang_thai_duyet == 'Approved'){#
+                <span>Đã duyệt</span>
+                #}if(trang_thai_duyet == 'Rejected'){#
+                <span>Từ chối duyệt</span>
+                #}#
+                <br>
+                Trạng thái xuất bản:
+                #if(trang_thai_xuat_ban == 'CHUA_XUAT_BAN'){#
+                <span>Chưa xuất bản</span>
+                #}if(trang_thai_xuat_ban == 'DA_XUAT_BAN'){#
+                <span>Đã xuất bản</span>
+                #}#<br>
+                Địa chỉ: #:dia_chi_tru_so#<br>
+            </div>
+        </div>
+    </div>
+</script>
+<div class="row-fluid">
+    <div class="span5">
+        <div class="row-fluid">
+            <div class="box-search">
+                <h4 class="pull-left" style="margin-top:0!important;margin-left:10px;color:cornflowerblue;">Gian hàng</h4>
+                <div class="input-search">
+                    <span class="icon-in-search"><i class="fa fa-search"></i></span>
+                    <input class="pull-right" style="border-radius: 25px!important;margin-bottom: 15px!important;" id="txtMerchantInfoName"
+                           type="text" onkeyup="Search(this)" placeholder="Search...">
+
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            @(Html.Kendo().ListView<BIBIAM.Core.Entities.Merchant_Info>()
+            .Name("Grid")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .Navigatable()
+            .DataSource(dataSource =>
+            {
+                dataSource.Read(read => read.Action("Read", "Merchant_Info"));
+                dataSource.PageSize(4);
+
+            })
+             .Events(events => { events.DataBound("dataBound"); })
+            .Pageable()
+            )
+        </div>
+    </div>
+    <div class="span6">
+        @Html.Partial("info")
+    </div>
+</div>
+@Html.Partial("_popup")
+<script>
+    var idSelected = 0;
+    function itemSelected(e) {
+        $(".listview-left").removeClass("selected");
+        $(e).closest(".listview-left").addClass("selected");
+    }
+    $(document).ready(function () {
+        $('.date-picker').datepicker({ format: 'dd/mm/yyyy', autoclose: true });
+        $("#ma_tinh_tp, #ma_quan_huyen").chosen();
+        $("#ma_tinh_tp").trigger('chosen:updated');
+        $("#frm").validate({
+            // Rules for form validation
+            rules: {
+                ten_gian_hang: {
+                    required: true
+                }
+
+                ,email:{
+                    email: true
+                }
+            },
+            // Messages for form validation
+            messages: {
+                ten_gian_hang: {
+                    required: "Thông tin bắt buộc"
+                }
+
+                , email: {
+                    email: "Email không hợp lệ"
+                }
+            },
+            // Do not change code below
+            errorPlacement: function (error, element) {
+                if (element.is(":hidden")) {
+                    element.next().parent().append(error);
+                }
+                else {
+                    error.insertAfter(element);
+                }
+
+            },
+
+            submitHandler: function (form) {
+                $("#ngay_cap_nhat").val(convertDate($("#ngay_cap_nhat").val()));
+                $("#ngay_tao").val(convertDate($("#ngay_tao").val()));
+                $("#ngay_duyet").val(convertDate($("#ngay_duyet").val()));
+                $("#trang_thai_duyet").removeAttr('disabled');
+                $("#trang_thai_xuat_ban").removeAttr('disabled');
+                var formData = new FormData($("#frm")[0]);
+                //var formContent = $("#formCreateCustomer").serialize();
+                var url = $("#frm")[0].action;
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    mimeType: "multipart/form-data",
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function (data, textStatus, jqXHR) {
+                        var rs = JSON.parse(data);
+
+                        if (rs.success == true) {
+                            var thongbao = '';
+                            if (rs.type == 0) {
+                                thongbao = 'Tạo thành công !'
+                            }
+                            else {
+                                thongbao = 'Cập nhật thành công !'
+                            }
+                            $.gritter.add({
+                                text: thongbao,
+                                class_name: 'gritter-success'
+                            });
+                            Search();
+                        }
+                        else {
+                            $.gritter.add({
+                                text: 'Lỗi !',
+                                title: data.message,
+                                class_name: 'gritter-error'
+                            });
+                        }
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $.gritter.add({
+                            text: 'Lỗi Cập nhật !',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+                $("#trang_thai_duyet").prop('disabled', 'disabled');
+                $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+            }
+        });
+        Search();
+        $form = $('#frm');
+        $form.find('input[type=file]').ace_file_input({
+            style: 'well',
+            btn_choose: 'Chọn ảnh...',
+            btn_change: null,
+            no_icon: null,
+            droppable: true,
+            thumbnail: true,
+            allowExt: ['jpg', 'jpeg', 'png', 'gif', 'tif', 'tiff', 'bmp'],
+        })
+        .end().find('a').on('click', function () {
+            $('#frm input[type=file]').ace_file_input('reset_input');
+        })
+        .end().find('button[type=reset]').on('click', function () {
+            $('#frm input[type=file]').ace_file_input('reset_input');
+        });
+    });
+    function Search(e) {
+        listView = $("#Grid").data("kendoListView");
+        var seachText = $(e).val();
+        var filter = { logic: "and", filters: [] };
+        var filterDesc = { logic: "or", filters: [] };
+        if (seachText) {
+            filterDesc.filters.push({ field: "ten_san_pham", operator: "contains", value: seachText });
+            filter.filters.push(filterDesc);
+        }
+        listView.dataSource.filter(filter);
+    }
+    function Create() {
+        $("#frm")[0].reset();
+        $("#id").val(0);
+        $('#frm input[type=file]').ace_file_input('reset_input');
+        $("#url").attr("src", 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image');
+        $("#trang_thai_duyet option[value='New']").prop("selected", true);
+        $("#trang_thai_duyet option[value='CHUA_XUAT_BAN']").prop("selected", true);
+    }
+    function Update() {
+        $("#frm").submit();
+        //Search();
+    }
+    function dataBound(e) {
+        var grid = $("#Grid").data("kendoListView");
+        var gridData = grid.dataSource.view();
+        if (gridData.length > 0) {
+            if (idSelected == 0) {
+                onBindDataToForm(gridData[0]);
+                $("#url").attr("src", '@Url.Content("~/Images/Merchant_Info/")' + gridData[0].url);
+            }
+            else {
+                for (var i = 0; i < gridData.length; i++) {
+                    var currentUid = gridData[i].uid;
+                    if (gridData[i].id == idSelected) {
+                        onBindDataToForm(gridData[i]);
+                        $("#url").attr("src", '@Url.Content("~/Images/Merchant_Info/")' + gridData[i].url);
+                    }
+                }
+           }
+        }
+    }
+    function onBindDataToForm(dataItem) {
+        $("#frm")[0].reset();
+        for (var propName in dataItem) {
+            if (dataItem[propName] != null && dataItem[propName].constructor.toString().indexOf("Date") > -1) {
+                var d = kendo.toString(kendo.parseDate(dataItem[propName]), 'dd/MM/yyyy')
+                if (d != '01/01/1900') {
+                    $("#" + propName).val(d);
+                }
+            }
+            else {
+                $("#" + propName).val(dataItem[propName]);
+            }
+        }
+
+        if (dataItem.trang_thai_duyet == "Approved" || dataItem.trang_thai_duyet == "Rejected") {
+            $("#trang_thai_duyet").prop('disabled', 'disabled');
+        } else {
+            $("#trang_thai_duyet").removeAttr('disabled');
+        }
+
+        if (dataItem.trang_thai_duyet == "Rejected" || dataItem.trang_thai_xuat_ban == "DA_XUAT_BAN") {
+            $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+
+        } else {
+            $("#trang_thai_xuat_ban").removeAttr('disabled');
+        }
+
+        $("#trang_thai_duyet").val(dataItem.trang_thai_duyet).trigger('change');
+    }
+    function edit(obj) {
+        idSelected = 0;
+        var dataItem = $("#Grid").data("kendoListView").dataItem($(obj).closest(".listview-left"));
+        $('#frm input[type=file]').ace_file_input('reset_input');
+        onBindDataToForm(dataItem);
+        $("#url").attr("src", '@Url.Content("~/Images/Merchant_Info/")' + dataItem.url);
+        itemSelected(obj);
+        idSelected = dataItem.id;
+        if (dataItem.logo_gian_hang != '')
+            $("#logo_gian_hang").attr("src", '@Url.Content("~/Images/Merchant_Info/")' + dataItem.logo_gian_hang);
+        else
+            $("#logo_gian_hang").attr("src", 'http://www.placehold.it/280x160/EFEFEF/AAAAAA&text=no+image');
+        @*$('#frm input[type=file]').ace_file_input().html('@Url.Content("~/Images/Merchant_Info/")'+dataItem.url);*@
+    }
+    function getCityIdOnchange() {
+        debugger;
+        var e = document.getElementById("ma_tinh_tp");
+        var f = e.options[e.selectedIndex].value;
+        if ($("#ma_tinh_tp").val() != "" && $("#ma_tinh_tp").val() != null) {
+            $.post(r + "/Merchant_Info/GetDistrictIDByProviceID", { CityID: $("#ma_tinh_tp").val() }, function (data) {
+                if (data.success) {
+                    $("#ma_quan_huyen").removeAttr("disabled");
+                    $("#ma_quan_huyen").html('');
+                    var html = "<option value =''>--Chọn Quận/Huyện--</option>";
+                    for (var i = 0; i < data.data.length ; i++) {
+                        html += "<option value ='" + data.data[i].DistrictID + "'>" + data.data[i].DistrictName + "</option>";
+                    }
+                    $("#ma_quan_huyen").html(html);
+                   // $("#ma_quan_huyen").val(district);
+                    $("#ma_quan_huyen").trigger('chosen:updated');
+                }
+            });
+        }
+        else {
+            $("#ma_quan_huyen").val('').trigger('chosen:updated');
+            $("#ma_quan_huyen").prop("disabled", true);
+        }
+    }
+    $('#trang_thai_duyet').on('change', function () {
+        $("#trang_thai_xuat_ban").prop('disabled', 'disabled');
+        if ($('#trang_thai_duyet').val() == 'Approved' && $('#trang_thai_xuat_ban').val() != 'DA_XUAT_BAN') {
+            $("#trang_thai_xuat_ban").removeAttr('disabled');
+        }
+    });
+</script>
+

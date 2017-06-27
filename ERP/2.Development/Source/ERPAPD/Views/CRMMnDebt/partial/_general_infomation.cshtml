@@ -1,0 +1,193 @@
+﻿<style>
+    .profile-info-name {
+        width: 30%;
+        padding-left: 20px;
+        text-align: left;
+    }
+
+    .profile-info-value {
+        margin-left: 34%;
+    }
+</style>
+<div class="row-fluid">
+    <div>
+        @*<div style="padding:20px 0;" class="span5">
+                <div class="profile-user-info profile-user-info-striped">
+                    <div style="padding:17px 0" class="profile-info-row">
+                        <div style="padding-top:17px" class="profile-info-name"> Khách hàng </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.CustomerName</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Loại khách hàng </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.CustomerType</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> NVKD </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.Salesman</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Tổng số HĐ còn nợ </div>
+
+                        <div class="profile-info-value">
+                            <span class="tContractInDebt"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Ngày dự kiến thu </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.PayDay.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Trạng thái nợ </div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.Status</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Quá hạn</div>
+
+                        <div class="profile-info-value">
+                            <span class="">@ViewBag.itemDebt.OutDate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+    </div>
+    <div>
+        @*<div style="padding:20px 0;" class="span5">
+                <div class="profile-user-info profile-user-info-striped">
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Tổng nợ theo hợp đồng </div>
+
+                        <div class="profile-info-value">
+                            <span class="tTotalAmount"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã xuất bản QC </div>
+
+                        <div class="profile-info-value">
+                            <span class="tPublished"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã XBQC đến hôm nay </div>
+
+                        <div class="profile-info-value">
+                            <span class="tPublishedToDay"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã thu </div>
+
+                        <div class="profile-info-value">
+                            <span class="tCollected"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Nợ còn lại </div>
+
+                        <div class="profile-info-value">
+                            <span class="tRemain"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Nợ còn lại theo hợp đồng </div>
+
+                        <div class="profile-info-value">
+                            <span class="tTotalRemain"></span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name"> Đã xuất hóa đơn </div>
+
+                        <div class="profile-info-value">
+                            <span class="tInvoiced"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div id="clkNoBill" class="profile-info-name"><a style="cursor:pointer;border-bottom:dotted 1px">Chưa xuất hóa đơn</a></div>
+
+                        <div class="profile-info-value">
+                            <span class="tNotInvoiced"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+    </div>
+    <header><b>Thông tin khách hàng</b></header>
+    <table border="0" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="width: 35%; text-align: center; padding: 2px">Khách hàng</th>
+                <th style="width: 10%; text-align: center; padding: 2px">Loại khách hàng</th>
+                <th style="width: 18%; text-align: center; padding: 2px">Nhân viên kinh doanh</th>
+                <th style="width: 7%; text-align: center; padding: 2px">SL HĐ còn nợ</th>
+                <th style="width: 10%; text-align: center; padding: 2px">Ngày dự kiến thu</th>
+                <th style="width: 10%; text-align: center; padding: 2px">Trạng thái nợ</th>
+                <th style="width: 10%; text-align: center; padding: 2px">Số ngày quá hạn</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="">@ViewBag.itemDebt.CustomerName</span></td>
+                <td><span class="">@ViewBag.itemDebt.CustomerType</span></td>
+                <td><span class="">@ViewBag.itemDebt.Salesman</span></td>
+                <td><span class="tContractInDebt pull-right">0</span></td>
+                <td><span class="pull-right">@ViewBag.itemDebt.PayDay.ToString("dd/MM/yyyy")</span></td>
+                <td><span class="">@ViewBag.itemDebt.Status</span></td>
+                <td><span class="pull-right">@ViewBag.itemDebt.OutDate</span></td>
+            </tr>
+        </tbody>
+    </table>
+    <header><b>Thông tin nợ của khách hàng</b></header>
+    <table border="0" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="width: 13%; text-align: center; padding:0px">Tiền nợ <br> theo hợp đồng</th>
+                <th style="width: 12%; text-align: center; padding: 0px">Tiền đã XBQC (VAT)</th>
+                <th style="width: 13%; text-align: center; padding: 0px">Tiền đã XBQC <br> đến hôm nay (VAT)</th>
+                <th style="width: 12%; text-align: center; padding: 0px">Tiền đã thu</th>
+                <th style="width: 13%; text-align: center; padding: 0px">Tiền còn nợ đã <br> XBQC đến hôm nay</th>
+                <th style="width: 13%; text-align: center; padding: 0px">Tiền còn nợ <br> theo hợp đồng</th>
+                <th style="width: 12%; text-align: center; padding: 0px">Tiền đã xuất <br> hóa đơn</th>
+                <th style="width: 12%; text-align: center; padding: 0px">Tiền chưa xuất <br> hóa đơn</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="tTotalAmount pull-right">0</span></td>
+                <td><span class="tPublished pull-right">0</span></td>
+                <td><span class="tPublishedToDay pull-right">0</span></td>
+                <td><span class="tCollected pull-right">0</span></td>
+                <td><span class="tRemain pull-right">0</span></td>
+                <td><span class="tTotalRemain pull-right">0</span></td>
+                <td><span class="tInvoiced pull-right">0</span></td>
+                <td><span class="tNotInvoiced pull-right">0</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

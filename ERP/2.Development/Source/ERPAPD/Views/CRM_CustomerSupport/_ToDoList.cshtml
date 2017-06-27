@@ -1,0 +1,477 @@
+﻿<style>
+    .number {
+        border-radius: 25px;
+        padding: 6px;
+        color: #fff !important;
+        width: 6px;
+        height: 4px;
+        background: #2283C5;
+        display: inline-flex;
+        line-height: 5px;
+        font-weight: bold;
+    }
+
+    .is_active {
+        background-color: #f79433 !important;
+    }
+
+    #tabAppointment label {
+        margin-right: 10px;
+    }
+
+    #listWorkType_chosen .chosen-container .chosen-results {
+        max-height: 60px !important;
+    }
+
+    #btn-todolist {
+        position: absolute;
+        right: 0;
+        top: 5px;
+        z-index: 2;
+    }
+    .type-title{
+        color: #2283c5;
+    }
+</style>
+<div style="position:relative" class="row-fluid">
+    <p id="btn-todolist">
+        <a style="display:none" href="#work-form" data-toggle="modal" data-date="today" class="btn btn-mini  btn-success work hide">Thêm công việc</a>
+        <a href="#appointment-add" data-toggle="modal" class="btn btn-mini btn-success appoint">Thêm Lịch hẹn</a>
+    </p>
+    <div class="tabbable">
+        <ul class="nav nav-tabs tab-color-blue" id="myTabToDoList">
+            <li id="tabAppoint" class="active">
+                <a data-notif="addAppointment" data-toggle="tab" href="#tabAppointment">
+                    <i class="icon-calendar"></i>
+                    Lịch hẹn
+                    <div class="number" style="display:none"></div>
+                </a>
+            </li>
+            <li id="tabWork" class="">
+                <a data-notif="addWork" data-toggle="tab" href="#tabToDoList">
+                    <i class="icon-legal"></i>
+                    Công việc cần làm
+                    <div class="number" style="display:none"></div>
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content" style="padding: 0px">
+            <div id="tabAppointment" class="tab-pane active">
+                <div class="span5" style="padding-left: 12px; display: inline-flex;margin-top:5px">
+                    <label>
+                        <input name="AppointmentFilter" type="radio" class="ace" value="all" onclick="ApointmentFilter()" checked>
+                        <span class="lbl">Tất cả</span>
+                    </label>
+                    <label>
+                        <input name="AppointmentFilter" type="radio" class="ace" value="APS02" onclick="ApointmentFilter()">
+                        <span class="lbl">Meeting</span>
+                    </label>
+                    <label>
+                        <input name="AppointmentFilter" type="radio" class="ace" value="APS01" onclick="ApointmentFilter()">
+                        <span class="lbl">Call</span>
+                    </label>
+                </div>
+                <div class="span7" style="margin-top: 5px;padding-right:5px;">
+                    <div id="btn-date-appointment" class="pull-right">
+                        <button data-date="today" class="btn btn-mini btn-grey">Hôm nay</button>
+                        <button data-date="week" class="btn btn-mini btn-grey">Tuần này</button>
+                        <button data-date="month" class="btn btn-mini btn-grey">Tháng này</button>
+                        <button data-date="all" class="btn btn-mini btn-primary">Tất cả</button>
+                        <input name="AppointmentFilterDate" type="hidden" value="" />
+                    </div>
+                </div>
+                <div class="span12" style="overflow:auto;height:300px;margin:0">
+                    @(Html.Kendo().ListView<ERPAPD.Models.CRM_Appointment>()
+                        .Name("GridViewAppointment")
+                        .HtmlAttributes(new { @style = "border:none;" })
+                        .TagName("div")
+                        .ClientTemplateId("GridAppointmentRowTemplate")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Sort(a => a.Add(m => m.Date).Ascending());
+                            dataSource.Read(read => read.Action("AppointmentRead", "CRM_CustomerSupport"));
+                            
+                            //dataSource.PageSize(5);
+                        })
+                        .Events(events => { events.DataBound("dataBound"); })
+                    )
+                </div>
+            </div>
+            <div id="tabToDoList" class="tab-pane">
+                <div class="row-fluid" style="margin-top: 5px;">
+
+                    <div class="span4" style="padding-left:12px">
+                        <select id="listWorkType" name="Type" class="chosen-select" style="z-index:9999; display: none">
+                            <option value="all">Loại công việc</option>
+                            @foreach (var item in ViewBag.listWorkType)
+                            {
+                                <option value="@item.ParamID">@item.Value</option>
+                            }
+                        </select>
+
+                    </div>
+                    <div class="span2">
+                        <label>
+                            <input onclick="WorkFilter()" name="WorkRemindDate" type="checkbox" class="ace" value="1">
+                            <span class="lbl">Nhắc nhở</span>
+                        </label>
+                    </div>
+                    <div style="padding-right: 5px;" class="">
+                        
+                        <div id="btn-date-task" class="pull-right">
+                            <button data-date="today" class="btn btn-mini btn-grey">Hôm nay</button>
+                            <button data-date="week" class="btn btn-mini btn-grey">Tuần này</button>
+                            <button data-date="month" class="btn btn-mini btn-grey">Tháng này</button>
+                            <button data-date="all" class="btn btn-mini btn-primary">Tất cả</button>
+                            <input name="TaskFilterDate" type="hidden" value="" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span12" style="overflow:auto;height:300px;margin:0">
+                    @(Html.Kendo().ListView<ERPAPD.Models.CRM_Works>()
+                        .Name("GridViewWork")
+                        .HtmlAttributes(new { @style = "border:none" })
+                        .TagName("div")
+                        .ClientTemplateId("WorkRowTemplate")
+                        .DataSource(dataSource =>
+                        {
+                            dataSource.Sort(a => a.Add(m => m.Priority).Ascending());
+                            dataSource.Read(read => read.Action("WorksRead", "CRM_CustomerSupport", new { @status = "YET" }));
+                            //dataSource.PageSize(5);
+                        })
+                        .Events(events => { events.DataBound("dataBound"); })
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-template" id="GridAppointmentRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style="padding:5px; display: inline-flex; border-bottom: 1px dotted \\#ccc;">
+            <div class="span1" style="padding-left: 5px;margin-top:2px">
+                #if(Type == 'APS01'){#
+                @*<span><i style="font-size: 2em;color:green" class="icon-phone"></i></span>*@
+                
+                    <span style="line-height:20px" class="badge badge-info"><i class="icon-phone white"></i></span>
+
+                    #}else{#
+                    <span><i style="font-size: 2em;color:brown" class="icon-calendar-empty"></i></span>
+                    #}#
+            </div>
+            <div class="span8">
+                <span><b>#=Title#</b></span><br>
+                #if(kendo.toString(Date,'dd/MM/yyyy') != '01/01/1900'){#<span><u>Thời gian: </u></span><span class="red">#=kendo.toString(Date,'dd/MM/yyyy')#</span>#}#
+                #if(Name != null && Name != ""){#<br /><span><u>Người liên hệ: </u></span><span class="type-title">#=Name#</span>#}#
+                #if(CustomerName != null){
+                #<br /><span><u>KH: </u></span><span>#=CustomerName#</span>#
+                }#
+            </div>
+            <div class="span3" style="margin-top:2px;">
+                <p class="pull-right">
+                    <span class='tooltip-success' data-rel='tooltip' data-placement='bottom' title='Danh sách người liên hệ'>
+                        <a onclick="getContact('#=CustomerID#', '#=RowID#', 'appointment')" href="\\#list-call-to" data-toggle="modal" class="btn btn-mini btn-success"><i class="icon-phone"></i></a>
+                    </span>
+                        @*<a target="_blank" href="/CRMCustomerSupportDetail?CustomerID=#=CustomerID#&callType=appointment&RowID=#=RowID#" class="btn btn-mini btn-success"><i class="icon-phone"></i></a>*@
+                    <span class='tooltip-info' data-rel='tooltip' data-placement='bottom' title='Cập nhật'>
+                        <button onclick="updateStatus('#=RowID#','appointment')" class="btn btn-mini btn-primary"><i class="icon-check"></i></button>
+                    </span>
+                    <span data-rel='tooltip' data-placement='left' title='Chi tiết'>
+                        <button onclick="openDetail('#=RowID#','appointment')" class="btn btn-mini btn-grey"><i class="icon-info-sign"></i></button>
+                    </span>
+            </p>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="WorkRowTemplate">
+    <div class="row-fluid">
+        <div class="span12" style="padding:5px; display inline-flex; border-bottom: 1px dotted \\#ccc;">
+            <div class="span1" style="padding-left: 5px;margin-top:2px">
+                #if(Priority == 0){#
+                <span style="line-height:20px" class="badge badge-important"><b>H</b></span>
+                #}else if(Priority == 1){#
+                <span style="line-height:20px" class="badge badge-info"><b>M</b></span>
+                #}else if(Priority == 2){#
+                <span style="line-height:20px" class="badge badge-grey"><b>L</b></span>
+                #}#
+            </div>
+            <div class="span8">
+                <span><b>#=Title#</b></span><br>
+                #if(TypeName != null){
+                #<span class="type-title">#=TypeName#</span>#
+                }#
+               #if(kendo.toString(Deadline,'dd/MM/yyyy') != '01/01/1900'){#<span> - Hạn chót: </span><span class="red">#=kendo.toString(Deadline,'dd/MM/yyyy')#</span>#}#  
+                #if(EmName != null){#<br/><span>#=EmName#</span>#}#  
+                #if(EmEmail != null){#<span> - #=EmEmail#</span>#}#
+                #if(CustomerName != null){
+                #<br /><span>#=CustomerName#</span>#
+                }#
+            </div>
+            <div class="span3" style="margin-top:2px;">
+                <p class="pull-right">
+                    <span class='tooltip-success' data-rel='tooltip' data-placement='bottom' title='Danh sách người liên hệ'>
+                        <a onclick="getContact('#=CustomerID#', '#=RowID#', 'work')" href="\\#list-call-to" data-toggle="modal" class="btn btn-mini btn-success"><i class="icon-phone"></i></a></span>
+                        @*<a target="_blank" href="/CRMCustomerSupportDetail?CustomerID=#=CustomerID#&callType=work&RowID=#=RowID#" class="btn btn-mini btn-success"><i class="icon-phone"></i></a>*@
+                    <span class='tooltip-info' data-rel='tooltip' data-placement='bottom' title='Cập nhật'>
+                        <button onclick="updateStatus('#=RowID#','work')" class="btn btn-mini btn-primary"><i class="icon-check"></i></button>
+                    </span>
+                    <span data-rel='tooltip' data-placement='left' title='Chi tiết'><button onclick="openDetail('#=RowID#', 'work')" class="btn btn-mini btn-grey"><i class="icon-info-sign"></i></button></span>
+
+</p>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/javascript">
+    
+    function getContact(id,rowid,type) {
+        var ReferID;
+        $.post(r + "/Ajax/GetContactListByCustomerID", { CustomerID: id,RowID: rowid,Type: type}, function (data) {
+            $("#list-call-to .modal-body").html(data);
+            if (data.success) {
+                $.gritter.add({
+                    title: '@Resources.Multi.Success',
+                    text: "Cập nhật thành công !",
+                    class_name: 'gritter-success'
+                });
+            }
+        })
+    }
+    $("#listWorkType").chosen();
+    $("#listWorkType_chosen").css("width", "100%");
+    $("#listWorkType").change(function () {
+        WorkFilter();
+    })
+   
+    $("#btn-date-appointment button").click(function () {
+        $('input[name=AppointmentFilterDate]').val($(this).attr("data-date"));
+        $("#btn-date-appointment button").addClass("btn-grey").removeClass("btn-primary");
+        $(this).addClass("btn-primary").removeClass("btn-grey");
+        ApointmentFilter();
+    });
+    $("#btn-date-task button").click(function () {
+        $('input[name=TaskFilterDate]').val($(this).attr("data-date"));
+        $("#btn-date-task button").addClass("btn-grey").removeClass("btn-primary");
+        $(this).addClass("btn-primary").removeClass("btn-grey");
+        WorkFilter();
+    });
+    function updateStatus(rowID, grid) {
+        var url, gridView;
+        if (!confirm("Update trạng thái ?")) {
+            return;
+        }
+        if (grid == "work") {
+            url = "/CRMCustomerSupportDetail/Update_Work";
+        } else if (grid == 'appointment') {
+            url = "/CRMCustomerSupportDetail/Update_Appointment";
+        }
+        $.post(r + url, { rowID: rowID, }, function (data) {
+            if (!data.success) {
+                $.gritter.add({
+                    title: 'lỗi cập nhật',
+                    text: data.alert,
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+    function openDetail(rowID, grid) {
+        var url;
+        $("#appointment-form").modal('show');
+        if (grid == "work") {
+            url = "/Ajax/GetViewWork";
+            gridView = $("#GridViewWork");
+        } else if (grid == 'appointment') {
+            url = "/Ajax/ViewAppointment";
+            gridView = $("#GridViewAppointment");
+        }
+        $.post(r + url, { rowID: rowID, }, function (data) {
+            $("#detail-appointment").html(data);
+        });
+    }
+    function ApointmentFilter() {
+        var grid = $('#GridViewAppointment').data('kendoListView');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+
+        var isType = $('input[name=AppointmentFilter]:checked').val();
+        if (isType && isType != "all") {
+            console.log(isType);
+            filter.filters.push({ field: "Type", operator: "eq", value: isType });
+        }
+        var isDate = $('input[name=AppointmentFilterDate]').val();
+        var startDate = moment().format('YYYY-MM-DD 00:00:01');
+        var endDate = moment().format('YYYY-MM-DD 23:59:59');
+        if (isDate) {
+            switch (isDate) {
+                case "today":
+                    startDate = moment().format('YYYY-MM-DD 00:00:01');
+                    endDate = moment().format('YYYY-MM-DD 23:59:59');
+                    break;
+                case "week":
+                    startDate = moment().startOf('week').format('YYYY-MM-DD 00:00:01');
+                    endDate = moment().endOf('week').format('YYYY-MM-DD 23:59:59');
+                    break;
+                default:
+                    startDate = "1900-01-01 00:00:01";
+                    endDate = "";
+            }
+            filter.filters.push({ field: "Date", operator: "gte", value: startDate });//gte >=
+            if (endDate != "") {
+                filter.filters.push({ field: "Date", operator: "lte", value: endDate });//lte <=
+            }
+        }
+        grid.dataSource.filter(filter);
+    }
+    function WorkFilter() {
+        var grid = $('#GridViewWork').data('kendoListView');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        var isDate = $('input[name=TaskFilterDate]').val();
+        var startDate = moment().format('YYYY-MM-DD 00:00:01');
+        var endDate = moment().format('YYYY-MM-DD 23:59:59');
+        if (isDate) {
+            switch (isDate) {
+                case "today":
+                    startDate = moment().format('YYYY-MM-DD 00:00:01');
+                    endDate = moment().format('YYYY-MM-DD 23:59:59');
+                    break;
+                case "week":
+                    startDate = moment().startOf('week').format('YYYY-MM-DD 00:00:01');
+                    endDate = moment().endOf('week').format('YYYY-MM-DD 23:59:59');
+                    break;
+                case "month":
+                    startDate = moment().startOf('month').format('YYYY-MM-DD 00:00:01');
+                    endDate = moment().endOf('month').format('YYYY-MM-DD 23:59:59');
+                    break;
+                default:
+                    startDate = "1900-01-01 00:00:01";
+                    endDate = "";
+
+            }
+            var dateFilter = { logic: "and", filters: [] };
+            dateFilter.filters.push({ field: "Deadline", operator: "gte", value: startDate });//gte >=
+            if (endDate != "") {
+                dateFilter.filters.push({ field: "Deadline", operator: "lte", value: endDate });//lte <=
+            }
+            filter.filters.push(dateFilter);
+        }
+        var remindDateCheck = $('input[name=WorkRemindDate]').is(":checked");
+        if (remindDateCheck == true) {
+            var remindFilter = { logic: "and", filters: [] };
+            remindFilter.filters.push({ field: "RemindDate", operator: "gte", value: "GETDATE()" });
+            filter.filters.push(remindFilter);
+        }
+        var typeOption = $("#listWorkType").val();
+        var typeFilter = { logic: "and", filters: [] };
+        if (typeOption && typeOption != "all") {
+            typeFilter.filters.push({ field: "Type", operator: "eq", value: typeOption });
+            filter.filters.push(typeFilter);
+        }
+        grid.dataSource.filter(filter);
+    }
+    // add work
+   
+    $("#work-submit").validate({
+        rules: {
+            Title: { required: true },
+            Deadline: { required: true },
+        },
+        messages: {
+            Title: { required: "Thông tin bắt buộc" },
+            Deadline: { required: "Thông tin bắt buộc" },
+        },
+        errorPlacement: function (error, element) {
+        },
+        submitHandler: function (form) {
+            
+            $('#reDeadline').val(convertDate($('#reDeadline').val()));
+            $('#reRemindDate').val(convertDate($('#reRemindDate').val()));
+
+            $(form).ajaxSubmit({
+                clearForm: true,
+                success: function (data) {
+                    if (data.success) {
+                        
+                        $("#GridViewWork").data("kendoListView").dataSource.read();
+                    }
+                    else {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    $('#work-form').modal('hide');
+                }
+            });
+            return false;
+        }
+    });
+    $("#appointment-quick-submit").validate({
+        rules: {
+            Title: { required: true },
+            Date: { required: true },
+            Address: { required: true },
+            CustomerID: { required: true, },
+        },
+        messages: {
+            Title: { required: "Thông tin bắt buộc" },
+            Date: { required: "Thông tin bắt buộc" },
+            Address: { required: "Thông tin bắt buộc" },
+            CustomerID: { required: "Thông tin bắt buộc" },
+        },
+        errorPlacement: function (error, element) {
+            //error.insertAfter(element);
+        },
+        submitHandler: function (form) {
+            $('#reDateTime').val(convertDate($('#reDateTime').val()));
+            $("#appointment-quick-submit").ajaxSubmit({
+                clearForm: true, //To clear form after ajax submitting
+                beforeSend: function () { // Xử lý trước khi submit
+                    ////$("#listContact option:selected").val().toString();
+                },
+                success: function (data) {
+                    if (!data.success) {
+                        $.gritter.add({
+                            title: '',
+                            text: "Báo lỗi" + data.message,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    $('#appointment-add').modal('hide');
+                }
+            });
+            return false;
+        }
+
+    });
+    $('#Files-work,#Files-appointment').ace_file_input({
+        no_file: 'No File ...',
+        btn_choose: 'Choose',
+        btn_change: 'Change',
+        droppable: false,
+        onchange: null,
+        thumbnail: false
+    });
+    $("#myTabToDoList li a").click(function () {
+        if ($(this).attr("class") == "is_active") {
+            UpdateIsRead(this);
+        }
+        if ($("#tabAppointment").css("display") == "none") {
+            $("#btn-todolist a").hide();
+            $("#btn-todolist .appoint").show();
+        } else {
+            $("#btn-todolist a").hide();
+            $("#btn-todolist .work").show();
+        }
+    })
+</script>
+<script>
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+    }
+</script>

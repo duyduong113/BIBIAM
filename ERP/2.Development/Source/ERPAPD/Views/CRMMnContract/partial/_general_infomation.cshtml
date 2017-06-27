@@ -1,0 +1,302 @@
+﻿<div class="row-fluid">
+    <div class="span6">
+        <table id="" class="table table-bordered">
+            <tbody class="list">
+                <tr class="group-">
+                    <td class="title-general" style="width:30%">Loại hợp đồng (*)</td>
+                    <td >
+                        <input name="pk_contract" type="hidden" value="@ViewBag.PKContract" />
+                        <select name="c_contract_type" id="general-contract-type" onchange="changeTypeContract(this)" class="chosen-select" data-placeholder="Loại hợp đồng">
+                            <option value="">-- Chọn loại hợp đồng --</option>
+                            @foreach (var item in ViewBag.listContractType)
+                            {
+
+                                if (item.ParamID == ViewBag.typeContract)
+                                {
+                                    <option value="@item.ParamID" selected> @item.Value </option>
+                                }
+                                else
+                                {
+                                    <option value="@item.ParamID"> @item.Value </option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td class="title-general" style="width:30%">Trạng thái HĐ</td>
+                    <td style="width:20%">
+                        <select name="c_status" id="general-contract-status" class="chosen-select" onchange="checkStatus()" data-placeholder="Trạng thái hợp đồng">
+                            @foreach (var item in ViewBag.listContractStatus)
+                            {
+                                <option value="@item.Code"> @item.Name </option>
+                            }
+                        </select>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title-general">Số hợp đồng</td>
+                    <td>
+                        <input id="general-contract-code" placeholder="Nhập số HĐ" name="c_code" class="" type="text" />
+
+                    </td>
+                    <td class="title-general">Ngày hủy/Chờ hủy HĐ</td>
+                    <td>
+                        <input  id="general-contract-revenue-date-cancel" placeholder="dd/mm/yyyy" name="StrRevenueDateCancel" class="date-picker" type="text" value="" data-date-format="dd/mm/yyyy" />
+                    </td>
+
+                </tr>
+                <tr>
+                    <td class="title-general">Ngày về hai chiều (*)</td>
+                    <td>
+                        <input id="general-contract-revenue-date" placeholder="dd/mm/yyyy" name="StrRevenueDate" class="date-picker" type="text" value="" data-date-format="dd/mm/yyyy" />
+
+                    </td>
+                    <td class="title-general">Ngày hết hạn HĐ</td>
+                    <td>
+                        <input id="general-contract-end-date" placeholder="dd/mm/yyyy" name="StrEndDate" class="ate-picker" type="text" data-date-format="dd/mm/yyyy" />
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title-general">Mã book chỗ</td>
+                    <td>
+                        <input id="general-contract-book-code" placeholder="Nhập mã book chỗ" name="c_book_code" class="" type="text" />
+                    </td>
+                    <td colspan="2"></td>
+                </tr>
+                
+            </tbody>
+        </table>
+    </div>
+    <div class="span6">
+        <table id="" class="table table-bordered">
+            <tbody class="list">
+                <tr class="group-">
+                    <td class="title-general" style="width:30%">Khách hàng</td>
+                    <td colspan="3">
+                        @(Html.Kendo().AutoComplete()
+                              .Name("txtCustomerID")
+                              .DataTextField("CustomerName")
+                              .Animation(true)
+                              .Placeholder("Nhập tên khách hàng")
+                              .Filter("contains")
+                              .MinLength(1)
+                              .HtmlAttributes(new { style = "width:100%" })
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("CustomerRead", "CRM_CustomerSupport")
+                                          .Data("onAdditionalData");
+                                  })
+                                  .ServerFiltering(true);
+                              })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectCustomer").Change("onChangeValueSuggest");
+                                    })
+                                            .Template("<span>#=CustomerID# - #=CustomerName#</span>")
+                        )
+                        <input class="input-value-suggess" id="general-CustomerID" name="c_customer_code" type="hidden" />
+
+                    </td>
+                   
+                </tr>
+                <tr>
+                    <td style="width:30%" class="title-general">Loại khách hàng (*)</td>
+                    <td style="width:20%">
+                        <select name="select" id="general-customer-type" class='chosen-select' data-placeholder="Loại khách hàng">
+                            @foreach (var item in ViewBag.listCustomerType)
+                            {
+                                <option value="@item.Code"> @item.Value</option>
+                            }
+                        </select>
+                    </td>
+                    <td style="width:20%" class="title-general">Ngành hàng (*)</td>
+                    <td style="width:30%">
+                        <select name="CategoryCode" id="general-list-category" class='chosen-select' data-placeholder="Ngành hàng">
+                            @foreach (var item in ViewBag.listCategory)
+                            {
+                                <option value="@item.HierarchyID">@item.Value</option>
+                            }
+                        </select>
+                    </td>
+                   
+                </tr>
+                <tr>
+                    <td class="title-general">Khách hàng kế toán</td>
+                    <td colspan="3">
+                        <input name="KhachHangKeToan" id="" data-placeholder="Nhãn hàng" />
+                    </td>
+                    
+                </tr>
+                <tr>
+                    <td class="title-general">NVKD phụ trách</td>
+                    <td>
+                        @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName-NVKD")
+                                    .DataTextField("FullName")
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { @disabled="disabled", style = "width:100%", @class = "txt-name-employer" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataNameNVKD");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItemName").Change("onChangeValueSuggest");
+                                    })
+                        )
+                        <input class="input-value-suggess" id="general-staff-RefStaffId" name="c_staff_id" type="hidden" />
+                        <input class="input-value-suggess" id="general-staff-UnitId"  name="c_unit_id" type="hidden" />
+
+                    </td>
+                    <td class="title-general">Nhóm</td>
+                    <td>
+                        <input disabled="disabled" id="general-staff-TeamName" class="" type="text" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title-general">Miền</td>
+                    <td>
+                        <input disabled="disabled" id="general-staff-RegionName" class="" type="text" />
+
+                    </td>
+                    <td class="title-general">Nhãn hàng</td>
+                    <td>
+                        <input name="c_labels" id="general-labels" data-placeholder="Nhãn hàng" />
+                    </td>
+                    
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="control-group">
+        <div class="controls">
+            <input class="ace ace-checkbox-2" type="checkbox" name="c_banner_up" id="information-ads-customer" value="0">
+            <label class="lbl" for="information-ads-customer"> Chưa đăng quảng cáo</label>
+        </div>
+    </div>
+    <div class="control-group">
+        <div class="controls">
+            <span style="color:red;font-size:16px;">Link dự thảo HĐ: </span> <a style="color:blue;font-size:14px;" href="javascript:void(0);" onclick="gotoContractDraft()"> Click here </a>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        resetRevenus();
+    })
+    function checkStatus()
+    {
+        if ($('#general-contract-status').val() == "CHO_HUY" || $('#general-contract-status').val() == "HUY_HD")
+        {
+            var totalQC = numberToCurrency($('#sum-revenue-real-all').text());
+            var text = $("#general-contract-status option:selected").text();
+            if (!isNaN(totalQC))
+            {
+                if (totalQC > 0)
+                {
+                    $.gritter.add({
+                        title: 'Thông báo!',
+                        text: 'Không thể ' + text + ' Hợp đồng đã chạy quảng cáo',
+                        class_name: 'gritter-error'
+                    });
+                    return false;
+                }
+                return true;
+            }
+            else
+            { 
+                if ($('#general-contract-revenue-date-cancel').val() == "")
+                {
+                    $.gritter.add({
+                        title: 'Thông báo!',
+                        text: 'Vui lòng chọn ngày' + text,
+                        class_name: 'gritter-error'
+                    });
+                    $('#general-contract-revenue-date-cancel').focus();
+                    return false;
+                }
+                else
+                {
+                    return true; 
+                }
+            }
+        }
+        else
+        {
+            return true;
+        }
+    }
+    function gotoContractDraft() {
+        if ($("#general-contract-code").val().trim() != "") {
+            $.post(r + "/CRMContractList/getIDContractByCode/", { ContractCode: $("#general-contract-code").val().trim() }, function (data) {
+                if (data.success) {
+                    window.open(r + "/CRMContractList/EditContract/" + data.data.PKContractDraft + "?Type=" + data.data.LoaiHopDong, "_blank");
+                }
+                else {
+                    $.gritter.add({
+                        title: 'Thông báo!',
+                        text: 'Hợp đồng này không có link dự thảo',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        else
+        {
+            $.gritter.add({
+                title: 'Thông báo!',
+                text: 'Hợp đồng này không có link dự thảo',
+                class_name: 'gritter-error'
+            });
+            return;
+        }
+
+    }
+    function onAdditionalData() {
+        return {
+            text: $("#txtCustomerID").val()
+        };
+    }
+    function onSelectCustomer(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#general-CustomerID").val(dataItem.CustomerCode);
+        $('#general-customer-type').val(dataItem.CustomerType).trigger('chosen:updated');
+        $('#general-list-category').val(dataItem.CategoryParent).trigger('chosen:updated');
+
+    }
+    
+    function onSelectItemName(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#general-staff-RefStaffId").val(dataItem.RefStaffId);
+        $("#general-staff-UnitId").val(dataItem.Region);
+        $("#general-staff-RegionName").val(dataItem.RegionName);
+        $("#general-staff-TeamName").val(dataItem.TeamName);
+    }
+    function onAdditionalDataNameNVKD() {
+        return {
+            text: $("#txt-FullName-NVKD").val()
+        };
+    }
+    function changeTypeContract() {
+        location.href = r + "/CRMMnContract/Create/?typeContract=" + $("#general-contract-type").val();
+    }
+    $('#information-ads-customer').change(function () {
+        if ($(this).is(":checked")) {
+            $(this).val(1);
+        } else {
+            $(this).val(0);
+        }
+    })
+</script>

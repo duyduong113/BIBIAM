@@ -1,0 +1,427 @@
+﻿@model IEnumerable<CRM24H.Models.CRM_Contract>
+@{
+    bool AllowCreate = (ViewData["AllowCreate"] != null && (bool)ViewData["AllowCreate"]);
+    bool AllowUpdate = (ViewData["AllowUpdate"] != null && (bool)ViewData["AllowUpdate"]);
+    bool AllowDelete = (ViewData["AllowDelete"] != null && (bool)ViewData["AllowDelete"]);
+    bool AllowExport = (ViewData["AllowExport"] != null && (bool)ViewData["AllowExport"]);
+    bool viewall = (ViewData["FlagViewAll"] != null && (bool)ViewData["FlagViewAll"]);
+    var listCustomerType = ViewBag.listCustomerType;
+    var listWeek = new List<int>();
+    for (int i = 1; i <= 53; i++)
+    {
+        listWeek.Add(i);
+    }
+
+}
+<div class="row-fluid ">
+    <div class="span12 screen-body">
+        <div class="span4">
+            <input id="txtsearch" type="text" placeholder="Mã KH, tên ngắn, tên pháp nhân, số điện thoại">
+        </div>
+        <div class="span2" id="">
+            <select id="" class="select-chosen" multiple data-placeholder="Loại KH" style="width:99%">
+                <option value="">--Chọn loại KH--</option>
+                @foreach (var item in ViewBag.listCustomerType)
+                {
+                    <option value="@item.Code"> @item.Value</option>
+                }
+            </select>
+        </div>
+        <div class="span2" id="">
+            @(Html.Kendo().AutoComplete()
+                                    .Name("txt-FullName")
+                                    .DataTextField("FullName")
+                                    //.Value(Html.Raw(item.FullName))
+                                    .Placeholder("Nhập tên nhân viên")
+                                    .Filter("contains")
+                                    .MinLength(1)
+                                    .HtmlAttributes(new { style = "width:100%", @class = "txt-name-employer"})
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("SuggestEmployer", "CRMContractList")
+                                                .Data("onAdditionalDataName");
+                                        })
+                                        .ServerFiltering(true);
+                                    })
+                                    .Events(e =>
+                                    {
+                                        e.Select("onSelectItem");
+                                    })
+            )
+        </div>
+        <div class="span2" id="">
+            <select id="" class="select-chosen" multiple data-placeholder="Nhóm" style="width:99%">
+                <option value=""></option>
+
+            </select>
+        </div>
+        <div class="span1">
+            <button type="button" class="btn btn-small btn-primary" onclick="setfilter(keyfilter)">Lọc dữ liệu</button>
+        </div>
+    </div>
+    
+</div>
+<div class="row-fluid mn-list">
+    @(Html.Kendo().Grid(Model)
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.c_week)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold; height: 51px" })
+                .HtmlAttributes(new { style = "text-align: center;" })
+                .ClientTemplate(
+               "<span class='tooltip-info' data-rel='tooltip' data-placement='left' title='' data-original-title='Chi tiết'> "
+                + "<a class='btn btn-minier btn-default btn-grid' href=" + Url.Action("Detail", "CRMMnDebt", new { @Id = "1" }) + "><i class='icon-info bigger-125'></i></a>"
+                + "</span>"
+               + "<span class='tooltip-success' data-rel='tooltip' data-placement='bottom' title='' data-original-title='Điều chỉnh'>"
+               + "<a class='btn btn-minier btn-success btn-grid' href=''><i class='icon-pencil bigger-125'></i></a> "
+                + "</span>"
+               + "<span class='tooltip-error' data-rel='tooltip' data-placement='right' title='' data-original-title='Lịch sử'> "
+                + "<a class='btn btn-minier btn-danger btn-grid' href=" + Url.Action("History", "CRMMnDebt", new { @Id = "1" }) + "><i class='icon-book bigger-125'></i></a>"
+                + "</span>"
+                    ).Title("").Locked(true).Width(100);
+
+        columns.Bound(p => p.c_customer_name)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold; height: 51px" })
+                .Title("Tên khách hàng").Locked(true)
+                .Width(200);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: left;font-weight: bold;" })
+                .Title("Loại khách hàng")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("NVKD")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: left;font-weight: bold;" })
+                .Title("Loại khách hàng")
+                .Width(100);
+        columns.Bound(p => p.c_labels)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("Tổng số hợp đồng còn nợ")
+                .HeaderTemplate("<div><span>Tổng số <br/>hợp đồng <br/>còn nợ</span></div>")
+                .Width(100);
+        columns.Bound(p => p.c_dt_da_qc_den_hom_nay)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(120)
+                .Title("Tổng nợ theo hợp đồng")
+                .HeaderTemplate("<div style = 'height: 40px'><span >Tổng nợ theo<br/>hợp đồng</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .ClientTemplate("#=kendo.toString(c_dt_da_qc_den_hom_nay, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+
+        columns.Bound(p => p.c_dt_da_xuat_ban)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("DS đã XB quảng cáo")
+                .HeaderTemplate("<div style = 'height: 40px'><span>Đã XBQC</span></div><div class='hr-number'><span id=''>0</span></div>")
+                 .ClientTemplate("#=kendo.toString(c_dt_da_xuat_ban, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_dt_da_xuat_ban)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("DS đã XB quảng cáo")
+                .HeaderTemplate("<div style='height: 40px'><span>Đã XBQC<br/>đến hôm nay</span></div><div class='hr-number'><span id=''>0</span></div>")
+                 .ClientTemplate("#=kendo.toString(c_dt_da_xuat_ban, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" });
+        columns.Bound(p => p.c_payment_money)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Width(100)
+                .Title("Đã thu")
+                .ClientTemplate("#=kendo.toString(c_payment_money, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .HeaderTemplate("<div style='height: 40px'><span >Đã thu</span></div><div class='hr-number'><span id=''>0</span></div>");
+
+        columns.Bound(p => p.c_balance)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold" })
+                .Width(100)
+                .Title("Nợ còn lại")
+                .Format("#=kendo.toString(c_balance, 'n0')#")
+                .ClientTemplate("#=kendo.toString(c_balance, 'n0')#")
+                .HtmlAttributes(new { style = "text-align: right;" })
+                .HeaderTemplate("<div style='height: 40px'><span>Còn nợ </span></div><div class='hr-number'><span id=''>0</span></div>");
+
+        columns.Bound(p => p.dang_quang_cao)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .Title("Nợ còn lại theo hợp đồng")
+                 .HtmlAttributes(new { style = "text-align: center;" })
+                .HeaderTemplate("<div style='height: 40px'><span>Nợ còn lại<br/>theo<br/>hợp đồng</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .Width(150);
+        columns.Bound(p => p.c_payment_date)
+                .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+                .HtmlAttributes(new { style = "text-align: center;" })
+                .Title("Hạn TT")
+                .HeaderTemplate("<div style='height: 40px'><span>Đã xuất<br/>theo<br/>hóa đơn</span></div><div class='hr-number'><span id=''>0</span></div>")
+                .Width(100).Format("{0:dd/MM/yyyy}");
+        columns.Bound(p => p.c_total_value)
+               .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+               .HeaderTemplate("<div style='height: 40px'><span>Chưa xuất hóa đơn</span></div><div class='hr-number'><span id=''>0</span></div>")
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .Title("Phải thu")
+               .ClientTemplate("#=kendo.toString(c_total_value, 'n0')#")
+               .Width(100);
+
+        columns.Bound(p => p.c_total_vat)
+               .HeaderHtmlAttributes(new { style = "background-color: #2FAED4;color: #fff;text-align: center;font-weight: bold;" })
+               .HeaderTemplate("<div style='height: 40px'><span >Đièu chỉnh</span></div><div class='hr-number'><span id=''>0</span></div>")
+               .HtmlAttributes(new { style = "text-align: right;" })
+               .ClientTemplate("#=kendo.toString(c_total_vat, 'n0')#")
+               .Title("VAT")
+               .Width(100);
+
+
+        //columns.Bound(p => p.ApprovedDate).Format("{0:dd/MM/yyyy}").Width(120).Hidden();
+    })
+
+    .Excel(excel => excel
+        .FileName("Hợp đồng.xlsx")
+        .Filterable(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", "Export"))
+    )
+    .Pageable(pager => pager.PageSizes(new[] { 10, 20, 50, 100, 200, 300, 500 }))
+    .Scrollable(scrollable => scrollable.Height(320))
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Resizable(resizable => resizable.Columns(true))
+    .Events(events => { events.DataBound("dataBound"); })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(10)
+
+    .Model(model =>
+    {
+        model.Id(p => p.pk_contract);
+    })
+    .Sort(a => a.Add(m => m.pk_contract).Descending()
+    )
+    .Read(read => read.Action("Read", "CRMMnContract"))
+                 )
+    )
+</div>
+
+<script>
+    function onSelectItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+        console.log(dataItem);
+    }
+    function onAdditionalDataName() {
+        return {
+            text: $("#txt-FullName").val()
+        };
+    }
+    //chuyen doi so --> chuoi dinh danh tien $1,000
+    function currency2String(value) {
+        return value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
+    }
+    function dataBound(e) {
+        $('[data-rel=tooltip]').tooltip();
+        $('[data-rel=popover]').popover({ html: true });
+        
+
+        var grid = $("#Grid").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+        .options.parameterMap({
+            page: grid.dataSource.page(),
+            sort: grid.dataSource.sort(),
+            filter: grid.dataSource.filter(),
+            group: grid.dataSource.group()
+        });
+        
+    }
+    var keyfilter = "";
+    function setfilter(keyfilter) {
+        var grid = $('#Grid').data('kendoGrid');
+        var filter = { logic: "and", filters: [] };
+        var fillterOr = { logic: "or", filters: [] };
+        $('#listfilter').val('');
+        if (keyfilter != "") {
+            if (keyfilter == "SAP_HET_HAN") {
+                $('#listfilter').val(1);
+            }
+            if (keyfilter == "SAP_HET_TIEN") {
+                $('#listfilter').val(0);
+            }
+        }
+        else {
+        }
+        var text = $('#listfilter').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            if (text == 1) {
+                filtertext.filters.push({ field: "c_het_han", operator: "eq", value: 1 });
+            }
+            else {
+                filtertext.filters.push({ field: "c_het_gia_tri", operator: "eq", value: 1 });
+            }
+            filter.filters.push(filtertext);
+        }
+
+        var listStatus = $('#listStatus option:selected');
+        if (listStatus.length > 0) {
+            var fillterStatus = { logic: "or", filters: [] }
+            for (var i = 0; i < listStatus.length; i++) {
+                var option = listStatus[i].value;
+                if (option == '') {
+                    fillterStatus.filters.push({ field: "c_status", operator: "contains", value: '' });
+                }
+                else {
+                    fillterStatus.filters.push({ field: "c_status", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterStatus);
+        }
+        var listStatusBill = $('#listStatusBill option:selected');
+        debugger;
+        if (listStatusBill.length > 0) {
+            var fillterStatusBill = { logic: "or", filters: [] }
+            for (var i = 0; i < listStatusBill.length; i++) {
+                var option = listStatusBill[i].value;
+                if (option == '') {
+                    fillterStatusBill.filters.push({ field: "tien_chua_xuat_hoa_don", operator: "gteq", value: -1 });
+                }
+                else {
+                    fillterStatusBill.filters.push({ field: "tien_chua_xuat_hoa_don", operator: "gt", value: option });
+                }
+            }
+            filter.filters.push(fillterStatusBill);
+        }
+        var text = $('#txtsearch').val();
+        var filtertext = { logic: "or", filters: [] };
+        if (text) {
+            filtertext.filters.push({ field: "c_customer_code", operator: "eq", value: text });
+            filtertext.filters.push({ field: "c_customer_name", operator: "contains", value: text });
+            //filtertext.filters.push({ field: "Phone", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtLables').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_labels", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtCode').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_contract_code", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var text = $('#txtBookCode').val();
+        if (text) {
+            var filtertext = { logic: "or", filters: [] };
+            filtertext.filters.push({ field: "c_book_code", operator: "contains", value: text });
+            filter.filters.push(filtertext);
+        }
+        var listYear = $('#listYearGetContract option:selected');
+        if (listYear.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listYear.length; i++) {
+                var option = listYear[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_year", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_year", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        var listWeek = $('#Week option:selected');
+        if (listWeek.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listWeek.length; i++) {
+                var option = listWeek[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_week", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_week", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        //Not yet
+        var listCongNo = $('#listCongNo option:selected');
+        if (listCongNo.length > 0) {
+            var fillterOr = { logic: "or", filters: [] }
+            for (var i = 0; i < listCongNo.length; i++) {
+                var option = listCongNo[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_week", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_week", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+
+        var listRegion = $('#listRegion option:selected');
+        if (listRegion.length > 0) {
+
+            for (var i = 0; i < listRegion.length; i++) {
+                var option = listRegion[i].value;
+                if (option == '') {
+                    fillterOr.filters.push({ field: "c_regionid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterOr.filters.push({ field: "c_regionid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterOr);
+        }
+        var listGroup = $('#listGroup option:selected');
+        if (listGroup.length > 0) {
+            var fillterlistGroup = { logic: "or", filters: [] }
+            for (var i = 0; i < listGroup.length; i++) {
+                var option = listGroup[i].value;
+                if (option == '') {
+                    fillterlistGroup.filters.push({ field: "c_teamid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistGroup.filters.push({ field: "c_teamid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistGroup);
+        }
+        var listStaff = $('#listStaff option:selected');
+        var fillterlistStaff = { logic: "or", filters: [] }
+        if (listStaff.length > 0) {
+            for (var i = 0; i < listStaff.length; i++) {
+                var option = listStaff[i].value;
+                if (option == '') {
+                    fillterlistStaff.filters.push({ field: "c_staffid", operator: "contains", value: '' });
+                }
+                else {
+                    fillterlistStaff.filters.push({ field: "c_staffid", operator: "eq", value: option });
+                }
+            }
+            filter.filters.push(fillterlistStaff);
+        }
+
+        var orderDate = $('#NgayVeHD2Chieu').val();
+        if (orderDate) {
+            var startdate = orderDate.split('-')[0].trim();
+            var enddate = orderDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "c_ngay_ve_hai_chieu", operator: "gte", value: startdate });
+            filter.filters.push({ field: "c_ngay_ve_hai_chieu", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+
+        var approveDate = $('#NgayLenXuongThucTe').val();
+        if (approveDate) {
+            var startdate = approveDate.split('-')[0].trim();
+            var enddate = approveDate.split('-')[1].trim();
+            var todate = new Date(enddate);
+            todate.setDate(todate.getDate() + 1);
+            filter.filters.push({ field: "c_min_ngay_len_thuc_te", operator: "gte", value: startdate });
+            filter.filters.push({ field: "c_max_ngay_len_xuong_thuc_te", operator: "lt", value: kendo.toString(todate, 'yyyy-MM-dd') });
+        }
+        grid.dataSource.filter(filter);
+    }
+   
+    
+
+</script>
